@@ -92,7 +92,7 @@ impl BuildToolchainCmd {
             .args(["toolchain", "remove", RUSTUP_TOOLCHAIN_NAME])
             .run()
         {
-            Ok(_) => println!("Succesfully removed existing toolchain."),
+            Ok(_) => println!("Successfully removed existing toolchain."),
             Err(_) => println!("No existing toolchain to remove."),
         }
 
@@ -126,7 +126,7 @@ impl BuildToolchainCmd {
             .args(["toolchain", "link", RUSTUP_TOOLCHAIN_NAME])
             .arg(&toolchain_dir)
             .run()?;
-        println!("Succesfully linked the toolchain to rustup.");
+        println!("Successfully linked the toolchain to rustup.");
 
         // Compressing toolchain directory to tar.gz.
         let target = get_target();
@@ -144,7 +144,7 @@ impl BuildToolchainCmd {
                 ".",
             ])
             .run()?;
-        println!("Succesfully compressed the toolchain to {}.", tar_gz_path);
+        println!("Successfully compressed the toolchain to {}.", tar_gz_path);
 
         Ok(())
     }
