@@ -199,9 +199,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.5.0"
+version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
+checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
 
 [[package]]
 name = "bitvec"
@@ -979,11 +979,11 @@ checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
 
 [[package]]
 name = "git2"
-version = "0.18.3"
+version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "232e6a7bfe35766bf715e55a88b39a700596c0ccfd88cd3680b4cdb40d66ef70"
+checksum = "1b3ba52851e73b46a4c3df1d89343741112003f0f6f13beb0dfac9e457c3fdcd"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.4.2",
  "libc",
  "libgit2-sys",
  "log",
@@ -1246,6 +1246,15 @@ dependencies = [
 
 [[package]]
 name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
@@ -1327,7 +1336,7 @@ version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85c833ca1e66078851dba29046874e38f08b2c883700aa29a03ddd3b23814ee8"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.4.2",
  "libc",
  "redox_syscall",
 ]
@@ -1588,7 +1597,7 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 [[package]]
 name = "p3-air"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -1597,9 +1606,13 @@ dependencies = [
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
+ "num-bigint",
  "p3-field",
+ "p3-mds",
+ "p3-poseidon2",
+ "p3-symmetric",
  "rand",
  "serde",
 ]
@@ -1607,7 +1620,7 @@ dependencies = [
 [[package]]
 name = "p3-blake3"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "blake3",
  "p3-symmetric",
@@ -1616,7 +1629,7 @@ dependencies = [
 [[package]]
 name = "p3-challenger"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-field",
  "p3-maybe-rayon",
@@ -1628,31 +1641,36 @@ dependencies = [
 [[package]]
 name = "p3-commit"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
+ "itertools 0.12.1",
  "p3-challenger",
  "p3-field",
  "p3-matrix",
+ "p3-util",
  "serde",
 ]
 
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-field",
  "p3-matrix",
  "p3-maybe-rayon",
  "p3-util",
+ "tracing",
 ]
 
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "itertools 0.12.1",
+ "num-bigint",
+ "num-traits",
  "p3-util",
  "rand",
  "serde",
@@ -1661,7 +1679,7 @@ dependencies = [
 [[package]]
 name = "p3-fri"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "itertools 0.12.1",
  "p3-challenger",
@@ -1679,9 +1697,14 @@ dependencies = [
 [[package]]
 name = "p3-goldilocks"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
+ "num-bigint",
+ "p3-dft",
  "p3-field",
+ "p3-mds",
+ "p3-poseidon2",
+ "p3-symmetric",
  "p3-util",
  "rand",
  "serde",
@@ -1690,7 +1713,7 @@ dependencies = [
 [[package]]
 name = "p3-interpolation"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -1700,7 +1723,7 @@ dependencies = [
 [[package]]
 name = "p3-keccak"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-symmetric",
  "tiny-keccak",
@@ -1709,7 +1732,7 @@ dependencies = [
 [[package]]
 name = "p3-keccak-air"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "p3-air",
  "p3-field",
@@ -1721,19 +1744,21 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
+ "itertools 0.12.1",
  "p3-field",
  "p3-maybe-rayon",
  "p3-util",
  "rand",
  "serde",
+ "tracing",
 ]
 
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "rayon",
 ]
@@ -1741,14 +1766,12 @@ dependencies = [
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
- "p3-baby-bear",
+ "itertools 0.11.0",
  "p3-dft",
  "p3-field",
- "p3-goldilocks",
  "p3-matrix",
- "p3-mersenne-31",
  "p3-symmetric",
  "p3-util",
  "rand",
@@ -1757,7 +1780,7 @@ dependencies = [
 [[package]]
 name = "p3-merkle-tree"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "itertools 0.12.1",
  "p3-commit",
@@ -1771,30 +1794,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "p3-mersenne-31"
-version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
-dependencies = [
- "itertools 0.12.1",
- "p3-dft",
- "p3-field",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-util",
- "rand",
- "serde",
-]
-
-[[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
- "p3-baby-bear",
  "p3-field",
- "p3-goldilocks",
- "p3-mds",
- "p3-mersenne-31",
  "p3-symmetric",
  "rand",
 ]
@@ -1802,7 +1806,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "itertools 0.12.1",
  "p3-field",
@@ -1812,7 +1816,7 @@ dependencies = [
 [[package]]
 name = "p3-uni-stark"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "itertools 0.12.1",
  "p3-air",
@@ -1830,7 +1834,7 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+ssh://git@github.com/wormhole-foundation/plonky3#7d11ba55fa2c939449b593df298d04d7e15979d5"
+source = "git+ssh://git@github.com/wormhole-foundation/plonky3?branch=sp1#4809fa7bedd9ba8f6f5d3267b1592618e3776c57"
 dependencies = [
  "serde",
 ]
@@ -2104,9 +2108,9 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "reqwest"
-version = "0.11.27"
+version = "0.11.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd67538700a17451e7cba03ac727fb961abb7607553461627b97de0b89cf4a62"
+checksum = "78bf93c4af7a8bb7d879d51cebe797356ff10ae8516ace542b5182d9dcac10b2"
 dependencies = [
  "base64",
  "bytes",
@@ -2201,7 +2205,7 @@ version = "0.38.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ea3e1a662af26cd7a3ba09c0297a31af215563ecf42817c98df621387f4e949"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.4.2",
  "errno",
  "libc",
  "linux-raw-sys",
