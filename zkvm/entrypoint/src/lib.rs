@@ -7,6 +7,7 @@ pub mod precompiles {
     pub use sp1_precompiles::*;
 }
 
+#[allow(unused_extern_crates)]
 extern crate alloc;
 
 #[macro_export]

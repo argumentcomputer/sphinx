@@ -30,10 +30,7 @@ pub fn build_program(path: &str) {
     let mut metadata_cmd = cargo_metadata::MetadataCommand::new();
     let metadata = metadata_cmd.manifest_path(metadata_file).exec().unwrap();
     let root_package = metadata.root_package();
-    let root_package_name = root_package
-        .as_ref()
-        .map(|p| p.name.as_str())
-        .unwrap_or("Program");
+    let root_package_name = root_package.as_ref().map_or("Program", |p| p.name.as_str());
     println!(
         "cargo:warning={} built at {}",
         root_package_name,

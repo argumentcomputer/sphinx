@@ -102,8 +102,7 @@ impl Syscall for K256DecompressChip {
 
         // Compute actual decompressed Y
         let computed_point =
-            k256::AffinePoint::decompress((&x_bytes_be).into(), Choice::from(is_odd as u8))
-                .unwrap();
+            k256::AffinePoint::decompress((&x_bytes_be).into(), Choice::from(is_odd)).unwrap();
 
         let decompressed_point = computed_point.to_encoded_point(false);
         let decompressed_point_bytes = decompressed_point.as_bytes();

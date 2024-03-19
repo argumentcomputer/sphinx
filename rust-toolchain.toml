@@ -1,0 +1,4 @@
+[toolchain]
+channel = "nightly-2024-01-25"
+profile = "default"
+components = ["llvm-tools", "rustc-dev"]

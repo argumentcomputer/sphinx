@@ -9,122 +9,37 @@ on:
     paths:
       - "core/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: CI Test Suite
-    runs-on: warp-ubuntu-latest-arm64-16x
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
-    env:
-      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+    runs-on: buildjet-16vcpu-ubuntu-2204
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Set up git private repo access
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - name: Set env
         run: |
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com".insteadOf https://github.com
-
-      - name: rust-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-            ~/.rustup/
-          key: test-rust-nightly-2024-01-25-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: rust-nightly-2024-01-25-
-
-      - name: Install nightly toolchain
-        id: rustc-toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2024-01-25
-          override: true
-
+          echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
+          echo "RUST_LOG=1" | tee -a $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: taiki-e/install-action@nextest
       - name: Run cargo test on sp1-core
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p sp1-core --release
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
-
-      - name: Run cargo test on sp1-recursion-compiler
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p sp1-recursion-compiler --release
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
-
-      - name: Run cargo test with no default features
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p sp1-core --release --no-default-features --features debug -- cpu::trace::tests::generate_trace
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
-
-  lints:
-    name: Formatting & Clippy
-    runs-on: warp-ubuntu-latest-arm64-16x
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
-    env:
-      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Set up git private repo access
         run: |
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com".insteadOf https://github.com
+          cargo nextest run -p sp1-core --release --profile ci
+      - name: Run cargo test on sp1-recursion-compiler
+        run: |
+          cargo nextest run -p sp1-recursion-compiler --release --profile ci
+      - name: Run cargo test with no default features
+        run: |
+          cargo nextest run -p sp1-core --release --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
 
-      - name: rust-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-            ~/.rustup/
-          key: clippy-rust-nightly-2024-01-25-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: rust-nightly-2024-01-25-
-
-      - name: Install nightly toolchain
-        id: rustc-toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2024-01-25
-          override: true
-          components: rustfmt, clippy
-
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-        env:
-          CARGO_INCREMENTAL: 1
-
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features --all-targets -- -D warnings -A incomplete-features
-        env:
-          CARGO_INCREMENTAL: 1
+  # Rustfmt, clippy, doctests
+  code-quality:
+    uses: lurk-lab/ci-workflows/.github/workflows/lints.yml@main

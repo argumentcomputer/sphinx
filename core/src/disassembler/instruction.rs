@@ -36,7 +36,7 @@ impl Instruction {
             opcode,
             dec_insn.rd as u32,
             dec_insn.rs1 as u32,
-            dec_insn.shamt as u32,
+            dec_insn.shamt,
             false,
             true,
         )
