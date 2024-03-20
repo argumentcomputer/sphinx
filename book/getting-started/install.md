@@ -55,7 +55,7 @@ Make sure you have installed the [dependencies](https://github.com/rust-lang/rus
 Clone the `sp1` repository and navigate to the root directory.
 
 ```bash
-git clone git@github.com:succinctlabs/sp1.git
+git clone git@github.com:github.com/wormhole-foundation/wp1.git
 cd sp1
 cd cli
 cargo install --locked --path .
@@ -97,11 +97,11 @@ to automatically use the latest image of SP1 in a container.
 Alternatively, it is possible to build the docker image locally by running:
 
 ```bash
-docker build -t succinctlabs/sp1:latest ./cli/docker
+docker build -t github.com/wormhole-foundation/wp1:latest ./cli/docker
 ```
 
 You can then run the `cargo prove` command by mounting your program directory into the container:
 
 ```bash
-docker run -v "$(pwd):/root/program" -it succinctlabs/sp1:latest prove build
+docker run -v "$(pwd):/root/program" -it github.com/wormhole-foundation/wp1:latest prove build
 ```

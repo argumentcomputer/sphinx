@@ -11,7 +11,7 @@ To make this more concrete, let's walk through a simple example of writing a Fib
 
 ## Fibonacci
 
-This program is from the `examples` [directory](https://github.com/succinctlabs/sp1/tree/main/examples) in the SP1 repo which contains several example programs of varying complexity.
+This program is from the `examples` [directory](https://github.com/wormhole-foundation/wp1/tree/main/examples) in the SP1 repo which contains several example programs of varying complexity.
 
 ```rust,noplayground
 {{#include ../../examples/fibonacci-io/program/src/main.rs}}

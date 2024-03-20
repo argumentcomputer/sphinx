@@ -43,7 +43,7 @@ name = "program"
 edition = "2021"
 
 [dependencies]
-sp1-zkvm = { git = "https://github.com/succinctlabs/sp1.git" }
+sp1-zkvm = { git = "https://github.com/wormhole-foundation/wp1.git" }
 ```
 
 The `sp1-zkvm` crate includes necessary utilities for your program, including handling inputs and outputs,
