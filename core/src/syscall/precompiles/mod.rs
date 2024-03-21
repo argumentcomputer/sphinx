@@ -29,7 +29,7 @@ pub struct ECAddEvent {
     pub q_memory_records: [MemoryReadRecord; 16],
 }
 
-pub fn create_ec_add_event<E: EllipticCurve>(rt: &mut SyscallContext) -> ECAddEvent {
+pub fn create_ec_add_event<E: EllipticCurve>(rt: &mut SyscallContext<'_>) -> ECAddEvent {
     let a0 = crate::runtime::Register::X10;
     let a1 = crate::runtime::Register::X11;
 
@@ -37,14 +37,10 @@ pub fn create_ec_add_event<E: EllipticCurve>(rt: &mut SyscallContext) -> ECAddEv
 
     // TODO: these will have to be be constrained, but can do it later.
     let p_ptr = rt.register_unsafe(a0);
-    if p_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(p_ptr % 4 == 0,);
 
     let (q_ptr_record, q_ptr) = rt.mr(a1 as u32);
-    if q_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(q_ptr % 4 == 0,);
 
     let p: [u32; 16] = rt.slice_unsafe(p_ptr, 16).try_into().unwrap();
     let (q_memory_records_vec, q_vec) = rt.mr_slice(q_ptr, 16);
@@ -85,16 +81,14 @@ pub struct ECDoubleEvent {
     pub p_memory_records: [MemoryWriteRecord; 16],
 }
 
-pub fn create_ec_double_event<E: EllipticCurve>(rt: &mut SyscallContext) -> ECDoubleEvent {
+pub fn create_ec_double_event<E: EllipticCurve>(rt: &mut SyscallContext<'_>) -> ECDoubleEvent {
     let a0 = crate::runtime::Register::X10;
 
     let start_clk = rt.clk;
 
     // TODO: these will have to be be constrained, but can do it later.
     let p_ptr = rt.register_unsafe(a0);
-    if p_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(p_ptr % 4 == 0,);
 
     let p: [u32; 16] = rt.slice_unsafe(p_ptr, 16).try_into().unwrap();
 

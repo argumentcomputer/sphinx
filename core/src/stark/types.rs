@@ -120,7 +120,7 @@ pub struct AirOpenedValues<T> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChipOpenedValues<T: Serialize> {
+pub struct ChipOpenedValues<T> {
     pub preprocessed: AirOpenedValues<T>,
     pub main: AirOpenedValues<T>,
     pub permutation: AirOpenedValues<T>,
@@ -130,7 +130,7 @@ pub struct ChipOpenedValues<T: Serialize> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShardOpenedValues<T: Serialize> {
+pub struct ShardOpenedValues<T> {
     pub chips: Vec<ChipOpenedValues<T>>,
 }
 
@@ -179,7 +179,7 @@ impl<T: Serialize> ShardOpenedValues<T> {
 
 #[cfg(feature = "perf")]
 impl<T> AirOpenedValues<T> {
-    pub fn view(&self) -> TwoRowMatrixView<T> {
+    pub fn view(&self) -> TwoRowMatrixView<'_, T> {
         TwoRowMatrixView::new(&self.local, &self.next)
     }
 }

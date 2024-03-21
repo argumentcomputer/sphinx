@@ -14,13 +14,13 @@ use k256::FieldElement;
 use num::traits::FromBytes;
 use num::traits::ToBytes;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Secp256k1 curve parameter
 pub struct Secp256k1Parameters;
 
 pub type Secp256k1 = SwCurve<Secp256k1Parameters>;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Secp256k1 base field parameter
 pub struct Secp256k1BaseField;
 

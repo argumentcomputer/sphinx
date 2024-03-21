@@ -37,7 +37,7 @@ impl Runtime {
 }
 
 #[cfg(test)]
-pub mod tests {
+pub(crate) mod tests {
     use super::*;
     use crate::runtime::Program;
     use crate::utils::tests::IO_ELF;
@@ -46,9 +46,9 @@ pub mod tests {
 
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct MyPointUnaligned {
-        pub x: usize,
-        pub y: usize,
-        pub b: bool,
+        pub(crate) x: usize,
+        pub(crate) y: usize,
+        pub(crate) b: bool,
     }
 
     fn points() -> (MyPointUnaligned, MyPointUnaligned) {

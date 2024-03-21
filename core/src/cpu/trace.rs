@@ -43,7 +43,7 @@ impl<F: PrimeField> MachineAir<F> for CpuChip {
             .collect::<Vec<_>>();
 
         let mut rows = Vec::<F>::new();
-        rows_with_events.into_iter().for_each(|row_with_events| {
+        for row_with_events in rows_with_events.into_iter() {
             let (row, alu_events, blu_events, field_events) = row_with_events;
             rows.extend(row);
             for (key, value) in alu_events {
@@ -56,7 +56,7 @@ impl<F: PrimeField> MachineAir<F> for CpuChip {
             }
             new_blu_events.extend(blu_events);
             new_field_events.extend(field_events);
-        });
+        }
 
         // Add the dependency events to the shard.
         output.add_alu_events(new_alu_events);
@@ -83,26 +83,24 @@ impl<F: PrimeField> MachineAir<F> for CpuChip {
                 let mut alu = HashMap::new();
                 let mut blu: Vec<_> = Vec::default();
                 let mut field: Vec<_> = Vec::default();
-                ops.iter().for_each(|op| {
+                for op in ops.iter() {
                     let (_, alu_events, blu_events, field_events) = self.event_to_row::<F>(*op);
                     alu_events.into_iter().for_each(|(key, value)| {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
                     });
                     blu.extend(blu_events);
                     field.extend(field_events);
-                });
+                }
                 (alu, blu, field)
             })
             .collect::<Vec<_>>();
 
-        events
-            .into_iter()
-            .for_each(|(alu_events, blu_events, field_events)| {
-                // Add the dependency events to the shard.
-                output.add_alu_events(alu_events);
-                output.add_byte_lookup_events(blu_events);
-                output.add_field_events(&field_events);
-            });
+        for (alu_events, blu_events, field_events) in events.into_iter() {
+            // Add the dependency events to the shard.
+            output.add_alu_events(alu_events);
+            output.add_byte_lookup_events(blu_events);
+            output.add_field_events(&field_events);
+        }
     }
 
     fn included(&self, _: &Self::Record) -> bool {
@@ -228,7 +226,7 @@ impl CpuChip {
             match event.instruction.opcode {
                 Opcode::LB | Opcode::LBU => {
                     cols.unsigned_mem_val =
-                        (mem_value.to_le_bytes()[addr_offset as usize] as u32).into();
+                        u32::from(mem_value.to_le_bytes()[addr_offset as usize]).into();
                 }
                 Opcode::LH | Opcode::LHU => {
                     let value = match (addr_offset >> 1) % 2 {
@@ -286,8 +284,8 @@ impl CpuChip {
                 opcode: ByteOpcode::U8Range,
                 a1: 0,
                 a2: 0,
-                b: byte_pair[0] as u32,
-                c: byte_pair[1] as u32,
+                b: u32::from(byte_pair[0]),
+                c: u32::from(byte_pair[1]),
             });
         }
     }
@@ -327,7 +325,7 @@ impl CpuChip {
             let lt_comp_event = AluEvent {
                 clk: event.clk,
                 opcode: alu_op_code,
-                a: a_lt_b as u32,
+                a: u32::from(a_lt_b),
                 b: event.a,
                 c: event.b,
             };
@@ -340,7 +338,7 @@ impl CpuChip {
             let gt_comp_event = AluEvent {
                 clk: event.clk,
                 opcode: alu_op_code,
-                a: a_gt_b as u32,
+                a: u32::from(a_gt_b),
                 b: event.b,
                 c: event.a,
             };

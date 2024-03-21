@@ -29,7 +29,7 @@ pub trait StarkUtils: StarkGenericConfig {
 pub fn get_cycles(program: Program) -> u64 {
     let mut runtime = Runtime::new(program);
     runtime.run();
-    runtime.state.global_clk as u64
+    u64::from(runtime.state.global_clk)
 }
 
 pub fn prove(program: Program) -> crate::stark::Proof<BabyBearBlake3> {
@@ -82,7 +82,7 @@ pub fn run_test(program: Program) -> Result<(), crate::stark::ProgramVerificatio
         "summary: cycles={}, e2e={}, khz={:.2}, proofSize={}",
         cycles,
         time,
-        (cycles as f64 / time as f64),
+        (f64::from(cycles) / time as f64),
         Size::from_bytes(nb_bytes),
     );
 
@@ -124,7 +124,7 @@ where
         "summary: cycles={}, e2e={}, khz={:.2}, proofSize={}",
         cycles,
         time,
-        (cycles as f64 / time as f64),
+        (f64::from(cycles) / time as f64),
         Size::from_bytes(nb_bytes),
     );
 
@@ -317,19 +317,19 @@ pub(super) mod baby_bear_keccak {
 
     use super::StarkUtils;
 
-    pub type Val = BabyBear;
+    pub(crate) type Val = BabyBear;
 
-    pub type Challenge = BinomialExtensionField<Val, 4>;
+    pub(crate) type Challenge = BinomialExtensionField<Val, 4>;
 
     type ByteHash = Keccak256Hash;
     type FieldHash = SerializingHasher32<ByteHash>;
 
     type MyCompress = CompressionFunctionFromHasher<u8, ByteHash, 2, 32>;
 
-    pub type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
-    pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
+    pub(crate) type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
+    pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
 
-    pub type Dft = Radix2DitParallel;
+    pub(crate) type Dft = Radix2DitParallel;
 
     type Challenger = SerializingChallenger32<Val, u8, HashChallenger<u8, ByteHash, 32>>;
 
@@ -443,9 +443,9 @@ pub(super) mod baby_bear_blake3 {
 
     use super::StarkUtils;
 
-    pub type Val = BabyBear;
+    pub(crate) type Val = BabyBear;
 
-    pub type Challenge = BinomialExtensionField<Val, 4>;
+    pub(crate) type Challenge = BinomialExtensionField<Val, 4>;
 
     type ByteHash = Blake3U32;
     type RecursiveVerifierByteHash = Blake3U32Zkvm;
@@ -456,15 +456,15 @@ pub(super) mod baby_bear_blake3 {
     type Compress = CompressionFunctionFromHasher<u32, ByteHash, 2, 8>;
     type RecursiveVerifierCompress = Blake3SingleBlockCompression;
 
-    pub type ValMmcs = FieldMerkleTreeMmcs<Val, u32, FieldHash, Compress, 8>;
-    pub type RecursiveVerifierValMmcs =
+    pub(crate) type ValMmcs = FieldMerkleTreeMmcs<Val, u32, FieldHash, Compress, 8>;
+    pub(crate) type RecursiveVerifierValMmcs =
         FieldMerkleTreeMmcs<Val, u32, RecursiveVerifierFieldHash, RecursiveVerifierCompress, 8>;
 
-    pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
-    pub type RecursiveVerifierChallengeMmcs =
+    pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
+    pub(crate) type RecursiveVerifierChallengeMmcs =
         ExtensionMmcs<Val, Challenge, RecursiveVerifierValMmcs>;
 
-    pub type Dft = Radix2DitParallel;
+    pub(crate) type Dft = Radix2DitParallel;
 
     type Challenger = SerializingChallenger32<Val, u32, HashChallenger<u32, ByteHash, 8>>;
     type RecursiveVerifierChallenger =
@@ -641,10 +641,10 @@ pub(super) mod baby_bear_blake3 {
         }
     }
     #[derive(Clone)]
-    pub struct Blake3SingleBlockCompression;
+    pub(crate) struct Blake3SingleBlockCompression;
 
     impl Blake3SingleBlockCompression {
-        pub fn new() -> Self {
+        pub(crate) fn new() -> Self {
             Self {}
         }
     }
@@ -691,7 +691,7 @@ pub(super) mod baby_bear_blake3 {
     }
 
     #[derive(Copy, Clone)]
-    pub struct Blake3U32Zkvm;
+    pub(crate) struct Blake3U32Zkvm;
 
     impl CryptographicHasher<u32, [u32; 8]> for Blake3U32Zkvm {
         fn hash_iter<I>(&self, input: I) -> [u32; 8]

@@ -9,6 +9,7 @@ use sp1_recursion_compiler::ir::{Ext, SymbolicExt};
 fn verify_constraints<SC: StarkGenericConfig, A: MachineAir<SC::Val>>(
     chip: MachineChip<SC, A>,
     folder: &mut GenericVerifierConstraintFolder<
+        '_,
         SC::Val,
         SC::Challenge,
         Ext<SC::Val, SC::Challenge>,

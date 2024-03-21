@@ -13,7 +13,7 @@ pub struct MemoryRecord {
     pub timestamp: u32,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum MemoryAccessPosition {
     Memory = 0,
     // Note that these AccessPositions mean that when when read/writing registers, they must be

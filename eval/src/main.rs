@@ -62,22 +62,22 @@ pub struct PerformanceReport {
 #[command(about = "Evaluate the performance of a zkVM on a program.")]
 struct EvalArgs {
     #[arg(long)]
-    pub program: String,
+    pub(crate) program: String,
 
     #[arg(long)]
-    pub hashfn: HashFnId,
+    pub(crate) hashfn: HashFnId,
 
     #[arg(long)]
-    pub shard_size: u64,
+    pub(crate) shard_size: u64,
 
     #[arg(long)]
-    pub benchmark_path: String,
+    pub(crate) benchmark_path: String,
 
     #[arg(long)]
-    pub elf_path: String,
+    pub(crate) elf_path: String,
 
     #[arg(long, default_value_t = 1)]
-    pub runs: usize,
+    pub(crate) runs: usize,
 }
 
 fn main() {

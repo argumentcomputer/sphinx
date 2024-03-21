@@ -93,9 +93,10 @@ impl<F: Field> MessageBuilder<AirInteraction<SymbolicExpression<F>>> for Interac
 }
 
 fn symbolic_to_virtual_pair<F: Field>(expression: &SymbolicExpression<F>) -> VirtualPairCol<F> {
-    if expression.degree_multiple() > 1 {
-        panic!("degree multiple is too high");
-    }
+    assert!(
+        expression.degree_multiple() <= 1,
+        "degree multiple is too high"
+    );
 
     let (column_weights, constant) = eval_symbolic_to_virtual_pair(expression);
 
@@ -135,23 +136,17 @@ fn eval_symbolic_to_virtual_pair<F: Field>(
             v.extend(v_l.iter().map(|(c, w)| (*c, *w * c_r)));
             v.extend(v_r.iter().map(|(c, w)| (*c, *w * c_l)));
 
-            if !v_l.is_empty() && !v_r.is_empty() {
-                panic!("Not an affine expression")
-            }
+            assert!(
+                !(!v_l.is_empty() && !v_r.is_empty()),
+                "Not an affine expression"
+            );
 
             (v, c_l * c_r)
         }
-        SymbolicExpression::IsFirstRow => {
-            panic!("Not an affine expression in current row elements")
-        }
-
-        SymbolicExpression::IsLastRow => {
-            panic!("Not an affine expression in current row elements")
-        }
-        SymbolicExpression::IsTransition => {
-            panic!("Not an affine expression in current row elements")
-        }
-        SymbolicExpression::Variable(_) => {
+        SymbolicExpression::IsFirstRow
+        | SymbolicExpression::IsLastRow
+        | SymbolicExpression::IsTransition
+        | SymbolicExpression::Variable(_) => {
             panic!("Not an affine expression in current row elements")
         }
     }
@@ -193,7 +188,7 @@ mod tests {
         println!("expr: {}", expr);
     }
 
-    pub struct LookupTestAir;
+    pub(crate) struct LookupTestAir;
 
     const NUM_COLS: usize = 3;
 

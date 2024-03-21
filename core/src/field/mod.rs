@@ -76,9 +76,7 @@ impl<F: PrimeField> MachineAir<F> for FieldLtuChip {
                     cols.diff_bits[i] = F::from_canonical_u32((diff >> i) & 1);
                 }
                 let max = 1 << LTU_NB_BITS;
-                if diff >= max {
-                    panic!("diff overflow");
-                }
+                assert!(diff < max, "diff overflow");
                 cols.lt = F::from_bool(event.ltu);
                 cols.is_real = F::one();
                 row

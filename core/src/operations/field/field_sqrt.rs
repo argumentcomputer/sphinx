@@ -102,14 +102,14 @@ mod tests {
         pub sqrt: FieldSqrtCols<T>,
     }
 
-    pub const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
+    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct EdSqrtChip<P: FieldParameters> {
-        pub _phantom: std::marker::PhantomData<P>,
+        pub(crate) _phantom: std::marker::PhantomData<P>,
     }
 
     impl<P: FieldParameters> EdSqrtChip<P> {
-        pub fn new() -> Self {
+        pub(crate) fn new() -> Self {
             Self {
                 _phantom: std::marker::PhantomData,
             }

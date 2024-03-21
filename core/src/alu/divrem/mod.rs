@@ -254,9 +254,9 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         let most_significant_byte = word.to_le_bytes()[WORD_SIZE - 1];
                         blu_events.push(ByteLookupEvent {
                             opcode: ByteOpcode::MSB,
-                            a1: get_msb(*word) as u32,
+                            a1: u32::from(get_msb(*word)),
                             a2: 0,
-                            b: most_significant_byte as u32,
+                            b: u32::from(most_significant_byte),
                             c: 0,
                         });
                     }
@@ -268,18 +268,18 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
             {
                 let c_times_quotient = {
                     if is_signed_operation(event.opcode) {
-                        (((quotient as i32) as i64) * ((event.c as i32) as i64)).to_le_bytes()
+                        (i64::from(quotient as i32) * i64::from(event.c as i32)).to_le_bytes()
                     } else {
-                        ((quotient as u64) * (event.c as u64)).to_le_bytes()
+                        (u64::from(quotient) * u64::from(event.c)).to_le_bytes()
                     }
                 };
                 cols.c_times_quotient = c_times_quotient.map(F::from_canonical_u8);
 
                 let remainder_bytes = {
                     if is_signed_operation(event.opcode) {
-                        ((remainder as i32) as i64).to_le_bytes()
+                        i64::from(remainder as i32).to_le_bytes()
                     } else {
-                        (remainder as u64).to_le_bytes()
+                        u64::from(remainder).to_le_bytes()
                     }
                 };
 
@@ -287,7 +287,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                 let mut carry = [0u32; 8];
                 let base = 1 << BYTE_SIZE;
                 for i in 0..LONG_WORD_SIZE {
-                    let mut x = c_times_quotient[i] as u32 + remainder_bytes[i] as u32;
+                    let mut x = u32::from(c_times_quotient[i]) + u32::from(remainder_bytes[i]);
                     if i > 0 {
                         x += carry[i - 1];
                     }
@@ -303,12 +303,12 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                 {
                     let mut lower_word = 0;
                     for i in 0..WORD_SIZE {
-                        lower_word += (c_times_quotient[i] as u32) << (i * BYTE_SIZE);
+                        lower_word += u32::from(c_times_quotient[i]) << (i * BYTE_SIZE);
                     }
 
                     let mut upper_word = 0;
                     for i in 0..WORD_SIZE {
-                        upper_word += (c_times_quotient[WORD_SIZE + i] as u32) << (i * BYTE_SIZE);
+                        upper_word += u32::from(c_times_quotient[WORD_SIZE + i]) << (i * BYTE_SIZE);
                     }
 
                     let lower_multiplication = AluEvent {

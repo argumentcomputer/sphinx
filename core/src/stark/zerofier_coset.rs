@@ -3,7 +3,7 @@ use p3_field::{cyclic_subgroup_coset_known_order, Field, PackedField, TwoAdicFie
 use super::util::batch_multiplicative_inverse;
 
 /// Precomputations of the evaluation of `Z_H(X) = X^n - 1` on a coset `s K` with `H <= K`.
-pub struct ZerofierOnCoset<F: Field> {
+pub(crate) struct ZerofierOnCoset<F: Field> {
     /// `n = |H|`.
     log_n: usize,
 
@@ -23,7 +23,7 @@ pub struct ZerofierOnCoset<F: Field> {
 
 impl<F: TwoAdicField> ZerofierOnCoset<F> {
     /// Creates a new `ZerofierOnCoset` for the coset `s K` with `H <= K`.
-    pub fn new(log_n: usize, rate_bits: usize, coset_shift: F) -> Self {
+    pub(crate) fn new(log_n: usize, rate_bits: usize, coset_shift: F) -> Self {
         let s_pow_n = coset_shift.exp_power_of_2(log_n);
         let evals = F::two_adic_generator(rate_bits)
             .powers()
@@ -42,17 +42,17 @@ impl<F: TwoAdicField> ZerofierOnCoset<F> {
 
     /// Returns `Z_H(g * w^i)`.
     #[allow(dead_code)]
-    pub fn eval(&self, i: usize) -> F {
+    pub(crate) fn eval(&self, i: usize) -> F {
         self.evals[i & ((1 << self.rate_bits) - 1)]
     }
 
     /// Returns `1 / Z_H(g * w^i)`.
-    pub fn eval_inverse(&self, i: usize) -> F {
+    pub(crate) fn eval_inverse(&self, i: usize) -> F {
         self.inverses[i & ((1 << self.rate_bits) - 1)]
     }
 
     /// Like `eval_inverse`, but for a range of indices starting with `i_start`.
-    pub fn eval_inverse_packed<P: PackedField<Scalar = F>>(&self, i_start: usize) -> P {
+    pub(crate) fn eval_inverse_packed<P: PackedField<Scalar = F>>(&self, i_start: usize) -> P {
         let mut packed = P::zero();
         packed
             .as_slice_mut()

@@ -34,7 +34,7 @@ impl<T: Clone> MemoryReadWriteCols<T> {
 }
 
 #[allow(dead_code)]
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum MemoryChipKind {
     Init,
     Finalize,

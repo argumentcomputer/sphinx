@@ -11,7 +11,7 @@ use super::NUM_STATE_WORDS_PER_CALL;
 use super::OPERATION_COUNT;
 use super::ROUND_COUNT;
 
-pub const NUM_BLAKE3_COMPRESS_INNER_COLS: usize = size_of::<Blake3CompressInnerCols<u8>>();
+pub(crate) const NUM_BLAKE3_COMPRESS_INNER_COLS: usize = size_of::<Blake3CompressInnerCols<u8>>();
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

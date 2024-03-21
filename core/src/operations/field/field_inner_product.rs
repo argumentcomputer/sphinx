@@ -86,7 +86,7 @@ impl<V: Copy> FieldInnerProductCols<V> {
         let p_a_vec: Vec<Polynomial<AB::Expr>> = a.iter().map(|x| (*x).into()).collect();
         let p_b_vec: Vec<Polynomial<AB::Expr>> = b.iter().map(|x| (*x).into()).collect();
         let p_result = self.result.into();
-        let p_carry = self.carry.into();
+        let p_carry: Polynomial<_> = self.carry.into();
 
         let p_zero = Polynomial::<AB::Expr>::new(vec![AB::Expr::zero()]);
 
@@ -99,7 +99,9 @@ impl<V: Copy> FieldInnerProductCols<V> {
             .fold(p_zero, |acc, x| acc + x);
 
         let p_inner_product_minus_result = &p_inner_product - &p_result;
-        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
+        let p_limbs = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect();
         let p_carry_mul_modulus = &p_carry * &p_limbs;
         let p_vanishing = &p_inner_product_minus_result - &(&p_carry * &p_limbs);
 
@@ -142,14 +144,14 @@ mod tests {
         pub a_ip_b: FieldInnerProductCols<T>,
     }
 
-    pub const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
+    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct FieldIpChip<P: FieldParameters> {
-        pub _phantom: std::marker::PhantomData<P>,
+        pub(crate) _phantom: std::marker::PhantomData<P>,
     }
 
     impl<P: FieldParameters> FieldIpChip<P> {
-        pub fn new() -> Self {
+        pub(crate) fn new() -> Self {
             Self {
                 _phantom: std::marker::PhantomData,
             }

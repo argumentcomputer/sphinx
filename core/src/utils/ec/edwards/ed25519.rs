@@ -10,10 +10,10 @@ use crate::utils::ec::{AffinePoint, EllipticCurveParameters};
 
 pub type Ed25519 = EdwardsCurve<Ed25519Parameters>;
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ed25519Parameters;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ed25519BaseField;
 
 impl FieldParameters for Ed25519BaseField {
@@ -93,9 +93,10 @@ pub fn ed25519_sqrt(a: &BigUint) -> BigUint {
     let correct_sign_sqrt = &beta_squared == a;
     let flipped_sign_sqrt = beta_squared == neg_a;
 
-    if !correct_sign_sqrt && !flipped_sign_sqrt {
-        panic!("a is not a square");
-    }
+    assert!(
+        !(!correct_sign_sqrt && !flipped_sign_sqrt),
+        "a is not a square"
+    );
 
     let beta_bytes = beta.to_bytes_le();
     if (beta_bytes[0] & 1) == 1 {

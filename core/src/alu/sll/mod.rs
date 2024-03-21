@@ -134,7 +134,7 @@ impl<F: PrimeField> MachineAir<F> for ShiftLeft {
             let mut bit_shift_result = [0u8; WORD_SIZE];
             let mut bit_shift_result_carry = [0u8; WORD_SIZE];
             for i in 0..WORD_SIZE {
-                let v = b[i] as u32 * bit_shift_multiplier + carry;
+                let v = u32::from(b[i]) * bit_shift_multiplier + carry;
                 carry = v / base;
                 bit_shift_result[i] = (v % base) as u8;
                 bit_shift_result_carry[i] = carry as u8;

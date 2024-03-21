@@ -14,7 +14,7 @@ use p3_matrix::MatrixRowSlices;
 use p3_util::indices_arr;
 use sp1_derive::AlignedBorrow;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum MemoryChipKind {
     Init,
     Finalize,

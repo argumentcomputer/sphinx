@@ -193,7 +193,7 @@ where
     }
 }
 
-impl<F: Field, A: Eq> Eq for Chip<F, A> where F: Field + Eq {}
+impl<F, A: Eq> Eq for Chip<F, A> where F: Field + Eq {}
 
 impl<F, A> Hash for Chip<F, A>
 where

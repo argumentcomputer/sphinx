@@ -20,7 +20,7 @@ impl Syscall for KeccakPermuteChip {
         NUM_ROUNDS as u32 * 4
     }
 
-    fn execute(&self, rt: &mut SyscallContext) -> u32 {
+    fn execute(&self, rt: &mut SyscallContext<'_>) -> u32 {
         // Read `state_ptr` from register a0.
         let state_ptr = rt.register_unsafe(Register::X10);
 
@@ -36,7 +36,7 @@ impl Syscall for KeccakPermuteChip {
         for values in state_values.chunks_exact(2) {
             let least_sig = values[0];
             let most_sig = values[1];
-            state.push(least_sig as u64 + ((most_sig as u64) << 32));
+            state.push(u64::from(least_sig) + (u64::from(most_sig) << 32));
         }
 
         let saved_state = state.clone();

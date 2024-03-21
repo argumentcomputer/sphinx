@@ -86,12 +86,12 @@ impl<SC: StarkGenericConfig, A: MachineAir<SC::Val>> MachineStark<SC, A> {
         let chips = self.chips();
 
         // Generate the trace for each chip to collect events emitted from chips with dependencies.
-        chips.iter().for_each(|chip| {
+        for chip in chips.iter() {
             let mut output = A::Record::default();
             output.set_index(record.index());
             chip.generate_dependencies(&record, &mut output);
             record.append(&mut output);
-        });
+        }
 
         // Display some statistics about the workload.
         let stats = record.stats();

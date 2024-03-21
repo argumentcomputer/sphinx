@@ -127,9 +127,10 @@ impl<E: WeierstrassParameters> AffinePoint<SwCurve<E>> {
 
 impl<E: WeierstrassParameters> AffinePoint<SwCurve<E>> {
     pub fn sw_add(&self, other: &AffinePoint<SwCurve<E>>) -> AffinePoint<SwCurve<E>> {
-        if self.x == other.x && self.y == other.y {
-            panic!("Error: Points are the same. Use sw_double instead.");
-        }
+        assert!(
+            !(self.x == other.x && self.y == other.y),
+            "Error: Points are the same. Use sw_double instead."
+        );
         let p = E::BaseField::modulus();
         let slope_numerator = (&p + &other.y - &self.y) % &p;
         let slope_denominator = (&p + &other.x - &self.x) % &p;

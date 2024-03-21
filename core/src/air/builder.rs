@@ -34,7 +34,7 @@ pub trait EmptyMessageBuilder: AirBuilder {}
 /// A trait which contains basic methods for building an AIR.
 pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>> {
     /// Returns a sub-builder whose constraints are enforced only when `condition` is not one.
-    fn when_not<I: Into<Self::Expr>>(&mut self, condition: I) -> FilteredAirBuilder<Self> {
+    fn when_not<I: Into<Self::Expr>>(&mut self, condition: I) -> FilteredAirBuilder<'_, Self> {
         self.when_ne(condition, Self::F::one())
     }
 
@@ -219,7 +219,7 @@ pub trait WordAirBuilder: ByteAirBuilder {
         input: &[EWord],
         mult: EMult,
     ) {
-        input.iter().for_each(|limb| {
+        for limb in input.iter() {
             self.send_byte(
                 Self::Expr::from_canonical_u8(ByteOpcode::U16Range as u8),
                 *limb,
@@ -227,7 +227,7 @@ pub trait WordAirBuilder: ByteAirBuilder {
                 Self::Expr::zero(),
                 mult.clone(),
             );
-        });
+        }
     }
 }
 

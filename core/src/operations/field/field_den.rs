@@ -97,7 +97,7 @@ impl<V: Copy> FieldDenCols<V> {
         let p_a = Polynomial::from(*a);
         let p_b = (*b).into();
         let p_result = self.result.into();
-        let p_carry = self.carry.into();
+        let p_carry: Polynomial<_> = self.carry.into();
 
         // Compute the vanishing polynomial:
         //      lhs(x) = sign * (b(x) * result(x) + result(x)) + (1 - sign) * (b(x) * result(x) + a(x))
@@ -111,7 +111,9 @@ impl<V: Copy> FieldDenCols<V> {
         let p_equation_rhs = if sign { p_a } else { p_result };
 
         let p_lhs_minus_rhs = &p_equation_lhs - &p_equation_rhs;
-        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
+        let p_limbs = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect();
 
         let p_vanishing = p_lhs_minus_rhs - &p_carry * &p_limbs;
 
@@ -153,15 +155,15 @@ mod tests {
         pub a_den_b: FieldDenCols<T>,
     }
 
-    pub const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
+    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct FieldDenChip<P: FieldParameters> {
-        pub sign: bool,
-        pub _phantom: std::marker::PhantomData<P>,
+        pub(crate) sign: bool,
+        pub(crate) _phantom: std::marker::PhantomData<P>,
     }
 
     impl<P: FieldParameters> FieldDenChip<P> {
-        pub fn new(sign: bool) -> Self {
+        pub(crate) fn new(sign: bool) -> Self {
             Self {
                 sign,
                 _phantom: std::marker::PhantomData,

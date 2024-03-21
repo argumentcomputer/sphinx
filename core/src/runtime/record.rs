@@ -482,8 +482,8 @@ impl ExecutionRecord {
             opcode: ByteOpcode::U8Range,
             a1: 0,
             a2: 0,
-            b: a as u32,
-            c: b as u32,
+            b: u32::from(a),
+            c: u32::from(b),
         });
     }
 
@@ -520,10 +520,10 @@ impl ExecutionRecord {
     pub fn lookup_or(&mut self, b: u8, c: u8) {
         self.add_byte_lookup_event(ByteLookupEvent {
             opcode: ByteOpcode::OR,
-            a1: (b | c) as u32,
+            a1: u32::from(b | c),
             a2: 0,
-            b: b as u32,
-            c: c as u32,
+            b: u32::from(b),
+            c: u32::from(c),
         });
     }
 }

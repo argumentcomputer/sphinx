@@ -16,7 +16,7 @@ pub use opcode::*;
 pub use program::*;
 pub use record::*;
 pub use register::*;
-pub use state::*;
+pub(crate) use state::*;
 pub use syscall::*;
 pub use utils::*;
 
@@ -502,7 +502,7 @@ impl Runtime {
             Opcode::LB => {
                 (rd, b, c, addr, memory_read_value) = self.load_rr(instruction);
                 let value = (memory_read_value).to_le_bytes()[(addr % 4) as usize];
-                a = ((value as i8) as i32) as u32;
+                a = i32::from(value as i8) as u32;
                 memory_store_value = Some(memory_read_value);
                 self.rw(rd, a);
             }
@@ -514,7 +514,7 @@ impl Runtime {
                     1 => (memory_read_value & 0xFFFF0000) >> 16,
                     _ => unreachable!(),
                 };
-                a = ((value as i16) as i32) as u32;
+                a = i32::from(value as i16) as u32;
                 memory_store_value = Some(memory_read_value);
                 self.rw(rd, a);
             }
@@ -528,7 +528,7 @@ impl Runtime {
             Opcode::LBU => {
                 (rd, b, c, addr, memory_read_value) = self.load_rr(instruction);
                 let value = (memory_read_value).to_le_bytes()[(addr % 4) as usize];
-                a = value as u32;
+                a = u32::from(value);
                 memory_store_value = Some(memory_read_value);
                 self.rw(rd, a);
             }
@@ -540,7 +540,7 @@ impl Runtime {
                     1 => (memory_read_value & 0xFFFF0000) >> 16,
                     _ => unreachable!(),
                 };
-                a = (value as u16) as u32;
+                a = u32::from(value as u16);
                 memory_store_value = Some(memory_read_value);
                 self.rw(rd, a);
             }
@@ -678,17 +678,17 @@ impl Runtime {
             }
             Opcode::MULH => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = (((b as i32) as i64).wrapping_mul((c as i32) as i64) >> 32) as u32;
+                a = (i64::from(b as i32).wrapping_mul(i64::from(c as i32)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c);
             }
             Opcode::MULHU => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = ((b as u64).wrapping_mul(c as u64) >> 32) as u32;
+                a = (u64::from(b).wrapping_mul(u64::from(c)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c);
             }
             Opcode::MULHSU => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = (((b as i32) as i64).wrapping_mul(c as i64) >> 32) as u32;
+                a = (i64::from(b as i32).wrapping_mul(i64::from(c)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c);
             }
             Opcode::DIV => {

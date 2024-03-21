@@ -181,9 +181,9 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
                                     let most_significant_byte = word[WORD_SIZE - 1];
                                     blu_events.push(ByteLookupEvent {
                                         opcode: ByteOpcode::MSB,
-                                        a1: get_msb(*word) as u32,
+                                        a1: u32::from(get_msb(*word)),
                                         a2: 0,
-                                        b: most_significant_byte as u32,
+                                        b: u32::from(most_significant_byte),
                                         c: 0,
                                     });
                                 }
@@ -195,7 +195,7 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
                         for i in 0..b.len() {
                             for j in 0..c.len() {
                                 if i + j < PRODUCT_SIZE {
-                                    product[i + j] += (b[i] as u32) * (c[j] as u32);
+                                    product[i + j] += u32::from(b[i]) * u32::from(c[j]);
                                 }
                             }
                         }

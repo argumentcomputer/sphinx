@@ -163,9 +163,9 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
                 let most_significant_byte = event.b.to_le_bytes()[WORD_SIZE - 1];
                 output.add_byte_lookup_events(vec![ByteLookupEvent {
                     opcode: ByteOpcode::MSB,
-                    a1: ((most_significant_byte >> 7) & 1) as u32,
+                    a1: u32::from((most_significant_byte >> 7) & 1),
                     a2: 0,
-                    b: most_significant_byte as u32,
+                    b: u32::from(most_significant_byte),
                     c: 0,
                 }]);
             }
@@ -182,9 +182,9 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
                 let sign_extended_b = {
                     if event.opcode == Opcode::SRA {
                         // Sign extension is necessary only for arithmetic right shift.
-                        ((event.b as i32) as i64).to_le_bytes()
+                        i64::from(event.b as i32).to_le_bytes()
                     } else {
-                        (event.b as u64).to_le_bytes()
+                        u64::from(event.b).to_le_bytes()
                     }
                 };
 
@@ -211,9 +211,9 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
 
                     let byte_event = ByteLookupEvent {
                         opcode: ByteOpcode::ShrCarry,
-                        a1: shift as u32,
-                        a2: carry as u32,
-                        b: byte_shift_result[i] as u32,
+                        a1: u32::from(shift),
+                        a2: u32::from(carry),
+                        b: u32::from(byte_shift_result[i]),
                         c: num_bits_to_shift as u32,
                     };
                     output.add_byte_lookup_event(byte_event);
@@ -221,8 +221,8 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
                     shr_carry_output_carry[i] = carry;
                     shr_carry_output_shifted_byte[i] = shift;
                     bit_shift_result[i] =
-                        ((shift as u32 + last_carry * carry_multiplier) & 0xff) as u8;
-                    last_carry = carry as u32;
+                        ((u32::from(shift) + last_carry * carry_multiplier) & 0xff) as u8;
+                    last_carry = u32::from(carry);
                 }
                 cols.bit_shift_result = bit_shift_result.map(F::from_canonical_u8);
                 cols.shr_carry_output_carry = shr_carry_output_carry.map(F::from_canonical_u8);

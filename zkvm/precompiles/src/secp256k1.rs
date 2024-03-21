@@ -125,7 +125,7 @@ pub(crate) struct AffinePoint {
 }
 
 impl AffinePoint {
-    pub fn from(x: Scalar, y: Scalar) -> Self {
+    pub(crate) fn from(x: Scalar, y: Scalar) -> Self {
         let mut x_bytes = x.to_bytes();
         let mut y_bytes = y.to_bytes();
         // convert to LE
@@ -141,17 +141,17 @@ impl AffinePoint {
         Self { limbs }
     }
 
-    pub const fn from_limbs(limbs: [u32; 16]) -> Self {
+    pub(crate) const fn from_limbs(limbs: [u32; 16]) -> Self {
         Self { limbs }
     }
 
-    pub fn add_assign(&mut self, other: &mut AffinePoint) {
+    pub(crate) fn add_assign(&mut self, other: &mut AffinePoint) {
         unsafe {
             syscall_secp256k1_add(self.limbs.as_mut_ptr(), other.limbs.as_mut_ptr());
         }
     }
 
-    pub fn double(&mut self) {
+    pub(crate) fn double(&mut self) {
         unsafe {
             syscall_secp256k1_double(self.limbs.as_mut_ptr());
         }

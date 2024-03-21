@@ -5,12 +5,12 @@ use crate::air::{SP1AirBuilder, Word, WORD_SIZE};
 use crate::runtime::Opcode;
 
 /// Returns `true` if the given `opcode` is a signed operation.
-pub fn is_signed_operation(opcode: Opcode) -> bool {
+pub(crate) fn is_signed_operation(opcode: Opcode) -> bool {
     opcode == Opcode::DIV || opcode == Opcode::REM
 }
 
 /// Calculate the correct `quotient` and `remainder` for the given `b` and `c` per RISC-V spec.
-pub fn get_quotient_and_remainder(b: u32, c: u32, opcode: Opcode) -> (u32, u32) {
+pub(crate) fn get_quotient_and_remainder(b: u32, c: u32, opcode: Opcode) -> (u32, u32) {
     if c == 0 {
         // When c is 0, the quotient is 2^32 - 1 and the remainder is b regardless of whether we
         // perform signed or unsigned division.
@@ -26,7 +26,7 @@ pub fn get_quotient_and_remainder(b: u32, c: u32, opcode: Opcode) -> (u32, u32) 
 }
 
 /// Calculate the most significant bit of the given 32-bit integer `a`, and returns it as a u8.
-pub fn get_msb(a: u32) -> u8 {
+pub(crate) fn get_msb(a: u32) -> u8 {
     ((a >> 31) & 1) as u8
 }
 
@@ -47,7 +47,7 @@ pub fn get_msb(a: u32) -> u8 {
 ///     significant limb (first limb) should add up to `0xff + 1` (to account for the +1 in two's
 ///     complement negation), and other limbs should add up to `0xff` (as the rest of the limbs just
 ///     have their bits flipped).
-pub fn eval_abs_value<AB>(
+pub(crate) fn eval_abs_value<AB>(
     builder: &mut AB,
     value: &Word<AB::Var>,
     abs_value: &Word<AB::Var>,

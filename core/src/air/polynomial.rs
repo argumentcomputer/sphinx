@@ -130,7 +130,7 @@ impl<T: Mul<Output = T> + Add<Output = T> + AddAssign + Clone> Add<T> for Polyno
     }
 }
 
-impl<T: Mul<Output = T> + Add<Output = T> + Add + Clone> Add<T> for &Polynomial<T> {
+impl<T: Mul<Output = T> + Add<Output = T> + Clone> Add<T> for &Polynomial<T> {
     type Output = Polynomial<T>;
 
     fn add(self, other: T) -> Polynomial<T> {

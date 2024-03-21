@@ -11,7 +11,7 @@ use crate::operations::FixedRotateRightOperation;
 use crate::operations::NotOperation;
 use crate::operations::XorOperation;
 
-pub const NUM_SHA_COMPRESS_COLS: usize = size_of::<ShaCompressCols<u8>>();
+pub(crate) const NUM_SHA_COMPRESS_COLS: usize = size_of::<ShaCompressCols<u8>>();
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

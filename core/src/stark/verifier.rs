@@ -117,7 +117,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<SC::Val>> Verifier<SC, A> {
                 opening_proof,
                 challenger,
             )
-            .map_err(|_| VerificationError::InvalidopeningArgument)?;
+            .map_err(|_e| VerificationError::InvalidopeningArgument)?;
 
         // Verify the constrtaint evaluations.
 
@@ -131,7 +131,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<SC::Val>> Verifier<SC, A> {
                 alpha,
                 &permutation_challenges,
             )
-            .map_err(|_| VerificationError::OodEvaluationMismatch(chip.name()))?;
+            .map_err(|_e| VerificationError::OodEvaluationMismatch(chip.name()))?;
         }
 
         Ok(())

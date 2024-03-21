@@ -77,10 +77,10 @@ impl<F: PrimeField> MachineAir<F> for BitwiseChip {
                 for ((b_a, b_b), b_c) in a.into_iter().zip(b).zip(c) {
                     let byte_event = ByteLookupEvent {
                         opcode: ByteOpcode::from(event.opcode),
-                        a1: b_a as u32,
+                        a1: u32::from(b_a),
                         a2: 0,
-                        b: b_b as u32,
-                        c: b_c as u32,
+                        b: u32::from(b_b),
+                        c: u32::from(b_c),
                     };
                     output.add_byte_lookup_event(byte_event);
                 }

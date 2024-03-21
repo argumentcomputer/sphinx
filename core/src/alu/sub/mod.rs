@@ -68,12 +68,12 @@ impl<F: PrimeField> MachineAir<F> for SubChip {
                 cols.carry[0] = F::one();
             }
 
-            if (b[1] as u16) < c[1] as u16 + carry[0] as u16 {
+            if u16::from(b[1]) < u16::from(c[1]) + u16::from(carry[0]) {
                 carry[1] = 1;
                 cols.carry[1] = F::one();
             }
 
-            if (b[2] as u16) < c[2] as u16 + carry[1] as u16 {
+            if u16::from(b[2]) < u16::from(c[2]) + u16::from(carry[1]) {
                 carry[2] = 1;
                 cols.carry[2] = F::one();
             }

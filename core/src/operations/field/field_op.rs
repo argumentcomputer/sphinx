@@ -11,7 +11,7 @@ use p3_field::PrimeField32;
 use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum FieldOperation {
     Add,
     Mul,
@@ -157,7 +157,9 @@ impl<V: Copy> FieldOpCols<V> {
             FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
         };
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - p_result;
-        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
+        let p_limbs = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect();
         let p_vanishing = p_op_minus_result - &(&p_carry * &p_limbs);
         let p_witness_low = self.witness_low.iter().into();
         let p_witness_high = self.witness_high.iter().into();
@@ -197,15 +199,15 @@ mod tests {
         pub a_op_b: FieldOpCols<T>,
     }
 
-    pub const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
+    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct FieldOpChip<P: FieldParameters> {
-        pub operation: FieldOperation,
-        pub _phantom: std::marker::PhantomData<P>,
+        pub(crate) operation: FieldOperation,
+        pub(crate) _phantom: std::marker::PhantomData<P>,
     }
 
     impl<P: FieldParameters> FieldOpChip<P> {
-        pub fn new(operation: FieldOperation) -> Self {
+        pub(crate) fn new(operation: FieldOperation) -> Self {
             Self {
                 operation,
                 _phantom: std::marker::PhantomData,

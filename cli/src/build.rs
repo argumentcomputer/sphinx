@@ -25,7 +25,7 @@ pub(crate) struct BuildArgs {
     pub(crate) docker: bool,
 }
 
-pub fn build_program(args: &BuildArgs) -> Result<Utf8PathBuf> {
+pub(crate) fn build_program(args: &BuildArgs) -> Result<Utf8PathBuf> {
     let metadata_cmd = cargo_metadata::MetadataCommand::new();
     let metadata = metadata_cmd.exec().unwrap();
     let root_package = metadata.root_package();

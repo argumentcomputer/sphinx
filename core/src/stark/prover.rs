@@ -83,9 +83,9 @@ where
 
         // Observe the challenges for each segment.
         tracing::debug_span!("observing all challenges").in_scope(|| {
-            shard_commits.into_iter().for_each(|commitment| {
+            for commitment in shard_commits.into_iter() {
                 challenger.observe(commitment);
-            });
+            }
         });
 
         let finished = AtomicU32::new(0);
@@ -177,7 +177,7 @@ where
             .collect::<Vec<_>>();
 
         // Commit to the batch of traces.
-        let (main_commit, main_data) = config.pcs().commit_batches(traces.to_vec());
+        let (main_commit, main_data) = config.pcs().commit_batches(traces.clone());
 
         // Get the filtered chip ids.
         let chip_ids = filtered_chips

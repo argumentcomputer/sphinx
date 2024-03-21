@@ -133,12 +133,13 @@ impl<F: PrimeField> MachineAir<F> for LtChip {
                 // If this is SLT, masked_b and masked_c are used for cols.bits instead of b
                 // and c.
                 if event.opcode == Opcode::SLT {
-                    let z = 256u16 + masked_b[idx_to_check] as u16 - masked_c[idx_to_check] as u16;
+                    let z = 256u16 + u16::from(masked_b[idx_to_check])
+                        - u16::from(masked_c[idx_to_check]);
                     for j in 0..10 {
                         cols.bits[j] = F::from_canonical_u16(z >> j & 1);
                     }
                 } else {
-                    let z = 256u16 + b[idx_to_check] as u16 - c[idx_to_check] as u16;
+                    let z = 256u16 + u16::from(b[idx_to_check]) - u16::from(c[idx_to_check]);
                     for j in 0..10 {
                         cols.bits[j] = F::from_canonical_u16(z >> j & 1);
                     }

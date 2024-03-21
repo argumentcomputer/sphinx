@@ -76,16 +76,14 @@ impl Syscall for K256DecompressChip {
         4
     }
 
-    fn execute(&self, rt: &mut SyscallContext) -> u32 {
+    fn execute(&self, rt: &mut SyscallContext<'_>) -> u32 {
         let a0 = crate::runtime::Register::X10;
 
         let start_clk = rt.clk;
 
         // TODO: this will have to be be constrained, but can do it later.
         let slice_ptr = rt.register_unsafe(a0);
-        if slice_ptr % 4 != 0 {
-            panic!();
-        }
+        assert!(slice_ptr % 4 == 0,);
 
         let (x_memory_records_vec, x_vec) = rt.mr_slice(
             slice_ptr + (COMPRESSED_POINT_BYTES as u32),
@@ -192,7 +190,7 @@ impl<F: PrimeField32> K256DecompressCols<F> {
         let y_bytes = y.to_bytes_le();
         let y_lsb = if y_bytes.is_empty() { 0 } else { y_bytes[0] };
         for i in 0..8 {
-            self.y_least_bits[i] = F::from_canonical_u32(((y_lsb >> i) & 1) as u32);
+            self.y_least_bits[i] = F::from_canonical_u32(u32::from((y_lsb >> i) & 1));
         }
     }
 }

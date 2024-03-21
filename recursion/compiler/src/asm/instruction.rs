@@ -414,7 +414,7 @@ impl<F: PrimeField32, EF: ExtensionField<F>> AsmInstruction<F, EF> {
         }
     }
 
-    pub fn fmt(&self, labels: &BTreeMap<F, String>, f: &mut fmt::Formatter) -> fmt::Result {
+    pub fn fmt(&self, labels: &BTreeMap<F, String>, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             AsmInstruction::LW(dst, src) => write!(f, "lw    ({})fp, ({})fp", dst, src),
             AsmInstruction::SW(dst, src) => write!(f, "sw    ({})fp, ({})fp", dst, src),

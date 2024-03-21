@@ -10,7 +10,7 @@ use super::StarkGenericConfig;
 /// Computes the multiplicative inverse of each element in the given vector.
 ///
 /// In other words, given elements e_1, ..., e_n returns 1/e_i if e_i != 0 and 0 otherwise.
-pub fn batch_multiplicative_inverse<F: Field>(values: Vec<F>) -> Vec<F> {
+pub(crate) fn batch_multiplicative_inverse<F: Field>(values: Vec<F>) -> Vec<F> {
     // Check if values are zero and construct a new vector with only nonzero values.
     let mut nonzero_values = Vec::with_capacity(values.len());
     let mut indices = Vec::with_capacity(values.len());
@@ -35,7 +35,7 @@ pub fn batch_multiplicative_inverse<F: Field>(values: Vec<F>) -> Vec<F> {
 }
 
 /// An implementation of `batch_multiplicative_inverse` that operates in place.
-pub fn batch_multiplicative_inverse_inplace<F: Field>(values: &mut [F]) {
+pub(crate) fn batch_multiplicative_inverse_inplace<F: Field>(values: &mut [F]) {
     // Check if values are zero and construct a new vector with only nonzero values.
     let mut nonzero_values = Vec::with_capacity(values.len());
     let mut indices = Vec::with_capacity(values.len());
@@ -98,7 +98,7 @@ fn decompose<F: TwoAdicField>(poly: Vec<F>, shift: F, log_chunks: usize) -> Vec<
 /// Decompose the quotient polynomial into chunks using a generalization of even-odd decomposition.
 /// Then, arrange the results in a row-major matrix, so that each chunk of the decomposed polynomial
 /// becomes `D` columns of the resulting matrix, where `D` is the field extension degree.
-pub fn decompose_and_flatten<SC: StarkGenericConfig>(
+pub(crate) fn decompose_and_flatten<SC: StarkGenericConfig>(
     quotient_poly: Vec<SC::Challenge>,
     shift: SC::Challenge,
     log_chunks: usize,

@@ -5,13 +5,13 @@ use super::{SwCurve, WeierstrassParameters};
 use crate::utils::ec::field::{FieldParameters, MAX_NB_LIMBS};
 use crate::utils::ec::EllipticCurveParameters;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 curve parameter
 pub struct Bn254Parameters;
 
 pub type Bn254 = SwCurve<Bn254Parameters>;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 base field parameter
 pub struct Bn254BaseField;
 

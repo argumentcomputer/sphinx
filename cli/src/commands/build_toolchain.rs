@@ -15,53 +15,47 @@ impl BuildToolchainCmd {
         let build_dir = std::env::var("SP1_BUILD_DIR");
 
         // Clone our rust fork, if necessary.
-        let rust_dir = match build_dir {
-            Ok(build_dir) => {
-                println!("Detected SP1_BUILD_DIR, skipping cloning rust.");
-                PathBuf::from(build_dir).join("rust")
+        let rust_dir = if let Ok(build_dir) = build_dir {
+            println!("Detected SP1_BUILD_DIR, skipping cloning rust.");
+            PathBuf::from(build_dir).join("rust")
+        } else {
+            let temp_dir = std::env::temp_dir();
+            let dir = temp_dir.join("sp1-rust");
+            if dir.exists() {
+                std::fs::remove_dir_all(&dir)?;
             }
-            Err(_) => {
-                let temp_dir = std::env::temp_dir();
-                let dir = temp_dir.join("sp1-rust");
-                if dir.exists() {
-                    std::fs::remove_dir_all(&dir)?;
-                }
 
-                println!("No SP1_BUILD_DIR detected, cloning rust.");
-                let repo_url = match github_access_token {
-                    Ok(github_access_token) => {
-                        println!("Detected GITHUB_ACCESS_TOKEN, using it to clone rust.");
-                        format!(
-                            "https://{}@github.com/succinctlabs/rust",
-                            github_access_token
-                        )
-                    }
-                    Err(_) => {
-                        println!("No GITHUB_ACCESS_TOKEN detected. If you get throttled by Github, set it to bypass the rate limit.");
-                        "ssh://git@github.com/succinctlabs/rust".to_string()
-                    }
-                };
-                Command::new("git")
-                    .args([
-                        "clone",
-                        &repo_url,
-                        "--depth=1",
-                        "--single-branch",
-                        "--branch=succinct",
-                        "sp1-rust",
-                    ])
-                    .current_dir(&temp_dir)
-                    .run()?;
-                Command::new("git")
-                    .args(["reset", "--hard"])
-                    .current_dir(&dir)
-                    .run()?;
-                Command::new("git")
-                    .args(["submodule", "update", "--init", "--recursive", "--progress"])
-                    .current_dir(&dir)
-                    .run()?;
-                dir
-            }
+            println!("No SP1_BUILD_DIR detected, cloning rust.");
+            let repo_url = if let Ok(github_access_token) = github_access_token {
+                println!("Detected GITHUB_ACCESS_TOKEN, using it to clone rust.");
+                format!(
+                    "https://{}@github.com/succinctlabs/rust",
+                    github_access_token
+                )
+            } else {
+                println!("No GITHUB_ACCESS_TOKEN detected. If you get throttled by Github, set it to bypass the rate limit.");
+                "ssh://git@github.com/succinctlabs/rust".to_string()
+            };
+            Command::new("git")
+                .args([
+                    "clone",
+                    &repo_url,
+                    "--depth=1",
+                    "--single-branch",
+                    "--branch=succinct",
+                    "sp1-rust",
+                ])
+                .current_dir(&temp_dir)
+                .run()?;
+            Command::new("git")
+                .args(["reset", "--hard"])
+                .current_dir(&dir)
+                .run()?;
+            Command::new("git")
+                .args(["submodule", "update", "--init", "--recursive", "--progress"])
+                .current_dir(&dir)
+                .run()?;
+            dir
         };
 
         // Install our config.toml.

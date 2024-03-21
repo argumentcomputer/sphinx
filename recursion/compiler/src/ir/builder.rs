@@ -124,7 +124,7 @@ impl<C: Config> Builder<C> {
         &mut self,
         lhs: LhsExpr,
         rhs: RhsExpr,
-    ) -> IfBuilder<C> {
+    ) -> IfBuilder<'_, C> {
         IfBuilder {
             lhs: lhs.into(),
             rhs: rhs.into(),
@@ -137,7 +137,7 @@ impl<C: Config> Builder<C> {
         &mut self,
         lhs: LhsExpr,
         rhs: RhsExpr,
-    ) -> IfBuilder<C> {
+    ) -> IfBuilder<'_, C> {
         IfBuilder {
             lhs: lhs.into(),
             rhs: rhs.into(),
@@ -150,7 +150,7 @@ impl<C: Config> Builder<C> {
         &mut self,
         start: impl Into<Usize<C::N>>,
         end: impl Into<Usize<C::N>>,
-    ) -> RangeBuilder<C> {
+    ) -> RangeBuilder<'_, C> {
         RangeBuilder {
             start: start.into(),
             end: end.into(),
