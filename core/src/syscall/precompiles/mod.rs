@@ -13,7 +13,7 @@ use crate::air::SP1AirBuilder;
 use crate::operations::field::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, DIV2};
 use crate::runtime::SyscallContext;
 use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::{AffinePoint, EllipticCurve};
+use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
 use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
 
 /// Elliptic curve add event.
@@ -37,22 +37,21 @@ pub fn create_ec_add_event<E: EllipticCurve>(
     rt: &mut SyscallContext<'_>,
     arg1: u32,
     arg2: u32,
-) -> ECAddEvent<<E::BaseField as FieldParameters>::NB_LIMBS> {
+) -> ECAddEvent<BaseLimbWidth<E>> {
     let start_clk = rt.clk;
     let p_ptr = arg1;
     assert!(p_ptr % 4 == 0,);
     let q_ptr = arg2;
     assert!(q_ptr % 4 == 0,);
 
-    let words_len = <E::BaseField as FieldParameters>::NB_LIMBS::USIZE / 2;
+    let words_len = BaseLimbWidth::<E>::USIZE / 2;
 
     // TODO(FG): check if we need to enforce that NW is a multiple of 4
-    let p: Array<u32, DIV2<<E::BaseField as FieldParameters>::NB_LIMBS>> =
+    let p: Array<u32, DIV2<BaseLimbWidth<E>>> =
         (&rt.slice_unsafe(p_ptr, words_len)[..]).try_into().unwrap();
     let (q_memory_records_vec, q_vec) = rt.mr_slice(q_ptr, words_len);
     let q_memory_records = (&q_memory_records_vec[..]).try_into().unwrap();
-    let q: Array<u32, DIV2<<E::BaseField as FieldParameters>::NB_LIMBS>> =
-        (&q_vec[..]).try_into().unwrap();
+    let q: Array<u32, DIV2<BaseLimbWidth<E>>> = (&q_vec[..]).try_into().unwrap();
     // When we write to p, we want the clk to be incremented because p and q could be the same.
     rt.clk += 1;
 
@@ -90,15 +89,15 @@ pub fn create_ec_double_event<E: EllipticCurve>(
     rt: &mut SyscallContext<'_>,
     arg1: u32,
     _: u32,
-) -> ECDoubleEvent<<E::BaseField as FieldParameters>::NB_LIMBS> {
+) -> ECDoubleEvent<BaseLimbWidth<E>> {
     let start_clk = rt.clk;
     let p_ptr = arg1;
     assert!(p_ptr % 4 == 0,);
 
-    let words_len = <E::BaseField as FieldParameters>::NB_LIMBS::USIZE / 2;
+    let words_len = BaseLimbWidth::<E>::USIZE / 2;
 
     // TODO(FG): check if we need to enforce that NW is a multiple of 4
-    let p: Array<u32, DIV2<<E::BaseField as FieldParameters>::NB_LIMBS>> =
+    let p: Array<u32, DIV2<BaseLimbWidth<E>>> =
         (&rt.slice_unsafe(p_ptr, words_len)[..]).try_into().unwrap();
     let p_affine = AffinePoint::<E>::from_words_le(&p);
     let result_affine = E::ec_double(&p_affine);

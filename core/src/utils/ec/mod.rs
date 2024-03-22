@@ -61,10 +61,10 @@ impl<E> AffinePoint<E> {
 
 impl<E: EllipticCurveParameters> AffinePoint<E> {
     const fn field_u32_digits() -> usize {
-        <E::BaseField as FieldParameters>::NB_LIMBS::USIZE * E::BaseField::NB_BITS_PER_LIMB / 32
+        BaseLimbWidth::<E>::USIZE * E::BaseField::NB_BITS_PER_LIMB / 32
     }
 
-    pub fn to_words_le(&self) -> Array<u32, DIV2<<E::BaseField as FieldParameters>::NB_LIMBS>> {
+    pub fn to_words_le(&self) -> Array<u32, DIV2<BaseLimbWidth<E>>> {
         let x_digits = self.x.to_u32_digits();
         assert_eq!(x_digits.len(), Self::field_u32_digits());
         let y_digits = self.y.to_u32_digits();
@@ -73,6 +73,10 @@ impl<E: EllipticCurveParameters> AffinePoint<E> {
         x_digits.into_iter().chain(y_digits).collect()
     }
 }
+
+/// A convenience type projection to retrieve the limb width of the curve's base field.
+pub type BaseLimbWidth<E> =
+    <<E as EllipticCurveParameters>::BaseField as FieldParameters>::NB_LIMBS;
 
 pub trait EllipticCurveParameters:
     Debug + Send + Sync + Copy + Serialize + DeserializeOwned + 'static

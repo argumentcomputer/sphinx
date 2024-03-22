@@ -19,6 +19,7 @@ use crate::utils::ec::edwards::ed25519::decompress;
 use crate::utils::ec::edwards::ed25519::ed25519_sqrt;
 use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::COMPRESSED_POINT_BYTES;
 use crate::utils::ec::NUM_BYTES_FIELD_ELEMENT;
 use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
@@ -300,8 +301,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
         for i in 0..input.ed_decompress_events.len() {
             let event = &input.ed_decompress_events[i];
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
-            let cols: &mut EdDecompressCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
-                row.as_mut_slice().borrow_mut();
+            let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             cols.populate::<E::BaseField, E>(event.clone(), output);
 
             rows.push(row);
@@ -309,8 +309,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
-            let cols: &mut EdDecompressCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
-                row.as_mut_slice().borrow_mut();
+            let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             cols.populate_field_ops::<E::BaseField, E>(&zero);
             row
@@ -339,8 +338,7 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &EdDecompressCols<AB::Var, <E::BaseField as FieldParameters>::NB_LIMBS> =
-            main.row_slice(0).borrow();
+        let row: &EdDecompressCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
         row.eval::<AB, E::BaseField, E>(builder);
     }
 }

@@ -16,6 +16,7 @@ use crate::syscall::precompiles::SyscallContext;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
+use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::ec::NUM_WORDS_EC_POINT;
 use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
@@ -93,7 +94,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
     }
 
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut WeierstrassAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS>,
+        cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>>,
         p_x: BigUint,
         p_y: BigUint,
         q_x: BigUint,
@@ -171,10 +172,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         for i in 0..input.weierstrass_add_events.len() {
             let event = input.weierstrass_add_events[i].clone();
             let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
-            let cols: &mut WeierstrassAddAssignCols<
-                F,
-                <E::BaseField as FieldParameters>::NB_LIMBS,
-            > = row.as_mut_slice().borrow_mut();
+            let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
+                row.as_mut_slice().borrow_mut();
 
             // Decode affine points.
             let p = &event.p;
@@ -207,10 +206,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
-            let cols: &mut WeierstrassAddAssignCols<
-                F,
-                <E::BaseField as FieldParameters>::NB_LIMBS,
-            > = row.as_mut_slice().borrow_mut();
+            let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
+                row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
             row
@@ -240,8 +237,7 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &WeierstrassAddAssignCols<AB::Var, <E::BaseField as FieldParameters>::NB_LIMBS> =
-            main.row_slice(0).borrow();
+        let row: &WeierstrassAddAssignCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
 
         let p_x = limbs_from_prev_access(&row.p_access[0..NUM_WORDS_FIELD_ELEMENT]);
         let p_y = limbs_from_prev_access(&row.p_access[NUM_WORDS_FIELD_ELEMENT..]);
@@ -323,7 +319,7 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]. This is to
         // ensure that p_access is updated with the new value.
-        for i in 0..<E::BaseField as FieldParameters>::NB_LIMBS::USIZE {
+        for i in 0..BaseLimbWidth::<E>::USIZE {
             builder
                 .when(row.is_real)
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);

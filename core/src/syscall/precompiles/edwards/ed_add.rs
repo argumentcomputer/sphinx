@@ -20,6 +20,7 @@ use crate::syscall::precompiles::SyscallContext;
 use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::AffinePoint;
+use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
@@ -79,7 +80,7 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         }
     }
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS>,
+        cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>>,
         p_x: BigUint,
         p_y: BigUint,
         q_x: BigUint,
@@ -152,7 +153,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
             .par_iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_ED_ADD_COLS];
-                let cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
+                let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> =
                     row.as_mut_slice().borrow_mut();
 
                 // Decode affine points.
@@ -193,8 +194,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_ED_ADD_COLS];
-            let cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
-                row.as_mut_slice().borrow_mut();
+            let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
             row
@@ -224,8 +224,7 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &EdAddAssignCols<AB::Var, <E::BaseField as FieldParameters>::NB_LIMBS> =
-            main.row_slice(0).borrow();
+        let row: &EdAddAssignCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
 
         let x1 = limbs_from_prev_access(&row.p_access[0..8]);
         let x2 = limbs_from_prev_access(&row.q_access[0..8]);
@@ -255,8 +254,7 @@ where
         let f = row.f.result.clone();
         let d_biguint = E::d_biguint();
         let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
-        let d_const_expr: Limbs<AB::Expr, <E::BaseField as FieldParameters>::NB_LIMBS> =
-            d_const.map(|x| x.into());
+        let d_const_expr: Limbs<AB::Expr, BaseLimbWidth<E>> = d_const.map(|x| x.into());
         row.d_mul_f
             .eval::<AB, E::BaseField, _, _>(builder, &f, &d_const_expr, FieldOperation::Mul);
 
@@ -272,7 +270,7 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]
         // This is to ensure that p_access is updated with the new value.
-        for i in 0..<E::BaseField as FieldParameters>::NB_LIMBS::USIZE {
+        for i in 0..BaseLimbWidth::<E>::USIZE {
             builder
                 .when(row.is_real)
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);
