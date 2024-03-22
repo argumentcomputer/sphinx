@@ -1,10 +1,13 @@
+use super::params::LimbWidth;
 use super::params::Limbs;
+use super::params::DEFAULT_NUM_LIMBS_T;
 use super::params::NUM_WITNESS_LIMBS;
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
@@ -24,16 +27,16 @@ pub enum FieldOperation {
 /// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldOpCols<T> {
+pub struct FieldOpCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The result of `a op b`, where a, b are field elements
-    pub result: Limbs<T>,
-    pub(crate) carry: Limbs<T>,
-    pub(crate) witness_low: [T; NUM_WITNESS_LIMBS],
-    pub(crate) witness_high: [T; NUM_WITNESS_LIMBS],
+    pub result: Limbs<T, U>,
+    pub(crate) carry: Limbs<T, U>,
+    pub(crate) witness_low: Array<T, NUM_WITNESS_LIMBS<U>>,
+    pub(crate) witness_high: Array<T, NUM_WITNESS_LIMBS<U>>,
 }
 
-impl<F: PrimeField32> FieldOpCols<F> {
-    pub fn populate<P: FieldParameters>(
+impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
+    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
         &mut self,
         a: &BigUint,
         b: &BigUint,
@@ -121,18 +124,18 @@ impl<F: PrimeField32> FieldOpCols<F> {
 
         self.result = p_result.into();
         self.carry = p_carry.into();
-        self.witness_low = p_witness_low.try_into().unwrap();
-        self.witness_high = p_witness_high.try_into().unwrap();
+        self.witness_low = (&p_witness_low[..]).try_into().unwrap();
+        self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
         result
     }
 }
 
-impl<V: Copy> FieldOpCols<V> {
+impl<V: Copy, U: LimbWidth> FieldOpCols<V, U> {
     #[allow(unused_variables)]
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
-        P: FieldParameters,
+        P: FieldParameters<NB_LIMBS = U>,
         A: Into<Polynomial<AB::Expr>> + Clone,
         B: Into<Polynomial<AB::Expr>> + Clone,
     >(
@@ -148,10 +151,10 @@ impl<V: Copy> FieldOpCols<V> {
         let p_b: Polynomial<AB::Expr> = (*b).clone().into();
 
         let (p_a, p_result): (Polynomial<_>, Polynomial<_>) = match op {
-            FieldOperation::Add | FieldOperation::Mul => (p_a_param, self.result.into()),
-            FieldOperation::Sub | FieldOperation::Div => (self.result.into(), p_a_param),
+            FieldOperation::Add | FieldOperation::Mul => (p_a_param, self.result.clone().into()),
+            FieldOperation::Sub | FieldOperation::Div => (self.result.clone().into(), p_a_param),
         };
-        let p_carry: Polynomial<<AB as AirBuilder>::Expr> = self.carry.into();
+        let p_carry: Polynomial<<AB as AirBuilder>::Expr> = self.carry.clone().into();
         let p_op = match op {
             FieldOperation::Add | FieldOperation::Sub => p_a + p_b,
             FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
@@ -176,7 +179,7 @@ mod tests {
     use super::{FieldOpCols, FieldOperation, Limbs};
 
     use crate::air::MachineAir;
-
+    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
@@ -216,7 +219,9 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldOpChip<P> {
+    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
+        for FieldOpChip<P>
+    {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -282,7 +287,7 @@ mod tests {
         }
     }
 
-    impl<AB, P: FieldParameters> Air<AB> for FieldOpChip<P>
+    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for FieldOpChip<P>
     where
         AB: SP1AirBuilder,
     {

@@ -1,3 +1,4 @@
+pub mod array_serde;
 mod buffer;
 pub mod ec;
 pub mod env;
@@ -8,6 +9,7 @@ mod prove;
 mod tracer;
 
 pub use buffer::*;
+use hybrid_array::Array;
 pub use logger::*;
 pub use prove::*;
 pub use tracer::*;
@@ -45,7 +47,7 @@ pub fn limbs_from_prev_access<T: Copy, M: MemoryCols<T>>(cols: &[M]) -> Limbs<T>
     let sized = vec
         .try_into()
         .unwrap_or_else(|_| panic!("failed to convert to limbs"));
-    Limbs(sized)
+    Array(sized)
 }
 
 pub fn limbs_from_access<T: Copy, M: MemoryCols<T>>(cols: &[M]) -> Limbs<T> {
@@ -57,7 +59,7 @@ pub fn limbs_from_access<T: Copy, M: MemoryCols<T>>(cols: &[M]) -> Limbs<T> {
     let sized = vec
         .try_into()
         .unwrap_or_else(|_| panic!("failed to convert to limbs"));
-    Limbs(sized)
+    Array(sized)
 }
 
 pub fn pad_rows<T: Clone, const N: usize>(rows: &mut Vec<[T; N]>, row_fn: impl Fn() -> [T; N]) {

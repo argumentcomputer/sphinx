@@ -1,10 +1,13 @@
+use super::params::LimbWidth;
 use super::params::Limbs;
+use super::params::DEFAULT_NUM_LIMBS_T;
 use super::params::NUM_WITNESS_LIMBS;
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
+use hybrid_array::Array;
 use num::BigUint;
 use p3_field::PrimeField32;
 use std::fmt::Debug;
@@ -19,16 +22,16 @@ use wp1_derive::AlignedBorrow;
 /// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldDenCols<T> {
+pub struct FieldDenCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The result of `a den b`, where a, b are field elements
-    pub result: Limbs<T>,
-    pub(crate) carry: Limbs<T>,
-    pub(crate) witness_low: [T; NUM_WITNESS_LIMBS],
-    pub(crate) witness_high: [T; NUM_WITNESS_LIMBS],
+    pub result: Limbs<T, U>,
+    pub(crate) carry: Limbs<T, U>,
+    pub(crate) witness_low: Array<T, NUM_WITNESS_LIMBS<U>>,
+    pub(crate) witness_high: Array<T, NUM_WITNESS_LIMBS<U>>,
 }
 
-impl<F: PrimeField32> FieldDenCols<F> {
-    pub fn populate<P: FieldParameters>(
+impl<F: PrimeField32, U: LimbWidth> FieldDenCols<F, U> {
+    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
         &mut self,
         a: &BigUint,
         b: &BigUint,
@@ -76,28 +79,28 @@ impl<F: PrimeField32> FieldDenCols<F> {
 
         self.result = p_result.into();
         self.carry = p_carry.into();
-        self.witness_low = p_witness_low.try_into().unwrap();
-        self.witness_high = p_witness_high.try_into().unwrap();
+        self.witness_low = (&p_witness_low[..]).try_into().unwrap();
+        self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
         result
     }
 }
 
-impl<V: Copy> FieldDenCols<V> {
+impl<V: Copy, U: LimbWidth> FieldDenCols<V, U> {
     #[allow(unused_variables)]
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters>(
+    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters<NB_LIMBS = U>>(
         &self,
         builder: &mut AB,
-        a: &Limbs<AB::Var>,
-        b: &Limbs<AB::Var>,
+        a: &Limbs<AB::Var, U>,
+        b: &Limbs<AB::Var, U>,
         sign: bool,
     ) where
         V: Into<AB::Expr>,
     {
-        let p_a = Polynomial::from(*a);
-        let p_b = (*b).into();
-        let p_result = self.result.into();
-        let p_carry: Polynomial<_> = self.carry.into();
+        let p_a = Polynomial::from(a.clone());
+        let p_b = (b.clone()).into();
+        let p_result = self.result.clone().into();
+        let p_carry: Polynomial<_> = self.carry.clone().into();
 
         // Compute the vanishing polynomial:
         //      lhs(x) = sign * (b(x) * result(x) + result(x)) + (1 - sign) * (b(x) * result(x) + a(x))
@@ -134,6 +137,7 @@ mod tests {
 
     use crate::air::MachineAir;
 
+    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
@@ -172,7 +176,9 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldDenChip<P> {
+    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
+        for FieldDenChip<P>
+    {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -230,13 +236,13 @@ mod tests {
         }
     }
 
-    impl<F: Field, P: FieldParameters> BaseAir<F> for FieldDenChip<P> {
+    impl<F: Field, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> BaseAir<F> for FieldDenChip<P> {
         fn width(&self) -> usize {
             NUM_TEST_COLS
         }
     }
 
-    impl<AB, P: FieldParameters> Air<AB> for FieldDenChip<P>
+    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for FieldDenChip<P>
     where
         AB: SP1AirBuilder,
     {

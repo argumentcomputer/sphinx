@@ -4,7 +4,9 @@ use crate::memory::MemoryCols;
 use crate::memory::MemoryWriteCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
-use crate::operations::field::params::NUM_LIMBS;
+use crate::operations::field::params::LimbWidth;
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::operations::field::params::DIV2;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
@@ -12,6 +14,7 @@ use crate::stark::MachineRecord;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::syscall::precompiles::limbs_from_biguint;
 use crate::syscall::precompiles::SyscallContext;
+use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::EllipticCurve;
@@ -21,6 +24,8 @@ use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::BigUint;
 use num::Zero;
 use p3_air::AirBuilder;
@@ -44,23 +49,23 @@ pub const NUM_WEIERSTRASS_DOUBLE_COLS: usize = size_of::<WeierstrassDoubleAssign
 /// made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct WeierstrassDoubleAssignCols<T> {
+pub struct WeierstrassDoubleAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
     pub p_ptr: T,
-    pub p_access: [MemoryWriteCols<T>; NUM_WORDS_EC_POINT],
-    pub(crate) slope_denominator: FieldOpCols<T>,
-    pub(crate) slope_numerator: FieldOpCols<T>,
-    pub(crate) slope: FieldOpCols<T>,
-    pub(crate) p_x_squared: FieldOpCols<T>,
-    pub(crate) p_x_squared_times_3: FieldOpCols<T>,
-    pub(crate) slope_squared: FieldOpCols<T>,
-    pub(crate) p_x_plus_p_x: FieldOpCols<T>,
-    pub(crate) x3_ins: FieldOpCols<T>,
-    pub(crate) p_x_minus_x: FieldOpCols<T>,
-    pub(crate) y3_ins: FieldOpCols<T>,
-    pub(crate) slope_times_p_x_minus_x: FieldOpCols<T>,
+    pub p_access: Array<MemoryWriteCols<T>, DIV2<U>>,
+    pub(crate) slope_denominator: FieldOpCols<T, U>,
+    pub(crate) slope_numerator: FieldOpCols<T, U>,
+    pub(crate) slope: FieldOpCols<T, U>,
+    pub(crate) p_x_squared: FieldOpCols<T, U>,
+    pub(crate) p_x_squared_times_3: FieldOpCols<T, U>,
+    pub(crate) slope_squared: FieldOpCols<T, U>,
+    pub(crate) p_x_plus_p_x: FieldOpCols<T, U>,
+    pub(crate) x3_ins: FieldOpCols<T, U>,
+    pub(crate) p_x_minus_x: FieldOpCols<T, U>,
+    pub(crate) y3_ins: FieldOpCols<T, U>,
+    pub(crate) slope_times_p_x_minus_x: FieldOpCols<T, U>,
 }
 
 #[derive(Default)]
@@ -68,7 +73,13 @@ pub struct WeierstrassDoubleAssignChip<E> {
     _marker: PhantomData<E>,
 }
 
-impl<E: EllipticCurve + WeierstrassParameters> Syscall for WeierstrassDoubleAssignChip<E> {
+// Specialized to 32-bit limb field representations, extensible generically if
+// the receiver weierstrass_double_events matches the desired limb length
+impl<
+        F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>,
+        E: EllipticCurve<BaseField = F> + WeierstrassParameters,
+    > Syscall for WeierstrassDoubleAssignChip<E>
+{
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_double_event::<E>(rt, arg1, arg2);
         rt.record_mut().weierstrass_double_events.push(event);
@@ -88,7 +99,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDoubleAssignChip<E> {
     }
 
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut WeierstrassDoubleAssignCols<F>,
+        cols: &mut WeierstrassDoubleAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS>,
         p_x: BigUint,
         p_y: BigUint,
     ) {
@@ -193,8 +204,10 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
                     .iter()
                     .map(|event| {
                         let mut row = [F::zero(); NUM_WEIERSTRASS_DOUBLE_COLS];
-                        let cols: &mut WeierstrassDoubleAssignCols<F> =
-                            row.as_mut_slice().borrow_mut();
+                        let cols: &mut WeierstrassDoubleAssignCols<
+                            F,
+                            <E::BaseField as FieldParameters>::NB_LIMBS,
+                        > = row.as_mut_slice().borrow_mut();
 
                         // Decode affine points.
                         let p = &event.p;
@@ -231,7 +244,10 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_WEIERSTRASS_DOUBLE_COLS];
-            let cols: &mut WeierstrassDoubleAssignCols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut WeierstrassDoubleAssignCols<
+                F,
+                <E::BaseField as FieldParameters>::NB_LIMBS,
+            > = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone());
             row
@@ -261,7 +277,10 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &WeierstrassDoubleAssignCols<AB::Var> = main.row_slice(0).borrow();
+        let row: &WeierstrassDoubleAssignCols<
+            AB::Var,
+            <E::BaseField as FieldParameters>::NB_LIMBS,
+        > = main.row_slice(0).borrow();
 
         let p_x = limbs_from_prev_access(&row.p_access[0..NUM_WORDS_FIELD_ELEMENT]);
         let p_y = limbs_from_prev_access(&row.p_access[NUM_WORDS_FIELD_ELEMENT..]);
@@ -310,7 +329,7 @@ where
                 FieldOperation::Div,
             );
 
-            row.slope.result
+            row.slope.result.clone()
         };
 
         // x = slope * slope - (p.x + p.x).
@@ -333,7 +352,7 @@ where
                 &row.p_x_plus_p_x.result,
                 FieldOperation::Sub,
             );
-            row.x3_ins.result
+            row.x3_ins.result.clone()
         };
 
         // y = slope * (p.x - x) - p.y.
@@ -356,7 +375,7 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]. This is to
         // ensure that p_access is updated with the new value.
-        for i in 0..NUM_LIMBS {
+        for i in 0..<E::BaseField as FieldParameters>::NB_LIMBS::USIZE {
             builder
                 .when(row.is_real)
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);

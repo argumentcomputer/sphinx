@@ -1,10 +1,13 @@
+use super::params::LimbWidth;
 use super::params::Limbs;
+use super::params::DEFAULT_NUM_LIMBS_T;
 use super::params::NUM_WITNESS_LIMBS;
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
+use hybrid_array::Array;
 use num::BigUint;
 use num::Zero;
 use p3_field::{AbstractField, PrimeField32};
@@ -16,16 +19,20 @@ use wp1_derive::AlignedBorrow;
 /// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldInnerProductCols<T> {
+pub struct FieldInnerProductCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The result of `a inner product b`, where a, b are field elements
-    pub result: Limbs<T>,
-    pub(crate) carry: Limbs<T>,
-    pub(crate) witness_low: [T; NUM_WITNESS_LIMBS],
-    pub(crate) witness_high: [T; NUM_WITNESS_LIMBS],
+    pub result: Limbs<T, U>,
+    pub(crate) carry: Limbs<T, U>,
+    pub(crate) witness_low: Array<T, NUM_WITNESS_LIMBS<U>>,
+    pub(crate) witness_high: Array<T, NUM_WITNESS_LIMBS<U>>,
 }
 
-impl<F: PrimeField32> FieldInnerProductCols<F> {
-    pub fn populate<P: FieldParameters>(&mut self, a: &[BigUint], b: &[BigUint]) -> BigUint {
+impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
+    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
+        &mut self,
+        a: &[BigUint],
+        b: &[BigUint],
+    ) -> BigUint {
         let p_a_vec: Vec<Polynomial<F>> =
             a.iter().map(|x| P::to_limbs_field::<F>(x).into()).collect();
         let p_b_vec: Vec<Polynomial<F>> =
@@ -66,16 +73,16 @@ impl<F: PrimeField32> FieldInnerProductCols<F> {
 
         self.result = p_result.into();
         self.carry = p_carry.into();
-        self.witness_low = p_witness_low.try_into().unwrap();
-        self.witness_high = p_witness_high.try_into().unwrap();
+        self.witness_low = (&p_witness_low[..]).try_into().unwrap();
+        self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
         result.clone()
     }
 }
 
-impl<V: Copy> FieldInnerProductCols<V> {
+impl<V: Copy, U: LimbWidth> FieldInnerProductCols<V, U> {
     #[allow(unused_variables)]
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters>(
+    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters<NB_LIMBS = U>>(
         &self,
         builder: &mut AB,
         a: &[Limbs<AB::Var>],
@@ -85,8 +92,8 @@ impl<V: Copy> FieldInnerProductCols<V> {
     {
         let p_a_vec: Vec<Polynomial<AB::Expr>> = a.iter().map(|x| (*x).into()).collect();
         let p_b_vec: Vec<Polynomial<AB::Expr>> = b.iter().map(|x| (*x).into()).collect();
-        let p_result = self.result.into();
-        let p_carry: Polynomial<_> = self.carry.into();
+        let p_result = self.result.clone().into();
+        let p_carry: Polynomial<_> = self.carry.clone().into();
 
         let p_zero = Polynomial::<AB::Expr>::new(vec![AB::Expr::zero()]);
 
@@ -122,6 +129,7 @@ mod tests {
 
     use crate::air::MachineAir;
 
+    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
@@ -159,7 +167,9 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldIpChip<P> {
+    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
+        for FieldIpChip<P>
+    {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -215,13 +225,13 @@ mod tests {
         }
     }
 
-    impl<F: Field, P: FieldParameters> BaseAir<F> for FieldIpChip<P> {
+    impl<F: Field, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> BaseAir<F> for FieldIpChip<P> {
         fn width(&self) -> usize {
             NUM_TEST_COLS
         }
     }
 
-    impl<AB, P: FieldParameters> Air<AB> for FieldIpChip<P>
+    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for FieldIpChip<P>
     where
         AB: SP1AirBuilder,
     {

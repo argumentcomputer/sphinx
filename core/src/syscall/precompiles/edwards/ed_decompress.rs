@@ -6,6 +6,8 @@ use crate::memory::MemoryWriteCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::LimbWidth;
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::MemoryReadRecord;
 use crate::runtime::MemoryWriteRecord;
@@ -42,6 +44,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use std::fmt::Debug;
 use wp1_derive::AlignedBorrow;
 
+// TODO(FG): those constants should be generalized over
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdDecompressEvent {
     pub shard: u32,
@@ -61,9 +64,10 @@ pub const NUM_ED_DECOMPRESS_COLS: usize = size_of::<EdDecompressCols<u8>>();
 /// compressed Y (without sign bit).
 ///
 /// After `EdDecompress`, the first 32 bytes of the slice are overwritten with the decompressed X.
+// TODO(FG): those constants should be generalized over
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct EdDecompressCols<T> {
+pub struct EdDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
@@ -71,17 +75,17 @@ pub struct EdDecompressCols<T> {
     pub sign: T,
     pub x_access: [MemoryWriteCols<T>; NUM_WORDS_FIELD_ELEMENT],
     pub y_access: [MemoryReadCols<T>; NUM_WORDS_FIELD_ELEMENT],
-    pub(crate) yy: FieldOpCols<T>,
-    pub(crate) u: FieldOpCols<T>,
-    pub(crate) dyy: FieldOpCols<T>,
-    pub(crate) v: FieldOpCols<T>,
-    pub(crate) u_div_v: FieldOpCols<T>,
-    pub(crate) x: FieldSqrtCols<T>,
-    pub(crate) neg_x: FieldOpCols<T>,
+    pub(crate) yy: FieldOpCols<T, U>,
+    pub(crate) u: FieldOpCols<T, U>,
+    pub(crate) dyy: FieldOpCols<T, U>,
+    pub(crate) v: FieldOpCols<T, U>,
+    pub(crate) u_div_v: FieldOpCols<T, U>,
+    pub(crate) x: FieldSqrtCols<T, U>,
+    pub(crate) neg_x: FieldOpCols<T, U>,
 }
 
-impl<F: PrimeField32> EdDecompressCols<F> {
-    pub fn populate<P: FieldParameters, E: EdwardsParameters>(
+impl<F: PrimeField32, U: LimbWidth> EdDecompressCols<F, U> {
+    pub fn populate<P: FieldParameters<NB_LIMBS = U>, E: EdwardsParameters<BaseField = P>>(
         &mut self,
         event: EdDecompressEvent,
         record: &mut ExecutionRecord,
@@ -103,7 +107,10 @@ impl<F: PrimeField32> EdDecompressCols<F> {
         record.add_byte_lookup_events(new_byte_lookup_events);
     }
 
-    fn populate_field_ops<P: FieldParameters, E: EdwardsParameters>(&mut self, y: &BigUint) {
+    fn populate_field_ops<P: FieldParameters<NB_LIMBS = U>, E: EdwardsParameters<BaseField = P>>(
+        &mut self,
+        y: &BigUint,
+    ) {
         let one = BigUint::one();
         let yy = self.yy.populate::<P>(y, y, FieldOperation::Mul);
         let u = self.u.populate::<P>(&yy, &one, FieldOperation::Sub);
@@ -118,8 +125,12 @@ impl<F: PrimeField32> EdDecompressCols<F> {
     }
 }
 
-impl<V: Copy> EdDecompressCols<V> {
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters, E: EdwardsParameters>(
+impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
+    pub fn eval<
+        AB: SP1AirBuilder<Var = V>,
+        P: FieldParameters<NB_LIMBS = U>,
+        E: EdwardsParameters<BaseField = P>,
+    >(
         &self,
         builder: &mut AB,
     ) where
@@ -183,11 +194,11 @@ impl<V: Copy> EdDecompressCols<V> {
         builder
             .when(self.is_real)
             .when(self.sign)
-            .assert_all_eq(self.neg_x.result, x_limbs);
+            .assert_all_eq(self.neg_x.result.clone(), x_limbs);
         builder
             .when(self.is_real)
             .when_not(self.sign)
-            .assert_all_eq(self.x.multiplication.result, x_limbs);
+            .assert_all_eq(self.x.multiplication.result.clone(), x_limbs);
 
         builder.receive_syscall(
             self.shard,
@@ -289,7 +300,8 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
         for i in 0..input.ed_decompress_events.len() {
             let event = &input.ed_decompress_events[i];
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
-            let cols: &mut EdDecompressCols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut EdDecompressCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
+                row.as_mut_slice().borrow_mut();
             cols.populate::<E::BaseField, E>(event.clone(), output);
 
             rows.push(row);
@@ -297,7 +309,8 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
-            let cols: &mut EdDecompressCols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut EdDecompressCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
+                row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             cols.populate_field_ops::<E::BaseField, E>(&zero);
             row
@@ -326,7 +339,8 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &EdDecompressCols<AB::Var> = main.row_slice(0).borrow();
+        let row: &EdDecompressCols<AB::Var, <E::BaseField as FieldParameters>::NB_LIMBS> =
+            main.row_slice(0).borrow();
         row.eval::<AB, E::BaseField, E>(builder);
     }
 }

@@ -3,12 +3,13 @@
 
 use std::str::FromStr;
 
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::operations::field::params::{NB_BITS_PER_LIMB, NUM_LIMBS};
-use crate::utils::ec::field::{FieldParameters, MAX_NB_LIMBS};
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::EllipticCurveParameters;
 use k256::FieldElement;
 use num::traits::FromBytes;
@@ -25,17 +26,15 @@ pub type Secp256k1 = SwCurve<Secp256k1Parameters>;
 pub struct Secp256k1BaseField;
 
 impl FieldParameters for Secp256k1BaseField {
-    const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
+    type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
+    // default const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
+    // default const NB_WITNESS_LIMBS: usize = 2 * U::USIZE - 2;
 
-    const NB_LIMBS: usize = NUM_LIMBS;
-
-    const NB_WITNESS_LIMBS: usize = 2 * Self::NB_LIMBS - 2;
-
-    const MODULUS: [u8; MAX_NB_LIMBS] = [
+    const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
         0x2f, 0xfc, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
         0xff, 0xff,
-    ];
+    ]);
 
     /// A rough witness-offset estimate given the size of the limbs and the size of the field.
     const WITNESS_OFFSET: usize = 1usize << 14;
@@ -50,15 +49,15 @@ impl EllipticCurveParameters for Secp256k1Parameters {
 }
 
 impl WeierstrassParameters for Secp256k1Parameters {
-    const A: [u16; MAX_NB_LIMBS] = [
+    const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
-    ];
+    ]);
 
-    const B: [u16; MAX_NB_LIMBS] = [
+    const B: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
-    ];
+    ]);
     fn generator() -> (BigUint, BigUint) {
         let x = BigUint::from_str(
             "55066263022277343669578718895168534326250603453777594175500187360389116729240",

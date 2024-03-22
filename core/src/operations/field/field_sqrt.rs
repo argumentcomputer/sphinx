@@ -1,5 +1,5 @@
 use super::field_op::FieldOpCols;
-use super::params::Limbs;
+use super::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T};
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
 use num::BigUint;
@@ -11,19 +11,19 @@ use wp1_derive::AlignedBorrow;
 /// limb lives.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldSqrtCols<T> {
+pub struct FieldSqrtCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The multiplication operation to verify that the sqrt and the input match.
     ///
     /// In order to save space, we actually store the sqrt of the input in `multiplication.result`
     /// since we'll receive the input again in the `eval` function.
-    pub multiplication: FieldOpCols<T>,
+    pub multiplication: FieldOpCols<T, U>,
 }
 
-impl<F: PrimeField32> FieldSqrtCols<F> {
+impl<F: PrimeField32, U: LimbWidth> FieldSqrtCols<F, U> {
     /// Populates the trace.
     ///
     /// `P` is the parameter of the field that each limb lives in.
-    pub fn populate<P: FieldParameters>(
+    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
         &mut self,
         a: &BigUint,
         sqrt_fn: impl Fn(&BigUint) -> BigUint,
@@ -46,24 +46,24 @@ impl<F: PrimeField32> FieldSqrtCols<F> {
     }
 }
 
-impl<V: Copy> FieldSqrtCols<V> {
+impl<V: Copy, U: LimbWidth> FieldSqrtCols<V, U> {
     /// Calculates the square root of `a`.
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters>(
+    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters<NB_LIMBS = U>>(
         &self,
         builder: &mut AB,
-        a: &Limbs<AB::Var>,
+        a: &Limbs<AB::Var, U>,
     ) where
         V: Into<AB::Expr>,
     {
         // As a space-saving hack, we store the sqrt of the input in `self.multiplication.result`
         // even though it's technically not the result of the multiplication. Now, we should
         // retrieve that value and overwrite that member variable with a.
-        let sqrt = self.multiplication.result;
+        let sqrt = self.multiplication.result.clone();
         let mut multiplication = self.multiplication.clone();
-        multiplication.result = *a;
+        multiplication.result = a.clone();
 
         // Compute sqrt * sqrt. We pass in P since we want its BaseField to be the mod.
-        multiplication.eval::<AB, P, Limbs<V>, Limbs<V>>(
+        multiplication.eval::<AB, P, Limbs<V, U>, Limbs<V, U>>(
             builder,
             &sqrt,
             &sqrt,
@@ -82,6 +82,7 @@ mod tests {
 
     use crate::air::MachineAir;
 
+    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::{ed25519_sqrt, Ed25519BaseField};
     use crate::utils::ec::field::FieldParameters;
@@ -117,7 +118,9 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for EdSqrtChip<P> {
+    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
+        for EdSqrtChip<P>
+    {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -177,7 +180,7 @@ mod tests {
         }
     }
 
-    impl<AB, P: FieldParameters> Air<AB> for EdSqrtChip<P>
+    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for EdSqrtChip<P>
     where
         AB: SP1AirBuilder,
     {

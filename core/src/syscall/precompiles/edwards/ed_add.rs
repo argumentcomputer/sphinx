@@ -8,8 +8,10 @@ use crate::operations::field::field_den::FieldDenCols;
 use crate::operations::field::field_inner_product::FieldInnerProductCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
+use crate::operations::field::params::LimbWidth;
 use crate::operations::field::params::Limbs;
-use crate::operations::field::params::NUM_LIMBS;
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::operations::field::params::DIV2;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
@@ -23,6 +25,8 @@ use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::BigUint;
 use num::Zero;
 use p3_air::AirBuilder;
@@ -45,22 +49,22 @@ pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
 /// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct EdAddAssignCols<T> {
+pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: [MemoryWriteCols<T>; 16],
-    pub q_access: [MemoryReadCols<T>; 16],
-    pub(crate) x3_numerator: FieldInnerProductCols<T>,
-    pub(crate) y3_numerator: FieldInnerProductCols<T>,
-    pub(crate) x1_mul_y1: FieldOpCols<T>,
-    pub(crate) x2_mul_y2: FieldOpCols<T>,
-    pub(crate) f: FieldOpCols<T>,
-    pub(crate) d_mul_f: FieldOpCols<T>,
-    pub(crate) x3_ins: FieldDenCols<T>,
-    pub(crate) y3_ins: FieldDenCols<T>,
+    pub p_access: Array<MemoryWriteCols<T>, DIV2<U>>,
+    pub q_access: Array<MemoryReadCols<T>, DIV2<U>>,
+    pub(crate) x3_numerator: FieldInnerProductCols<T, U>,
+    pub(crate) y3_numerator: FieldInnerProductCols<T, U>,
+    pub(crate) x1_mul_y1: FieldOpCols<T, U>,
+    pub(crate) x2_mul_y2: FieldOpCols<T, U>,
+    pub(crate) f: FieldOpCols<T, U>,
+    pub(crate) d_mul_f: FieldOpCols<T, U>,
+    pub(crate) x3_ins: FieldDenCols<T, U>,
+    pub(crate) y3_ins: FieldDenCols<T, U>,
 }
 
 #[derive(Default)]
@@ -75,7 +79,7 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         }
     }
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut EdAddAssignCols<F>,
+        cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS>,
         p_x: BigUint,
         p_y: BigUint,
         q_x: BigUint,
@@ -109,7 +113,13 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
     }
 }
 
-impl<E: EllipticCurve + EdwardsParameters> Syscall for EdAddAssignChip<E> {
+// Specialized to 32-bit limb field representations, extensible generically if
+// the receiver ed_add_events matches the desired limb length
+impl<
+        F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>,
+        E: EllipticCurve<BaseField = F> + EdwardsParameters,
+    > Syscall for EdAddAssignChip<E>
+{
     fn num_extra_cycles(&self) -> u32 {
         1
     }
@@ -142,7 +152,8 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
             .par_iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_ED_ADD_COLS];
-                let cols: &mut EdAddAssignCols<F> = row.as_mut_slice().borrow_mut();
+                let cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
+                    row.as_mut_slice().borrow_mut();
 
                 // Decode affine points.
                 let p = &event.p;
@@ -182,7 +193,8 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
 
         pad_rows(&mut rows, || {
             let mut row = [F::zero(); NUM_ED_ADD_COLS];
-            let cols: &mut EdAddAssignCols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut EdAddAssignCols<F, <E::BaseField as FieldParameters>::NB_LIMBS> =
+                row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
             row
@@ -212,7 +224,8 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &EdAddAssignCols<AB::Var> = main.row_slice(0).borrow();
+        let row: &EdAddAssignCols<AB::Var, <E::BaseField as FieldParameters>::NB_LIMBS> =
+            main.row_slice(0).borrow();
 
         let x1 = limbs_from_prev_access(&row.p_access[0..8]);
         let x2 = limbs_from_prev_access(&row.q_access[0..8]);
@@ -233,20 +246,21 @@ where
         row.x2_mul_y2
             .eval::<AB, E::BaseField, _, _>(builder, &x2, &y2, FieldOperation::Mul);
 
-        let x1_mul_y1 = row.x1_mul_y1.result;
-        let x2_mul_y2 = row.x2_mul_y2.result;
+        let x1_mul_y1 = row.x1_mul_y1.result.clone();
+        let x2_mul_y2 = row.x2_mul_y2.result.clone();
         row.f
             .eval::<AB, E::BaseField, _, _>(builder, &x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
 
         // d * f.
-        let f = row.f.result;
+        let f = row.f.result.clone();
         let d_biguint = E::d_biguint();
         let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
-        let d_const_expr = Limbs::<AB::Expr>(d_const.0.map(|x| x.into()));
+        let d_const_expr: Limbs<AB::Expr, <E::BaseField as FieldParameters>::NB_LIMBS> =
+            d_const.map(|x| x.into());
         row.d_mul_f
             .eval::<AB, E::BaseField, _, _>(builder, &f, &d_const_expr, FieldOperation::Mul);
 
-        let d_mul_f = row.d_mul_f.result;
+        let d_mul_f = row.d_mul_f.result.clone();
 
         // x3 = x3_numerator / (1 + d * f).
         row.x3_ins
@@ -258,7 +272,7 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]
         // This is to ensure that p_access is updated with the new value.
-        for i in 0..NUM_LIMBS {
+        for i in 0..<E::BaseField as FieldParameters>::NB_LIMBS::USIZE {
             builder
                 .when(row.is_real)
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);

@@ -5,13 +5,15 @@ pub mod utils;
 pub mod weierstrass;
 
 use field::FieldParameters;
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::BigUint;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
-use crate::operations::field::params::NUM_LIMBS;
+use crate::operations::field::params::DIV2;
 
 pub const NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const NUM_BYTES_FIELD_ELEMENT: usize = NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
@@ -55,29 +57,20 @@ impl<E> AffinePoint<E> {
             _marker: std::marker::PhantomData,
         }
     }
+}
 
-    pub fn to_words_le(&self) -> [u32; 16] {
-        let mut x_bytes = self.x.to_bytes_le();
-        x_bytes.resize(NUM_LIMBS, 0u8);
-        let mut y_bytes = self.y.to_bytes_le();
-        y_bytes.resize(NUM_LIMBS, 0u8);
+impl<E: EllipticCurveParameters> AffinePoint<E> {
+    const fn field_u32_digits() -> usize {
+        <E::BaseField as FieldParameters>::NB_LIMBS::USIZE * E::BaseField::NB_BITS_PER_LIMB / 32
+    }
 
-        let mut words = [0u32; 16];
-        for i in 0..8 {
-            words[i] = u32::from_le_bytes([
-                x_bytes[i * 4],
-                x_bytes[i * 4 + 1],
-                x_bytes[i * 4 + 2],
-                x_bytes[i * 4 + 3],
-            ]);
-            words[i + 8] = u32::from_le_bytes([
-                y_bytes[i * 4],
-                y_bytes[i * 4 + 1],
-                y_bytes[i * 4 + 2],
-                y_bytes[i * 4 + 3],
-            ]);
-        }
-        words
+    pub fn to_words_le(&self) -> Array<u32, DIV2<<E::BaseField as FieldParameters>::NB_LIMBS>> {
+        let x_digits = self.x.to_u32_digits();
+        assert_eq!(x_digits.len(), Self::field_u32_digits());
+        let y_digits = self.y.to_u32_digits();
+        assert_eq!(y_digits.len(), Self::field_u32_digits());
+
+        x_digits.into_iter().chain(y_digits).collect()
     }
 }
 
@@ -109,7 +102,7 @@ pub trait EllipticCurve: EllipticCurveParameters {
 
     /// Returns the number of bits needed to represent a scalar in the group.
     fn nb_scalar_bits() -> usize {
-        Self::BaseField::NB_LIMBS * Self::BaseField::NB_BITS_PER_LIMB
+        <Self::BaseField as FieldParameters>::NB_LIMBS::USIZE * Self::BaseField::NB_BITS_PER_LIMB
     }
 }
 

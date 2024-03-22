@@ -1,8 +1,11 @@
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::utils::ec::field::{FieldParameters, MAX_NB_LIMBS};
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::EllipticCurveParameters;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -16,16 +19,16 @@ pub type Bn254 = SwCurve<Bn254Parameters>;
 pub struct Bn254BaseField;
 
 impl FieldParameters for Bn254BaseField {
+    type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
+
     const NB_BITS_PER_LIMB: usize = 16;
 
-    const NB_LIMBS: usize = 16;
+    const NB_WITNESS_LIMBS: usize = 2 * Self::NB_LIMBS::USIZE - 2;
 
-    const NB_WITNESS_LIMBS: usize = 2 * Self::NB_LIMBS - 2;
-
-    const MODULUS: [u8; MAX_NB_LIMBS] = [
+    const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
         71, 253, 124, 216, 22, 140, 32, 60, 141, 202, 113, 104, 145, 106, 129, 151, 93, 88, 129,
         129, 182, 69, 80, 184, 41, 160, 49, 225, 114, 78, 100, 48,
-    ];
+    ]);
 
     const WITNESS_OFFSET: usize = 1usize << 20;
 
@@ -43,15 +46,15 @@ impl EllipticCurveParameters for Bn254Parameters {
 }
 
 impl WeierstrassParameters for Bn254Parameters {
-    const A: [u16; MAX_NB_LIMBS] = [
+    const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
-    ];
+    ]);
 
-    const B: [u16; MAX_NB_LIMBS] = [
+    const B: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
-    ];
+    ]);
     fn generator() -> (BigUint, BigUint) {
         let x = BigUint::from(1u32);
         let y = BigUint::from(2u32);

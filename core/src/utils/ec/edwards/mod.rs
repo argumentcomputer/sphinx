@@ -1,13 +1,14 @@
 pub mod ed25519;
 
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::ec::field::{FieldParameters, MAX_NB_LIMBS};
+use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
 pub trait EdwardsParameters: EllipticCurveParameters {
-    const D: [u16; MAX_NB_LIMBS];
+    const D: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;
 
     fn generator() -> (BigUint, BigUint);
 
@@ -31,7 +32,7 @@ pub trait EdwardsParameters: EllipticCurveParameters {
 pub struct EdwardsCurve<E: EdwardsParameters>(pub E);
 
 impl<E: EdwardsParameters> EdwardsParameters for EdwardsCurve<E> {
-    const D: [u16; MAX_NB_LIMBS] = E::D;
+    const D: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = E::D;
 
     fn generator() -> (BigUint, BigUint) {
         E::generator()

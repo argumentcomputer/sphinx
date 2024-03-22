@@ -1,7 +1,9 @@
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::ec::field::{FieldParameters, MAX_NB_LIMBS};
+use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::utils::biguint_to_bits_le;
 use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
@@ -10,8 +12,8 @@ pub mod secp256k1;
 
 /// Parameters that specify a short Weierstrass curve : y^2 = x^3 + ax + b.
 pub trait WeierstrassParameters: EllipticCurveParameters {
-    const A: [u16; MAX_NB_LIMBS];
-    const B: [u16; MAX_NB_LIMBS];
+    const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;
+    const B: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;
 
     fn generator() -> (BigUint, BigUint);
 
@@ -34,7 +36,7 @@ pub trait WeierstrassParameters: EllipticCurveParameters {
     }
 
     fn nb_scalar_bits() -> usize {
-        Self::BaseField::NB_LIMBS * 16
+        <Self::BaseField as FieldParameters>::NB_LIMBS::USIZE * 16
     }
 }
 
@@ -42,8 +44,8 @@ pub trait WeierstrassParameters: EllipticCurveParameters {
 pub struct SwCurve<E>(pub E);
 
 impl<E: WeierstrassParameters> WeierstrassParameters for SwCurve<E> {
-    const A: [u16; MAX_NB_LIMBS] = E::A;
-    const B: [u16; MAX_NB_LIMBS] = E::B;
+    const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = E::A;
+    const B: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = E::B;
 
     fn a_int() -> BigUint {
         E::a_int()

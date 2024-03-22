@@ -43,15 +43,17 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
     fn assert_all_eq<
         I1: Into<Self::Expr>,
         I2: Into<Self::Expr>,
-        I1I: IntoIterator<Item = I1> + Copy,
-        I2I: IntoIterator<Item = I2> + Copy,
+        I1I: IntoIterator<Item = I1>,
+        I2I: IntoIterator<Item = I2>,
     >(
         &mut self,
         left: I1I,
         right: I2I,
     ) {
-        debug_assert_eq!(left.into_iter().count(), right.into_iter().count());
-        for (left, right) in left.into_iter().zip(right) {
+        let left = left.into_iter();
+        let right = right.into_iter();
+        debug_assert_eq!(left.size_hint(), right.size_hint());
+        for (left, right) in left.zip(right) {
             self.assert_eq(left, right);
         }
     }
