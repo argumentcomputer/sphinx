@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul};
 
 use p3_field::AbstractField;
-use sp1_core::stark::AirOpenedValues;
+use wp1_core::stark::AirOpenedValues;
 
 use crate::prelude::{Builder, Config, Ext, ExtConst, Felt, SymbolicExt, Usize, Var, Variable};
 

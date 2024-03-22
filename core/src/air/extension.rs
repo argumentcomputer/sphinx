@@ -2,8 +2,8 @@ use p3_field::{
     extension::{BinomialExtensionField, BinomiallyExtendable},
     AbstractExtensionField, AbstractField,
 };
-use sp1_derive::AlignedBorrow;
 use std::ops::{Add, Mul, Neg, Sub};
+use wp1_derive::AlignedBorrow;
 
 const DEGREE: usize = 4;
 

@@ -212,7 +212,7 @@ dependencies = [
 name = "is-prime-program"
 version = "0.1.0"
 dependencies = [
- "sp1-zkvm",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -377,7 +377,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-zkvm"
+name = "wp1-zkvm"
 version = "0.1.0"
 source = "git+https://github.com/succinctlabs/sp1.git#54b64b646d18cabef3307bb90167d23470736dc3"
 dependencies = [

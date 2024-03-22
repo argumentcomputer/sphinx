@@ -1,7 +1,7 @@
 use p3_field::PrimeField;
-use sp1_derive::AlignedBorrow;
 use std::mem::size_of;
 use std::{iter::once, vec::IntoIter};
+use wp1_derive::AlignedBorrow;
 
 use crate::{air::Word, runtime::Instruction};
 

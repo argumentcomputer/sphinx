@@ -50,8 +50,8 @@ use p3_field::AbstractField;
 use p3_field::PrimeField;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
-use sp1_derive::AlignedBorrow;
 use tracing::instrument;
+use wp1_derive::AlignedBorrow;
 
 use crate::air::MachineAir;
 use crate::air::{SP1AirBuilder, Word};

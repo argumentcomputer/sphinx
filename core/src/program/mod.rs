@@ -6,7 +6,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
 use std::collections::HashMap;
 
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 use crate::air::MachineAir;
 use crate::air::SP1AirBuilder;

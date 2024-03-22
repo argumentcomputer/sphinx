@@ -2,7 +2,7 @@ mod air;
 mod columns;
 
 use crate::air::Block;
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 #[derive(Debug, Clone)]
 pub struct MemoryRecord<F> {

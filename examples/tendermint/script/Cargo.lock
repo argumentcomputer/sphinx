@@ -2355,7 +2355,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-core"
+name = "wp1-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2403,8 +2403,8 @@ dependencies = [
  "serde_with",
  "serial_test",
  "size",
- "sp1-derive",
- "sp1-zkvm",
+ "wp1-derive",
+ "wp1-zkvm",
  "strum",
  "strum_macros",
  "tempfile",
@@ -2416,7 +2416,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-derive"
+name = "wp1-derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
@@ -2425,7 +2425,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-helper"
+name = "wp1-helper"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",
@@ -2657,8 +2657,8 @@ dependencies = [
  "serde",
  "serde_cbor",
  "serde_json",
- "sp1-core",
- "sp1-helper",
+ "wp1-core",
+ "wp1-helper",
  "tendermint",
  "tendermint-light-client-verifier",
  "tokio",

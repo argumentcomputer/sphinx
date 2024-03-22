@@ -4,7 +4,7 @@ use std::ops::{Index, IndexMut};
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 use p3_field::Field;
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 use super::SP1AirBuilder;
 

@@ -35,7 +35,7 @@ for program in "${programs[@]}"; do
     for hash_fn in "${hash_functions[@]}"; do
         for shard_size in "${shard_sizes[@]}"; do
             echo "Running $program with hash function $hash_fn and shard size $shard_size, $runs times"
-            if ! CARGO_NET_GIT_FETCH_WITH_CLI=true RUSTFLAGS='-C target-cpu=native' cargo run -p sp1-eval --release -- \
+            if ! CARGO_NET_GIT_FETCH_WITH_CLI=true RUSTFLAGS='-C target-cpu=native' cargo run -p wp1-eval --release -- \
                 --program $program --hashfn $hash_fn --shard-size $shard_size --benchmark-path "$benchmark_path" --elf-path "$elf_path" --runs $runs; then
                 echo "Error running evaluation for $program with hash function $hash_fn and shard size $shard_size"
             fi

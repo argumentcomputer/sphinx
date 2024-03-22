@@ -1,4 +1,4 @@
-use sp1_core::stark::{AirOpenedValues, ChipOpenedValues};
+use wp1_core::stark::{AirOpenedValues, ChipOpenedValues};
 
 use crate::prelude::{Builder, Config, Ext, ExtConst, Usize};
 

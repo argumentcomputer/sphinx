@@ -6,7 +6,7 @@ We recommend that during development of large programs (> 1 million cycles) that
 Instead, you should have your script only execute the program with the RISC-V runtime and read `stdout`. Here is an example:
 
 ```rust,noplayground
-use sp1_core::{SP1Prover, SP1Stdin, SP1Verifier};
+use wp1_core::{SP1Prover, SP1Stdin, SP1Verifier};
 
 // The ELF file with the RISC-V bytecode of the program from above.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -46,16 +46,16 @@ SAVE_DISK_THRESHOLD=64 SHARD_SIZE=2097152 RUST_LOG=info RUSTFLAGS='-C target-cpu
 
 #### Blake3 on ARM machines
 
-Blake3 on ARM machines requires using the `neon` feature of `sp1-core`. For examples in the sp1-core repo, you can use:
+Blake3 on ARM machines requires using the `neon` feature of `wp1-core`. For examples in the wp1-core repo, you can use:
 
 ```rust,noplayground
 SHARD_SIZE=2097152 RUST_LOG=info RUSTFLAGS='-C target-cpu=native' cargo run --release --features neon
 ```
 
-Otherwise, make sure to include the "neon" feature when importing `sp1-zkvm` in your `Cargo.toml`:
+Otherwise, make sure to include the "neon" feature when importing `wp1-zkvm` in your `Cargo.toml`:
 
 ```toml,noplayground
-sp1-core = { git = "https://github.com/wormhole-foundation/wp1.git", features = [ "neon" ] }
+wp1-core = { git = "https://github.com/wormhole-foundation/wp1.git", features = [ "neon" ] }
 ```
 
 ## Logging and Tracing Information

@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 use crate::memory::MemoryReadCols;
 use crate::memory::MemoryWriteCols;

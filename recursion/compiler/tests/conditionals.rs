@@ -1,9 +1,9 @@
 use p3_baby_bear::BabyBear;
 use p3_field::extension::BinomialExtensionField;
 use p3_field::AbstractField;
-use sp1_recursion_compiler::asm::VmBuilder;
-use sp1_recursion_compiler::prelude::*;
-use sp1_recursion_core::runtime::Runtime;
+use wp1_recursion_compiler::asm::VmBuilder;
+use wp1_recursion_compiler::prelude::*;
+use wp1_recursion_core::runtime::Runtime;
 
 #[test]
 fn test_compiler_conditionals() {

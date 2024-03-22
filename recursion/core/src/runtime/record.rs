@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use p3_field::PrimeField32;
-use sp1_core::stark::MachineRecord;
 use std::collections::HashMap;
+use wp1_core::stark::MachineRecord;
 
 use super::Program;
 use crate::air::Block;

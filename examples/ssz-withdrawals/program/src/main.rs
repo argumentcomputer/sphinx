@@ -2,7 +2,7 @@
 //! sum of all beacon partial withdrawals in [start_slot, end_slot) to the given eigenpod address.
 
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 mod beacon;
 

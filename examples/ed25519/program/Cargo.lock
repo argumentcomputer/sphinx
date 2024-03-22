@@ -184,7 +184,7 @@ version = "0.1.0"
 dependencies = [
  "ed25519-dalek",
  "hex-literal",
- "sp1-zkvm",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -467,7 +467,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-precompiles"
+name = "wp1-precompiles"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -480,7 +480,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-zkvm"
+name = "wp1-zkvm"
 version = "0.1.0"
 dependencies = [
  "bincode",
@@ -490,7 +490,7 @@ dependencies = [
  "libm",
  "rand",
  "serde",
- "sp1-precompiles",
+ "wp1-precompiles",
 ]
 
 [[package]]

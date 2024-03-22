@@ -247,8 +247,8 @@ dependencies = [
 name = "fibonacci-program"
 version = "0.1.0"
 dependencies = [
- "sp1-helper",
- "sp1-zkvm",
+ "wp1-helper",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -546,7 +546,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-helper"
+name = "wp1-helper"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",
@@ -554,7 +554,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-precompiles"
+name = "wp1-precompiles"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -567,7 +567,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-zkvm"
+name = "wp1-zkvm"
 version = "0.1.0"
 dependencies = [
  "bincode",
@@ -577,7 +577,7 @@ dependencies = [
  "libm",
  "rand",
  "serde",
- "sp1-precompiles",
+ "wp1-precompiles",
 ]
 
 [[package]]

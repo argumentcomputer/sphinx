@@ -8,8 +8,8 @@ use crate::utils::ec::field::FieldParameters;
 use num::{BigUint, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
+use wp1_derive::AlignedBorrow;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum FieldOperation {
@@ -191,7 +191,7 @@ mod tests {
     use p3_matrix::dense::RowMajorMatrix;
     use p3_matrix::MatrixRowSlices;
     use rand::thread_rng;
-    use sp1_derive::AlignedBorrow;
+    use wp1_derive::AlignedBorrow;
 
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T> {

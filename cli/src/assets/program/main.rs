@@ -1,13 +1,13 @@
 //! A simple program to be proven inside the zkVM.
 
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 pub fn main() {
     // NOTE: values of n larger than 186 will overflow the u128 type,
     // resulting in output that doesn't match fibonacci sequence.
     // However, the resulting proof will still be valid!
-    let n = sp1_zkvm::io::read::<u32>();
+    let n = wp1_zkvm::io::read::<u32>();
     let mut a: u128 = 0;
     let mut b: u128 = 1;
     let mut sum: u128;
@@ -17,6 +17,6 @@ pub fn main() {
         b = sum;
     }
 
-    sp1_zkvm::io::write(&a);
-    sp1_zkvm::io::write(&b);
+    wp1_zkvm::io::write(&a);
+    wp1_zkvm::io::write(&b);
 }

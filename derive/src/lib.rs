@@ -78,13 +78,13 @@ pub fn aligned_borrow_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(methods)
 }
 
-#[proc_macro_derive(MachineAir, attributes(sp1_core_path, execution_record_path))]
+#[proc_macro_derive(MachineAir, attributes(wp1_core_path, execution_record_path))]
 pub fn machine_air_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     let name = &ast.ident;
     let generics = &ast.generics;
-    let sp1_core_path = find_sp1_core_path(&ast.attrs);
+    let wp1_core_path = find_wp1_core_path(&ast.attrs);
     let execution_record_path = find_execution_record_path(&ast.attrs);
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
@@ -128,47 +128,47 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
             let name_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::name(x)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::name(x)
                 }
             });
 
             let preprocessed_width_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::preprocessed_width(x)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::preprocessed_width(x)
                 }
             });
 
             let generate_preprocessed_trace_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::generate_preprocessed_trace(x, program)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::generate_preprocessed_trace(x, program)
                 }
             });
 
             let generate_trace_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::generate_trace(x, input, output)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::generate_trace(x, input, output)
                 }
             });
 
             let generate_dependencies_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::generate_dependencies(x, input, output)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::generate_dependencies(x, input, output)
                 }
             });
 
             let included_arms = variants.iter().map(|(variant_name, field)| {
                 let field_ty = &field.ty;
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sp1_core_path::air::MachineAir<F>>::included(x, shard)
+                    #name::#variant_name(x) => <#field_ty as #wp1_core_path::air::MachineAir<F>>::included(x, shard)
                 }
             });
 
             let machine_air = quote! {
-                impl #impl_generics #sp1_core_path::air::MachineAir<F> for #name #ty_generics #where_clause {
+                impl #impl_generics #wp1_core_path::air::MachineAir<F> for #name #ty_generics #where_clause {
                     type Record = #execution_record_path;
 
                     fn name(&self) -> String {
@@ -185,7 +185,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
                     fn generate_preprocessed_trace(
                         &self,
-                        program: &#sp1_core_path::runtime::Program,
+                        program: &#wp1_core_path::runtime::Program,
                     ) -> Option<p3_matrix::dense::RowMajorMatrix<F>> {
                         match self {
                             #(#generate_preprocessed_trace_arms,)*
@@ -232,7 +232,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
             let mut new_generics = generics.clone();
             new_generics
                 .params
-                .push(syn::parse_quote! { AB: #sp1_core_path::air::SP1AirBuilder<F = F> });
+                .push(syn::parse_quote! { AB: #wp1_core_path::air::SP1AirBuilder<F = F> });
 
             let (air_impl_generics, _, _) = new_generics.split_for_impl();
 
@@ -282,9 +282,9 @@ pub fn cycle_tracker(_attr: TokenStream, item: TokenStream) -> TokenStream {
     result.into()
 }
 
-fn find_sp1_core_path(attrs: &[syn::Attribute]) -> syn::Ident {
+fn find_wp1_core_path(attrs: &[syn::Attribute]) -> syn::Ident {
     for attr in attrs {
-        if attr.path.is_ident("sp1_core_path") {
+        if attr.path.is_ident("wp1_core_path") {
             if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
                 if let syn::Lit::Str(lit_str) = &meta.lit {
                     return syn::Ident::new(&lit_str.value(), lit_str.span());

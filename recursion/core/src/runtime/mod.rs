@@ -15,7 +15,7 @@ use crate::cpu::CpuEvent;
 use crate::memory::MemoryRecord;
 
 use p3_field::{ExtensionField, PrimeField32};
-use sp1_core::runtime::MemoryAccessPosition;
+use wp1_core::runtime::MemoryAccessPosition;
 
 pub const STACK_SIZE: usize = 1 << 20;
 pub const MEMORY_SIZE: usize = 1 << 26;

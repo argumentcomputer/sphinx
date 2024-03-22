@@ -24,11 +24,11 @@ If you want your program crate to be built automatically whenever you build/run 
 {{#include ../../examples/fibonacci-io/script/build.rs}}
 ```
 
-Make sure to also add `sp1-helper` as a build dependency in `script/Cargo.toml`:
+Make sure to also add `wp1-helper` as a build dependency in `script/Cargo.toml`:
 
 ```toml
 [build-dependencies]
-sp1-helper = { git = "https://github.com/wormhole-foundation/wp1.git" }
+wp1-helper = { git = "https://github.com/wormhole-foundation/wp1.git" }
 ```
 
 If you run `RUST_LOG=info cargo run --release -vv`, you will see the following output from the build script if the program has changed, indicating that the program was rebuilt:

@@ -15,10 +15,10 @@ pub mod tests {
     use p3_baby_bear::BabyBear;
     use p3_field::extension::BinomialExtensionField;
     use p3_field::{AbstractField, PrimeField32};
-    use sp1_core::lookup::{debug_interactions_with_all_chips, InteractionKind};
-    use sp1_core::stark::{LocalProver, StarkGenericConfig};
-    use sp1_core::utils::BabyBearPoseidon2;
     use std::time::Instant;
+    use wp1_core::lookup::{debug_interactions_with_all_chips, InteractionKind};
+    use wp1_core::stark::{LocalProver, StarkGenericConfig};
+    use wp1_core::utils::BabyBearPoseidon2;
 
     type F = BabyBear;
     type EF = BinomialExtensionField<BabyBear, 4>;
@@ -106,7 +106,7 @@ pub mod tests {
     #[test]
     fn test_fibonacci_prove() {
         std::env::set_var("RUST_LOG", "debug");
-        sp1_core::utils::setup_logger();
+        wp1_core::utils::setup_logger();
 
         type SC = BabyBearPoseidon2;
         type F = <SC as StarkGenericConfig>::Val;

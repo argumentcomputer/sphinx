@@ -10,11 +10,11 @@ use p3_field::extension::BinomialExtensionField;
 use p3_field::extension::BinomiallyExtendable;
 use p3_field::AbstractField;
 use p3_field::Field;
-use sp1_core::air::BinomialExtension;
-use sp1_derive::AlignedBorrow;
+use wp1_core::air::BinomialExtension;
+use wp1_derive::AlignedBorrow;
 
 use crate::air::extension::BinomialExtensionUtils;
-use sp1_core::air::SP1AirBuilder;
+use wp1_core::air::SP1AirBuilder;
 
 use crate::runtime::D;
 

@@ -1,9 +1,9 @@
 use p3_field::AbstractField;
-use sp1_core::stark::StarkGenericConfig;
-use sp1_core::utils::BabyBearPoseidon2;
-use sp1_recursion_compiler::asm::VmBuilder;
-use sp1_recursion_compiler::prelude::*;
-use sp1_recursion_core::runtime::Runtime;
+use wp1_core::stark::StarkGenericConfig;
+use wp1_core::utils::BabyBearPoseidon2;
+use wp1_recursion_compiler::asm::VmBuilder;
+use wp1_recursion_compiler::prelude::*;
+use wp1_recursion_core::runtime::Runtime;
 
 fn fibonacci(n: u32) -> u32 {
     if n == 0 {

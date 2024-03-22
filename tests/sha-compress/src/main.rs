@@ -1,7 +1,7 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
-use sp1_zkvm::syscalls::syscall_sha256_compress;
+use wp1_zkvm::syscalls::syscall_sha256_compress;
 
 pub fn main() {
     let mut w = [1u32; 64];

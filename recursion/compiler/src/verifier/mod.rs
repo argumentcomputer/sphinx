@@ -6,8 +6,8 @@ pub mod fri;
 pub use constraints::*;
 
 use p3_field::Field;
-use sp1_core::stark::StarkGenericConfig;
 use std::marker::PhantomData;
+use wp1_core::stark::StarkGenericConfig;
 
 use crate::prelude::Config;
 

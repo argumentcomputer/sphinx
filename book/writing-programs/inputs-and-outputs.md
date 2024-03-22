@@ -9,36 +9,36 @@ In this section, we cover how you pass inputs and outputs to the zkVM and create
 
 ## Reading Data
 
-For most use cases, use the `sp1_zkvm::io::read::<T>` method:
+For most use cases, use the `wp1_zkvm::io::read::<T>` method:
 
 ```rust,noplayground
-let a = sp1_zkvm::io::read::<u32>();
-let b = sp1_zkvm::io::read::<u64>();
-let c = sp1_zkvm::io::read::<String>();
+let a = wp1_zkvm::io::read::<u32>();
+let b = wp1_zkvm::io::read::<u64>();
+let c = wp1_zkvm::io::read::<String>();
 ```
 
-Note that `T` must implement the `serde::Serialize` and `serde::Deserialize` trait. If you want to read bytes directly, you can also use the `sp1_zkvm::io::read_slice` method.
+Note that `T` must implement the `serde::Serialize` and `serde::Deserialize` trait. If you want to read bytes directly, you can also use the `wp1_zkvm::io::read_slice` method.
 
 ```rust,noplayground
 let mut my_slice = [0_u8; 32];
-sp1_zkvm::io::read_slice(&mut my_slice);
+wp1_zkvm::io::read_slice(&mut my_slice);
 ```
 
 ## Writing Data
 
-For most usecases, use the `sp1_zkvm::io::write::<T>` method:
+For most usecases, use the `wp1_zkvm::io::write::<T>` method:
 
 ```rust,noplayground
-sp1_zkvm::io::write::<u32>(&a);
-sp1_zkvm::io::write::<u64>(&b);
-sp1_zkvm::io::write::<String>(&c);
+wp1_zkvm::io::write::<u32>(&a);
+wp1_zkvm::io::write::<u64>(&b);
+wp1_zkvm::io::write::<String>(&c);
 ```
 
-Note that `T` must implement the `Serialize` and `Deserialize` trait.  If you want to write bytes directly, you can also use `sp1_zkvm::io::write_slice` method:
+Note that `T` must implement the `Serialize` and `Deserialize` trait.  If you want to write bytes directly, you can also use `wp1_zkvm::io::write_slice` method:
 
 ```rust,noplayground
 let mut my_slice = [0_u8; 32];
-sp1_zkvm::io::write_slice(&my_slice);
+wp1_zkvm::io::write_slice(&my_slice);
 ```
 
 ## Creating Serializable Types

@@ -33,7 +33,7 @@ cd program
 
 #### Cargo Manifest
 
-Inside this crate, add the `sp1-zkvm` crate as a dependency. Your `Cargo.toml` should look like as follows:
+Inside this crate, add the `wp1-zkvm` crate as a dependency. Your `Cargo.toml` should look like as follows:
 
 ```rust,noplayground
 [workspace]
@@ -43,10 +43,10 @@ name = "program"
 edition = "2021"
 
 [dependencies]
-sp1-zkvm = { git = "https://github.com/wormhole-foundation/wp1.git" }
+wp1-zkvm = { git = "https://github.com/wormhole-foundation/wp1.git" }
 ```
 
-The `sp1-zkvm` crate includes necessary utilities for your program, including handling inputs and outputs,
+The `wp1-zkvm` crate includes necessary utilities for your program, including handling inputs and outputs,
 precompiles, patches, and more.
 
 #### main.rs
@@ -56,7 +56,7 @@ properly compiles.
 
 ```rust,noplayground
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 ```
 
 These two lines of code wrap your main function with some additional logic to ensure that your program compiles correctly with the RISCV target.

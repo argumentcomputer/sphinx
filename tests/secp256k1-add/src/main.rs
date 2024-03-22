@@ -1,5 +1,5 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 extern "C" {
     fn syscall_secp256k1_add(p: *mut u32, q: *const u32);

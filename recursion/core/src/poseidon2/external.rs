@@ -6,12 +6,12 @@ use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
-use sp1_core::air::{MachineAir, SP1AirBuilder};
-use sp1_core::utils::pad_to_power_of_two;
-use sp1_core::utils::poseidon2_instance::RC_16_30_U32;
-use sp1_derive::AlignedBorrow;
 use std::borrow::BorrowMut;
 use tracing::instrument;
+use wp1_core::air::{MachineAir, SP1AirBuilder};
+use wp1_core::utils::pad_to_power_of_two;
+use wp1_core::utils::poseidon2_instance::RC_16_30_U32;
+use wp1_derive::AlignedBorrow;
 
 use crate::runtime::ExecutionRecord;
 
@@ -332,8 +332,8 @@ mod tests {
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
     use p3_poseidon2::Poseidon2;
-    use sp1_core::stark::StarkGenericConfig;
-    use sp1_core::{
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::{
         air::MachineAir,
         utils::{poseidon2_instance::RC_16_30, uni_stark_prove, BabyBearPoseidon2},
     };

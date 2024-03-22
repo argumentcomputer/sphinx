@@ -1,12 +1,12 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 pub fn main() {
-    let n = sp1_zkvm::io::read::<u64>();
+    let n = wp1_zkvm::io::read::<u64>();
 
     let is_prime = is_prime(n);
 
-    sp1_zkvm::io::write(&is_prime);
+    wp1_zkvm::io::write(&is_prime);
 }
 
 // Returns if divisible via immediate checks than 6k ± 1.

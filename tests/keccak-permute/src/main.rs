@@ -1,7 +1,7 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
-use sp1_zkvm::syscalls::syscall_keccak_permute;
+use wp1_zkvm::syscalls::syscall_keccak_permute;
 
 pub fn main() {
     for _ in 0..25 {

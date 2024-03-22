@@ -1,5 +1,5 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 use ed25519_dalek::*;
 use hex_literal::hex;

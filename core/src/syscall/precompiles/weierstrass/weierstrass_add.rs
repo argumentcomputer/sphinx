@@ -28,9 +28,9 @@ use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use wp1_derive::AlignedBorrow;
 
 pub const NUM_WEIERSTRASS_ADD_COLS: usize = size_of::<WeierstrassAddAssignCols<u8>>();
 

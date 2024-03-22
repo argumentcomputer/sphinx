@@ -32,15 +32,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@nightly
       - uses: taiki-e/install-action@nextest
-      - name: Run cargo test on sp1-core
+      - name: Run cargo test on wp1-core
         run: |
-          cargo nextest run -p sp1-core --release --profile ci
-      - name: Run cargo test on sp1-recursion-compiler
+          cargo nextest run -p wp1-core --release --profile ci
+      - name: Run cargo test on wp1-recursion-compiler
         run: |
-          cargo nextest run -p sp1-recursion-compiler --release --profile ci
+          cargo nextest run -p wp1-recursion-compiler --release --profile ci
       - name: Run cargo test with no default features
         run: |
-          cargo nextest run -p sp1-core --release --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+          cargo nextest run -p wp1-core --release --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
 
   clippy:
     runs-on: ubuntu-latest

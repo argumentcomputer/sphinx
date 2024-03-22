@@ -1,13 +1,13 @@
 use clap::{command, Parser};
 use csv::WriterBuilder;
 use serde::Serialize;
-use sp1_core::runtime::{Program, Runtime};
-use sp1_core::utils::{get_cycles, prove_core, BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
-use sp1_core::{SP1ProofWithIO, SP1Stdin, SP1Stdout, SP1Verifier};
 use std::fmt;
 use std::fs::OpenOptions;
 use std::io;
 use std::{fs, time::Instant};
+use wp1_core::runtime::{Program, Runtime};
+use wp1_core::utils::{get_cycles, prove_core, BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
+use wp1_core::{SP1ProofWithIO, SP1Stdin, SP1Stdout, SP1Verifier};
 
 /// An identifier used to select the hash function to evaluate.
 #[derive(clap::ValueEnum, Clone)]

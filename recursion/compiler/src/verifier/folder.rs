@@ -1,5 +1,5 @@
 use p3_air::{AirBuilder, ExtensionBuilder, PairBuilder, PermutationAirBuilder, TwoRowMatrixView};
-use sp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder};
+use wp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder};
 
 use crate::{
     ir::{Builder, Config, Ext},

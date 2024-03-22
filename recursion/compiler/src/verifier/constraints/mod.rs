@@ -6,8 +6,8 @@ use p3_air::Air;
 use p3_commit::LagrangeSelectors;
 use p3_field::AbstractExtensionField;
 use p3_field::AbstractField;
-use sp1_core::stark::AirOpenedValues;
-use sp1_core::stark::{MachineChip, StarkGenericConfig};
+use wp1_core::stark::AirOpenedValues;
+use wp1_core::stark::{MachineChip, StarkGenericConfig};
 
 use crate::prelude::Config;
 use crate::prelude::ExtConst;
@@ -114,7 +114,7 @@ impl<C: Config> Builder<C> {
         )
     }
 
-    /// Reference: `[sp1_core::stark::Verifier::verify_constraints]`
+    /// Reference: `[wp1_core::stark::Verifier::verify_constraints]`
     #[allow(clippy::too_many_arguments)]
     pub fn verify_constraints<SC, A>(
         &mut self,
@@ -145,7 +145,7 @@ impl<C: Config> Builder<C> {
 mod tests {
     use itertools::{izip, Itertools};
     use serde::{de::DeserializeOwned, Serialize};
-    use sp1_core::{
+    use wp1_core::{
         air::MachineAir,
         stark::{
             Chip, Com, Dom, MachineStark, OpeningProof, PcsProverData, RiscvAir, ShardCommitment,
@@ -154,7 +154,7 @@ mod tests {
         utils::BabyBearPoseidon2,
         SP1Prover, SP1Stdin,
     };
-    use sp1_recursion_core::runtime::Runtime;
+    use wp1_recursion_core::runtime::Runtime;
 
     use crate::{asm::VmBuilder, prelude::ExtConst};
     use p3_challenger::{CanObserve, FieldChallenger};
@@ -264,7 +264,7 @@ mod tests {
         type A = RiscvAir<F>;
 
         // Generate a dummy proof.
-        sp1_core::utils::setup_logger();
+        wp1_core::utils::setup_logger();
         let elf = include_bytes!(
             "../../../../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf"
         );

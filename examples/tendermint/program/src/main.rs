@@ -1,5 +1,5 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 use core::time::Duration;
 use tendermint_light_client_verifier::{
@@ -9,13 +9,13 @@ use tendermint_light_client_verifier::{
 fn main() {
     // Normally we could just do this to read in the LightBlocks, but bincode doesn't work with LightBlock.
     // This is likely a bug in tendermint-rs.
-    // let light_block_1 = sp1_zkvm::io::read::<LightBlock>();
-    // let light_block_2 = sp1_zkvm::io::read::<LightBlock>();
+    // let light_block_1 = wp1_zkvm::io::read::<LightBlock>();
+    // let light_block_2 = wp1_zkvm::io::read::<LightBlock>();
 
     println!("cycle-tracker-start: io");
     println!("cycle-tracker-start: reading bytes");
-    let encoded_1 = sp1_zkvm::io::read::<Vec<u8>>();
-    let encoded_2 = sp1_zkvm::io::read::<Vec<u8>>();
+    let encoded_1 = wp1_zkvm::io::read::<Vec<u8>>();
+    let encoded_2 = wp1_zkvm::io::read::<Vec<u8>>();
     println!("cycle-tracker-end: reading bytes");
 
     println!("cycle-tracker-start: serde");

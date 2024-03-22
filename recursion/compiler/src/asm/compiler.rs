@@ -8,8 +8,8 @@ use alloc::vec::Vec;
 
 use p3_field::ExtensionField;
 use p3_field::PrimeField32;
-use sp1_recursion_core::runtime::Program;
-use sp1_recursion_core::runtime::STACK_SIZE;
+use wp1_recursion_core::runtime::Program;
+use wp1_recursion_core::runtime::STACK_SIZE;
 
 use crate::asm::AsmInstruction;
 use crate::ir::Builder;

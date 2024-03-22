@@ -42,8 +42,8 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 use p3_matrix::dense::RowMajorMatrix;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
+use wp1_derive::AlignedBorrow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct K256DecompressEvent {

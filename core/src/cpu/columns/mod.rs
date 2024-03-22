@@ -15,8 +15,8 @@ pub use opcode::*;
 pub use opcode_specific::*;
 
 use p3_util::indices_arr;
-use sp1_derive::AlignedBorrow;
 use std::mem::{size_of, transmute};
+use wp1_derive::AlignedBorrow;
 
 use crate::{
     air::Word,

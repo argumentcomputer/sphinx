@@ -4,7 +4,7 @@ use p3_matrix::dense::RowMajorMatrix;
 
 use crate::{runtime::Program, stark::MachineRecord};
 
-pub use sp1_derive::MachineAir;
+pub use wp1_derive::MachineAir;
 
 /// An AIR that is part of a Risc-V AIR arithmetization.
 pub trait MachineAir<F: Field>: BaseAir<F> {

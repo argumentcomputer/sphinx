@@ -31,10 +31,10 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use tracing::instrument;
+use wp1_derive::AlignedBorrow;
 
 pub const NUM_WEIERSTRASS_DOUBLE_COLS: usize = size_of::<WeierstrassDoubleAssignCols<u8>>();
 

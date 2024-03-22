@@ -846,8 +846,8 @@ name = "io-script"
 version = "0.1.0"
 dependencies = [
  "serde",
- "sp1-core",
- "sp1-helper",
+ "wp1-core",
+ "wp1-helper",
 ]
 
 [[package]]
@@ -1783,7 +1783,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6ecd384b10a64542d77071bd64bd7b231f4ed5940fba55e98c3de13824cf3d7"
 
 [[package]]
-name = "sp1-core"
+name = "wp1-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1831,8 +1831,8 @@ dependencies = [
  "serde_with",
  "serial_test",
  "size",
- "sp1-derive",
- "sp1-zkvm",
+ "wp1-derive",
+ "wp1-zkvm",
  "strum",
  "strum_macros",
  "tempfile",
@@ -1844,7 +1844,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-derive"
+name = "wp1-derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
@@ -1853,7 +1853,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-helper"
+name = "wp1-helper"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",

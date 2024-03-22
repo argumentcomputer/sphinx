@@ -1,5 +1,5 @@
-use sp1_derive::AlignedBorrow;
 use std::mem::size_of;
+use wp1_derive::AlignedBorrow;
 
 #[allow(dead_code)]
 pub(crate) const NUM_JUMP_COLS: usize = size_of::<JumpCols<u8>>();

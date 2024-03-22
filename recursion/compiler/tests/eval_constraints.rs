@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 
-use sp1_core::stark::VerifierConstraintFolder;
-use sp1_recursion_compiler::ir::Ext;
-use sp1_recursion_compiler::ir::Felt;
-use sp1_recursion_compiler::prelude::Builder;
+use wp1_core::stark::VerifierConstraintFolder;
+use wp1_recursion_compiler::ir::Ext;
+use wp1_recursion_compiler::ir::Felt;
+use wp1_recursion_compiler::prelude::Builder;
 
 use p3_air::Air;
 use p3_field::AbstractField;
@@ -11,21 +11,21 @@ use p3_field::Field;
 use p3_field::PrimeField32;
 use rand::thread_rng;
 use rand::Rng;
-use sp1_core::air::MachineAir;
-use sp1_core::stark::ChipOpenedValues;
-use sp1_core::stark::MachineChip;
-use sp1_core::stark::RiscvAir;
-use sp1_core::stark::StarkAir;
-use sp1_core::stark::StarkGenericConfig;
-use sp1_core::utils;
-use sp1_core::utils::BabyBearPoseidon2;
-use sp1_core::SP1Prover;
-use sp1_core::SP1Stdin;
-use sp1_recursion_compiler::asm::VmBuilder;
-use sp1_recursion_compiler::ir::Config;
-use sp1_recursion_compiler::ir::ExtConst;
-use sp1_recursion_compiler::verifier::folder::RecursiveVerifierConstraintFolder;
-use sp1_recursion_core::runtime::Runtime;
+use wp1_core::air::MachineAir;
+use wp1_core::stark::ChipOpenedValues;
+use wp1_core::stark::MachineChip;
+use wp1_core::stark::RiscvAir;
+use wp1_core::stark::StarkAir;
+use wp1_core::stark::StarkGenericConfig;
+use wp1_core::utils;
+use wp1_core::utils::BabyBearPoseidon2;
+use wp1_core::SP1Prover;
+use wp1_core::SP1Stdin;
+use wp1_recursion_compiler::asm::VmBuilder;
+use wp1_recursion_compiler::ir::Config;
+use wp1_recursion_compiler::ir::ExtConst;
+use wp1_recursion_compiler::verifier::folder::RecursiveVerifierConstraintFolder;
+use wp1_recursion_core::runtime::Runtime;
 
 pub fn eval_constraints_test<C, SC, A>(
     builder: &mut Builder<C>,

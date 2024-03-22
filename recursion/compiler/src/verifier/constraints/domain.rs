@@ -132,9 +132,9 @@ mod tests {
     use p3_commit::{Pcs, PolynomialSpace};
     use p3_field::TwoAdicField;
     use rand::{thread_rng, Rng};
-    use sp1_core::stark::Dom;
-    use sp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-    use sp1_recursion_core::runtime::Runtime;
+    use wp1_core::stark::Dom;
+    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+    use wp1_recursion_core::runtime::Runtime;
 
     fn domain_assertions<F: TwoAdicField, C: Config<N = F, F = F>>(
         builder: &mut Builder<C>,

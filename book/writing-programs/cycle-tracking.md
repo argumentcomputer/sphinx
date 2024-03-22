@@ -4,17 +4,17 @@ When writing a program, it is useful to know how many RISC-V cycles a portion of
 
 ## Tracking Cycles
 
-To track the number of cycles spent in a portion of the program, you can either put `println!("cycle-tracker-start: block name")` + `println!("cycle-tracker-end: block name")` statements (block name must be same between start and end) around the portion of your program you want to profile or use the `#[sp1_derive::cycle_tracker]` macro on a function. An example is shown below:
+To track the number of cycles spent in a portion of the program, you can either put `println!("cycle-tracker-start: block name")` + `println!("cycle-tracker-end: block name")` statements (block name must be same between start and end) around the portion of your program you want to profile or use the `#[wp1_derive::cycle_tracker]` macro on a function. An example is shown below:
 
 ```rust,noplayground
 {{#include ../../examples/cycle-tracking/program/src/main.rs}}
 ```
 
-Note that to use the macro, you must add the `sp1-derive` crate to your dependencies for your program.
+Note that to use the macro, you must add the `wp1-derive` crate to your dependencies for your program.
 
 ```toml
 [dependencies]
-sp1-derive = { git = "https://github.com/wormhole-foundation/wp1.git" }
+wp1-derive = { git = "https://github.com/wormhole-foundation/wp1.git" }
 ```
 
 In the script for proof generation, setup the logger with `utils::setup_logger()` and run the script with `RUST_LOG=debug cargo run --release`. You should see the following output:

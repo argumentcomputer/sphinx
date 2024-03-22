@@ -1,5 +1,5 @@
 use crate::air::Block;
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

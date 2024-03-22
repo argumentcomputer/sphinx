@@ -4,15 +4,15 @@ use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
-use sp1_core::lookup::InteractionKind;
-use sp1_core::{
-    air::{AirInteraction, MachineAir, SP1AirBuilder},
-    utils::pad_to_power_of_two,
-};
-use sp1_derive::AlignedBorrow;
 use std::borrow::Borrow;
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
+use wp1_core::lookup::InteractionKind;
+use wp1_core::{
+    air::{AirInteraction, MachineAir, SP1AirBuilder},
+    utils::pad_to_power_of_two,
+};
+use wp1_derive::AlignedBorrow;
 
 pub const NUM_PROGRAM_COLS: usize = size_of::<ProgramCols<u8>>();
 

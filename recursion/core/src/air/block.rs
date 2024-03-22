@@ -3,8 +3,8 @@ use p3_field::AbstractField;
 use p3_field::ExtensionField;
 use p3_field::Field;
 use p3_field::PrimeField32;
-use sp1_core::air::{BinomialExtension, SP1AirBuilder};
-use sp1_derive::AlignedBorrow;
+use wp1_core::air::{BinomialExtension, SP1AirBuilder};
+use wp1_derive::AlignedBorrow;
 
 use std::ops::Index;
 

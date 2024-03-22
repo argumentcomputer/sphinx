@@ -4,8 +4,8 @@ use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
 use num::BigUint;
 use p3_field::PrimeField32;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
+use wp1_derive::AlignedBorrow;
 
 /// A set of columns to compute the square root in the ed25519 curve. `T` is the field in which each
 /// limb lives.
@@ -96,7 +96,7 @@ mod tests {
     use p3_matrix::dense::RowMajorMatrix;
     use p3_matrix::MatrixRowSlices;
     use rand::thread_rng;
-    use sp1_derive::AlignedBorrow;
+    use wp1_derive::AlignedBorrow;
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T> {
         pub a: Limbs<T>,

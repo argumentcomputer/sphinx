@@ -1,10 +1,10 @@
 pub mod heap;
 pub mod syscalls;
 pub mod io {
-    pub use sp1_precompiles::io::*;
+    pub use wp1_precompiles::io::*;
 }
 pub mod precompiles {
-    pub use sp1_precompiles::*;
+    pub use wp1_precompiles::*;
 }
 
 #[allow(unused_extern_crates)]

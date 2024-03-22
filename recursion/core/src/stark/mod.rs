@@ -4,13 +4,13 @@ use crate::{
     program::ProgramChip,
 };
 use p3_field::{extension::BinomiallyExtendable, PrimeField32};
-use sp1_core::stark::{Chip, MachineStark, StarkGenericConfig};
-use sp1_derive::MachineAir;
+use wp1_core::stark::{Chip, MachineStark, StarkGenericConfig};
+use wp1_derive::MachineAir;
 
 use crate::runtime::D;
 
 #[derive(MachineAir)]
-#[sp1_core_path = "sp1_core"]
+#[wp1_core_path = "wp1_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
 pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>> {
     Program(ProgramChip),

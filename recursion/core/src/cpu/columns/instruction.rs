@@ -1,7 +1,7 @@
 use crate::{air::Block, cpu::Instruction};
 use p3_field::PrimeField;
-use sp1_derive::AlignedBorrow;
 use std::{iter::once, vec::IntoIter};
+use wp1_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

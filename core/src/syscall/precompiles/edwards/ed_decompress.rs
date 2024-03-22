@@ -39,8 +39,8 @@ use serde::Serialize;
 use std::marker::PhantomData;
 
 use p3_matrix::dense::RowMajorMatrix;
-use sp1_derive::AlignedBorrow;
 use std::fmt::Debug;
+use wp1_derive::AlignedBorrow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdDecompressEvent {

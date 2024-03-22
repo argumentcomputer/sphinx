@@ -1,5 +1,5 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
 use std::hint::black_box;
 

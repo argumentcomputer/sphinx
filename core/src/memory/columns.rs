@@ -1,4 +1,4 @@
-use sp1_derive::AlignedBorrow;
+use wp1_derive::AlignedBorrow;
 
 use crate::air::Word;
 

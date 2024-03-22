@@ -5,4 +5,4 @@ name = "unnamed-program"
 edition = "2021"
 
 [dependencies]
-sp1-zkvm = { git = "ssh://git@github.com/wormhole-foundation/wp1.git" }
+wp1-zkvm = { git = "ssh://git@github.com/wormhole-foundation/wp1.git" }

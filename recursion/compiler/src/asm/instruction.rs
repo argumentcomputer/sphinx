@@ -2,8 +2,8 @@ use alloc::collections::BTreeMap;
 use alloc::format;
 use alloc::string::String;
 use core::fmt;
-use sp1_recursion_core::cpu::Instruction;
-use sp1_recursion_core::runtime::Opcode;
+use wp1_recursion_core::cpu::Instruction;
+use wp1_recursion_core::runtime::Opcode;
 
 use crate::util::canonical_i32_to_field;
 use p3_field::{ExtensionField, PrimeField32};
