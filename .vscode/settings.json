@@ -23,6 +23,7 @@
         "./core/Cargo.toml",
         "./core/Cargo.toml"
     ],
+    "rust-analyzer.showUnlinkedFileNotification": false,
     // "rust-analyzer.showUnlinkedFileNotification": false,
     // "rust-analyzer.check.workspace": false,
     // "rust-analyzer.check.invocationStrategy": "once",

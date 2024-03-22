@@ -2478,6 +2478,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp1-recursion-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3411,6 +3420,7 @@ dependencies = [
  "p3-util",
  "rand",
  "serde",
+ "sp1-recursion-derive",
  "wp1-core",
  "wp1-recursion-core",
 ]
