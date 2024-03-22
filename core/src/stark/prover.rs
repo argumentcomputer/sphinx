@@ -286,7 +286,7 @@ where
                     .zip(trace_domains.iter())
                     .map(|(perm_trace, domain)| {
                         let trace = perm_trace.flatten_to_base();
-                        (*domain, trace.to_owned())
+                        (*domain, trace.clone())
                     })
                     .collect::<Vec<_>>()
             });

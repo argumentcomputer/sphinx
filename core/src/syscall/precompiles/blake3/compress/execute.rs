@@ -11,7 +11,7 @@ impl Syscall for Blake3CompressInnerChip {
         (ROUND_COUNT * OPERATION_COUNT) as u32
     }
 
-    fn execute(&self, rt: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let state_ptr = arg1;
         let message_ptr = arg2;
 

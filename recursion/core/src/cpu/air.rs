@@ -58,8 +58,8 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip<F> {
                 cols.instruction.op_a = event.instruction.op_a;
                 cols.instruction.op_b = event.instruction.op_b;
                 cols.instruction.op_c = event.instruction.op_c;
-                cols.instruction.imm_b = F::from_canonical_u32(event.instruction.imm_b as u32);
-                cols.instruction.imm_c = F::from_canonical_u32(event.instruction.imm_c as u32);
+                cols.instruction.imm_b = F::from_canonical_u32(u32::from(event.instruction.imm_b));
+                cols.instruction.imm_c = F::from_canonical_u32(u32::from(event.instruction.imm_c));
 
                 if let Some(record) = &event.a_record {
                     cols.a.populate(record);

@@ -2,7 +2,7 @@ use sp1_derive::AlignedBorrow;
 use std::mem::size_of;
 
 #[allow(dead_code)]
-pub const NUM_JUMP_COLS: usize = size_of::<JumpCols<u8>>();
+pub(crate) const NUM_JUMP_COLS: usize = size_of::<JumpCols<u8>>();
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

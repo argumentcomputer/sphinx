@@ -29,19 +29,15 @@ pub struct ECAddEvent {
 }
 
 pub fn create_ec_add_event<E: EllipticCurve>(
-    rt: &mut SyscallContext,
+    rt: &mut SyscallContext<'_>,
     arg1: u32,
     arg2: u32,
 ) -> ECAddEvent {
     let start_clk = rt.clk;
     let p_ptr = arg1;
-    if p_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(p_ptr % 4 == 0,);
     let q_ptr = arg2;
-    if q_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(q_ptr % 4 == 0,);
 
     let p: [u32; 16] = rt.slice_unsafe(p_ptr, 16).try_into().unwrap();
     let (q_memory_records_vec, q_vec) = rt.mr_slice(q_ptr, 16);
@@ -79,15 +75,13 @@ pub struct ECDoubleEvent {
 }
 
 pub fn create_ec_double_event<E: EllipticCurve>(
-    rt: &mut SyscallContext,
+    rt: &mut SyscallContext<'_>,
     arg1: u32,
     _: u32,
 ) -> ECDoubleEvent {
     let start_clk = rt.clk;
     let p_ptr = arg1;
-    if p_ptr % 4 != 0 {
-        panic!();
-    }
+    assert!(p_ptr % 4 == 0,);
 
     let p: [u32; 16] = rt.slice_unsafe(p_ptr, 16).try_into().unwrap();
     let p_affine = AffinePoint::<E>::from_words_le(&p);

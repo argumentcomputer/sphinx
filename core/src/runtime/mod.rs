@@ -122,7 +122,7 @@ impl Runtime {
             program,
             memory_accesses: MemoryAccessRecord::default(),
             shard_size: shard_size * 4,
-            shard_batch_size: env::shard_batch_size() as u32 * shard_size,
+            shard_batch_size: env::shard_batch_size() * shard_size,
             cycle_tracker: HashMap::new(),
             io_buf: HashMap::new(),
             trace_buf,
@@ -139,7 +139,7 @@ impl Runtime {
     pub fn recover(program: Program, state: ExecutionState) -> Self {
         let mut runtime = Self::new(program);
         runtime.state = state;
-        let index: u32 = (runtime.state.global_clk / (runtime.shard_size / 4) as u64)
+        let index: u32 = (runtime.state.global_clk / u64::from(runtime.shard_size / 4))
             .try_into()
             .unwrap();
         runtime.record.index = index;
@@ -865,7 +865,7 @@ impl Runtime {
         let mut cycles = 0_u64;
         let mut done = false;
         // Loop until we've executed the maximum number of cycles or the program has finished.
-        while self.shard_batch_size == 0 || cycles < self.shard_batch_size as u64 {
+        while self.shard_batch_size == 0 || cycles < u64::from(self.shard_batch_size) {
             if self.execute_cycle() {
                 done = true;
                 break;

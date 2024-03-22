@@ -115,7 +115,7 @@ pub trait Syscall {
     /// is that the return value is only for system calls such as `LWA`. Most precompiles use `arg1`
     /// and `arg2` to denote the addresses of the input data, and write the result to the memory at
     /// `arg1`.
-    fn execute(&self, ctx: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32>;
+    fn execute(&self, ctx: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32>;
 
     /// The number of extra cycles that the syscall takes to execute. Unless this syscall is complex
     /// and requires many cycles, this should be zero.

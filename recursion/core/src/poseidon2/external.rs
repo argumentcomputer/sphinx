@@ -18,14 +18,14 @@ use crate::runtime::ExecutionRecord;
 use super::{apply_m_4, matmul_internal, MATRIX_DIAG_16_BABYBEAR_U32};
 
 /// The number of main trace columns for `AddChip`.
-pub const NUM_POSEIDON2_COLS: usize = size_of::<Poseidon2Cols<u8>>();
+pub(crate) const NUM_POSEIDON2_COLS: usize = size_of::<Poseidon2Cols<u8>>();
 
 /// The width of the permutation.
-pub const WIDTH: usize = 16;
+pub(crate) const WIDTH: usize = 16;
 
 /// A chip that implements addition for the opcode ADD.
 #[derive(Default)]
-pub struct Poseidon2Chip;
+pub(crate) struct Poseidon2Chip;
 
 /// The column layout for the chip.
 #[derive(AlignedBorrow, Default, Clone, Copy)]

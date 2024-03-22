@@ -86,7 +86,6 @@ impl SP1Prover {
         config: SC,
     ) -> Result<SP1ProofWithIO<SC>>
     where
-        SC: StarkGenericConfig,
         SC::Challenger: Clone,
         OpeningProof<SC>: Send + Sync,
         Com<SC>: Send + Sync,
@@ -129,7 +128,6 @@ impl SP1Verifier {
         config: SC,
     ) -> Result<(), ProgramVerificationError>
     where
-        SC: StarkGenericConfig,
         SC::Challenger: Clone,
         OpeningProof<SC>: Send + Sync,
         Com<SC>: Send + Sync,

@@ -8,12 +8,11 @@ pub fn shard_size() -> usize {
         Err(_) => 1 << 19,
     };
 
-    if value > MAX_SHARD_CLK {
-        panic!(
-            "Shard size must be at most 2^{} - 1",
-            log2_strict_usize(MAX_SHARD_CLK + 1)
-        );
-    }
+    assert!(
+        value <= MAX_SHARD_CLK,
+        "Shard size must be at most 2^{} - 1",
+        log2_strict_usize(MAX_SHARD_CLK + 1)
+    );
 
     assert!(value != 0 && (value & (value - 1)) == 0);
     value

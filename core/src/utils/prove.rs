@@ -26,7 +26,7 @@ const LOG_DEGREE_BOUND: usize = 31;
 pub fn get_cycles(program: Program) -> u64 {
     let mut runtime = Runtime::new(program);
     runtime.run();
-    u64::from(runtime.state.global_clk)
+    runtime.state.global_clk
 }
 
 pub fn run_test_io(
@@ -82,7 +82,7 @@ pub fn run_test_core(
         "summary: cycles={}, e2e={}, khz={:.2}, proofSize={}",
         cycles,
         time,
-        (f64::from(cycles) / time as f64),
+        (cycles as f64 / time as f64),
         Size::from_bytes(nb_bytes),
     );
 
@@ -249,7 +249,7 @@ where
         "summary: cycles={}, e2e={}, khz={:.2}, proofSize={}",
         cycles,
         time,
-        (f64::from(cycles) / time as f64),
+        (cycles as f64 / time as f64),
         Size::from_bytes(nb_bytes),
     );
 
@@ -584,8 +584,8 @@ pub(super) mod baby_bear_blake3 {
 
     type MyCompress = CompressionFunctionFromHasher<u8, ByteHash, 2, 32>;
 
-    pub type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
-    pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
+    pub(crate) type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
+    pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
 
     pub(crate) type Dft = Radix2DitParallel;
 

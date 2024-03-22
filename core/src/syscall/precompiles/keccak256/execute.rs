@@ -20,12 +20,10 @@ impl Syscall for KeccakPermuteChip {
         1
     }
 
-    fn execute(&self, rt: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let start_clk = rt.clk;
         let state_ptr = arg1;
-        if arg2 != 0 {
-            panic!("Expected arg2 to be 0, got {}", arg2);
-        }
+        assert!(arg2 == 0, "Expected arg2 to be 0, got {}", arg2);
 
         let mut state_read_records = Vec::new();
         let mut state_write_records = Vec::new();

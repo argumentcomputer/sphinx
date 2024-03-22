@@ -77,7 +77,7 @@ impl Syscall for K256DecompressChip {
         0
     }
 
-    fn execute(&self, rt: &mut SyscallContext, slice_ptr: u32, is_odd: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_>, slice_ptr: u32, is_odd: u32) -> Option<u32> {
         let start_clk = rt.clk;
         assert!(slice_ptr % 4 == 0, "slice_ptr must be 4-byte aligned");
         assert!(is_odd <= 1, "is_odd must be 0 or 1");
@@ -151,7 +151,7 @@ impl<F: PrimeField32> K256DecompressCols<F> {
         self.shard = F::from_canonical_u32(event.shard);
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
-        self.is_odd = F::from_canonical_u32(event.is_odd as u32);
+        self.is_odd = F::from_canonical_u32(u32::from(event.is_odd));
         for i in 0..8 {
             self.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
             self.y_access[i].populate_write(event.y_memory_records[i], &mut new_byte_lookup_events);

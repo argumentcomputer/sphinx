@@ -277,9 +277,9 @@ mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger.observe(proof.commitment.main_commit);
-        });
+        }
 
         // Run the verify inside the DSL and compare it to the calculated value.
         let mut builder = VmBuilder::<F, EF>::default();

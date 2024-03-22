@@ -12,7 +12,7 @@ impl SyscallWrite {
 }
 
 impl Syscall for SyscallWrite {
-    fn execute(&self, ctx: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let a2 = Register::X12;
         let rt = &mut ctx.rt;
         let fd = arg1;
@@ -51,7 +51,7 @@ impl Syscall for SyscallWrite {
                     log::debug!(
                         "{}└╴{} cycles",
                         padding,
-                        num_to_comma_separated(rt.state.global_clk - start as u64)
+                        num_to_comma_separated(rt.state.global_clk - start)
                     );
                 } else {
                     let flush_s = update_io_buf(ctx, fd, s);

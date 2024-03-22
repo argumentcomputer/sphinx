@@ -41,7 +41,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             .collect::<Vec<_>>();
 
         let mut rows = Vec::<F>::new();
-        rows_with_events.into_iter().for_each(|row_with_events| {
+        for row_with_events in rows_with_events.into_iter() {
             let (row, alu_events, blu_events) = row_with_events;
             rows.extend(row);
             for (key, value) in alu_events {
@@ -53,7 +53,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
                     .or_insert(value);
             }
             new_blu_events.extend(blu_events);
-        });
+        }
 
         // Add the dependency events to the shard.
         for (_, value) in new_alu_events.iter_mut() {
@@ -82,28 +82,26 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             .map(|ops: &[CpuEvent]| {
                 let mut alu = HashMap::new();
                 let mut blu: Vec<_> = Vec::default();
-                ops.iter().for_each(|op| {
+                for op in ops.iter() {
                     let (_, alu_events, blu_events) = self.event_to_row::<F>(*op);
-                    alu_events.into_iter().for_each(|(key, value)| {
+                    for (key, value) in alu_events.into_iter() {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
-                    });
+                    }
                     blu.extend(blu_events);
-                });
+                }
                 (alu, blu)
             })
             .collect::<Vec<_>>();
 
-        events
-            .into_iter()
-            .for_each(|(mut alu_events, mut blu_events)| {
-                for (_, value) in alu_events.iter_mut() {
-                    value.sort_unstable_by_key(|event| event.clk);
-                }
-                // Add the dependency events to the shard.
-                output.add_alu_events(alu_events);
-                blu_events.sort_unstable_by_key(|event| event.a1);
-                output.add_byte_lookup_events(blu_events);
-            });
+        for (mut alu_events, mut blu_events) in events.into_iter() {
+            for (_, value) in alu_events.iter_mut() {
+                value.sort_unstable_by_key(|event| event.clk);
+            }
+            // Add the dependency events to the shard.
+            output.add_alu_events(alu_events);
+            blu_events.sort_unstable_by_key(|event| event.a1);
+            output.add_byte_lookup_events(blu_events);
+        }
     }
 
     fn included(&self, _: &Self::Record) -> bool {

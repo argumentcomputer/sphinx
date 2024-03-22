@@ -15,8 +15,8 @@ pub(crate) struct KeccakMemCols<T> {
     pub(crate) state_mem: [MemoryReadWriteCols<T>; STATE_NUM_WORDS],
     pub(crate) state_addr: T,
 
-    pub do_memory_check: T,
-    pub ecall_receive: T,
+    pub(crate) do_memory_check: T,
+    pub(crate) ecall_receive: T,
 
     pub(crate) is_real: T,
 }
