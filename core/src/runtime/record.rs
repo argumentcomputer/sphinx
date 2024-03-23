@@ -12,6 +12,7 @@ use crate::runtime::MemoryRecord;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
+use crate::syscall::precompiles::bls12381::Bls12381FpAddEvent;
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::k256::K256DecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
@@ -79,6 +80,8 @@ pub struct ExecutionRecord {
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
 
+    pub bls12381_fp_add_events: Vec<Bls12381FpAddEvent>,
+
     /// Information needed for global chips. This shouldn't really be here but for legacy reasons,
     /// we keep this information in this struct for now.
     pub first_memory_record: Vec<(u32, MemoryRecord, u32)>,
@@ -100,6 +103,7 @@ pub struct ShardingConfig {
     pub keccak_len: usize,
     pub weierstrass_add_len: usize,
     pub weierstrass_double_len: usize,
+    pub bls12381_fp_add_len: usize,
 }
 
 impl ShardingConfig {
@@ -125,6 +129,7 @@ impl Default for ShardingConfig {
             keccak_len: shard_size,
             weierstrass_add_len: shard_size,
             weierstrass_double_len: shard_size,
+            bls12381_fp_add_len: shard_size,
         }
     }
 }
@@ -190,6 +195,10 @@ impl MachineRecord for ExecutionRecord {
             "blake3_compress_inner_events".to_string(),
             self.blake3_compress_inner_events.len(),
         );
+        stats.insert(
+            "bls12381_fp_add_events".to_string(),
+            self.bls12381_fp_add_events.len(),
+        );
         stats
     }
 
@@ -220,6 +229,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.k256_decompress_events);
         self.blake3_compress_inner_events
             .append(&mut other.blake3_compress_inner_events);
+        self.bls12381_fp_add_events
+            .append(&mut other.bls12381_fp_add_events);
 
         for (event, mult) in other.byte_lookups.iter_mut() {
             self.byte_lookups
@@ -383,6 +394,9 @@ impl MachineRecord for ExecutionRecord {
 
         // Blake3 compress events .
         first.blake3_compress_inner_events = std::mem::take(&mut self.blake3_compress_inner_events);
+
+        // Bls12381 fp add events.
+        first.bls12381_fp_add_events = std::mem::take(&mut self.bls12381_fp_add_events);
 
         // Put all byte lookups in the first shard (as the table size is fixed)
         first.byte_lookups = std::mem::take(&mut self.byte_lookups);

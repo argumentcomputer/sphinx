@@ -1,4 +1,5 @@
 mod blake3_compress;
+mod bls12381;
 mod ed25519;
 mod halt;
 mod io;
@@ -65,3 +66,6 @@ pub const SECP256K1_DECOMPRESS: u32 = 0x00_00_01_0C;
 
 /// Executes `BLAKE3_COMPRESS_INNER`.
 pub const BLAKE3_COMPRESS_INNER: u32 = 0x00_38_01_0D;
+
+/// Executes `BLS12381_FP_ADD`
+pub const BLS12381_FP_ADD: u32 = 0x00_01_01_0E;
