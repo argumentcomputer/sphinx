@@ -1,4 +1,4 @@
-use sp1_recursion_derive::DslVariable;
+use wp1_recursion_derive::DslVariable;
 
 use crate::prelude::{Array, Builder, Config, Felt, MemVariable, Ptr, Usize, Var, Variable};
 
