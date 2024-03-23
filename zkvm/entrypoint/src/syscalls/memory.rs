@@ -42,7 +42,7 @@ pub unsafe extern "C" fn sys_alloc_aligned(bytes: usize, align: usize) -> *mut u
     heap_pos += bytes;
 
     // Check to make sure heap doesn't collide with SYSTEM memory.
-    assert!(SYSTEM_START < heap_pos);
+    assert!(SYSTEM_START >= heap_pos);
 
     unsafe { HEAP_POS = heap_pos };
     ptr
