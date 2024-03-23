@@ -1,5 +1,5 @@
 use p3_field::AbstractField;
-use sp1_recursion_core::runtime::NUM_BITS;
+use wp1_recursion_core::runtime::NUM_BITS;
 
 use crate::prelude::Array;
 use crate::prelude::Builder;
@@ -262,8 +262,8 @@ impl<C: Config> Builder<C> {
 mod tests {
     use p3_util::reverse_bits_len;
     use rand::{thread_rng, Rng};
-    use sp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-    use sp1_recursion_core::runtime::{Runtime, NUM_BITS};
+    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+    use wp1_recursion_core::runtime::{Runtime, NUM_BITS};
 
     use p3_field::AbstractField;
 
