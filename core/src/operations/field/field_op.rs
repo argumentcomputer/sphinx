@@ -131,7 +131,6 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
 }
 
 impl<V: Copy, U: LimbWidth> FieldOpCols<V, U> {
-    #[allow(unused_variables)]
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
         P: FieldParameters<NB_LIMBS = U>,

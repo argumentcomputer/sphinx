@@ -31,7 +31,6 @@ pub struct AffinePoint<E> {
 }
 
 impl<E> AffinePoint<E> {
-    #[allow(dead_code)]
     pub fn new(x: BigUint, y: BigUint) -> Self {
         Self {
             x,

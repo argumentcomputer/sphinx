@@ -501,7 +501,6 @@ pub(super) mod baby_bear_keccak {
     }
 
     impl BabyBearKeccak {
-        #[allow(dead_code)]
         pub fn new() -> Self {
             let byte_hash = ByteHash {};
             let field_hash = FieldHash::new(byte_hash);

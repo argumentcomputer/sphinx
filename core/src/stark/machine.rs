@@ -294,7 +294,6 @@ pub enum ProgramVerificationError {
 }
 
 #[cfg(test)]
-#[allow(non_snake_case)]
 pub mod tests {
 
     use crate::runtime::tests::ecall_lwa_program;

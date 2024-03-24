@@ -28,7 +28,6 @@ impl<F: Field> NotOperation<F> {
         expected
     }
 
-    #[allow(unused_variables)]
     pub fn eval<AB: SP1AirBuilder>(
         builder: &mut AB,
         a: Word<AB::Var>,
