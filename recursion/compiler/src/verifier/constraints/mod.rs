@@ -18,7 +18,7 @@ pub use opening::*;
 
 use super::folder::RecursiveVerifierConstraintFolder;
 
-// pub struct TwoAdicCose
+// pub struct TwoAdicCase
 
 impl<C: Config> Builder<C> {
     pub fn eval_constrains<SC, A>(

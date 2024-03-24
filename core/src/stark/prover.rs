@@ -100,8 +100,8 @@ where
             shard_data_chunks
                 .into_par_iter()
                 .zip(shard_chunks.into_par_iter())
-                .map(|(datas, shards)| {
-                    datas
+                .map(|(data, shards)| {
+                    data
                         .into_iter()
                         .zip(shards)
                         .map(|(data, shard)| {
@@ -363,7 +363,7 @@ where
                     .collect::<Vec<_>>()
             });
 
-        // Compute quotient openning points, open every chunk at zeta.
+        // Compute quotient opening points, open every chunk at zeta.
         let quotient_opening_points = (0..num_quotient_chunks)
             .map(|_| vec![zeta])
             .collect::<Vec<_>>();

@@ -27,7 +27,7 @@ where
         let local: &ShaCompressCols<AB::Var> = main.row_slice(0).borrow();
         let next: &ShaCompressCols<AB::Var> = main.row_slice(1).borrow();
 
-        self.contrain_control_flow_flags(builder, local, next);
+        self.constrain_control_flow_flags(builder, local, next);
 
         self.constrain_memory(builder, local);
 
@@ -52,7 +52,7 @@ where
 }
 
 impl ShaCompressChip {
-    fn contrain_control_flow_flags<AB: SP1AirBuilder>(
+    fn constrain_control_flow_flags<AB: SP1AirBuilder>(
         &self,
         builder: &mut AB,
         local: &ShaCompressCols<AB::Var>,
@@ -87,7 +87,7 @@ impl ShaCompressChip {
         }
 
         //// Constrain octet_num columns
-        // Verify taht all of the octet_num columns are bool.
+        // Verify that all of the octet_num columns are bool.
         for i in 0..10 {
             builder.assert_bool(local.octet_num[i]);
         }

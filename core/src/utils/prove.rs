@@ -155,7 +155,7 @@ where
 
     // For each checkpoint, generate events, shard them, commit shards, and observe in challenger.
     let sharding_config = ShardingConfig::default();
-    let mut shard_main_datas = Vec::new();
+    let mut shard_main_data = Vec::new();
 
     // If there's only one batch, it already must fit in memory so reuse it later in open multi
     // rather than running the runtime again.
@@ -171,7 +171,7 @@ where
         let (commitments, commit_data) = tracing::info_span!("commit")
             .in_scope(|| LocalProver::commit_shards(&machine, &shards));
 
-        shard_main_datas.push(commit_data);
+        shard_main_data.push(commit_data);
 
         if reuse_shards {
             all_shards = Some(shards);
