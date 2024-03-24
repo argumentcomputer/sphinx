@@ -101,8 +101,7 @@ where
                 .into_par_iter()
                 .zip(shard_chunks.into_par_iter())
                 .map(|(data, shards)| {
-                    data
-                        .into_iter()
+                    data.into_iter()
                         .zip(shards)
                         .map(|(data, shard)| {
                             let start = Instant::now();

@@ -73,7 +73,7 @@
 // Jaydeep Patil
 // Jens Gustedt
 // Jeremy Huntwork
-// Jo-Philipp Which
+// Jo-Philipp Wich
 // Joakim Sindholt
 // John Spencer
 // Julien Ramseier
@@ -121,7 +121,7 @@
 // Portions of this software are derived from third-party works licensed
 // under terms compatible with the above MIT license:
 // 
-// The TREE regular expression implementation (src/regex/reg* and
+// The TRE regular expression implementation (src/regex/reg* and
 // src/regex/tre*) is Copyright © 2001-2008 Ville Laurikari and licensed
 // under a 2-clause BSD license (license text in the source files). The
 // included version has been heavily modified by Rich Felker in 2012, in

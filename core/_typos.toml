@@ -1,0 +1,5 @@
+[default.extend-words]
+# Don't correct the surname "Wich"
+wich = "wich"
+# Don't correct the acronym TRE
+tre = "tre"
