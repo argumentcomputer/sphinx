@@ -55,7 +55,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
 
         // If doing the subtraction operation, a - b = result, equivalent to a = result + b.
         if op == FieldOperation::Sub {
-            let result = (modulus.clone() + a - b) % &modulus;
+            let result = (&modulus + a - b) % &modulus;
             // We populate the carry, witness_low, witness_high as if we were doing an addition with result + b.
             // But we populate `result` with the actual result of the subtraction because those columns are expected
             // to contain the result by the user.
@@ -70,8 +70,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
         if op == FieldOperation::Div {
             // As modulus is prime, we can use Fermat's little theorem to compute the
             // inverse.
-            let result =
-                (a * b.modpow(&(modulus.clone() - 2u32), &modulus.clone())) % modulus.clone();
+            let result = (a * b.modpow(&(&modulus - 2u32), &modulus)) % modulus;
 
             // We populate the carry, witness_low, witness_high as if we were doing a multiplication
             // with result * b. But we populate `result` with the actual result of the

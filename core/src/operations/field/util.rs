@@ -2,6 +2,7 @@ use crate::air::Polynomial;
 
 use num::BigUint;
 use p3_field::PrimeField32;
+use p3_maybe_rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 fn biguint_to_field<F: PrimeField32>(num: BigUint) -> F {
     let mut x = F::zero();
@@ -24,7 +25,7 @@ pub fn compute_root_quotient_and_shift<F: PrimeField32>(
     // Evaluate the vanishing polynomial at x = 2^nb_bits_per_limb.
     let p_vanishing_eval = p_vanishing
         .coefficients()
-        .iter()
+        .par_iter()
         .enumerate()
         .map(|(i, x)| {
             biguint_to_field::<F>(BigUint::from(2u32).pow(nb_bits_per_limb * i as u32)) * *x
@@ -50,23 +51,21 @@ pub fn compute_root_quotient_and_shift<F: PrimeField32>(
     // Shifting the witness polynomial to make it positive
     p_quotient
         .coefficients()
-        .iter()
+        .par_iter()
         .map(|x| *x + F::from_canonical_u64(offset_u64))
-        .collect::<Vec<F>>()
+        .collect()
 }
 
 #[inline]
 pub fn split_u16_limbs_to_u8_limbs<F: PrimeField32>(slice: &[F]) -> (Vec<F>, Vec<F>) {
     (
         slice
-            .iter()
-            .map(|x| x.as_canonical_u64() as u8)
-            .map(|x| F::from_canonical_u8(x))
+            .par_iter()
+            .map(|x| F::from_canonical_u8(x.as_canonical_u64() as u8))
             .collect(),
         slice
-            .iter()
-            .map(|x| (x.as_canonical_u64() >> 8) as u8)
-            .map(|x| F::from_canonical_u8(x))
+            .par_iter()
+            .map(|x| F::from_canonical_u8((x.as_canonical_u64() >> 8) as u8))
             .collect(),
     )
 }
