@@ -11,6 +11,7 @@ use hybrid_array::Array;
 use num::BigUint;
 use num::Zero;
 use p3_field::{AbstractField, PrimeField32};
+use p3_maybe_rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::fmt::Debug;
 use wp1_derive::AlignedBorrow;
 
@@ -33,34 +34,35 @@ impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
         a: &[BigUint],
         b: &[BigUint],
     ) -> BigUint {
-        let p_a_vec: Vec<Polynomial<F>> =
-            a.iter().map(|x| P::to_limbs_field::<F>(x).into()).collect();
-        let p_b_vec: Vec<Polynomial<F>> =
-            b.iter().map(|x| P::to_limbs_field::<F>(x).into()).collect();
-
         let modulus = &P::modulus();
         let inner_product = a
-            .iter()
-            .zip(b.iter())
-            .fold(BigUint::zero(), |acc, (c, d)| acc + c * d);
+            .par_iter()
+            .zip(b.par_iter())
+            .map(|(x, y)| x * y)
+            .reduce(BigUint::zero, |acc, partial| acc + partial);
 
-        let result = &(&inner_product % modulus);
-        let carry = &((&inner_product - result) / modulus);
-        assert!(result < modulus);
+        let result = &inner_product % modulus;
+        let carry = &((&inner_product - &result) / modulus);
+        assert!(&result < modulus);
         assert!(carry < &(2u32 * modulus));
-        assert_eq!(carry * modulus, inner_product - result);
+        assert_eq!(carry * modulus, inner_product - &result);
 
         let p_modulus: Polynomial<F> = P::to_limbs_field::<F>(modulus).into();
-        let p_result: Polynomial<F> = P::to_limbs_field::<F>(result).into();
+        let p_result: Polynomial<F> = P::to_limbs_field::<F>(&result).into();
         let p_carry: Polynomial<F> = P::to_limbs_field::<F>(carry).into();
 
-        // Compute the vanishing polynomial.
-        let p_inner_product = p_a_vec
-            .into_iter()
-            .zip(p_b_vec)
-            .fold(Polynomial::<F>::new(vec![F::zero()]), |acc, (c, d)| {
-                acc + &c * &d
-            });
+        let p_inner_product = a
+            .par_iter()
+            .zip(b.par_iter())
+            .map(|(x, y)| {
+                Polynomial::from(P::to_limbs_field::<F>(x))
+                    * Polynomial::from(P::to_limbs_field::<F>(y))
+            })
+            .reduce(
+                || Polynomial::<F>::new(vec![F::zero()]),
+                |acc, partial| acc + partial,
+            );
+
         let p_vanishing = p_inner_product - &p_result - &p_carry * &p_modulus;
         assert_eq!(p_vanishing.degree(), P::NB_WITNESS_LIMBS);
 
@@ -76,40 +78,39 @@ impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
         self.witness_low = (&p_witness_low[..]).try_into().unwrap();
         self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
-        result.clone()
+        result
     }
 }
 
 impl<V: Copy, U: LimbWidth> FieldInnerProductCols<V, U> {
-    #[allow(unused_variables)]
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters<NB_LIMBS = U>>(
+    pub fn eval<
+        AB: SP1AirBuilder<Var = V>,
+        P: FieldParameters<NB_LIMBS = U>,
+        I: IntoIterator<Item = Limbs<AB::Var>>,
+    >(
         &self,
         builder: &mut AB,
-        a: &[Limbs<AB::Var>],
-        b: &[Limbs<AB::Var>],
+        a: I,
+        b: I,
     ) where
         V: Into<AB::Expr>,
     {
-        let p_a_vec: Vec<Polynomial<AB::Expr>> = a.iter().map(|x| (*x).into()).collect();
-        let p_b_vec: Vec<Polynomial<AB::Expr>> = b.iter().map(|x| (*x).into()).collect();
         let p_result = self.result.clone().into();
         let p_carry: Polynomial<_> = self.carry.clone().into();
 
         let p_zero = Polynomial::<AB::Expr>::new(vec![AB::Expr::zero()]);
 
-        let p_inner_product = p_a_vec
-            .iter()
-            .zip(p_b_vec.iter())
-            .map(|(p_a, p_b)| p_a * p_b)
-            .collect::<Vec<_>>()
-            .iter()
-            .fold(p_zero, |acc, x| acc + x);
+        let p_inner_product = a
+            .into_iter()
+            .zip(b.into_iter())
+            .map(|(a, b)| Polynomial::from(a) * Polynomial::from(b))
+            .fold(p_zero, |acc, partial| acc + partial);
 
         let p_inner_product_minus_result = &p_inner_product - &p_result;
         let p_limbs = P::modulus_field_iter::<AB::F>()
             .map(AB::Expr::from)
             .collect();
-        let p_carry_mul_modulus = &p_carry * &p_limbs;
+        // let p_carry_mul_modulus = &p_carry * &p_limbs;
         let p_vanishing = &p_inner_product_minus_result - &(&p_carry * &p_limbs);
 
         let p_witness_low = self.witness_low.iter().into();
@@ -238,7 +239,7 @@ mod tests {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
             let local: &TestCols<AB::Var> = main.row_slice(0).borrow();
-            local.a_ip_b.eval::<AB, P>(builder, &local.a, &local.b);
+            local.a_ip_b.eval::<AB, P, _>(builder, local.a, local.b);
 
             // A dummy constraint to keep the degree 3.
             builder.assert_zero(

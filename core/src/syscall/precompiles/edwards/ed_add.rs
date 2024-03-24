@@ -233,11 +233,11 @@ where
 
         // x3_numerator = x1 * y2 + x2 * y1.
         row.x3_numerator
-            .eval::<AB, E::BaseField>(builder, &[x1, x2], &[y2, y1]);
+            .eval::<AB, E::BaseField, _>(builder, [x1, x2], [y2, y1]);
 
         // y3_numerator = y1 * y2 + x1 * x2.
         row.y3_numerator
-            .eval::<AB, E::BaseField>(builder, &[y1, x1], &[y2, x2]);
+            .eval::<AB, E::BaseField, _>(builder, [y1, x1], [y2, x2]);
 
         // f = x1 * x2 * y1 * y2.
         row.x1_mul_y1
