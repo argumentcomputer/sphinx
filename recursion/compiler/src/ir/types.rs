@@ -116,10 +116,10 @@ impl<C: Config> Variable<C> for Usize<C::N> {
             }
             Usize::Var(v) => match src {
                 SymbolicUsize::Const(src) => {
-                    builder.assign(*v, C::N::from_canonical_usize(src));
+                    builder.assign(v, C::N::from_canonical_usize(src));
                 }
                 SymbolicUsize::Var(src) => {
-                    builder.assign(*v, src);
+                    builder.assign(v, src);
                 }
             },
         }

@@ -8,6 +8,8 @@ mod programs;
 mod prove;
 mod tracer;
 
+use std::borrow::Borrow;
+
 pub use buffer::*;
 use hybrid_array::Array;
 pub use logger::*;
@@ -98,8 +100,9 @@ pub fn bytes_to_words_le<const W: usize>(bytes: &[u8]) -> [u32; W] {
 }
 
 /// Converts a num to a string with commas every 3 digits.
-pub fn num_to_comma_separated<T: ToString>(value: T) -> String {
+pub fn num_to_comma_separated<T: ToString, B: Borrow<T>>(value: B) -> String {
     value
+        .borrow()
         .to_string()
         .chars()
         .rev()

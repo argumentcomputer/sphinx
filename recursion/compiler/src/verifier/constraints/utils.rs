@@ -34,7 +34,7 @@ impl<C: Config> Builder<C> {
     {
         let result: V = self.eval(base);
         self.range(0, power_log)
-            .for_each(|_, builder| builder.assign(result, result * result));
+            .for_each(|_, builder| builder.assign(&result, result * result));
         result
     }
 
@@ -45,7 +45,7 @@ impl<C: Config> Builder<C> {
     {
         let result: V = self.eval(base);
         self.range(0, shift)
-            .for_each(|_, builder| builder.assign(result, result + result));
+            .for_each(|_, builder| builder.assign(&result, result + result));
         result
     }
 

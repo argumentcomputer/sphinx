@@ -23,8 +23,8 @@ pub fn quotient_values<SC, A, Mat>(
     cumulative_sum: SC::Challenge,
     trace_domain: Domain<SC>,
     quotient_domain: Domain<SC>,
-    main_trace_on_quotient_domain: Mat,
-    permutation_trace_on_quotient_domain: Mat,
+    main_trace_on_quotient_domain: &Mat,
+    permutation_trace_on_quotient_domain: &Mat,
     perm_challenges: &[SC::Challenge],
     alpha: SC::Challenge,
 ) -> Vec<SC::Challenge>

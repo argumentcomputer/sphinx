@@ -125,7 +125,7 @@ pub mod tests {
         debug_interactions_with_all_chips::<BabyBearPoseidon2, RecursionAir<BabyBear>>(
             machine.chips(),
             &runtime.record,
-            vec![InteractionKind::Memory],
+            &[InteractionKind::Memory],
         );
 
         let start = Instant::now();

@@ -52,7 +52,7 @@ impl<F: Field + BinomiallyExtendable<D>> IsExtZeroOperation<F> {
         builder: &mut AB,
         a: BinomialExtension<AB::Expr>,
         cols: IsExtZeroOperation<AB::Var>,
-        is_real: AB::Expr,
+        is_real: &AB::Expr,
     ) {
         // Assert that the `is_real` is a boolean.
         builder.assert_bool(is_real.clone());

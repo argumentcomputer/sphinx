@@ -41,7 +41,7 @@ impl<T> Polynomial<T> {
     }
 
     /// Evaluates the polynomial at a given point.
-    pub fn eval<S: AbstractExtensionField<T>>(&self, x: S) -> S
+    pub fn eval<S: AbstractExtensionField<T>>(&self, x: &S) -> S
     where
         T: AbstractField,
     {

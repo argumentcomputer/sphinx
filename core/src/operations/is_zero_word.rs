@@ -50,7 +50,7 @@ impl<F: Field> IsZeroWordOperation<F> {
 
     pub fn eval<AB: SP1AirBuilder>(
         builder: &mut AB,
-        a: Word<AB::Expr>,
+        a: &Word<AB::Expr>,
         cols: IsZeroWordOperation<AB::Var>,
         is_real: AB::Expr,
     ) {
@@ -66,7 +66,7 @@ impl<F: Field> IsZeroWordOperation<F> {
 
         // From here, we only assert when is_real is true.
         builder.assert_bool(is_real.clone());
-        let mut builder_is_real = builder.when(is_real.clone());
+        let mut builder_is_real = builder.when(is_real);
 
         // Calculate is_upper_half_zero and is_lower_half_zero and finally the result.
         builder_is_real.assert_bool(cols.is_lower_half_zero);

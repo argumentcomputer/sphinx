@@ -39,7 +39,7 @@ impl<C: Config, V: MemVariable<C>> Array<C, V> {
                 todo!()
             }
             Self::Dyn(_, old_len) => {
-                builder.assign(*old_len, len);
+                builder.assign(old_len, len);
             }
         };
     }
@@ -97,7 +97,7 @@ impl<C: Config> Builder<C> {
             }
             Array::Dyn(ptr, _) => {
                 let var: V = self.uninit();
-                self.load(var.clone(), *ptr + index * V::size_of());
+                self.load(&var, *ptr + index * V::size_of());
                 var
             }
         }
@@ -114,14 +114,14 @@ impl<C: Config> Builder<C> {
         match slice {
             Array::Fixed(slice) => {
                 if let Usize::Const(idx) = index {
-                    self.assign(slice[idx].clone(), value);
+                    self.assign(&slice[idx], value);
                 } else {
                     panic!("Cannot index into a fixed slice with a variable size")
                 }
             }
             Array::Dyn(ptr, _) => {
                 let value: V = self.eval(value);
-                self.store(*ptr + index * V::size_of(), value);
+                self.store(*ptr + index * V::size_of(), &value);
             }
         }
     }
@@ -138,7 +138,7 @@ impl<C: Config, T: MemVariable<C>> Variable<C> for Array<C, T> {
         match (self, src.clone()) {
             (Array::Fixed(lhs), Array::Fixed(rhs)) => {
                 for (l, r) in lhs.iter().zip_eq(rhs.iter()) {
-                    builder.assign(l.clone(), r.clone());
+                    builder.assign(l, r.clone());
                 }
             }
             (Array::Dyn(_, lhs_len), Array::Dyn(_, rhs_len)) => {
@@ -151,7 +151,7 @@ impl<C: Config, T: MemVariable<C>> Variable<C> for Array<C, T> {
                 builder.range(start, end).for_each(|i, builder| {
                     let a = builder.get(self, i);
                     let b = builder.get(&src, i);
-                    builder.assign(a, b);
+                    builder.assign(&a, b);
                 });
             }
             _ => panic!("cannot compare arrays of different types"),
@@ -244,7 +244,7 @@ impl<C: Config, T: MemVariable<C>> MemVariable<C> for Array<C, T> {
                 }
             }
             Array::Dyn(dst, _) => {
-                builder.assign(*dst, src);
+                builder.assign(dst, src);
             }
         }
     }
@@ -259,7 +259,7 @@ impl<C: Config, T: MemVariable<C>> MemVariable<C> for Array<C, T> {
                 }
             }
             Array::Dyn(src, _) => {
-                builder.assign(dst, *src);
+                builder.assign(&dst, *src);
             }
         }
     }

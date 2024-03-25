@@ -93,7 +93,7 @@ pub struct EdDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 impl<F: PrimeField32, U: LimbWidth> EdDecompressCols<F, U> {
     pub fn populate<P: FieldParameters<NB_LIMBS = U>, E: EdwardsParameters<BaseField = P>>(
         &mut self,
-        event: EdDecompressEvent,
+        event: &EdDecompressEvent,
         record: &mut ExecutionRecord,
     ) {
         let mut new_byte_lookup_events = Vec::new();
@@ -320,7 +320,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
             let event = &input.ed_decompress_events[i];
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
             let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
-            cols.populate::<E::BaseField, E>(event.clone(), output);
+            cols.populate::<E::BaseField, E>(event, output);
 
             rows.push(row);
         }

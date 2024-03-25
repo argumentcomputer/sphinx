@@ -94,10 +94,10 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 
     fn populate_field_ops<F: PrimeField32>(
         cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>>,
-        p_x: BigUint,
-        p_y: BigUint,
-        q_x: BigUint,
-        q_y: BigUint,
+        p_x: &BigUint,
+        p_y: &BigUint,
+        q_x: &BigUint,
+        q_y: &BigUint,
     ) {
         // This populates necessary field operations to calculate the addition of two points on a
         // Weierstrass curve.
@@ -106,11 +106,11 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
         let slope = {
             let slope_numerator =
                 cols.slope_numerator
-                    .populate::<E::BaseField>(&q_y, &p_y, FieldOperation::Sub);
+                    .populate::<E::BaseField>(q_y, p_y, FieldOperation::Sub);
 
             let slope_denominator =
                 cols.slope_denominator
-                    .populate::<E::BaseField>(&q_x, &p_x, FieldOperation::Sub);
+                    .populate::<E::BaseField>(q_x, p_x, FieldOperation::Sub);
 
             cols.slope.populate::<E::BaseField>(
                 &slope_numerator,
@@ -126,7 +126,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
                     .populate::<E::BaseField>(&slope, &slope, FieldOperation::Mul);
             let p_x_plus_q_x =
                 cols.p_x_plus_q_x
-                    .populate::<E::BaseField>(&p_x, &q_x, FieldOperation::Add);
+                    .populate::<E::BaseField>(p_x, q_x, FieldOperation::Add);
             cols.x3_ins
                 .populate::<E::BaseField>(&slope_squared, &p_x_plus_q_x, FieldOperation::Sub)
         };
@@ -135,7 +135,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
         {
             let p_x_minus_x =
                 cols.p_x_minus_x
-                    .populate::<E::BaseField>(&p_x, &x, FieldOperation::Sub);
+                    .populate::<E::BaseField>(p_x, &x, FieldOperation::Sub);
             let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate::<E::BaseField>(
                 &slope,
                 &p_x_minus_x,
@@ -143,7 +143,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
             );
             cols.y3_ins.populate::<E::BaseField>(
                 &slope_times_p_x_minus_x,
-                &p_y,
+                p_y,
                 FieldOperation::Sub,
             );
         }
@@ -189,7 +189,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             cols.p_ptr = F::from_canonical_u32(event.p_ptr);
             cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
-            Self::populate_field_ops(cols, p_x, p_y, q_x, q_y);
+            Self::populate_field_ops(cols, &p_x, &p_y, &q_x, &q_y);
 
             // Populate the memory access columns.
             for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
@@ -207,8 +207,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
             let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
-            let zero = BigUint::zero();
-            Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
+            let zero = &BigUint::zero();
+            Self::populate_field_ops(cols, zero, zero, zero, zero);
             row
         });
 

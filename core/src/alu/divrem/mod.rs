@@ -195,9 +195,9 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
-        let mut rows: Vec<[F; NUM_DIVREM_COLS]> = vec![];
-        let divrem_events = input.divrem_events.clone();
-        for event in divrem_events.iter() {
+        let divrem_events = &input.divrem_events;
+        let mut rows: Vec<[F; NUM_DIVREM_COLS]> = Vec::with_capacity(divrem_events.len());
+        for event in divrem_events {
             assert!(
                 event.opcode == Opcode::DIVU
                     || event.opcode == Opcode::REMU
@@ -484,16 +484,16 @@ where
         {
             IsEqualWordOperation::<AB::F>::eval(
                 builder,
-                local.b.map(|x| x.into()),
-                Word::from(i32::MIN as u32).map(|x: AB::F| x.into()),
+                &local.b.map(|x| x.into()),
+                &Word::from(i32::MIN as u32).map(|x: AB::F| x.into()),
                 local.is_overflow_b,
                 local.is_real.into(),
             );
 
             IsEqualWordOperation::<AB::F>::eval(
                 builder,
-                local.c.map(|x| x.into()),
-                Word::from(-1i32 as u32).map(|x: AB::F| x.into()),
+                &local.c.map(|x| x.into()),
+                &Word::from(-1i32 as u32).map(|x: AB::F| x.into()),
                 local.is_overflow_c,
                 local.is_real.into(),
             );
@@ -604,7 +604,7 @@ where
             // Calculate whether c is 0.
             IsZeroWordOperation::<AB::F>::eval(
                 builder,
-                local.c.map(|x| x.into()),
+                &local.c.map(|x| x.into()),
                 local.is_c_0,
                 local.is_real.into(),
             );

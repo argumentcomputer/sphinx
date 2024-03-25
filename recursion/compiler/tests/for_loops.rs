@@ -23,12 +23,12 @@ fn test_compiler_for_loops() {
     let i_counter: Var<_> = builder.eval(F::zero());
     let total_counter: Var<_> = builder.eval(F::zero());
     builder.range(zero, n).for_each(|_, builder| {
-        builder.assign(i_counter, i_counter + F::one());
+        builder.assign(&i_counter, i_counter + F::one());
 
         let j_counter: Var<_> = builder.eval(F::zero());
         builder.range(zero, m).for_each(|_, builder| {
-            builder.assign(total_counter, total_counter + F::one());
-            builder.assign(j_counter, j_counter + F::one());
+            builder.assign(&total_counter, total_counter + F::one());
+            builder.assign(&j_counter, j_counter + F::one());
         });
         // Assert that the inner loop ran m times, in two different ways.
         builder.assert_var_eq(j_counter, m_val);

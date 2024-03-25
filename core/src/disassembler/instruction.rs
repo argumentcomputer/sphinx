@@ -7,7 +7,7 @@ use crate::runtime::{Instruction, Opcode, Register};
 
 impl Instruction {
     /// Create a new instruction from an R-type instruction.
-    pub fn from_r_type(opcode: Opcode, dec_insn: RType) -> Self {
+    pub fn from_r_type(opcode: Opcode, dec_insn: &RType) -> Self {
         Self::new(
             opcode,
             dec_insn.rd as u32,
@@ -19,7 +19,7 @@ impl Instruction {
     }
 
     /// Create a new instruction from an I-type instruction.
-    pub fn from_i_type(opcode: Opcode, dec_insn: IType) -> Self {
+    pub fn from_i_type(opcode: Opcode, dec_insn: &IType) -> Self {
         Self::new(
             opcode,
             dec_insn.rd as u32,
@@ -31,7 +31,7 @@ impl Instruction {
     }
 
     /// Create a new instruction from an I-type instruction with a shamt.
-    pub fn from_i_type_shamt(opcode: Opcode, dec_insn: ITypeShamt) -> Self {
+    pub fn from_i_type_shamt(opcode: Opcode, dec_insn: &ITypeShamt) -> Self {
         Self::new(
             opcode,
             dec_insn.rd as u32,
@@ -43,7 +43,7 @@ impl Instruction {
     }
 
     /// Create a new instruction from an S-type instruction.
-    pub fn from_s_type(opcode: Opcode, dec_insn: SType) -> Self {
+    pub fn from_s_type(opcode: Opcode, dec_insn: &SType) -> Self {
         Self::new(
             opcode,
             dec_insn.rs2 as u32,
@@ -55,7 +55,7 @@ impl Instruction {
     }
 
     /// Create a new instruction from a B-type instruction.
-    pub fn from_b_type(opcode: Opcode, dec_insn: BType) -> Self {
+    pub fn from_b_type(opcode: Opcode, dec_insn: &BType) -> Self {
         Self::new(
             opcode,
             dec_insn.rs1 as u32,
@@ -143,135 +143,135 @@ impl InstructionProcessor for InstructionTranspiler {
     type InstructionResult = Instruction;
 
     fn process_add(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::ADD, dec_insn)
+        Instruction::from_r_type(Opcode::ADD, &dec_insn)
     }
 
     fn process_addi(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::ADD, dec_insn)
+        Instruction::from_i_type(Opcode::ADD, &dec_insn)
     }
 
     fn process_sub(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SUB, dec_insn)
+        Instruction::from_r_type(Opcode::SUB, &dec_insn)
     }
 
     fn process_xor(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::XOR, dec_insn)
+        Instruction::from_r_type(Opcode::XOR, &dec_insn)
     }
 
     fn process_xori(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::XOR, dec_insn)
+        Instruction::from_i_type(Opcode::XOR, &dec_insn)
     }
 
     fn process_or(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::OR, dec_insn)
+        Instruction::from_r_type(Opcode::OR, &dec_insn)
     }
 
     fn process_ori(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::OR, dec_insn)
+        Instruction::from_i_type(Opcode::OR, &dec_insn)
     }
 
     fn process_and(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::AND, dec_insn)
+        Instruction::from_r_type(Opcode::AND, &dec_insn)
     }
 
     fn process_andi(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::AND, dec_insn)
+        Instruction::from_i_type(Opcode::AND, &dec_insn)
     }
 
     fn process_sll(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SLL, dec_insn)
+        Instruction::from_r_type(Opcode::SLL, &dec_insn)
     }
 
     fn process_slli(&mut self, dec_insn: ITypeShamt) -> Self::InstructionResult {
-        Instruction::from_i_type_shamt(Opcode::SLL, dec_insn)
+        Instruction::from_i_type_shamt(Opcode::SLL, &dec_insn)
     }
 
     fn process_srl(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SRL, dec_insn)
+        Instruction::from_r_type(Opcode::SRL, &dec_insn)
     }
 
     fn process_srli(&mut self, dec_insn: ITypeShamt) -> Self::InstructionResult {
-        Instruction::from_i_type_shamt(Opcode::SRL, dec_insn)
+        Instruction::from_i_type_shamt(Opcode::SRL, &dec_insn)
     }
 
     fn process_sra(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SRA, dec_insn)
+        Instruction::from_r_type(Opcode::SRA, &dec_insn)
     }
 
     fn process_srai(&mut self, dec_insn: ITypeShamt) -> Self::InstructionResult {
-        Instruction::from_i_type_shamt(Opcode::SRA, dec_insn)
+        Instruction::from_i_type_shamt(Opcode::SRA, &dec_insn)
     }
 
     fn process_slt(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SLT, dec_insn)
+        Instruction::from_r_type(Opcode::SLT, &dec_insn)
     }
 
     fn process_slti(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::SLT, dec_insn)
+        Instruction::from_i_type(Opcode::SLT, &dec_insn)
     }
 
     fn process_sltu(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::SLTU, dec_insn)
+        Instruction::from_r_type(Opcode::SLTU, &dec_insn)
     }
 
     fn process_sltui(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::SLTU, dec_insn)
+        Instruction::from_i_type(Opcode::SLTU, &dec_insn)
     }
 
     fn process_lb(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::LB, dec_insn)
+        Instruction::from_i_type(Opcode::LB, &dec_insn)
     }
 
     fn process_lh(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::LH, dec_insn)
+        Instruction::from_i_type(Opcode::LH, &dec_insn)
     }
 
     fn process_lw(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::LW, dec_insn)
+        Instruction::from_i_type(Opcode::LW, &dec_insn)
     }
 
     fn process_lbu(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::LBU, dec_insn)
+        Instruction::from_i_type(Opcode::LBU, &dec_insn)
     }
 
     fn process_lhu(&mut self, dec_insn: IType) -> Self::InstructionResult {
-        Instruction::from_i_type(Opcode::LHU, dec_insn)
+        Instruction::from_i_type(Opcode::LHU, &dec_insn)
     }
 
     fn process_sb(&mut self, dec_insn: SType) -> Self::InstructionResult {
-        Instruction::from_s_type(Opcode::SB, dec_insn)
+        Instruction::from_s_type(Opcode::SB, &dec_insn)
     }
 
     fn process_sh(&mut self, dec_insn: SType) -> Self::InstructionResult {
-        Instruction::from_s_type(Opcode::SH, dec_insn)
+        Instruction::from_s_type(Opcode::SH, &dec_insn)
     }
 
     fn process_sw(&mut self, dec_insn: SType) -> Self::InstructionResult {
-        Instruction::from_s_type(Opcode::SW, dec_insn)
+        Instruction::from_s_type(Opcode::SW, &dec_insn)
     }
 
     fn process_beq(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BEQ, dec_insn)
+        Instruction::from_b_type(Opcode::BEQ, &dec_insn)
     }
 
     fn process_bne(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BNE, dec_insn)
+        Instruction::from_b_type(Opcode::BNE, &dec_insn)
     }
 
     fn process_blt(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BLT, dec_insn)
+        Instruction::from_b_type(Opcode::BLT, &dec_insn)
     }
 
     fn process_bge(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BGE, dec_insn)
+        Instruction::from_b_type(Opcode::BGE, &dec_insn)
     }
 
     fn process_bltu(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BLTU, dec_insn)
+        Instruction::from_b_type(Opcode::BLTU, &dec_insn)
     }
 
     fn process_bgeu(&mut self, dec_insn: BType) -> Self::InstructionResult {
-        Instruction::from_b_type(Opcode::BGEU, dec_insn)
+        Instruction::from_b_type(Opcode::BGEU, &dec_insn)
     }
 
     fn process_jal(&mut self, dec_insn: JType) -> Self::InstructionResult {
@@ -337,35 +337,35 @@ impl InstructionProcessor for InstructionTranspiler {
     }
 
     fn process_mul(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::MUL, dec_insn)
+        Instruction::from_r_type(Opcode::MUL, &dec_insn)
     }
 
     fn process_mulh(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::MULH, dec_insn)
+        Instruction::from_r_type(Opcode::MULH, &dec_insn)
     }
 
     fn process_mulhu(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::MULHU, dec_insn)
+        Instruction::from_r_type(Opcode::MULHU, &dec_insn)
     }
 
     fn process_mulhsu(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::MULHSU, dec_insn)
+        Instruction::from_r_type(Opcode::MULHSU, &dec_insn)
     }
 
     fn process_div(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::DIV, dec_insn)
+        Instruction::from_r_type(Opcode::DIV, &dec_insn)
     }
 
     fn process_divu(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::DIVU, dec_insn)
+        Instruction::from_r_type(Opcode::DIVU, &dec_insn)
     }
 
     fn process_rem(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::REM, dec_insn)
+        Instruction::from_r_type(Opcode::REM, &dec_insn)
     }
 
     fn process_remu(&mut self, dec_insn: RType) -> Self::InstructionResult {
-        Instruction::from_r_type(Opcode::REMU, dec_insn)
+        Instruction::from_r_type(Opcode::REMU, &dec_insn)
     }
 
     fn process_csrrc(&mut self, _: ITypeCSR) -> Self::InstructionResult {

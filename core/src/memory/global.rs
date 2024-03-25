@@ -217,7 +217,7 @@ mod tests {
         debug_interactions_with_all_chips::<BabyBearPoseidon2, RiscvAir<BabyBear>>(
             machine.chips(),
             &runtime.record,
-            vec![InteractionKind::Memory],
+            &[InteractionKind::Memory],
         );
     }
 
@@ -232,7 +232,7 @@ mod tests {
         debug_interactions_with_all_chips::<BabyBearPoseidon2, RiscvAir<BabyBear>>(
             machine.chips(),
             &runtime.record,
-            vec![InteractionKind::Byte],
+            &[InteractionKind::Byte],
         );
     }
 }

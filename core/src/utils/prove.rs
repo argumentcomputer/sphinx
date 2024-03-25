@@ -92,7 +92,7 @@ pub fn run_test_core(
 fn trace_checkpoint(program: Program, file: &File) -> ExecutionRecord {
     let mut reader = std::io::BufReader::new(file);
     let state = bincode::deserialize_from(&mut reader).expect("failed to deserialize state");
-    let mut runtime = Runtime::recover(program.clone(), state);
+    let mut runtime = Runtime::recover(program, state);
     let (events, _) = tracing::debug_span!("runtime.trace").in_scope(|| runtime.execute_record());
     events
 }
@@ -103,7 +103,7 @@ fn reset_seek(file: &mut File) {
 }
 
 pub fn run_and_prove<SC: StarkGenericConfig + Send + Sync>(
-    program: Program,
+    program: &Program,
     stdin: &[u8],
     config: SC,
 ) -> (crate::stark::Proof<SC>, Vec<u8>)
@@ -199,7 +199,7 @@ where
                 let config = machine.config();
                 let shard_data =
                     LocalProver::commit_main(config, &machine, &shard, shard.index() as usize);
-                LocalProver::prove_shard(config, &pk, &chips, shard_data, &mut challenger.clone())
+                LocalProver::prove_shard(config, &pk, &chips, &shard_data, &mut challenger.clone())
             })
             .collect::<Vec<_>>();
         prove_time += start.elapsed().as_millis();

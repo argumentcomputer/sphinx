@@ -4,7 +4,7 @@ use num::BigUint;
 use p3_field::PrimeField32;
 use p3_maybe_rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
-fn biguint_to_field<F: PrimeField32>(num: BigUint) -> F {
+fn biguint_to_field<F: PrimeField32>(num: &BigUint) -> F {
     let mut x = F::zero();
     let mut power = F::from_canonical_u32(1u32);
     let base = F::from_canonical_u64((1 << 32) % F::ORDER_U64);
@@ -28,7 +28,7 @@ pub fn compute_root_quotient_and_shift<F: PrimeField32>(
         .par_iter()
         .enumerate()
         .map(|(i, x)| {
-            biguint_to_field::<F>(BigUint::from(2u32).pow(nb_bits_per_limb * i as u32)) * *x
+            biguint_to_field::<F>(&BigUint::from(2u32).pow(nb_bits_per_limb * i as u32)) * *x
         })
         .sum::<F>();
     debug_assert_eq!(p_vanishing_eval, F::zero());

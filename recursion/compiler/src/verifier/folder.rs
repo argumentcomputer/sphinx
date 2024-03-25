@@ -49,8 +49,8 @@ impl<'a, C: Config> AirBuilder for RecursiveVerifierConstraintFolder<'a, C> {
     fn assert_zero<I: Into<Self::Expr>>(&mut self, x: I) {
         let x: Self::Expr = x.into();
         self.builder
-            .assign(self.accumulator, self.accumulator * self.alpha);
-        self.builder.assign(self.accumulator, self.accumulator + x);
+            .assign(&self.accumulator, self.accumulator * self.alpha);
+        self.builder.assign(&self.accumulator, self.accumulator + x);
     }
 }
 

@@ -32,7 +32,7 @@ pub fn verify_shape_and_sample_challenges<C: Config>(
         .range(0, proof.commit_phase_commits.len())
         .for_each(|i, builder| {
             let comm = builder.get(&proof.commit_phase_commits, i);
-            challenger.observe_commitment(builder, comm);
+            challenger.observe_commitment(builder, &comm);
 
             let sample = challenger.sample(builder);
             builder.set(&mut betas, i, sample);
@@ -154,9 +154,9 @@ where
         verify_batch(
             builder,
             &commit,
-            dims_slice,
-            index_pair,
-            opened_values,
+            &dims_slice,
+            &index_pair,
+            &opened_values,
             &step.opening_proof,
         );
 
@@ -171,11 +171,11 @@ where
         let eval_0 = builder.get(&evals, 0);
         let eval_1 = builder.get(&evals, 1);
         builder.assign(
-            folded_eval,
+            &folded_eval,
             eval_0 + (beta - xs_0) * (eval_1 - eval_0) / (xs_1 - xs_0),
         );
 
-        builder.assign(x, x * x);
+        builder.assign(&x, x * x);
     });
 
     // debug_assert!(index < config.blowup(), "index was {}", index);
@@ -193,47 +193,47 @@ where
 pub fn verify_batch<C: Config>(
     builder: &mut Builder<C>,
     commit: &Commitment<C>,
-    dimensions: Array<C, Dimensions<C>>,
-    index_bits: Array<C, Var<C::N>>,
-    opened_values: Array<C, Array<C, Felt<C::F>>>,
+    dimensions: &Array<C, Dimensions<C>>,
+    index_bits: &Array<C, Var<C::N>>,
+    opened_values: &Array<C, Array<C, Felt<C::F>>>,
     proof: &Array<C, Commitment<C>>,
 ) {
     // The index of which table to process next.
     let index: Var<C::N> = builder.eval(C::N::zero());
 
     // The height of the current layer (padded).
-    let current_height = builder.get(&dimensions, index).height;
+    let current_height = builder.get(dimensions, index).height;
 
     // Reduce all the tables that have the same height to a single root.
-    let root = reduce(builder, index, &dimensions, current_height, &opened_values);
+    let root = reduce(builder, index, dimensions, current_height, opened_values);
 
     // For each sibling in the proof, reconstruct the root.
     builder.range(0, proof.len()).for_each(|i, builder| {
         let sibling = builder.get(proof, i);
-        let bit = builder.get(&index_bits, i);
+        let bit = builder.get(index_bits, i);
         let left: Array<C, Felt<C::F>> = builder.uninit();
         let right: Array<C, Felt<C::F>> = builder.uninit();
         builder.if_eq(bit, C::N::one()).then_or_else(
             |builder| {
-                builder.assign(left.clone(), sibling.clone());
-                builder.assign(right.clone(), root.clone());
+                builder.assign(&left, sibling.clone());
+                builder.assign(&right, root.clone());
             },
             |builder| {
-                builder.assign(left.clone(), root.clone());
-                builder.assign(right.clone(), sibling.clone());
+                builder.assign(&left, root.clone());
+                builder.assign(&right, sibling.clone());
             },
         );
 
         let new_root = builder.poseidon2_compress(&left, &right);
-        builder.assign(root.clone(), new_root);
-        builder.assign(current_height, current_height * (C::N::two().inverse()));
+        builder.assign(&root, new_root);
+        builder.assign(&current_height, current_height * (C::N::two().inverse()));
 
-        let next_height = builder.get(&dimensions, index).height;
+        let next_height = builder.get(dimensions, index).height;
         builder.if_eq(next_height, current_height).then(|builder| {
             let next_height_openings_digest =
-                reduce(builder, index, &dimensions, current_height, &opened_values);
+                reduce(builder, index, dimensions, current_height, opened_values);
             let new_root = builder.poseidon2_compress(&root, &next_height_openings_digest);
-            builder.assign(root.clone(), new_root);
+            builder.assign(&root, new_root);
         })
     });
 
@@ -266,10 +266,10 @@ pub fn reduce<C: Config>(
                 .for_each(|j, builder| {
                     let opened_value = builder.get(&opened_values, j);
                     builder.set(&mut flattened_opened_values, nb_opened_values, opened_value);
-                    builder.assign(nb_opened_values, nb_opened_values + C::N::one());
+                    builder.assign(&nb_opened_values, nb_opened_values + C::N::one());
                 });
         });
     });
     flattened_opened_values.truncate(builder, Usize::Var(nb_opened_values));
-    builder.poseidon2_hash(flattened_opened_values)
+    builder.poseidon2_hash(&flattened_opened_values)
 }

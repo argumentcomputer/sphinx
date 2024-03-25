@@ -57,7 +57,7 @@ pub struct SP1ProofWithIO<SC: StarkGenericConfig + Serialize + DeserializeOwned>
 
 impl SP1Prover {
     /// Executes the elf with the given inputs and returns the output.
-    pub fn execute(elf: &[u8], stdin: SP1Stdin) -> Result<SP1Stdout> {
+    pub fn execute(elf: &[u8], stdin: &SP1Stdin) -> Result<SP1Stdout> {
         let program = Program::from(elf);
         let mut runtime = Runtime::new(program);
         runtime.write_stdin_slice(&stdin.buffer.data);
@@ -70,7 +70,7 @@ impl SP1Prover {
         let config = BabyBearBlake3::new();
 
         let program = Program::from(elf);
-        let (proof, stdout) = run_and_prove(program, &stdin.buffer.data, config);
+        let (proof, stdout) = run_and_prove(&program, &stdin.buffer.data, config);
         let stdout = SP1Stdout::from(&stdout);
         Ok(SP1ProofWithIO {
             proof,

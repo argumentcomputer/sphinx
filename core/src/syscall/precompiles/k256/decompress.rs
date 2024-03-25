@@ -146,7 +146,7 @@ pub struct K256DecompressCols<T> {
 }
 
 impl<F: PrimeField32> K256DecompressCols<F> {
-    pub fn populate(&mut self, event: K256DecompressEvent, record: &mut ExecutionRecord) {
+    pub fn populate(&mut self, event: &K256DecompressEvent, record: &mut ExecutionRecord) {
         let mut new_byte_lookup_events = Vec::new();
         self.is_real = F::from_bool(true);
         self.shard = F::from_canonical_u32(event.shard);
@@ -301,10 +301,10 @@ impl<F: PrimeField32> MachineAir<F> for K256DecompressChip {
         let mut rows = Vec::new();
 
         for i in 0..input.k256_decompress_events.len() {
-            let event = input.k256_decompress_events[i].clone();
+            let event = &input.k256_decompress_events[i];
             let mut row = [F::zero(); NUM_K256_DECOMPRESS_COLS];
             let cols: &mut K256DecompressCols<F> = row.as_mut_slice().borrow_mut();
-            cols.populate(event.clone(), output);
+            cols.populate(event, output);
 
             rows.push(row);
         }

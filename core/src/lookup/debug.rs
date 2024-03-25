@@ -20,7 +20,7 @@ pub struct InteractionData<F: Field> {
     pub multiplicity: F,
 }
 
-pub fn vec_to_string<F: Field>(vec: Vec<F>) -> String {
+pub fn vec_to_string<F: Field>(vec: &[F]) -> String {
     let mut result = String::from("(");
     for (i, value) in vec.iter().enumerate() {
         if i != 0 {
@@ -49,7 +49,7 @@ fn field_to_int<F: PrimeField32>(x: F) -> i32 {
 pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
     chip: &MachineChip<SC, A>,
     record: &A::Record,
-    interaction_kinds: Vec<InteractionKind>,
+    interaction_kinds: &[InteractionKind],
 ) -> (
     BTreeMap<String, Vec<InteractionData<Val<SC>>>>,
     BTreeMap<String, Val<SC>>,
@@ -84,7 +84,7 @@ pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
                 let key = format!(
                     "{} {}",
                     &interaction.kind.to_string(),
-                    vec_to_string(values)
+                    vec_to_string(&values)
                 );
                 key_to_vec_data
                     .entry(key.clone())
@@ -115,7 +115,7 @@ pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
 pub fn debug_interactions_with_all_chips<SC, A>(
     chips: &[MachineChip<SC, A>],
     segment: &A::Record,
-    interaction_kinds: Vec<InteractionKind>,
+    interaction_kinds: &[InteractionKind],
 ) -> bool
 where
     SC: StarkGenericConfig,
@@ -127,7 +127,7 @@ where
     let mut total = SC::Val::zero();
 
     for chip in chips.iter() {
-        let (_, count) = debug_interactions::<SC, A>(chip, segment, interaction_kinds.clone());
+        let (_, count) = debug_interactions::<SC, A>(chip, segment, interaction_kinds);
 
         tracing::info!("{} chip has {} distinct events", chip.name(), count.len());
         for (key, value) in count.iter() {

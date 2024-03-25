@@ -87,12 +87,6 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         q_x: BigUint,
         q_y: BigUint,
     ) {
-        let x3_numerator = cols
-            .x3_numerator
-            .populate::<E::BaseField>(&[p_x.clone(), q_x.clone()], &[q_y.clone(), p_y.clone()]);
-        let y3_numerator = cols
-            .y3_numerator
-            .populate::<E::BaseField>(&[p_y.clone(), p_x.clone()], &[q_y.clone(), q_x.clone()]);
         let x1_mul_y1 = cols
             .x1_mul_y1
             .populate::<E::BaseField>(&p_x, &p_y, FieldOperation::Mul);
@@ -102,6 +96,12 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         let f = cols
             .f
             .populate::<E::BaseField>(&x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
+        let x3_numerator = cols
+            .x3_numerator
+            .populate::<E::BaseField>(&[p_x.clone(), q_x.clone()], &[q_y.clone(), p_y.clone()]);
+        let y3_numerator = cols
+            .y3_numerator
+            .populate::<E::BaseField>(&[p_y, p_x], &[q_y, q_x]);
 
         let d = E::d_biguint();
         let d_mul_f = cols

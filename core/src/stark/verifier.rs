@@ -162,9 +162,9 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
         ) {
             Self::verify_constraints(
                 chip,
-                values.clone(),
+                values,
                 trace_domain,
-                qc_domains,
+                &qc_domains,
                 zeta,
                 alpha,
                 &permutation_challenges,
@@ -188,9 +188,9 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
     #[cfg(feature = "perf")]
     fn verify_constraints(
         chip: &MachineChip<SC, A>,
-        opening: ChipOpenedValues<SC::Challenge>,
+        opening: &ChipOpenedValues<SC::Challenge>,
         trace_domain: Domain<SC>,
-        qc_domains: Vec<Domain<SC>>,
+        qc_domains: &[Domain<SC>],
         zeta: SC::Challenge,
         alpha: SC::Challenge,
         permutation_challenges: &[SC::Challenge],
@@ -200,9 +200,9 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
     {
         let sels = trace_domain.selectors_at_point(zeta);
 
-        let quotient = Self::recompute_quotient(&opening, &qc_domains, zeta);
+        let quotient = Self::recompute_quotient(opening, qc_domains, zeta);
         let folded_constraints =
-            Self::eval_constraints(chip, &opening, &sels, alpha, permutation_challenges);
+            Self::eval_constraints(chip, opening, &sels, alpha, permutation_challenges);
 
         // Check that the constraints match the quotient, i.e.
         //     folded_constraints(zeta) / Z_H(zeta) = quotient(zeta)

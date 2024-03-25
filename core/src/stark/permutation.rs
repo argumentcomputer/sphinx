@@ -12,7 +12,7 @@ use crate::{air::MultiTableAirBuilder, lookup::Interaction};
 pub fn generate_interaction_rlc_elements<F: Field, EF: AbstractExtensionField<F>>(
     sends: &[Interaction<F>],
     receives: &[Interaction<F>],
-    random_element: EF,
+    random_element: &EF,
 ) -> Vec<EF> {
     let n = sends
         .iter()
@@ -36,7 +36,7 @@ pub(crate) fn generate_permutation_trace<F: PrimeField, EF: ExtensionField<F>>(
     random_elements: &[EF],
 ) -> RowMajorMatrix<EF> {
     // Generate the RLC elements to uniquely identify each interaction.
-    let alphas = generate_interaction_rlc_elements(sends, receives, random_elements[0]);
+    let alphas = generate_interaction_rlc_elements(sends, receives, &random_elements[0]);
 
     // Generate the RLC elements to uniquely identify each item in the looked up tuple.
     let betas = random_elements[1].powers();
@@ -64,14 +64,7 @@ pub(crate) fn generate_permutation_trace<F: PrimeField, EF: ExtensionField<F>>(
                     main_rows_chunk
                         .rows()
                         .flat_map(|main_row| {
-                            compute_permutation_row(
-                                main_row,
-                                &[],
-                                sends,
-                                receives,
-                                &alphas,
-                                betas.clone(),
-                            )
+                            compute_permutation_row(main_row, &[], sends, receives, &alphas, &betas)
                         })
                         .collect::<Vec<_>>()
                 })
@@ -87,7 +80,7 @@ pub(crate) fn generate_permutation_trace<F: PrimeField, EF: ExtensionField<F>>(
                 sends,
                 receives,
                 &alphas,
-                betas.clone(),
+                &betas,
             );
             parallel.extend(perm_row);
         }
@@ -163,7 +156,7 @@ pub fn eval_permutation_constraints<F, AB>(
     let phi_local = perm_local[perm_width - 1];
     let phi_next = perm_next[perm_width - 1];
 
-    let alphas = generate_interaction_rlc_elements(sends, receives, alpha);
+    let alphas = generate_interaction_rlc_elements(sends, receives, &alpha);
     let betas = beta.powers();
 
     let lhs: AB::ExprEF = phi_next.into() - phi_local.into();
@@ -217,7 +210,7 @@ pub fn compute_permutation_row<F: PrimeField, EF: ExtensionField<F>>(
     sends: &[Interaction<F>],
     receives: &[Interaction<F>],
     alphas: &[EF],
-    betas: Powers<EF>,
+    betas: &Powers<EF>,
 ) -> Vec<EF> {
     let width = sends.len() + receives.len() + 1;
     let mut row = vec![EF::zero(); width];

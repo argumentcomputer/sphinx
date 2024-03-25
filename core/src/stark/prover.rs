@@ -118,7 +118,7 @@ where
                                 config,
                                 pk,
                                 &chips,
-                                data,
+                                &data,
                                 &mut challenger.clone(),
                             );
                             finished.fetch_add(1, Ordering::Relaxed);
@@ -200,7 +200,7 @@ where
         config: &SC,
         _pk: &ProvingKey<SC>,
         chips: &[&MachineChip<SC, A>],
-        shard_data: ShardMainData<SC>,
+        shard_data: &ShardMainData<SC>,
         challenger: &mut SC::Challenger,
     ) -> ShardProof<SC>
     where
@@ -323,8 +323,8 @@ where
                         cumulative_sums[i],
                         trace_domains[i],
                         *quotient_domain,
-                        main_trace_on_quotient_domains,
-                        permutation_trace_on_quotient_domains,
+                        &main_trace_on_quotient_domains,
+                        &permutation_trace_on_quotient_domains,
                         &permutation_challenges,
                         alpha,
                     )

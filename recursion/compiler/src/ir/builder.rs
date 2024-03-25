@@ -40,7 +40,7 @@ impl<C: Config> Builder<C> {
         V::uninit(self)
     }
 
-    pub fn assign<V: Variable<C>, E: Into<V::Expression>>(&mut self, dst: V, expr: E) {
+    pub fn assign<V: Variable<C>, E: Into<V::Expression>>(&mut self, dst: &V, expr: E) {
         dst.assign(expr.into(), self);
     }
 

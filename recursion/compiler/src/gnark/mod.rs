@@ -11,7 +11,7 @@ pub fn indent(lines: Vec<String>) -> Vec<String> {
 }
 
 /// Masks the evaluation of lines based on a condition.
-pub fn mask(cond: String, lines: Vec<String>) -> Vec<String> {
+pub fn mask(cond: &str, lines: &[String]) -> Vec<String> {
     lines
         .iter()
         .map(|line| {
@@ -46,7 +46,7 @@ impl<C: Config> GnarkBackend<C> {
     }
 
     pub fn assign(&mut self, id: String) -> &str {
-        self.used.insert(id.clone(), true);
+        self.used.insert(id, true);
         "="
     }
 
@@ -505,8 +505,8 @@ impl<C: Config> GnarkBackend<C> {
                         a.id(),
                         b.id()
                     ));
-                    lines.extend(mask(cond.clone(), self.emit(c)));
-                    lines.extend(mask(cond.clone(), self.emit(d)));
+                    lines.extend(mask(&cond, &self.emit(c)));
+                    lines.extend(mask(&cond, &self.emit(d)));
                 }
                 DslIR::IfNe(a, b, c, d) => {
                     let cond = self.alloc();
@@ -518,8 +518,8 @@ impl<C: Config> GnarkBackend<C> {
                         a.id(),
                         b.id()
                     ));
-                    lines.extend(mask(cond.clone(), self.emit(c)));
-                    lines.extend(mask(cond.clone(), self.emit(d)));
+                    lines.extend(mask(&cond, &self.emit(c)));
+                    lines.extend(mask(&cond, &self.emit(d)));
                 }
                 DslIR::IfEqI(a, b, c, d) => {
                     let cond = self.alloc();
@@ -531,8 +531,8 @@ impl<C: Config> GnarkBackend<C> {
                         a.id(),
                         b
                     ));
-                    lines.extend(mask(cond.clone(), self.emit(c)));
-                    lines.extend(mask(cond.clone(), self.emit(d)));
+                    lines.extend(mask(&cond, &self.emit(c)));
+                    lines.extend(mask(&cond, &self.emit(d)));
                 }
                 DslIR::IfNeI(a, b, c, d) => {
                     let cond = self.alloc();
@@ -544,8 +544,8 @@ impl<C: Config> GnarkBackend<C> {
                         a.id(),
                         b
                     ));
-                    lines.extend(mask(cond.clone(), self.emit(c)));
-                    lines.extend(mask(cond.clone(), self.emit(d)));
+                    lines.extend(mask(&cond, &self.emit(c)));
+                    lines.extend(mask(&cond, &self.emit(d)));
                 }
                 DslIR::AssertEqV(a, b) => {
                     lines.push(format!("api.AssertEq({}, {})", a.id(), b.id()));
@@ -709,9 +709,9 @@ mod tests {
 
         builder.range(start, end).for_each(|_, builder| {
             let temp: Felt<_> = builder.uninit();
-            builder.assign(temp, b);
-            builder.assign(b, a + b);
-            builder.assign(a, temp);
+            builder.assign(&temp, b);
+            builder.assign(&b, a + b);
+            builder.assign(&a, temp);
         });
 
         let expected_value = BabyBear::from_canonical_u32(144);
@@ -719,18 +719,18 @@ mod tests {
 
         builder.if_eq(t, t).then_or_else(
             |builder| {
-                builder.assign(a, b);
+                builder.assign(&a, b);
             },
             |builder| {
-                builder.assign(a, a + b);
+                builder.assign(&a, a + b);
             },
         );
         builder.if_ne(t, t).then_or_else(
             |builder| {
-                builder.assign(a, b);
+                builder.assign(&a, b);
             },
             |builder| {
-                builder.assign(a, a + b);
+                builder.assign(&a, a + b);
             },
         );
 

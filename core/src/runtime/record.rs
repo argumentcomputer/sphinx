@@ -428,7 +428,7 @@ impl ExecutionRecord {
             .or_insert(1);
     }
 
-    pub fn add_alu_events(&mut self, alu_events: HashMap<Opcode, Vec<AluEvent>>) {
+    pub fn add_alu_events(&mut self, alu_events: &HashMap<Opcode, Vec<AluEvent>>) {
         let keys = alu_events.keys().sorted();
         for opcode in keys {
             match opcode {
@@ -462,9 +462,12 @@ impl ExecutionRecord {
         }
     }
 
-    pub fn add_byte_lookup_events(&mut self, blu_events: Vec<ByteLookupEvent>) {
-        for blu_event in blu_events.iter() {
-            self.add_byte_lookup_event(*blu_event);
+    pub fn add_byte_lookup_events<I: IntoIterator<Item = ByteLookupEvent>>(
+        &mut self,
+        blu_events: I,
+    ) {
+        for blu_event in blu_events.into_iter() {
+            self.add_byte_lookup_event(blu_event);
         }
     }
 

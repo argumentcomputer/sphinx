@@ -40,7 +40,7 @@ impl<C: Config> Builder<C> {
             // Assert that the bit is either 0 or 1.
             self.assert_var_eq(bit * (bit - C::N::one()), C::N::zero());
             // Add `bit * 2^i` to the sum.
-            self.assign(sum, sum + bit * C::N::from_canonical_u32(1 << i));
+            self.assign(&sum, sum + bit * C::N::from_canonical_u32(1 << i));
         }
         // Finally, assert that the sum is equal to the original number.
         self.assert_eq::<Usize<_>, _, _>(sum, num);
@@ -66,7 +66,7 @@ impl<C: Config> Builder<C> {
             // Assert that the bit is either 0 or 1.
             self.assert_var_eq(bit * (bit - C::N::one()), C::N::zero());
             // Add `bit * 2^i` to the sum.
-            self.assign(sum, sum + bit * C::N::from_canonical_u32(1 << i));
+            self.assign(&sum, sum + bit * C::N::from_canonical_u32(1 << i));
         }
         // Finally, assert that the sum is equal to the original number.
         self.assert_var_eq(sum, num);
@@ -93,7 +93,7 @@ impl<C: Config> Builder<C> {
             self.assert_var_eq(bit * (bit - C::N::one()), C::N::zero());
             // Add `bit * 2^i` to the sum.
             self.if_eq(bit, C::N::one()).then(|builder| {
-                builder.assign(sum, sum + C::F::from_canonical_u32(1 << i));
+                builder.assign(&sum, sum + C::F::from_canonical_u32(1 << i));
             });
         }
         // Finally, assert that the sum is equal to the original number.
@@ -108,7 +108,7 @@ impl<C: Config> Builder<C> {
             let bit = self.get(bits, i);
             // Add `bit * 2^i` to the sum.
             self.if_eq(bit, C::N::one()).then(|builder| {
-                builder.assign(num, num + C::F::from_canonical_u32(1 << i));
+                builder.assign(&num, num + C::F::from_canonical_u32(1 << i));
             });
         }
         num
@@ -119,7 +119,7 @@ impl<C: Config> Builder<C> {
         for i in 0..NUM_BITS {
             let bit = self.get(bits, i);
             // Add `bit * 2^i` to the sum.
-            self.assign(num, num + bit * C::N::from_canonical_u32(1 << i));
+            self.assign(&num, num + bit * C::N::from_canonical_u32(1 << i));
         }
         num
     }
@@ -183,7 +183,7 @@ impl<C: Config> Builder<C> {
     /// Applies the Poseidon2 hash function to the given array using a padding-free sponge.
     ///
     /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/symmetric/src/sponge.rs#L32
-    pub fn poseidon2_hash(&mut self, input: Array<C, Felt<C::F>>) -> Array<C, Felt<C::F>> {
+    pub fn poseidon2_hash(&mut self, input: &Array<C, Felt<C::F>>) -> Array<C, Felt<C::F>> {
         let len = match input {
             Array::Fixed(_) => Usize::Const(PERMUTATION_WIDTH),
             Array::Dyn(_, _) => {
@@ -196,7 +196,7 @@ impl<C: Config> Builder<C> {
         let end = len;
         self.range(start, end).for_each(|_, builder| {
             let new_state = builder.poseidon2_permute(&state);
-            builder.assign(state.clone(), new_state);
+            builder.assign(&state, new_state);
         });
         state
     }

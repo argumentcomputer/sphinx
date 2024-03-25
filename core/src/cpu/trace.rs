@@ -64,7 +64,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             value.sort_unstable_by_key(|event| event.clk);
         }
         new_blu_events.sort_unstable_by_key(|event| event.a1);
-        output.add_alu_events(new_alu_events);
+        output.add_alu_events(&new_alu_events);
         output.add_byte_lookup_events(new_blu_events);
 
         // Convert the trace to a row major matrix.
@@ -102,7 +102,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
                 value.sort_unstable_by_key(|event| event.clk);
             }
             // Add the dependency events to the shard.
-            output.add_alu_events(alu_events);
+            output.add_alu_events(&alu_events);
             blu_events.sort_unstable_by_key(|event| event.a1);
             output.add_byte_lookup_events(blu_events);
         }

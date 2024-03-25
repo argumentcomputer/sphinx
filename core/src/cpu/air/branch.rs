@@ -147,7 +147,7 @@ impl CpuChip {
             Word::extend_var::<AB>(branch_cols.a_gt_b),
             local.op_b_val(),
             local.op_a_val(),
-            is_branch_instruction.clone(),
+            is_branch_instruction,
         );
     }
 }

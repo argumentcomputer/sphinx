@@ -279,7 +279,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> MachineStark<SC, A> {
             debug_interactions_with_all_chips::<SC, A>(
                 self.chips(),
                 &record,
-                InteractionKind::all_kinds(),
+                &InteractionKind::all_kinds(),
             );
         }
     }
