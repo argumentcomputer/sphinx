@@ -14,3 +14,6 @@ pgo-data.profdata
 
 # Benchmark
 benchmark.csv
+
+# Jetbrain config
+./.idea

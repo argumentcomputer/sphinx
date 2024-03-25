@@ -12,6 +12,9 @@ k256 = { version = "0.13.3", features = ["ecdsa", "std", "bits"] }
 serde = { version = "1.0.196", features = ["derive"] }
 libm = { version = "0.2.8", optional = true }
 
+[target.'cfg(target_os = "zkvm")'.dependencies]
+rand = "0.8.5"
+
 [features]
 default = ["libm"]
 libm = ["dep:libm"]
