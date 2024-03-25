@@ -1,13 +1,13 @@
 use super::params::LimbWidth;
 use super::params::Limbs;
 use super::params::DEFAULT_NUM_LIMBS_T;
-use super::params::NUM_WITNESS_LIMBS;
+use super::params::WITNESS_LIMBS;
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
-use hybrid_array::Array;
+use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
 use num::Zero;
 use p3_field::{AbstractField, PrimeField32};
@@ -24,8 +24,8 @@ pub struct FieldInnerProductCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The result of `a inner product b`, where a, b are field elements
     pub result: Limbs<T, U>,
     pub(crate) carry: Limbs<T, U>,
-    pub(crate) witness_low: Array<T, NUM_WITNESS_LIMBS<U>>,
-    pub(crate) witness_high: Array<T, NUM_WITNESS_LIMBS<U>>,
+    pub(crate) witness_low: Array<T, WITNESS_LIMBS<U>>,
+    pub(crate) witness_high: Array<T, WITNESS_LIMBS<U>>,
 }
 
 impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
@@ -64,7 +64,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
             );
 
         let p_vanishing = p_inner_product - &p_result - &p_carry * &p_modulus;
-        assert_eq!(p_vanishing.degree(), P::NB_WITNESS_LIMBS);
+        assert_eq!(p_vanishing.degree(), WITNESS_LIMBS::<U>::USIZE);
 
         let p_witness = compute_root_quotient_and_shift(
             &p_vanishing,

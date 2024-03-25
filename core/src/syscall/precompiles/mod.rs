@@ -6,13 +6,10 @@ pub mod sha256;
 pub mod weierstrass;
 
 use hybrid_array::{typenum::Unsigned, Array};
-use num::BigUint;
 use serde::{Deserialize, Serialize};
 
-use crate::air::SP1AirBuilder;
-use crate::operations::field::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, DIV2};
+use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
 use crate::runtime::SyscallContext;
-use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
 use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
 
@@ -23,14 +20,14 @@ pub struct ECAddEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub clk: u32,
     pub p_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub p: Array<u32, DIV2<U>>,
+    pub p: Array<u32, WORDS_CURVEPOINT<U>>,
     pub q_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub q: Array<u32, DIV2<U>>,
+    pub q: Array<u32, WORDS_CURVEPOINT<U>>,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub p_memory_records: Array<MemoryWriteRecord, DIV2<U>>,
+    pub p_memory_records: Array<MemoryWriteRecord, WORDS_CURVEPOINT<U>>,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub q_memory_records: Array<MemoryReadRecord, DIV2<U>>,
+    pub q_memory_records: Array<MemoryReadRecord, WORDS_CURVEPOINT<U>>,
 }
 
 pub fn create_ec_add_event<E: EllipticCurve>(
@@ -44,14 +41,13 @@ pub fn create_ec_add_event<E: EllipticCurve>(
     let q_ptr = arg2;
     assert!(q_ptr % 4 == 0,);
 
-    let words_len = BaseLimbWidth::<E>::USIZE / 2;
+    let words_len = WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE;
 
-    // TODO(FG): check if we need to enforce that NW is a multiple of 4
-    let p: Array<u32, DIV2<BaseLimbWidth<E>>> =
+    let p: Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> =
         (&rt.slice_unsafe(p_ptr, words_len)[..]).try_into().unwrap();
     let (q_memory_records_vec, q_vec) = rt.mr_slice(q_ptr, words_len);
     let q_memory_records = (&q_memory_records_vec[..]).try_into().unwrap();
-    let q: Array<u32, DIV2<BaseLimbWidth<E>>> = (&q_vec[..]).try_into().unwrap();
+    let q: Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> = (&q_vec[..]).try_into().unwrap();
     // When we write to p, we want the clk to be incremented because p and q could be the same.
     rt.clk += 1;
 
@@ -80,9 +76,9 @@ pub struct ECDoubleEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub clk: u32,
     pub p_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub p: Array<u32, DIV2<U>>,
+    pub p: Array<u32, WORDS_CURVEPOINT<U>>,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
-    pub p_memory_records: Array<MemoryWriteRecord, DIV2<U>>,
+    pub p_memory_records: Array<MemoryWriteRecord, WORDS_CURVEPOINT<U>>,
 }
 
 pub fn create_ec_double_event<E: EllipticCurve>(
@@ -94,10 +90,9 @@ pub fn create_ec_double_event<E: EllipticCurve>(
     let p_ptr = arg1;
     assert!(p_ptr % 4 == 0,);
 
-    let words_len = BaseLimbWidth::<E>::USIZE / 2;
+    let words_len = WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE;
 
-    // TODO(FG): check if we need to enforce that NW is a multiple of 4
-    let p: Array<u32, DIV2<BaseLimbWidth<E>>> =
+    let p: Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> =
         (&rt.slice_unsafe(p_ptr, words_len)[..]).try_into().unwrap();
     let p_affine = AffinePoint::<E>::from_words_le(&p);
     let result_affine = E::ec_double(&p_affine);
@@ -111,12 +106,4 @@ pub fn create_ec_double_event<E: EllipticCurve>(
         p,
         p_memory_records,
     }
-}
-
-pub fn limbs_from_biguint<AB, F: FieldParameters>(value: &BigUint) -> Limbs<AB::Expr, F::NB_LIMBS>
-where
-    AB: SP1AirBuilder,
-{
-    let a_const = F::to_limbs_field::<AB::F>(value);
-    a_const.map(AB::Expr::from)
 }

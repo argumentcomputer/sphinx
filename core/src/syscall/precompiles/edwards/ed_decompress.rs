@@ -7,7 +7,10 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
 use crate::operations::field::params::LimbWidth;
+use crate::operations::field::params::BYTES_COMPRESSED_CURVEPOINT;
+use crate::operations::field::params::BYTES_FIELD_ELEMENT;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::MemoryReadRecord;
 use crate::runtime::MemoryWriteRecord;
@@ -20,9 +23,6 @@ use crate::utils::ec::edwards::ed25519::ed25519_sqrt;
 use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::BaseLimbWidth;
-use crate::utils::ec::COMPRESSED_POINT_BYTES;
-use crate::utils::ec::NUM_BYTES_FIELD_ELEMENT;
-use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
 use crate::utils::limbs_from_access;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
@@ -30,6 +30,9 @@ use crate::utils::words_to_bytes_le;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use curve25519_dalek::edwards::CompressedEdwardsY;
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
+use hybrid_array::ArraySize;
 use num::BigUint;
 use num::One;
 use num::Zero;
@@ -45,27 +48,29 @@ use p3_matrix::dense::RowMajorMatrix;
 use std::fmt::Debug;
 use wp1_derive::AlignedBorrow;
 
-// TODO(FG): those constants should be generalized over
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EdDecompressEvent {
+pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub shard: u32,
     pub clk: u32,
     pub ptr: u32,
     pub sign: bool,
-    pub y_bytes: [u8; COMPRESSED_POINT_BYTES],
-    pub decompressed_x_bytes: [u8; NUM_BYTES_FIELD_ELEMENT],
-    pub x_memory_records: [MemoryWriteRecord; NUM_WORDS_FIELD_ELEMENT],
-    pub y_memory_records: [MemoryReadRecord; NUM_WORDS_FIELD_ELEMENT],
+    #[serde(with = "crate::utils::array_serde::ArraySerde")]
+    pub y_bytes: Array<u8, BYTES_COMPRESSED_CURVEPOINT<U>>,
+    #[serde(with = "crate::utils::array_serde::ArraySerde")]
+    pub decompressed_x_bytes: Array<u8, BYTES_FIELD_ELEMENT<U>>,
+    #[serde(with = "crate::utils::array_serde::ArraySerde")]
+    pub x_memory_records: Array<MemoryWriteRecord, WORDS_FIELD_ELEMENT<U>>,
+    #[serde(with = "crate::utils::array_serde::ArraySerde")]
+    pub y_memory_records: Array<MemoryReadRecord, WORDS_FIELD_ELEMENT<U>>,
 }
 
-pub const NUM_ED_DECOMPRESS_COLS: usize = size_of::<EdDecompressCols<u8>>();
-
-/// A set of columns to compute `EdDecompress` given a pointer to a 16 word slice formatted as such:
+/// A set of columns to compute `EdDecompress` given a pointer to a 16 word slice formatted as such
+/// for a 32-byte base field representation:
+///
 /// The 31st byte of the slice is the sign bit. The second half of the slice is the 255-bit
 /// compressed Y (without sign bit).
 ///
 /// After `EdDecompress`, the first 32 bytes of the slice are overwritten with the decompressed X.
-// TODO(FG): those constants should be generalized over
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct EdDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
@@ -74,8 +79,8 @@ pub struct EdDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub clk: T,
     pub ptr: T,
     pub sign: T,
-    pub x_access: [MemoryWriteCols<T>; NUM_WORDS_FIELD_ELEMENT],
-    pub y_access: [MemoryReadCols<T>; NUM_WORDS_FIELD_ELEMENT],
+    pub x_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<U>>,
+    pub y_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<U>>,
     pub(crate) yy: FieldOpCols<T, U>,
     pub(crate) u: FieldOpCols<T, U>,
     pub(crate) dyy: FieldOpCols<T, U>,
@@ -97,7 +102,8 @@ impl<F: PrimeField32, U: LimbWidth> EdDecompressCols<F, U> {
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
         self.sign = F::from_bool(event.sign);
-        for i in 0..8 {
+        let nw_field_elt = WORDS_FIELD_ELEMENT::<U>::USIZE;
+        for i in 0..nw_field_elt {
             self.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
             self.y_access[i].populate(event.y_memory_records[i], &mut new_byte_lookup_events);
         }
@@ -172,7 +178,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
             FieldOperation::Sub,
         );
 
-        for i in 0..NUM_WORDS_FIELD_ELEMENT {
+        for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
             builder.constraint_memory_access(
                 self.shard,
                 self.clk,
@@ -181,7 +187,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
                 self.is_real,
             );
         }
-        for i in 0..NUM_WORDS_FIELD_ELEMENT {
+        for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
             builder.constraint_memory_access(
                 self.shard,
                 self.clk,
@@ -217,7 +223,10 @@ pub struct EdDecompressChip<E> {
     _phantom: PhantomData<E>,
 }
 
-impl<E: EdwardsParameters> Syscall for EdDecompressChip<E> {
+// TODO(FG): This function is already generic in NB_LIMBS, but the ed_decompress_events record is not
+impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<BaseField = F>>
+    Syscall for EdDecompressChip<E>
+{
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, sign: u32) -> Option<u32> {
         let start_clk = rt.clk;
         let slice_ptr = arg1;
@@ -226,19 +235,21 @@ impl<E: EdwardsParameters> Syscall for EdDecompressChip<E> {
         let sign = sign as u8;
 
         let (y_memory_records_vec, y_vec) = rt.mr_slice(
-            slice_ptr + (COMPRESSED_POINT_BYTES as u32),
-            NUM_WORDS_FIELD_ELEMENT,
+            slice_ptr + (BYTES_COMPRESSED_CURVEPOINT::<BaseLimbWidth<E>>::USIZE as u32),
+            WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE,
         );
-        let y_memory_records: [MemoryReadRecord; 8] = y_memory_records_vec.try_into().unwrap();
+        let y_memory_records: Array<MemoryReadRecord, WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>> =
+            (&y_memory_records_vec[..]).try_into().unwrap();
 
         let sign_bool = sign != 0;
 
-        let y_bytes: [u8; COMPRESSED_POINT_BYTES] = words_to_bytes_le(&y_vec);
+        let y_bytes: <BYTES_COMPRESSED_CURVEPOINT<BaseLimbWidth<E>> as ArraySize>::ArrayType<u8> =
+            words_to_bytes_le(&y_vec);
 
         // Copy bytes into another array so we can modify the last byte and make CompressedEdwardsY,
         // which we'll use to compute the expected X.
         // Re-insert sign bit into last bit of Y for CompressedEdwardsY format
-        let mut compressed_edwards_y: [u8; COMPRESSED_POINT_BYTES] = y_bytes;
+        let mut compressed_edwards_y = y_bytes;
         compressed_edwards_y[compressed_edwards_y.len() - 1] &= 0b0111_1111;
         compressed_edwards_y[compressed_edwards_y.len() - 1] |= sign << 7;
 
@@ -246,14 +257,18 @@ impl<E: EdwardsParameters> Syscall for EdDecompressChip<E> {
         let compressed_y = CompressedEdwardsY(compressed_edwards_y);
         let decompressed = decompress(&compressed_y);
 
+        let bytes_field_elt = BYTES_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         let mut decompressed_x_bytes = decompressed.x.to_bytes_le();
-        decompressed_x_bytes.resize(32, 0u8);
-        let decompressed_x_words: [u32; NUM_WORDS_FIELD_ELEMENT] =
-            bytes_to_words_le(&decompressed_x_bytes);
+        decompressed_x_bytes.resize(bytes_field_elt, 0u8);
+
+        let decompressed_x_words: <WORDS_FIELD_ELEMENT<BaseLimbWidth<E>> as ArraySize>::ArrayType<
+            u32,
+        > = bytes_to_words_le(&decompressed_x_bytes);
 
         // Write decompressed X into slice
         let x_memory_records_vec = rt.mw_slice(slice_ptr, &decompressed_x_words);
-        let x_memory_records: [MemoryWriteRecord; 8] = x_memory_records_vec.try_into().unwrap();
+        let x_memory_records: Array<MemoryWriteRecord, WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>> =
+            (&x_memory_records_vec[..]).try_into().unwrap();
 
         let shard = rt.current_shard();
         rt.record_mut()
@@ -263,8 +278,8 @@ impl<E: EdwardsParameters> Syscall for EdDecompressChip<E> {
                 clk: start_clk,
                 ptr: slice_ptr,
                 sign: sign_bool,
-                y_bytes,
-                decompressed_x_bytes: decompressed_x_bytes.try_into().unwrap(),
+                y_bytes: y_bytes.into(),
+                decompressed_x_bytes: (&decompressed_x_bytes[..]).try_into().unwrap(),
                 x_memory_records,
                 y_memory_records,
             });
@@ -283,6 +298,9 @@ impl<E: EdwardsParameters> EdDecompressChip<E> {
         }
     }
 }
+
+// TODO(FG): mop up when making execution generic
+const NUM_ED_DECOMPRESS_COLS: usize = size_of::<EdDecompressCols<u8>>();
 
 impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E> {
     type Record = ExecutionRecord;

@@ -1,14 +1,17 @@
-use hybrid_array::sizes::U32;
-use hybrid_array::typenum::{Double, Shright, Sub1, Unsigned, B1};
-use hybrid_array::{Array, ArraySize};
+use hybrid_array::sizes::{U32, U4};
+use hybrid_array::typenum::{Double, Shright, Sub1, B1};
+use hybrid_array::{Array, ArraySize, AssocArraySize};
 
 use crate::air::Polynomial;
 use std::fmt::Debug;
-use std::ops::{Shl, Shr, Sub};
+use std::ops::{Div, Mul, Shl, Shr, Sub};
 use std::slice::Iter;
 
 pub const NB_BITS_PER_LIMB: usize = 8;
-pub const NUM_WITNESS_LIMBS: usize = 2 * DEFAULT_NUM_LIMBS_T::USIZE - 2;
+
+/// The size of a word in bytes, reflected as a type
+#[allow(non_camel_case_types)]
+pub type WORD_SIZE = <[u8; crate::air::WORD_SIZE] as AssocArraySize>::Size;
 
 /// The default number of limbs reflected at the type level
 // This is also <[T; DEFAULT_NUM_LIMBS] as AssocArraySize>::Size
@@ -18,29 +21,60 @@ pub type DEFAULT_NUM_LIMBS_T = U32;
 // here N is NB_LIMBS in the field representation, so the following is a
 // type-level function N -> 2 * N - 2
 #[allow(non_camel_case_types)]
-pub type NUM_WITNESS_LIMBS<N> = Double<Sub1<N>>;
+pub type WITNESS_LIMBS<N> = Double<Sub1<N>>;
 
-// a type-level function N -> N / 2
+/// Number of words needed to represent a point on an elliptic curve. This is twice the number of
+/// words needed to represent a field element as a point consists of the x and y coordinates.
+// Can also be seen as a type-level function N -> N / 2
 #[allow(non_camel_case_types)]
-pub type DIV2<N> = Shright<N, B1>;
+pub type WORDS_CURVEPOINT<N> = Shright<N, B1>;
 
-// technical bounds indicating an N s.t. 2 (N - 1) is well-defined
-pub trait LimbWidth: ArraySize + Sub<B1, Output = Self::S1> + Shr<B1, Output = Self::S3> {
+/// Number of words needed to represent a field element.
+// Can also be seen as a type-level function N -> N / 4
+#[allow(non_camel_case_types)]
+pub type WORDS_FIELD_ELEMENT<N> = <N as Div<U4>>::Output;
+
+/// Number of bytes needed to represent a field element.
+/// Can also be seen as a type-level function N -> WORDS_FIELD_ELEMENT(N) * WORD_SIZE
+#[allow(non_camel_case_types)]
+pub type BYTES_FIELD_ELEMENT<N> = <WORDS_FIELD_ELEMENT<N> as Mul<WORD_SIZE>>::Output;
+
+/// Number of bytes neede to represent a curve point in compressed form.
+/// This is the number of bytes needed to represent a single field element (since we only represent the x-coordinate).
+/// Can also be seen as a type-level function N -> WORDS_FIELD_ELEMENT(N) * WORD_SIZE
+#[allow(non_camel_case_types)]
+pub type BYTES_COMPRESSED_CURVEPOINT<N> = <WORDS_FIELD_ELEMENT<N> as Mul<WORD_SIZE>>::Output;
+
+// technical bounds indicating an N s.t. :
+// - 2 (N - 1) is well-defined
+// - N / 2 is well-defined
+// - N / 4 is well-defined
+// - N / 4 * 4 is well-defined
+pub trait LimbWidth:
+    ArraySize + Sub<B1, Output = Self::S1> + Shr<B1, Output = Self::S3> + Div<U4, Output = Self::S4>
+{
     type S1: Shl<B1, Output = Self::S2>;
     type S2: ArraySize;
     type S3: ArraySize;
+    type S4: ArraySize + Mul<WORD_SIZE, Output = Self::S5>;
+    type S5: ArraySize;
 }
 
 impl<U: ArraySize> LimbWidth for U
 where
-    U: Sub<B1> + Shr<B1>,
+    U: Sub<B1> + Shr<B1> + Div<U4>,
     Sub1<U>: Shl<B1>,
-    DIV2<U>: ArraySize,
-    NUM_WITNESS_LIMBS<U>: ArraySize,
+    <U as Div<U4>>::Output: Mul<U4>,
+    WITNESS_LIMBS<U>: ArraySize,
+    WORDS_CURVEPOINT<U>: ArraySize,
+    WORDS_FIELD_ELEMENT<U>: ArraySize,
+    BYTES_FIELD_ELEMENT<U>: ArraySize,
 {
     type S1 = Sub1<U>;
-    type S2 = NUM_WITNESS_LIMBS<U>;
-    type S3 = DIV2<U>;
+    type S2 = WITNESS_LIMBS<U>;
+    type S3 = WORDS_CURVEPOINT<U>;
+    type S4 = WORDS_FIELD_ELEMENT<U>;
+    type S5 = BYTES_FIELD_ELEMENT<U>;
 }
 
 pub type Limbs<T, U = DEFAULT_NUM_LIMBS_T> = Array<T, U>;

@@ -1,4 +1,3 @@
-use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
 use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
@@ -22,8 +21,6 @@ impl FieldParameters for Bn254BaseField {
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
 
     const NB_BITS_PER_LIMB: usize = 16;
-
-    const NB_WITNESS_LIMBS: usize = 2 * Self::NB_LIMBS::USIZE - 2;
 
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
         71, 253, 124, 216, 22, 140, 32, 60, 141, 202, 113, 104, 145, 106, 129, 151, 93, 88, 129,

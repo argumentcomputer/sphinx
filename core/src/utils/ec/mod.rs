@@ -13,15 +13,12 @@ use std::fmt::Debug;
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
-use crate::operations::field::params::DIV2;
+use crate::operations::field::params::WORDS_CURVEPOINT;
 
-pub const NUM_WORDS_FIELD_ELEMENT: usize = 8;
-pub const NUM_BYTES_FIELD_ELEMENT: usize = NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
-pub const COMPRESSED_POINT_BYTES: usize = 32;
+pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
+pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
 
-/// Number of words needed to represent a point on an elliptic curve. This is twice the number of
-/// words needed to represent a field element as a point consists of the x and y coordinates.
-pub const NUM_WORDS_EC_POINT: usize = 2 * NUM_WORDS_FIELD_ELEMENT;
+pub const DEFAULT_COMPRESSED_POINT_BYTES: usize = 32;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AffinePoint<E> {
@@ -63,7 +60,7 @@ impl<E: EllipticCurveParameters> AffinePoint<E> {
         BaseLimbWidth::<E>::USIZE * E::BaseField::NB_BITS_PER_LIMB / 32
     }
 
-    pub fn to_words_le(&self) -> Array<u32, DIV2<BaseLimbWidth<E>>> {
+    pub fn to_words_le(&self) -> Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> {
         let x_digits = self.x.to_u32_digits();
         assert_eq!(x_digits.len(), Self::field_u32_digits());
         let y_digits = self.y.to_u32_digits();

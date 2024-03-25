@@ -6,21 +6,19 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::LimbWidth;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::DIV2;
+use crate::operations::field::params::WORDS_CURVEPOINT;
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::create_ec_double_event;
-use crate::syscall::precompiles::limbs_from_biguint;
 use crate::syscall::precompiles::SyscallContext;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::ec::NUM_WORDS_EC_POINT;
-use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
 use core::borrow::{Borrow, BorrowMut};
@@ -55,7 +53,7 @@ pub struct WeierstrassDoubleAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub shard: T,
     pub clk: T,
     pub p_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, DIV2<U>>,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<U>>,
     pub(crate) slope_denominator: FieldOpCols<T, U>,
     pub(crate) slope_numerator: FieldOpCols<T, U>,
     pub(crate) slope: FieldOpCols<T, U>,
@@ -222,7 +220,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
                         Self::populate_field_ops(cols, p_x, p_y);
 
                         // Populate the memory access columns.
-                        for i in 0..NUM_WORDS_EC_POINT {
+                        for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
                             cols.p_access[i]
                                 .populate(event.p_memory_records[i], &mut new_byte_lookup_events);
                         }
@@ -277,11 +275,12 @@ where
         let row: &WeierstrassDoubleAssignCols<AB::Var, BaseLimbWidth<E>> =
             main.row_slice(0).borrow();
 
-        let p_x = limbs_from_prev_access(&row.p_access[0..NUM_WORDS_FIELD_ELEMENT]);
-        let p_y = limbs_from_prev_access(&row.p_access[NUM_WORDS_FIELD_ELEMENT..]);
+        let nw_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
+        let p_x = limbs_from_prev_access(&row.p_access[0..nw_field_elt]);
+        let p_y = limbs_from_prev_access(&row.p_access[nw_field_elt..]);
 
         // a in the Weierstrass form: y^2 = x^3 + a * x + b.
-        let a = limbs_from_biguint::<AB, E::BaseField>(&E::a_int());
+        let a = E::BaseField::to_limbs_field::<AB::F>(&E::a_int());
 
         // slope = slope_numerator / slope_denominator.
         let slope = {
@@ -297,7 +296,7 @@ where
                 row.p_x_squared_times_3.eval::<AB, E::BaseField, _, _>(
                     builder,
                     &row.p_x_squared.result,
-                    &limbs_from_biguint::<AB, E::BaseField>(&BigUint::from(3u32)),
+                    &E::BaseField::to_limbs_field::<AB::F>(&BigUint::from(3u32)),
                     FieldOperation::Mul,
                 );
 
@@ -312,7 +311,7 @@ where
             // slope_denominator = 2 * y.
             row.slope_denominator.eval::<AB, E::BaseField, _, _>(
                 builder,
-                &limbs_from_biguint::<AB, E::BaseField>(&BigUint::from(2u32)),
+                &E::BaseField::to_limbs_field::<AB::F>(&BigUint::from(2u32)),
                 &p_y,
                 FieldOperation::Mul,
             );
@@ -376,7 +375,7 @@ where
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);
             builder.when(row.is_real).assert_eq(
                 row.y3_ins.result[i],
-                row.p_access[NUM_WORDS_FIELD_ELEMENT + i / 4].value()[i % 4],
+                row.p_access[nw_field_elt + i / 4].value()[i % 4],
             );
         }
 

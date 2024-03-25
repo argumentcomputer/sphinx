@@ -1,13 +1,13 @@
 use super::params::LimbWidth;
 use super::params::Limbs;
 use super::params::DEFAULT_NUM_LIMBS_T;
-use super::params::NUM_WITNESS_LIMBS;
+use super::params::WITNESS_LIMBS;
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
-use hybrid_array::Array;
+use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
@@ -31,8 +31,8 @@ pub struct FieldOpCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     /// The result of `a op b`, where a, b are field elements
     pub result: Limbs<T, U>,
     pub(crate) carry: Limbs<T, U>,
-    pub(crate) witness_low: Array<T, NUM_WITNESS_LIMBS<U>>,
-    pub(crate) witness_high: Array<T, NUM_WITNESS_LIMBS<U>>,
+    pub(crate) witness_low: Array<T, WITNESS_LIMBS<U>>,
+    pub(crate) witness_high: Array<T, WITNESS_LIMBS<U>>,
 }
 
 impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
@@ -112,7 +112,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
             FieldOperation::Sub | FieldOperation::Div => unreachable!(),
         };
         let p_vanishing: Polynomial<F> = &p_op - &p_result - &p_carry * &p_modulus;
-        debug_assert_eq!(p_vanishing.degree(), P::NB_WITNESS_LIMBS);
+        debug_assert_eq!(p_vanishing.degree(), WITNESS_LIMBS::<U>::USIZE);
 
         let p_witness = compute_root_quotient_and_shift(
             &p_vanishing,

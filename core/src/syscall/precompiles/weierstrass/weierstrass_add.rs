@@ -7,7 +7,8 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::LimbWidth;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::DIV2;
+use crate::operations::field::params::WORDS_CURVEPOINT;
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
@@ -18,8 +19,6 @@ use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::ec::NUM_WORDS_EC_POINT;
-use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
 use core::borrow::{Borrow, BorrowMut};
@@ -38,8 +37,6 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use wp1_derive::AlignedBorrow;
 
-pub const NUM_WEIERSTRASS_ADD_COLS: usize = size_of::<WeierstrassAddAssignCols<u8>>();
-
 /// A set of columns to compute `WeierstrassAdd` that add two points on a Weierstrass curve.
 ///
 /// Right now the number of limbs is assumed to be a constant, although this could be macro-ed or
@@ -52,8 +49,8 @@ pub struct WeierstrassAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, DIV2<U>>,
-    pub q_access: Array<MemoryReadCols<T>, DIV2<U>>,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<U>>,
+    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<U>>,
     pub(crate) slope_denominator: FieldOpCols<T, U>,
     pub(crate) slope_numerator: FieldOpCols<T, U>,
     pub(crate) slope: FieldOpCols<T, U>,
@@ -65,6 +62,8 @@ pub struct WeierstrassAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub(crate) slope_times_p_x_minus_x: FieldOpCols<T, U>,
 }
 
+// TODO(FG): mop up when making execution generic
+const NUM_WEIERSTRASS_ADD_COLS: usize = size_of::<WeierstrassAddAssignCols<u8>>();
 #[derive(Default)]
 pub struct WeierstrassAddAssignChip<E> {
     _marker: PhantomData<E>,
@@ -193,10 +192,10 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             Self::populate_field_ops(cols, p_x, p_y, q_x, q_y);
 
             // Populate the memory access columns.
-            for i in 0..NUM_WORDS_EC_POINT {
+            for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
                 cols.q_access[i].populate(event.q_memory_records[i], &mut new_byte_lookup_events);
             }
-            for i in 0..NUM_WORDS_EC_POINT {
+            for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
                 cols.p_access[i].populate(event.p_memory_records[i], &mut new_byte_lookup_events);
             }
 
@@ -239,11 +238,12 @@ where
         let main = builder.main();
         let row: &WeierstrassAddAssignCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
 
-        let p_x = limbs_from_prev_access(&row.p_access[0..NUM_WORDS_FIELD_ELEMENT]);
-        let p_y = limbs_from_prev_access(&row.p_access[NUM_WORDS_FIELD_ELEMENT..]);
+        let nw_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
+        let p_x = limbs_from_prev_access(&row.p_access[0..nw_field_elt]);
+        let p_y = limbs_from_prev_access(&row.p_access[nw_field_elt..]);
 
-        let q_x = limbs_from_prev_access(&row.q_access[0..NUM_WORDS_FIELD_ELEMENT]);
-        let q_y = limbs_from_prev_access(&row.q_access[NUM_WORDS_FIELD_ELEMENT..]);
+        let q_x = limbs_from_prev_access(&row.q_access[0..nw_field_elt]);
+        let q_y = limbs_from_prev_access(&row.q_access[nw_field_elt..]);
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {

@@ -11,7 +11,7 @@ use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::LimbWidth;
 use crate::operations::field::params::Limbs;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::DIV2;
+use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
@@ -43,8 +43,6 @@ use std::marker::PhantomData;
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
-
 /// A set of columns to compute `EdAdd` where a, b are field elements.
 /// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
 /// or made generic in the future.
@@ -56,8 +54,8 @@ pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, DIV2<U>>,
-    pub q_access: Array<MemoryReadCols<T>, DIV2<U>>,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<U>>,
+    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<U>>,
     pub(crate) x3_numerator: FieldInnerProductCols<T, U>,
     pub(crate) y3_numerator: FieldInnerProductCols<T, U>,
     pub(crate) x1_mul_y1: FieldOpCols<T, U>,
@@ -67,6 +65,9 @@ pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub(crate) x3_ins: FieldDenCols<T, U>,
     pub(crate) y3_ins: FieldDenCols<T, U>,
 }
+
+// TODO(FG): Mop this up when making execution generic
+pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
 
 #[derive(Default)]
 pub struct EdAddAssignChip<E> {
@@ -175,11 +176,11 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
 
                 // Populate the memory access columns.
                 let mut new_byte_lookup_events = Vec::new();
-                for i in 0..16 {
+                for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
                     cols.q_access[i]
                         .populate(event.q_memory_records[i], &mut new_byte_lookup_events);
                 }
-                for i in 0..16 {
+                for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
                     cols.p_access[i]
                         .populate(event.p_memory_records[i], &mut new_byte_lookup_events);
                 }

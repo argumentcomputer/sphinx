@@ -15,7 +15,7 @@ pub trait FieldParameters:
     #[allow(non_camel_case_types)]
     type NB_LIMBS: LimbWidth;
     const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
-    const NB_WITNESS_LIMBS: usize = 2 * Self::NB_LIMBS::USIZE - 2;
+
     const WITNESS_OFFSET: usize = 1usize << 13;
     const MODULUS: Array<u8, Self::NB_LIMBS>;
 

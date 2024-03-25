@@ -19,9 +19,9 @@ use crate::utils::ec::weierstrass::secp256k1::secp256k1_sqrt;
 use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
 use crate::utils::ec::weierstrass::secp256k1::Secp256k1Parameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
-use crate::utils::ec::COMPRESSED_POINT_BYTES;
-use crate::utils::ec::NUM_BYTES_FIELD_ELEMENT;
-use crate::utils::ec::NUM_WORDS_FIELD_ELEMENT;
+use crate::utils::ec::DEFAULT_COMPRESSED_POINT_BYTES;
+use crate::utils::ec::DEFAULT_NUM_BYTES_FIELD_ELEMENT;
+use crate::utils::ec::DEFAULT_NUM_WORDS_FIELD_ELEMENT;
 use crate::utils::limbs_from_access;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
@@ -51,10 +51,10 @@ pub struct K256DecompressEvent {
     pub clk: u32,
     pub ptr: u32,
     pub is_odd: bool,
-    pub x_bytes: [u8; COMPRESSED_POINT_BYTES],
-    pub decompressed_y_bytes: [u8; NUM_BYTES_FIELD_ELEMENT],
-    pub x_memory_records: [MemoryReadRecord; NUM_WORDS_FIELD_ELEMENT],
-    pub y_memory_records: [MemoryWriteRecord; NUM_WORDS_FIELD_ELEMENT],
+    pub x_bytes: [u8; DEFAULT_COMPRESSED_POINT_BYTES],
+    pub decompressed_y_bytes: [u8; DEFAULT_NUM_BYTES_FIELD_ELEMENT],
+    pub x_memory_records: [MemoryReadRecord; DEFAULT_NUM_WORDS_FIELD_ELEMENT],
+    pub y_memory_records: [MemoryWriteRecord; DEFAULT_NUM_WORDS_FIELD_ELEMENT],
 }
 
 pub const NUM_K256_DECOMPRESS_COLS: usize = size_of::<K256DecompressCols<u8>>();
@@ -84,12 +84,12 @@ impl Syscall for K256DecompressChip {
         let is_odd = is_odd as u8;
 
         let (x_memory_records_vec, x_vec) = rt.mr_slice(
-            slice_ptr + (COMPRESSED_POINT_BYTES as u32),
-            NUM_WORDS_FIELD_ELEMENT,
+            slice_ptr + (DEFAULT_COMPRESSED_POINT_BYTES as u32),
+            DEFAULT_NUM_WORDS_FIELD_ELEMENT,
         );
         let x_memory_records: [MemoryReadRecord; 8] = x_memory_records_vec.try_into().unwrap();
 
-        let x_bytes: [u8; COMPRESSED_POINT_BYTES] = words_to_bytes_le(&x_vec);
+        let x_bytes: [u8; DEFAULT_COMPRESSED_POINT_BYTES] = words_to_bytes_le(&x_vec);
         let mut x_bytes_be = x_bytes;
         x_bytes_be.reverse();
 
@@ -99,11 +99,12 @@ impl Syscall for K256DecompressChip {
 
         let decompressed_point = computed_point.to_encoded_point(false);
         let decompressed_point_bytes = decompressed_point.as_bytes();
-        let mut decompressed_y_bytes = [0_u8; NUM_BYTES_FIELD_ELEMENT];
+        let mut decompressed_y_bytes = [0_u8; DEFAULT_NUM_BYTES_FIELD_ELEMENT];
         decompressed_y_bytes
-            .copy_from_slice(&decompressed_point_bytes[1 + NUM_BYTES_FIELD_ELEMENT..]);
+            .copy_from_slice(&decompressed_point_bytes[1 + DEFAULT_NUM_BYTES_FIELD_ELEMENT..]);
         decompressed_y_bytes.reverse();
-        let y_words: [u32; NUM_WORDS_FIELD_ELEMENT] = bytes_to_words_le(&decompressed_y_bytes);
+        let y_words: [u32; DEFAULT_NUM_WORDS_FIELD_ELEMENT] =
+            bytes_to_words_le(&decompressed_y_bytes);
 
         let y_memory_records_vec = rt.mw_slice(slice_ptr, &y_words);
         let y_memory_records: [MemoryWriteRecord; 8] = y_memory_records_vec.try_into().unwrap();
@@ -134,8 +135,8 @@ pub struct K256DecompressCols<T> {
     pub clk: T,
     pub ptr: T,
     pub is_odd: T,
-    pub x_access: [MemoryReadCols<T>; NUM_WORDS_FIELD_ELEMENT],
-    pub y_access: [MemoryReadWriteCols<T>; NUM_WORDS_FIELD_ELEMENT],
+    pub x_access: [MemoryReadCols<T>; DEFAULT_NUM_WORDS_FIELD_ELEMENT],
+    pub y_access: [MemoryReadWriteCols<T>; DEFAULT_NUM_WORDS_FIELD_ELEMENT],
     pub(crate) x_2: FieldOpCols<T>,
     pub(crate) x_3: FieldOpCols<T>,
     pub(crate) x_3_plus_b: FieldOpCols<T>,
@@ -255,7 +256,7 @@ impl<V: Copy> K256DecompressCols<V> {
             .when_ne(y_is_odd, self.is_odd)
             .assert_all_eq(self.neg_y.result, y_limbs);
 
-        for i in 0..NUM_WORDS_FIELD_ELEMENT {
+        for i in 0..DEFAULT_NUM_WORDS_FIELD_ELEMENT {
             builder.constraint_memory_access(
                 self.shard,
                 self.clk,
@@ -264,7 +265,7 @@ impl<V: Copy> K256DecompressCols<V> {
                 self.is_real,
             );
         }
-        for i in 0..NUM_WORDS_FIELD_ELEMENT {
+        for i in 0..DEFAULT_NUM_WORDS_FIELD_ELEMENT {
             builder.constraint_memory_access(
                 self.shard,
                 self.clk,
@@ -318,7 +319,7 @@ impl<F: PrimeField32> MachineAir<F> for K256DecompressChip {
             .unwrap();
             let dummy_bytes = dummy_value.to_bytes_le();
             // TODO: clean up into "bytes to words" util
-            let mut full_dummy_bytes = [0u8; COMPRESSED_POINT_BYTES];
+            let mut full_dummy_bytes = [0u8; DEFAULT_COMPRESSED_POINT_BYTES];
             full_dummy_bytes[0..32].copy_from_slice(&dummy_bytes);
             for i in 0..8 {
                 let word_bytes = dummy_bytes[i * 4..(i + 1) * 4]
