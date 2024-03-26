@@ -525,7 +525,6 @@ dependencies = [
  "cfg-if",
  "getrandom",
  "k256",
- "rand",
  "serde",
 ]
 

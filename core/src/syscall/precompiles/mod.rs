@@ -8,7 +8,6 @@ pub mod weierstrass;
 
 use hybrid_array::{typenum::Unsigned, Array};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
 use crate::runtime::SyscallContext;

@@ -16,9 +16,6 @@ use crate::syscall::precompiles::SyscallContext;
 use crate::utils::bytes_to_words_le;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
-use crate::utils::ec::weierstrass::bls12381::Bls12381Parameters;
-use crate::utils::ec::AffinePoint;
-use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
 use core::borrow::{Borrow, BorrowMut};
@@ -36,10 +33,8 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fmt::Debug;
-use std::marker::PhantomData;
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
-use wp1_zkvm::syscalls::BLS12381_FP_ADD;
 
 pub const NUM_BLS12381_FP_ADD_COLS: usize = size_of::<Bls12381FpAddCols<u8>>();
 
@@ -69,8 +64,7 @@ impl Bls12381FpAddChip {
         p: BigUint,
         q: BigUint,
     ) {
-        let populate = cols
-            .p_add_q
+        cols.p_add_q
             .populate::<Bls12381BaseField>(&p, &q, FieldOperation::Add);
     }
 }
@@ -121,8 +115,10 @@ pub fn create_bls_fp_add_event(
         .collect::<Vec<_>>();
     let q_int = BigUint::from_bytes_le(q_bytes.as_slice());
     let result_int = (p_int + q_int) % Bls12381BaseField::modulus();
+    let mut result_bytes = result_int.to_bytes_le().to_vec();
+    result_bytes.resize(48, 0);
 
-    let result_words: [u32; 12] = bytes_to_words_le(&result_int.to_bytes_le());
+    let result_words: [u32; 12] = bytes_to_words_le(&result_bytes);
 
     let p_memory_records = rt.mw_slice(p_ptr, &result_words).try_into().unwrap();
 
@@ -303,17 +299,10 @@ mod tests {
     use crate::utils::tests::BLS12381_FP_ADD_ELF;
     use crate::Program;
 
-    //#[test]
-    // fn test_bls12381_fp_add_simple() {
-    //     utils::setup_logger();
-    //     let program = Program::from(BLS12381_FP_ADD_ELF);
-    //     utils::run_test(program).unwrap();
-    // }
-
-    // #[test]
-    // fn test_ed25519_program() {
-    //     utils::setup_logger();
-    //     let program = Program::from(ED25519_ELF);
-    //     utils::run_test(program).unwrap();
-    // }
+    #[test]
+    fn test_bls12381_fp_add_simple() {
+        utils::setup_logger();
+        let program = Program::from(BLS12381_FP_ADD_ELF);
+        utils::run_test(program).unwrap();
+    }
 }

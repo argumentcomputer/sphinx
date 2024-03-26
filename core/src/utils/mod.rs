@@ -43,6 +43,15 @@ pub fn pad_to_power_of_two<const N: usize, T: Clone + Default>(values: &mut Vec<
     values.resize(n_real_rows.next_power_of_two() * N, T::default());
 }
 
+pub fn pad_to_power_of_two_nongeneric<T: Clone + Default>(n: usize, values: &mut Vec<T>) {
+    debug_assert!(values.len() % n == 0);
+    let mut n_real_rows = values.len() / n;
+    if n_real_rows == 0 || n_real_rows == 1 {
+        n_real_rows = 8;
+    }
+    values.resize(n_real_rows.next_power_of_two() * n, T::default());
+}
+
 pub fn limbs_from_prev_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) -> Limbs<T, U> {
     let vec = cols
         .iter()

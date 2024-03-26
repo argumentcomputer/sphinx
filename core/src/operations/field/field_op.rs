@@ -177,11 +177,14 @@ mod tests {
     use super::{FieldOpCols, FieldOperation, Limbs};
 
     use crate::air::MachineAir;
-    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+    use crate::operations::field::params::LimbWidth;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
-    use crate::utils::{pad_to_power_of_two, BabyBearPoseidon2};
+    use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
+    use crate::utils::ec::weierstrass::bn254::Bn254BaseField;
+    use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
+    use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
     use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use core::borrow::{Borrow, BorrowMut};
@@ -195,13 +198,11 @@ mod tests {
     use wp1_derive::AlignedBorrow;
 
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T> {
-        pub a: Limbs<T>,
-        pub b: Limbs<T>,
-        pub a_op_b: FieldOpCols<T>,
+    pub struct TestCols<T, U: LimbWidth> {
+        pub a: Limbs<T, U>,
+        pub b: Limbs<T, U>,
+        pub a_op_b: FieldOpCols<T, U>,
     }
-
-    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct FieldOpChip<P: FieldParameters> {
         pub(crate) operation: FieldOperation,
@@ -217,9 +218,7 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
-        for FieldOpChip<P>
-    {
+    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldOpChip<P> {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -251,11 +250,13 @@ mod tests {
                 (BigUint::from(10u32), BigUint::from(19u32)),
             ]);
 
+            let num_test_cols = <FieldOpChip<P> as BaseAir<F>>::width(self);
+
             let rows = operands
                 .iter()
                 .map(|(a, b)| {
-                    let mut row = [F::zero(); NUM_TEST_COLS];
-                    let cols: &mut TestCols<F> = row.as_mut_slice().borrow_mut();
+                    let mut row = vec![F::zero(); num_test_cols];
+                    let cols: &mut TestCols<F, P::NB_LIMBS> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
                     cols.a_op_b.populate::<P>(a, b, self.operation);
@@ -265,11 +266,11 @@ mod tests {
             // Convert the trace to a row major matrix.
             let mut trace = RowMajorMatrix::new(
                 rows.into_iter().flatten().collect::<Vec<_>>(),
-                NUM_TEST_COLS,
+                num_test_cols,
             );
 
             // Pad the trace to a power of two.
-            pad_to_power_of_two::<NUM_TEST_COLS, F>(&mut trace.values);
+            pad_to_power_of_two_nongeneric::<F>(num_test_cols, &mut trace.values);
 
             trace
         }
@@ -281,17 +282,17 @@ mod tests {
 
     impl<F: Field, P: FieldParameters> BaseAir<F> for FieldOpChip<P> {
         fn width(&self) -> usize {
-            NUM_TEST_COLS
+            size_of::<TestCols<u8, P::NB_LIMBS>>()
         }
     }
 
-    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for FieldOpChip<P>
+    impl<AB, P: FieldParameters> Air<AB> for FieldOpChip<P>
     where
         AB: SP1AirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
-            let local: &TestCols<AB::Var> = main.row_slice(0).borrow();
+            let local: &TestCols<AB::Var, P::NB_LIMBS> = main.row_slice(0).borrow();
             local
                 .a_op_b
                 .eval::<AB, P, _, _>(builder, &local.a, &local.b, self.operation);
@@ -303,17 +304,17 @@ mod tests {
         }
     }
 
-    #[test]
-    fn generate_trace() {
+    fn generate_trace_for<F: FieldParameters>() {
         for op in [
             FieldOperation::Add,
-            FieldOperation::Mul,
             FieldOperation::Sub,
+            FieldOperation::Mul,
+            FieldOperation::Div,
         ]
         .iter()
         {
             println!("op: {:?}", op);
-            let chip: FieldOpChip<Ed25519BaseField> = FieldOpChip::new(*op);
+            let chip: FieldOpChip<F> = FieldOpChip::new(*op);
             let shard = ExecutionRecord::default();
             let _: RowMajorMatrix<BabyBear> =
                 chip.generate_trace(&shard, &mut ExecutionRecord::default());
@@ -321,8 +322,7 @@ mod tests {
         }
     }
 
-    #[test]
-    fn prove_babybear() {
+    fn prove_babybear_for<F: FieldParameters>() {
         let config = BabyBearPoseidon2::new();
 
         for op in [
@@ -337,7 +337,7 @@ mod tests {
 
             let mut challenger = config.challenger();
 
-            let chip: FieldOpChip<Ed25519BaseField> = FieldOpChip::new(*op);
+            let chip: FieldOpChip<F> = FieldOpChip::new(*op);
             let shard = ExecutionRecord::default();
             let trace: RowMajorMatrix<BabyBear> =
                 chip.generate_trace(&shard, &mut ExecutionRecord::default());
@@ -346,5 +346,21 @@ mod tests {
             let mut challenger = config.challenger();
             verify(&config, &chip, &mut challenger, &proof).unwrap();
         }
+    }
+
+    #[test]
+    fn generate_trace() {
+        generate_trace_for::<Ed25519BaseField>();
+        generate_trace_for::<Bls12381BaseField>();
+        generate_trace_for::<Bn254BaseField>();
+        generate_trace_for::<Secp256k1BaseField>();
+    }
+
+    #[test]
+    fn prove_babybear() {
+        prove_babybear_for::<Ed25519BaseField>();
+        generate_trace_for::<Bls12381BaseField>();
+        generate_trace_for::<Bn254BaseField>();
+        prove_babybear_for::<Secp256k1BaseField>();
     }
 }

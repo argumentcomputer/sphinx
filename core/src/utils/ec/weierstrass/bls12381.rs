@@ -1,6 +1,6 @@
 use hybrid_array::typenum::U48;
 use hybrid_array::Array;
-use num::{BigUint, Num, Zero};
+use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
@@ -31,7 +31,7 @@ impl FieldParameters for Bls12381BaseField {
     ]);
 
     /// A rough witness-offset estimate given the size of the limbs and the size of the field.
-    const WITNESS_OFFSET: usize = 1usize << 14;
+    //const WITNESS_OFFSET: usize = 1usize << 14;
 
     fn nb_bits() -> usize {
         381
