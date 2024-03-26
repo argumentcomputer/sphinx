@@ -2,6 +2,9 @@ mod domain;
 mod opening;
 pub mod utils;
 
+pub use domain::*;
+pub use opening::*;
+
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
 use p3_field::AbstractExtensionField;
@@ -9,16 +12,10 @@ use p3_field::AbstractField;
 use wp1_core::stark::AirOpenedValues;
 use wp1_core::stark::{MachineChip, StarkGenericConfig};
 
+use super::folder::RecursiveVerifierConstraintFolder;
 use crate::prelude::Config;
 use crate::prelude::ExtConst;
 use crate::prelude::{Builder, Ext, SymbolicExt};
-
-pub use domain::*;
-pub use opening::*;
-
-use super::folder::RecursiveVerifierConstraintFolder;
-
-// pub struct TwoAdicCase
 
 impl<C: Config> Builder<C> {
     pub fn eval_constrains<SC, A>(
@@ -73,7 +70,7 @@ impl<C: Config> Builder<C> {
     pub fn recompute_quotient(
         &mut self,
         opening: &ChipOpening<C>,
-        qc_domains: &[TwoAdicMultiplicativeCoset<C>],
+        qc_domains: Vec<TwoAdicMultiplicativeCosetVariable<C>>,
         zeta: Ext<C::F, C::EF>,
     ) -> Ext<C::F, C::EF> {
         let zps = qc_domains
@@ -120,8 +117,8 @@ impl<C: Config> Builder<C> {
         &mut self,
         chip: &MachineChip<SC, A>,
         opening: &ChipOpening<C>,
-        trace_domain: &TwoAdicMultiplicativeCoset<C>,
-        qc_domains: &[TwoAdicMultiplicativeCoset<C>],
+        trace_domain: TwoAdicMultiplicativeCosetVariable<C>,
+        qc_domains: Vec<TwoAdicMultiplicativeCosetVariable<C>>,
         zeta: Ext<C::F, C::EF>,
         alpha: Ext<C::F, C::EF>,
         permutation_challenges: &[C::EF],
@@ -129,7 +126,7 @@ impl<C: Config> Builder<C> {
         SC: StarkGenericConfig<Val = C::F, Challenge = C::EF>,
         A: for<'a> Air<RecursiveVerifierConstraintFolder<'a, C>>,
     {
-        let sels = self.selectors_at_point(trace_domain, zeta);
+        let sels = self.selectors_at_point(&trace_domain, zeta);
 
         let folded_constraints =
             self.eval_constrains::<SC, _>(chip, opening, &sels, alpha, permutation_challenges);
@@ -335,7 +332,7 @@ mod tests {
                     .iter()
                     .map(|domain| builder.const_domain(domain))
                     .collect::<Vec<_>>();
-                let quotient = builder.recompute_quotient(&values, &qc_domains, zeta);
+                let quotient = builder.recompute_quotient(&values, qc_domains, zeta);
 
                 // Assert that the two values are equal.
                 builder.assert_ext_eq(quotient, quotient_val.cons());
