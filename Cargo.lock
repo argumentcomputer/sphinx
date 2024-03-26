@@ -2635,31 +2635,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-recursion-program"
-version = "0.1.0"
-dependencies = [
- "itertools 0.12.1",
- "p3-air",
- "p3-baby-bear",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rand",
- "serde",
- "wp1-core",
- "wp1-recursion-compiler",
- "wp1-recursion-core",
- "wp1-recursion-derive",
-]
-
-[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3647,6 +3622,31 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "wp1-recursion-program"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "p3-util",
+ "rand",
+ "serde",
+ "wp1-core",
+ "wp1-recursion-compiler",
+ "wp1-recursion-core",
+ "wp1-recursion-derive",
 ]
 
 [[package]]
