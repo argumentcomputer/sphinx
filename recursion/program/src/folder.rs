@@ -1,7 +1,7 @@
 use p3_air::{AirBuilder, ExtensionBuilder, PairBuilder, PermutationAirBuilder, TwoRowMatrixView};
 use wp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder};
 
-use crate::{
+use wp1_recursion_compiler::{
     ir::{Builder, Config, Ext},
     prelude::SymbolicExt,
 };
