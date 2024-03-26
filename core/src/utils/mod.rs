@@ -19,7 +19,10 @@ pub use tracer::*;
 #[cfg(test)]
 pub use programs::*;
 
-use crate::{memory::MemoryCols, operations::field::params::Limbs};
+use crate::{
+    memory::MemoryCols,
+    operations::field::params::{LimbWidth, Limbs},
+};
 
 pub const fn indices_arr<const N: usize>() -> [usize; N] {
     let mut indices_arr = [0; N];
@@ -40,28 +43,22 @@ pub fn pad_to_power_of_two<const N: usize, T: Clone + Default>(values: &mut Vec<
     values.resize(n_real_rows.next_power_of_two() * N, T::default());
 }
 
-pub fn limbs_from_prev_access<T: Copy, M: MemoryCols<T>>(cols: &[M]) -> Limbs<T> {
+pub fn limbs_from_prev_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) -> Limbs<T, U> {
     let vec = cols
         .iter()
         .flat_map(|access| access.prev_value().0)
         .collect::<Vec<T>>();
 
-    let sized = vec
-        .try_into()
-        .unwrap_or_else(|_| panic!("failed to convert to limbs"));
-    Array(sized)
+    Array::try_from(&vec[..]).unwrap_or_else(|_| panic!("failed to convert to limbs"))
 }
 
-pub fn limbs_from_access<T: Copy, M: MemoryCols<T>>(cols: &[M]) -> Limbs<T> {
+pub fn limbs_from_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) -> Limbs<T, U> {
     let vec = cols
         .iter()
         .flat_map(|access| access.value().0)
         .collect::<Vec<T>>();
 
-    let sized = vec
-        .try_into()
-        .unwrap_or_else(|_| panic!("failed to convert to limbs"));
-    Array(sized)
+    Array::try_from(&vec[..]).unwrap_or_else(|_| panic!("failed to convert to limbs"))
 }
 
 pub fn pad_rows<T: Clone, const N: usize>(rows: &mut Vec<[T; N]>, row_fn: impl Fn() -> [T; N]) {

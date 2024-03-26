@@ -6,6 +6,7 @@ use crate::memory::MemoryWriteCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::LimbWidth;
+use crate::operations::field::params::Limbs;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::operations::field::params::WORDS_FIELD_ELEMENT;
@@ -239,11 +240,13 @@ where
         let row: &WeierstrassAddAssignCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
 
         let nw_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
-        let p_x = limbs_from_prev_access(&row.p_access[0..nw_field_elt]);
-        let p_y = limbs_from_prev_access(&row.p_access[nw_field_elt..]);
+        let p_x: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&row.p_access[0..nw_field_elt]);
+        let p_y: Limbs<_, BaseLimbWidth<E>> = limbs_from_prev_access(&row.p_access[nw_field_elt..]);
 
-        let q_x = limbs_from_prev_access(&row.q_access[0..nw_field_elt]);
-        let q_y = limbs_from_prev_access(&row.q_access[nw_field_elt..]);
+        let q_x: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&row.q_access[0..nw_field_elt]);
+        let q_y: Limbs<_, BaseLimbWidth<E>> = limbs_from_prev_access(&row.q_access[nw_field_elt..]);
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {

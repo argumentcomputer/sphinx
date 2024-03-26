@@ -7,6 +7,7 @@ use crate::memory::MemoryReadWriteCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::Limbs;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::MemoryReadRecord;
 use crate::runtime::MemoryWriteRecord;
@@ -16,9 +17,11 @@ use crate::syscall::precompiles::SyscallContext;
 use crate::utils::bytes_to_words_le;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::secp256k1::secp256k1_sqrt;
+use crate::utils::ec::weierstrass::secp256k1::Secp256k1;
 use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
 use crate::utils::ec::weierstrass::secp256k1::Secp256k1Parameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
+use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::DEFAULT_COMPRESSED_POINT_BYTES;
 use crate::utils::ec::DEFAULT_NUM_BYTES_FIELD_ELEMENT;
 use crate::utils::ec::DEFAULT_NUM_WORDS_FIELD_ELEMENT;
@@ -198,7 +201,7 @@ impl<V: Copy> K256DecompressCols<V> {
     {
         builder.assert_bool(self.is_odd);
 
-        let x = limbs_from_prev_access(&self.x_access);
+        let x: Limbs<_, BaseLimbWidth<Secp256k1>> = limbs_from_prev_access(&self.x_access);
         self.x_2
             .eval::<AB, Secp256k1BaseField, _, _>(builder, &x, &x, FieldOperation::Mul);
         self.x_3.eval::<AB, Secp256k1BaseField, _, _>(
@@ -245,7 +248,7 @@ impl<V: Copy> K256DecompressCols<V> {
 
         // When y_is_odd == should_be_odd, result is y
         // (Equivalent: y_is_odd != !should_be_odd)
-        let y_limbs = limbs_from_access(&self.y_access);
+        let y_limbs: Limbs<_, BaseLimbWidth<Secp256k1>> = limbs_from_access(&self.y_access);
         builder
             .when(self.is_real)
             .when_ne(y_is_odd.into(), AB::Expr::one() - self.is_odd)

@@ -7,6 +7,7 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
 use crate::operations::field::params::LimbWidth;
+use crate::operations::field::params::Limbs;
 use crate::operations::field::params::BYTES_COMPRESSED_CURVEPOINT;
 use crate::operations::field::params::BYTES_FIELD_ELEMENT;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
@@ -145,7 +146,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
     {
         builder.assert_bool(self.sign);
 
-        let y = limbs_from_prev_access(&self.y_access);
+        let y: Limbs<_, U> = limbs_from_prev_access(&self.y_access);
         self.yy
             .eval::<AB, P, _, _>(builder, &y, &y, FieldOperation::Mul);
         self.u.eval::<AB, P, _, _>(
@@ -197,11 +198,11 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
             );
         }
 
-        let x_limbs = limbs_from_access(&self.x_access);
+        let x_limbs: Limbs<_, U> = limbs_from_access(&self.x_access);
         builder
             .when(self.is_real)
             .when(self.sign)
-            .assert_all_eq(self.neg_x.result.clone(), x_limbs);
+            .assert_all_eq(self.neg_x.result.clone(), x_limbs.clone());
         builder
             .when(self.is_real)
             .when_not(self.sign)
