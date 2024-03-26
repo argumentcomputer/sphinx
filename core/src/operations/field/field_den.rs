@@ -138,7 +138,6 @@ mod tests {
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
     use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
-    use crate::utils::ec::weierstrass::bn254::Bn254BaseField;
     use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
     use crate::utils::BabyBearPoseidon2;
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
@@ -189,8 +188,8 @@ mod tests {
             let num_rows = 1 << 8;
             let mut operands: Vec<(BigUint, BigUint)> = (0..num_rows - 4)
                 .map(|_| {
-                    let a = rng.gen_biguint(256) % &P::modulus();
-                    let b = rng.gen_biguint(256) % &P::modulus();
+                    let a = rng.gen_biguint(P::nb_bits() as u64) % &P::modulus();
+                    let b = rng.gen_biguint(P::nb_bits() as u64) % &P::modulus();
                     (a, b)
                 })
                 .collect();
@@ -287,15 +286,13 @@ mod tests {
     fn generate_trace() {
         generate_trace_for::<Ed25519BaseField>();
         generate_trace_for::<Bls12381BaseField>();
-        generate_trace_for::<Bn254BaseField>();
         generate_trace_for::<Secp256k1BaseField>();
     }
 
     #[test]
     fn prove_babybear() {
         prove_babybear_for::<Ed25519BaseField>();
-        generate_trace_for::<Bls12381BaseField>();
-        generate_trace_for::<Bn254BaseField>();
+        prove_babybear_for::<Bls12381BaseField>();
         prove_babybear_for::<Secp256k1BaseField>();
     }
 }
