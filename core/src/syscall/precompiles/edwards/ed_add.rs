@@ -44,8 +44,6 @@ use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 /// A set of columns to compute `EdAdd` where a, b are field elements.
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
-/// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {

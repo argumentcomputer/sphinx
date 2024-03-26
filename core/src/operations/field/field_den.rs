@@ -17,9 +17,6 @@ use wp1_derive::AlignedBorrow;
 ///
 /// `a / (1 + b)` if `sign`
 /// `a / -b` if `!sign`
-///
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
-/// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldDenCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {

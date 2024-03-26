@@ -44,9 +44,6 @@ use wp1_derive::AlignedBorrow;
 pub const NUM_WEIERSTRASS_DOUBLE_COLS: usize = size_of::<WeierstrassDoubleAssignCols<u8>>();
 
 /// A set of columns to double a point on a Weierstrass curve.
-///
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed or
-/// made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct WeierstrassDoubleAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
