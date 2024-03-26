@@ -25,10 +25,9 @@ impl FieldParameters for Bls12381BaseField {
     // default const NB_WITNESS_LIMBS: usize = 2 * U::USIZE - 2;
 
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
-        0x2f, 0xfc, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        171, 170, 255, 255, 255, 255, 254, 185, 255, 255, 83, 177, 254, 255, 171, 30, 36, 246, 176,
+        246, 160, 210, 48, 103, 191, 18, 133, 243, 132, 75, 119, 100, 215, 172, 75, 67, 182, 167,
+        27, 75, 154, 230, 127, 57, 234, 17, 1, 26,
     ]);
 
     /// A rough witness-offset estimate given the size of the limbs and the size of the field.
@@ -43,35 +42,23 @@ impl EllipticCurveParameters for Bls12381Parameters {
     type BaseField = Bls12381BaseField;
 }
 
+/// The WeierstrassParameters for BLS12-381 G1
 impl WeierstrassParameters for Bls12381Parameters {
     const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ]);
 
     const B: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
-        7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ]);
-    fn generator() -> (BigUint, BigUint) {
-        let x = BigUint::from_str(
-            "55066263022277343669578718895168534326250603453777594175500187360389116729240",
-        )
-        .unwrap();
-        let y = BigUint::from_str(
-            "32670510020758816978083085130507043184471273380659243275938904335757337482424",
-        )
-        .unwrap();
-        (x, y)
-    }
 
-    fn prime_group_order() -> num::BigUint {
-        BigUint::from_slice(&[
-            0xD0364141, 0xBFD25E8C, 0xAF48A03B, 0xBAAEDCE6, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF,
-            0xFFFFFFFF,
-        ])
+    fn generator() -> (BigUint, BigUint) {
+        // https://www.ietf.org/archive/id/draft-irtf-cfrg-pairing-friendly-curves-10.html#name-bls-curves-for-the-128-bit-
+        let x = BigUint::from_str("3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507").unwrap();
+        let y = BigUint::from_str("1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569").unwrap();
+        (x, y)
     }
 
     fn a_int() -> BigUint {
@@ -79,20 +66,29 @@ impl WeierstrassParameters for Bls12381Parameters {
     }
 
     fn b_int() -> BigUint {
-        BigUint::from(7u32)
+        BigUint::from(4u32)
+    }
+
+    fn prime_group_order() -> BigUint {
+        BigUint::parse_bytes(
+            b"73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001",
+            16,
+        )
+        .unwrap()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::ec::utils::biguint_from_limbs;
+
     use super::*;
 
     #[test]
     fn test_weierstrass_biguint_scalar_mul() {
-        // TODO FIXME
-        // assert_eq!(
-        //     biguint_from_limbs(&Bls12381BaseField::MODULUS),
-        //     Bls12381BaseField::modulus()
-        // );
+        assert_eq!(
+            biguint_from_limbs(&Bls12381BaseField::MODULUS),
+            Bls12381BaseField::modulus()
+        );
     }
 }

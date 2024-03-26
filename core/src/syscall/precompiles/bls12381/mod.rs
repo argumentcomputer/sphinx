@@ -250,8 +250,10 @@ where
         let main = builder.main();
         let row: &Bls12381FpAddCols<AB::Var> = main.row_slice(0).borrow();
 
-        let p: Limbs<_, <Bls12381BaseField as FieldParameters>::NB_LIMBS> = limbs_from_prev_access(&row.p_access[0..12]);
-        let q: Limbs<_, <Bls12381BaseField as FieldParameters>::NB_LIMBS> = limbs_from_prev_access(&row.q_access[0..12]);
+        let p: Limbs<_, <Bls12381BaseField as FieldParameters>::NB_LIMBS> =
+            limbs_from_prev_access(&row.p_access[0..12]);
+        let q: Limbs<_, <Bls12381BaseField as FieldParameters>::NB_LIMBS> =
+            limbs_from_prev_access(&row.q_access[0..12]);
 
         // p_add_q = p + q
         row.p_add_q
