@@ -233,14 +233,20 @@ where
         let y2 = limbs_from_prev_access(&row.q_access[8..16]);
 
         // x3_numerator = x1 * y2 + x2 * y1.
-        row.x3_numerator
-            .eval::<AB, E::BaseField, _>(builder, [x1, x2], [y2, y1]);
+        row.x3_numerator.eval::<AB, E::BaseField, _>(
+            builder,
+            [x1.clone(), x2.clone()],
+            [y2.clone(), y1.clone()],
+        );
 
         // y3_numerator = y1 * y2 + x1 * x2.
-        row.y3_numerator
-            .eval::<AB, E::BaseField, _>(builder, [y1, x1], [y2, x2]);
+        row.y3_numerator.eval::<AB, E::BaseField, _>(
+            builder,
+            [y1.clone(), x1.clone()],
+            [y2.clone(), x2.clone()],
+        );
 
-        // f = x1 * x2 * y1 * y2.
+        // f =.clone() x1 * x2 * y1 * y2.
         row.x1_mul_y1
             .eval::<AB, E::BaseField, _, _>(builder, &x1, &y1, FieldOperation::Mul);
         row.x2_mul_y2

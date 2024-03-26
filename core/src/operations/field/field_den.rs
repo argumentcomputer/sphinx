@@ -136,10 +136,13 @@ mod tests {
 
     use crate::air::MachineAir;
 
-    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+    use crate::operations::field::params::LimbWidth;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::ec::field::FieldParameters;
+    use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
+    use crate::utils::ec::weierstrass::bn254::Bn254BaseField;
+    use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
     use crate::utils::BabyBearPoseidon2;
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
     use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
@@ -153,13 +156,11 @@ mod tests {
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T> {
-        pub a: Limbs<T>,
-        pub b: Limbs<T>,
-        pub a_den_b: FieldDenCols<T>,
+    pub struct TestCols<T, U: LimbWidth> {
+        pub a: Limbs<T, U>,
+        pub b: Limbs<T, U>,
+        pub a_den_b: FieldDenCols<T, U>,
     }
-
-    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
 
     struct FieldDenChip<P: FieldParameters> {
         pub(crate) sign: bool,
@@ -175,9 +176,7 @@ mod tests {
         }
     }
 
-    impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
-        for FieldDenChip<P>
-    {
+    impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldDenChip<P> {
         type Record = ExecutionRecord;
 
         fn name(&self) -> String {
@@ -209,11 +208,13 @@ mod tests {
             // otherwise the padding will not work correctly.
             assert_eq!(operands.len(), num_rows);
 
+            let num_test_cols = <FieldDenChip<P> as BaseAir<F>>::width(self);
+
             let rows = operands
                 .iter()
                 .map(|(a, b)| {
-                    let mut row = [F::zero(); NUM_TEST_COLS];
-                    let cols: &mut TestCols<F> = row.as_mut_slice().borrow_mut();
+                    let mut row = vec![F::zero(); num_test_cols];
+                    let cols: &mut TestCols<F, P::NB_LIMBS> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
                     cols.a_den_b.populate::<P>(a, b, self.sign);
@@ -226,7 +227,7 @@ mod tests {
 
             RowMajorMatrix::new(
                 rows.into_iter().flatten().collect::<Vec<_>>(),
-                NUM_TEST_COLS,
+                num_test_cols,
             )
         }
 
@@ -235,19 +236,19 @@ mod tests {
         }
     }
 
-    impl<F: Field, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> BaseAir<F> for FieldDenChip<P> {
+    impl<F: Field, P: FieldParameters> BaseAir<F> for FieldDenChip<P> {
         fn width(&self) -> usize {
-            NUM_TEST_COLS
+            size_of::<TestCols<u8, P::NB_LIMBS>>()
         }
     }
 
-    impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for FieldDenChip<P>
+    impl<AB, P: FieldParameters> Air<AB> for FieldDenChip<P>
     where
         AB: SP1AirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
-            let local: &TestCols<AB::Var> = main.row_slice(0).borrow();
+            let local: &TestCols<AB::Var, P::NB_LIMBS> = main.row_slice(0).borrow();
             local
                 .a_den_b
                 .eval::<AB, P>(builder, &local.a, &local.b, self.sign);
@@ -259,23 +260,21 @@ mod tests {
         }
     }
 
-    #[test]
-    fn generate_trace() {
+    fn generate_trace_for<F: FieldParameters>() {
         let shard = ExecutionRecord::default();
-        let chip: FieldDenChip<Ed25519BaseField> = FieldDenChip::new(true);
+        let chip: FieldDenChip<F> = FieldDenChip::new(true);
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values)
     }
 
-    #[test]
-    fn prove_babybear() {
+    fn prove_babybear_for<F: FieldParameters>() {
         let config = BabyBearPoseidon2::new();
         let mut challenger = config.challenger();
 
         let shard = ExecutionRecord::default();
 
-        let chip: FieldDenChip<Ed25519BaseField> = FieldDenChip::new(true);
+        let chip: FieldDenChip<F> = FieldDenChip::new(true);
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         // This it to test that the proof DOESN'T work if messed up.
@@ -285,5 +284,21 @@ mod tests {
 
         let mut challenger = config.challenger();
         verify(&config, &chip, &mut challenger, &proof).unwrap();
+    }
+
+    #[test]
+    fn generate_trace() {
+        generate_trace_for::<Ed25519BaseField>();
+        generate_trace_for::<Bls12381BaseField>();
+        generate_trace_for::<Bn254BaseField>();
+        generate_trace_for::<Secp256k1BaseField>();
+    }
+
+    #[test]
+    fn prove_babybear() {
+        prove_babybear_for::<Ed25519BaseField>();
+        generate_trace_for::<Bls12381BaseField>();
+        generate_trace_for::<Bn254BaseField>();
+        prove_babybear_for::<Secp256k1BaseField>();
     }
 }
