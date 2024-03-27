@@ -17,8 +17,8 @@ func (circuit *Circuit) Define(api frontend.API) error {
 	
 	// Variables.
 	var var2 frontend.Variable
-	var var1 frontend.Variable
 	var var0 frontend.Variable
+	var var1 frontend.Variable
 	
 	// Operations.
 	var0 = frontend.Variable("0")

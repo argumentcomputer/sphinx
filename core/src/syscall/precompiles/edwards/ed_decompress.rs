@@ -198,6 +198,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
             );
         }
 
+        // Constrain that the correct result is written into x.
         let x_limbs: Limbs<_, U> = limbs_from_access(&self.x_access);
         builder
             .when(self.is_real)

@@ -246,6 +246,7 @@ impl<V: Copy> K256DecompressCols<V> {
         // Interpret the lowest bit of Y as whether it is odd or not.
         let y_is_odd = self.y_least_bits[0];
 
+        // Constrain that the result is written into the Y memory access.
         // When y_is_odd == should_be_odd, result is y
         // (Equivalent: y_is_odd != !should_be_odd)
         let y_limbs: Limbs<_, BaseLimbWidth<Secp256k1>> = limbs_from_access(&self.y_access);
@@ -372,8 +373,10 @@ pub mod tests {
     use rand::rngs::StdRng;
     use rand::SeedableRng;
 
+    use crate::utils::run_test;
     use crate::utils::run_test_io;
     use crate::utils::setup_logger;
+    use crate::utils::tests::ECRECOVER_ELF;
     use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
     use crate::Program;
     use crate::SP1Stdin;
@@ -397,5 +400,12 @@ pub mod tests {
             proof.stdout.read_slice(&mut result);
             assert_eq!(result, decompressed);
         }
+    }
+
+    #[test]
+    fn test_ecrecover_program() {
+        setup_logger();
+        let program = Program::from(ECRECOVER_ELF);
+        run_test(program).unwrap();
     }
 }
