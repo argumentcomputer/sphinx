@@ -9,6 +9,7 @@ use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
 use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
+use num::Integer;
 use num::Zero;
 use p3_field::{AbstractField, PrimeField32};
 use p3_maybe_rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
@@ -41,15 +42,14 @@ impl<F: PrimeField32, U: LimbWidth> FieldInnerProductCols<F, U> {
             .map(|(x, y)| x * y)
             .reduce(BigUint::zero, |acc, partial| acc + partial);
 
-        let result = &inner_product % modulus;
-        let carry = &((&inner_product - &result) / modulus);
-        assert!(&result < modulus);
-        assert!(carry < &(2u32 * modulus));
-        assert_eq!(carry * modulus, inner_product - &result);
+        let (carry, result) = inner_product.div_rem(modulus);
+        debug_assert!(&result < modulus);
+        assert!(carry < (2u32 * modulus));
+        assert_eq!(&carry * modulus, inner_product - &result);
 
         let p_modulus: Polynomial<F> = P::to_limbs_field::<F>(modulus).into();
         let p_result: Polynomial<F> = P::to_limbs_field::<F>(&result).into();
-        let p_carry: Polynomial<F> = P::to_limbs_field::<F>(carry).into();
+        let p_carry: Polynomial<F> = P::to_limbs_field::<F>(&carry).into();
 
         let p_inner_product = a
             .par_iter()

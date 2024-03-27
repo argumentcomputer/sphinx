@@ -8,7 +8,7 @@ use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
 use hybrid_array::{typenum::Unsigned, Array};
-use num::{BigUint, Zero};
+use num::{BigUint, Integer, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
 use std::fmt::Debug;
@@ -88,8 +88,14 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
         // Compute field addition in the integers.
         let modulus = &P::modulus();
         let (result, carry) = match op {
-            FieldOperation::Add => ((a + b) % modulus, (a + b - (a + b) % modulus) / modulus),
-            FieldOperation::Mul => ((a * b) % modulus, (a * b - (a * b) % modulus) / modulus),
+            FieldOperation::Add => {
+                let (q1, r1) = (a + b).div_rem(modulus);
+                (r1, q1)
+            }
+            FieldOperation::Mul => {
+                let (q1, r1) = (a * b).div_rem(modulus);
+                (r1, q1)
+            }
             FieldOperation::Sub | FieldOperation::Div => unreachable!(),
         };
         debug_assert!(&result < modulus);
