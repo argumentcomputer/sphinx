@@ -367,25 +367,25 @@ impl MachineRecord for ExecutionRecord {
         let first = shards.first_mut().unwrap();
 
         // SHA-256 extend events.
-        first.sha_extend_events = std::mem::take(&mut self.sha_extend_events);
+        first.sha_extend_events = take(&mut self.sha_extend_events);
 
         // SHA-256 compress events.
-        first.sha_compress_events = std::mem::take(&mut self.sha_compress_events);
+        first.sha_compress_events = take(&mut self.sha_compress_events);
 
         // Edwards curve add events.
-        first.ed_add_events = std::mem::take(&mut self.ed_add_events);
+        first.ed_add_events = take(&mut self.ed_add_events);
 
         // Edwards curve decompress events.
-        first.ed_decompress_events = std::mem::take(&mut self.ed_decompress_events);
+        first.ed_decompress_events = take(&mut self.ed_decompress_events);
 
         // K256 curve decompress events.
-        first.k256_decompress_events = std::mem::take(&mut self.k256_decompress_events);
+        first.k256_decompress_events = take(&mut self.k256_decompress_events);
 
         // Blake3 compress events .
-        first.blake3_compress_inner_events = std::mem::take(&mut self.blake3_compress_inner_events);
+        first.blake3_compress_inner_events = take(&mut self.blake3_compress_inner_events);
 
         // Put all byte lookups in the first shard (as the table size is fixed)
-        first.byte_lookups = std::mem::take(&mut self.byte_lookups);
+        first.byte_lookups = take(&mut self.byte_lookups);
 
         // Put the memory records in the last shard.
         let last_shard = shards.last_mut().unwrap();
@@ -466,7 +466,7 @@ impl ExecutionRecord {
         &mut self,
         blu_events: I,
     ) {
-        for blu_event in blu_events.into_iter() {
+        for blu_event in blu_events {
             self.add_byte_lookup_event(blu_event);
         }
     }

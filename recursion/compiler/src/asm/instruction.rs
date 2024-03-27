@@ -612,15 +612,7 @@ impl<F: PrimeField32, EF: ExtensionField<F>> AsmInstruction<F, EF> {
                 false,
                 true,
             ),
-            AsmInstruction::PrintF(dst) => Instruction::new(
-                Opcode::PrintF,
-                i32_f(dst),
-                f_u32(F::zero()),
-                f_u32(F::zero()),
-                false,
-                true,
-            ),
-            AsmInstruction::PrintV(dst) => Instruction::new(
+            AsmInstruction::PrintF(dst) | AsmInstruction::PrintV(dst) => Instruction::new(
                 Opcode::PrintF,
                 i32_f(dst),
                 f_u32(F::zero()),

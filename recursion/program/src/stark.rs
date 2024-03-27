@@ -16,7 +16,7 @@ pub struct StarkVerifier<C: Config, SC: StarkGenericConfig> {
     _phantom: std::marker::PhantomData<(C, SC)>,
 }
 
-impl<C: Config, SC: StarkGenericConfig> StarkVerifier<C, SC>
+impl<C: Config, SC> StarkVerifier<C, SC>
 where
     SC: StarkGenericConfig<Val = C::F, Challenge = C::EF>,
 {
@@ -71,11 +71,11 @@ where
             );
         }
 
-        challenger.observe_commitment(builder, permutation_commit.clone());
+        challenger.observe_commitment(builder, permutation_commit);
 
         let alpha = challenger.sample_ext(builder);
 
-        challenger.observe_commitment(builder, quotient_commit.clone());
+        challenger.observe_commitment(builder, quotient_commit);
 
         let zeta = challenger.sample_ext(builder);
 
@@ -100,8 +100,8 @@ where
                 builder,
                 chip,
                 values,
-                trace_domain,
-                qc_domains,
+                &trace_domain,
+                &qc_domains,
                 zeta,
                 alpha,
                 permutation_challenges,
@@ -145,7 +145,7 @@ pub(crate) mod tests {
 
     pub(crate) fn const_proof<C>(
         builder: &mut Builder<C>,
-        proof: ShardProof<SC>,
+        proof: &ShardProof<SC>,
     ) -> ShardProofVariable<C>
     where
         C: Config<F = F, EF = EF>,
@@ -187,7 +187,7 @@ pub(crate) mod tests {
                 .collect(),
         };
 
-        let opening_proof = const_two_adic_pcs_proof(builder, proof.opening_proof);
+        let opening_proof = const_two_adic_pcs_proof(builder, &proof.opening_proof);
 
         ShardProofVariable {
             index: Usize::Var(index),
@@ -212,9 +212,9 @@ pub(crate) mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-        });
+        }
 
         let permutation_challenges = (0..2)
             .map(|_| challenger_val.sample_ext_element::<EF>())
@@ -226,9 +226,9 @@ pub(crate) mod tests {
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
 
         for proof in proofs {
-            let proof = const_proof(&mut builder, proof);
+            let proof = const_proof(&mut builder, &proof);
             let ShardCommitment { main_commit, .. } = proof.commitment;
-            challenger.observe_commitment(&mut builder, main_commit);
+            challenger.observe_commitment(&mut builder, &main_commit);
         }
 
         // Sample the permutation challenges.
@@ -268,9 +268,9 @@ pub(crate) mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-        });
+        }
 
         let permutation_challenges = (0..2)
             .map(|_| challenger_val.sample_ext_element::<EF>())
@@ -278,7 +278,7 @@ pub(crate) mod tests {
 
         // Observe all the commitments.
         let mut builder = VmBuilder::<F, EF>::default();
-        let config = const_fri_config(&mut builder, default_fri_config());
+        let config = const_fri_config(&mut builder, &default_fri_config());
         let pcs = TwoAdicFriPcsVariable { config };
 
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
@@ -291,9 +291,9 @@ pub(crate) mod tests {
                 .iter()
                 .filter(|chip| proof_val.chip_ids.contains(&chip.name()))
                 .collect::<Vec<_>>();
-            let proof = const_proof(&mut builder, proof_val);
+            let proof = const_proof(&mut builder, &proof_val);
             let ShardCommitment { main_commit, .. } = &proof.commitment;
-            challenger.observe_commitment(&mut builder, main_commit.clone());
+            challenger.observe_commitment(&mut builder, main_commit);
             shard_proofs.push(proof);
             shard_chips.push(chips);
         }

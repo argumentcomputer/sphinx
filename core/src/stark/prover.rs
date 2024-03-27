@@ -80,7 +80,7 @@ where
 
         // Observe the challenges for each segment.
         tracing::debug_span!("observing all challenges").in_scope(|| {
-            for commitment in shard_commits.into_iter() {
+            for commitment in shard_commits {
                 challenger.observe(commitment);
             }
         });

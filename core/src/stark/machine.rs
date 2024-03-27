@@ -46,13 +46,13 @@ impl<SC: StarkGenericConfig, A> MachineStark<SC, A> {
 #[derive(Debug, Clone)]
 pub struct ProvingKey<SC: StarkGenericConfig> {
     //TODO
-    marker: std::marker::PhantomData<SC>,
+    marker: PhantomData<SC>,
 }
 
 #[derive(Debug, Clone)]
 pub struct VerifyingKey<SC: StarkGenericConfig> {
     // TODO:
-    marker: std::marker::PhantomData<SC>,
+    marker: PhantomData<SC>,
 }
 
 impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> MachineStark<SC, A> {
@@ -304,27 +304,27 @@ pub mod tests {
     use crate::runtime::Instruction;
     use crate::runtime::Opcode;
     use crate::runtime::Program;
-    use crate::utils;
+
     use crate::utils::run_test;
     use crate::utils::setup_logger;
 
     #[test]
     fn test_simple_prove() {
-        utils::setup_logger();
+        setup_logger();
         let program = simple_program();
         run_test(program).unwrap();
     }
 
     #[test]
     fn test_ecall_lwa_prove() {
-        utils::setup_logger();
+        setup_logger();
         let program = ecall_lwa_program();
         run_test(program).unwrap();
     }
 
     #[test]
     fn test_shift_prove() {
-        utils::setup_logger();
+        setup_logger();
         let shift_ops = [Opcode::SRL, Opcode::SRA, Opcode::SLL];
         let operands = [
             (1, 1),
@@ -348,7 +348,7 @@ pub mod tests {
 
     #[test]
     fn test_sub_prove() {
-        utils::setup_logger();
+        setup_logger();
         let instructions = vec![
             Instruction::new(Opcode::ADD, 29, 0, 5, false, true),
             Instruction::new(Opcode::ADD, 30, 0, 8, false, true),
@@ -373,7 +373,7 @@ pub mod tests {
     #[test]
     fn test_mul_prove() {
         let mul_ops = [Opcode::MUL, Opcode::MULH, Opcode::MULHU, Opcode::MULHSU];
-        utils::setup_logger();
+        setup_logger();
         let operands = [
             (1, 1),
             (1234, 5678),

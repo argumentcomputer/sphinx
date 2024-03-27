@@ -1,7 +1,7 @@
 use super::columns::{CPU_COL_MAP, NUM_CPU_COLS};
 use super::{CpuChip, CpuEvent};
 use crate::air::MachineAir;
-use crate::alu::{self, AluEvent};
+use crate::alu::AluEvent;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::cpu::columns::CpuCols;
 use crate::cpu::trace::ByteOpcode::{U16Range, U8Range};
@@ -45,7 +45,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         rows_with_events.sort_unstable_by_key(|(event, _, _)| event[CPU_COL_MAP.clk]);
 
         let mut rows = Vec::<F>::new();
-        for row_with_events in rows_with_events.into_iter() {
+        for row_with_events in rows_with_events {
             let (row, alu_events, blu_events) = row_with_events;
             rows.extend(row);
             for (key, value) in alu_events {
@@ -88,7 +88,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
                 let mut blu: Vec<_> = Vec::default();
                 for op in ops.iter() {
                     let (_, alu_events, blu_events) = self.event_to_row::<F>(*op);
-                    for (key, value) in alu_events.into_iter() {
+                    for (key, value) in alu_events {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
                     }
                     blu.extend(blu_events);
@@ -97,7 +97,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             })
             .collect::<Vec<_>>();
 
-        for (mut alu_events, mut blu_events) in events.into_iter() {
+        for (mut alu_events, mut blu_events) in events {
             for (_, value) in alu_events.iter_mut() {
                 value.sort_unstable_by_key(|event| event.clk);
             }
@@ -120,7 +120,7 @@ impl CpuChip {
         event: CpuEvent,
     ) -> (
         [F; NUM_CPU_COLS],
-        HashMap<Opcode, Vec<alu::AluEvent>>,
+        HashMap<Opcode, Vec<AluEvent>>,
         Vec<ByteLookupEvent>,
     ) {
         let mut new_alu_events = HashMap::new();
@@ -197,7 +197,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        new_alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        new_alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         new_blu_events: &mut Vec<ByteLookupEvent>,
     ) {
         if !matches!(
@@ -305,7 +305,7 @@ impl CpuChip {
         let addr_bytes = memory_addr.to_le_bytes();
         for byte_pair in addr_bytes.chunks_exact(2) {
             new_blu_events.push(ByteLookupEvent {
-                opcode: ByteOpcode::U8Range,
+                opcode: U8Range,
                 a1: 0,
                 a2: 0,
                 b: u32::from(byte_pair[0]),
@@ -319,7 +319,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
     ) {
         if event.instruction.is_branch_instruction() {
             let branch_columns = cols.opcode_specific_columns.branch_mut();
@@ -414,7 +414,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
     ) {
         if event.instruction.is_jump_instruction() {
             let jump_columns = cols.opcode_specific_columns.jump_mut();
@@ -465,7 +465,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
     ) {
         if matches!(event.instruction.opcode, Opcode::AUIPC) {
             let auipc_columns = cols.opcode_specific_columns.auipc_mut();
@@ -508,7 +508,7 @@ impl CpuChip {
         // Interpret values as a slice of arrays of length `NUM_CPU_COLS`
         let rows = unsafe {
             core::slice::from_raw_parts_mut(
-                values.as_mut_ptr() as *mut [F; NUM_CPU_COLS],
+                values.as_mut_ptr().cast::<[F; NUM_CPU_COLS]>(),
                 values.len() / NUM_CPU_COLS,
             )
         };

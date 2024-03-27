@@ -283,7 +283,7 @@ where
         for i in 1..4 {
             builder.assert_zero(local.a[i]);
         }
-        for bit in local.bits.into_iter() {
+        for bit in local.bits {
             builder.assert_bool(bit);
         }
 

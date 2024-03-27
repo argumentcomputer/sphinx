@@ -46,7 +46,7 @@ where
         proof: Self::Proof,
         challenger: &mut DuplexChallengerVariable<C>,
     ) {
-        verify_two_adic_pcs(builder, &self.config, rounds, proof, challenger)
+        verify_two_adic_pcs(builder, &self.config, &rounds, &proof, challenger)
     }
 }
 
@@ -103,24 +103,24 @@ pub(crate) mod tests {
     use crate::commit::PolynomialSpaceVariable;
     use crate::fri::TwoAdicFriPcsVariable;
 
-    pub type Val = BabyBear;
-    pub type Challenge = BinomialExtensionField<Val, 4>;
-    pub type Perm = Poseidon2<Val, DiffusionMatrixBabybear, 16, 7>;
-    pub type Hash = PaddingFreeSponge<Perm, 16, 8, 8>;
-    pub type Compress = TruncatedPermutation<Perm, 2, 8, 16>;
-    pub type ValMmcs =
+    pub(crate) type Val = BabyBear;
+    pub(crate) type Challenge = BinomialExtensionField<Val, 4>;
+    pub(crate) type Perm = Poseidon2<Val, DiffusionMatrixBabybear, 16, 7>;
+    pub(crate) type Hash = PaddingFreeSponge<Perm, 16, 8, 8>;
+    pub(crate) type Compress = TruncatedPermutation<Perm, 2, 8, 16>;
+    pub(crate) type ValMmcs =
         FieldMerkleTreeMmcs<<Val as Field>::Packing, <Val as Field>::Packing, Hash, Compress, 8>;
-    pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
-    pub type Challenger = DuplexChallenger<Val, Perm, 16>;
-    pub type Dft = Radix2DitParallel;
-    pub type CustomPcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
-    pub type CustomFriProof = FriProof<Challenge, ChallengeMmcs, Val>;
-    pub type RecursionConfig = AsmConfig<Val, Challenge>;
-    pub type RecursionBuilder = Builder<RecursionConfig>;
+    pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
+    pub(crate) type Challenger = DuplexChallenger<Val, Perm, 16>;
+    pub(crate) type Dft = Radix2DitParallel;
+    pub(crate) type CustomPcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
+    pub(crate) type CustomFriProof = FriProof<Challenge, ChallengeMmcs, Val>;
+    pub(crate) type RecursionConfig = AsmConfig<Val, Challenge>;
+    pub(crate) type RecursionBuilder = Builder<RecursionConfig>;
 
-    pub fn const_fri_config(
+    pub(crate) fn const_fri_config(
         builder: &mut RecursionBuilder,
-        config: FriConfig<ChallengeMmcs>,
+        config: &FriConfig<ChallengeMmcs>,
     ) -> FriConfigVariable<RecursionConfig> {
         FriConfigVariable {
             log_blowup: builder.eval(Val::from_canonical_usize(config.log_blowup)),
@@ -130,9 +130,9 @@ pub(crate) mod tests {
     }
 
     #[allow(clippy::needless_range_loop)]
-    pub fn const_fri_proof<C>(
+    pub(crate) fn const_fri_proof<C>(
         builder: &mut Builder<C>,
-        fri_proof: CustomFriProof,
+        fri_proof: &CustomFriProof,
     ) -> FriProofVariable<C>
     where
         C: Config<F = Val, EF = Challenge>,
@@ -185,14 +185,14 @@ pub(crate) mod tests {
     }
 
     #[allow(clippy::needless_range_loop)]
-    pub fn const_two_adic_pcs_proof<C>(
+    pub(crate) fn const_two_adic_pcs_proof<C>(
         builder: &mut Builder<C>,
-        proof: TwoAdicFriPcsProof<Val, Challenge, ValMmcs, ChallengeMmcs>,
+        proof: &TwoAdicFriPcsProof<Val, Challenge, ValMmcs, ChallengeMmcs>,
     ) -> TwoAdicPcsProofVariable<C>
     where
         C: Config<F = Val, EF = Challenge>,
     {
-        let fri_proof_var = const_fri_proof(builder, proof.fri_proof);
+        let fri_proof_var = const_fri_proof(builder, &proof.fri_proof);
         let mut proof_var = TwoAdicPcsProofVariable {
             fri_proof: fri_proof_var,
             query_openings: builder.dyn_array(proof.query_openings.len()),
@@ -292,7 +292,7 @@ pub(crate) mod tests {
         (commit_var, rounds_var)
     }
 
-    pub fn default_fri_config() -> FriConfig<ChallengeMmcs> {
+    pub(crate) fn default_fri_config() -> FriConfig<ChallengeMmcs> {
         let perm = Perm::new(8, 22, RC_16_30.to_vec(), DiffusionMatrixBabybear);
         let hash = Hash::new(perm.clone());
         let compress = Compress::new(perm.clone());
@@ -365,7 +365,7 @@ pub(crate) mod tests {
 
         // Test the recursive Pcs.
         let mut builder = RecursionBuilder::default();
-        let config = const_fri_config(&mut builder, default_fri_config());
+        let config = const_fri_config(&mut builder, &default_fri_config());
         let pcs = TwoAdicFriPcsVariable { config };
         let (commit, rounds) = const_two_adic_pcs_rounds(&mut builder, commit.into(), os);
 
@@ -387,9 +387,9 @@ pub(crate) mod tests {
         }
 
         // Test proof verification.
-        let proof = const_two_adic_pcs_proof(&mut builder, proof);
+        let proof = const_two_adic_pcs_proof(&mut builder, &proof);
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
-        challenger.observe_commitment(&mut builder, commit);
+        challenger.observe_commitment(&mut builder, &commit);
         challenger.sample_ext(&mut builder);
         pcs.verify(&mut builder, rounds, proof, &mut challenger);
 

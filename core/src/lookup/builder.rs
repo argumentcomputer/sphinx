@@ -175,7 +175,7 @@ mod tests {
 
         let z = x + y;
 
-        let (column_weights, constant) = super::eval_symbolic_to_virtual_pair(&z);
+        let (column_weights, constant) = eval_symbolic_to_virtual_pair(&z);
         println!("column_weights: {:?}", column_weights);
         println!("constant: {:?}", constant);
 

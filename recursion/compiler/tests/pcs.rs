@@ -61,7 +61,7 @@ pub type RecursionBuilder = Builder<RecursionConfig>;
 
 pub fn const_fri_config(
     builder: &mut RecursionBuilder,
-    config: FriConfig<ChallengeMmcs>,
+    config: &FriConfig<ChallengeMmcs>,
 ) -> FriConfigVariable<RecursionConfig> {
     FriConfigVariable {
         log_blowup: builder.eval(Val::from_canonical_usize(config.log_blowup)),
@@ -72,7 +72,7 @@ pub fn const_fri_config(
 
 pub fn const_fri_proof(
     builder: &mut RecursionBuilder,
-    fri_proof: CustomFriProof,
+    fri_proof: &CustomFriProof,
 ) -> FriProofVariable<RecursionConfig> {
     // Initialize the FRI proof variable.
     let mut fri_proof_var = FriProofVariable {
@@ -122,9 +122,9 @@ pub fn const_fri_proof(
 
 pub fn const_two_adic_pcs_proof(
     builder: &mut RecursionBuilder,
-    proof: TwoAdicFriPcsProof<Val, Challenge, ValMmcs, ChallengeMmcs>,
+    proof: &TwoAdicFriPcsProof<Val, Challenge, ValMmcs, ChallengeMmcs>,
 ) -> TwoAdicPcsProofVariable<RecursionConfig> {
-    let fri_proof_var = const_fri_proof(builder, proof.fri_proof);
+    let fri_proof_var = const_fri_proof(builder, &proof.fri_proof);
     let mut proof_var = TwoAdicPcsProofVariable {
         fri_proof: fri_proof_var,
         query_openings: builder.dyn_array(proof.query_openings.len()),
@@ -288,13 +288,13 @@ fn test_pcs_verify() {
         .unwrap();
 
     let mut builder = RecursionBuilder::default();
-    let config = const_fri_config(&mut builder, default_fri_config());
-    let proof = const_two_adic_pcs_proof(&mut builder, proof);
+    let config = const_fri_config(&mut builder, &default_fri_config());
+    let proof = const_two_adic_pcs_proof(&mut builder, &proof);
     let (commit, rounds) = const_two_adic_pcs_rounds(&mut builder, commit.into(), os);
     let mut challenger = DuplexChallengerVariable::new(&mut builder);
-    challenger.observe_commitment(&mut builder, commit);
+    challenger.observe_commitment(&mut builder, &commit);
     challenger.sample_ext(&mut builder);
-    fri::verify_two_adic_pcs(&mut builder, &config, rounds, proof, &mut challenger);
+    fri::verify_two_adic_pcs(&mut builder, &config, &rounds, &proof, &mut challenger);
 
     let program = builder.compile();
     let mut runtime = Runtime::<Val, Challenge, _>::new(&program, perm.clone());

@@ -58,7 +58,7 @@ impl WeierstrassParameters for Bn254Parameters {
         (x, y)
     }
 
-    fn prime_group_order() -> num::BigUint {
+    fn prime_group_order() -> BigUint {
         BigUint::from_str_radix(
             "21888242871839275222246405745257275088548364400416034343698204186575808495617",
             10,

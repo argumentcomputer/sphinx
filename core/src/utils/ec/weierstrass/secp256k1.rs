@@ -70,7 +70,7 @@ impl WeierstrassParameters for Secp256k1Parameters {
         (x, y)
     }
 
-    fn prime_group_order() -> num::BigUint {
+    fn prime_group_order() -> BigUint {
         BigUint::from_slice(&[
             0xD0364141, 0xBFD25E8C, 0xAF48A03B, 0xBAAEDCE6, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF,
             0xFFFFFFFF,

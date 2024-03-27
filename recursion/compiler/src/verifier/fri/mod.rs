@@ -37,7 +37,7 @@ pub fn verify_shape_and_sample_challenges<C: Config>(
         .range(0, proof.commit_phase_commits.len())
         .for_each(|i, builder| {
             let comm = builder.get(&proof.commit_phase_commits, i);
-            challenger.observe_commitment(builder, comm);
+            challenger.observe_commitment(builder, &comm);
             let sample = challenger.sample_ext(builder);
             builder.set(&mut betas, i, sample);
         });
@@ -168,9 +168,9 @@ where
             verify_batch::<C, 4>(
                 builder,
                 &commit,
-                dims_slice,
-                index_pair,
-                opened_values,
+                &dims_slice,
+                &index_pair,
+                &opened_values,
                 &step.opening_proof,
             );
 
@@ -205,26 +205,26 @@ where
 pub fn verify_batch<C: Config, const D: usize>(
     builder: &mut Builder<C>,
     commit: &Commitment<C>,
-    dimensions: Array<C, Dimensions<C>>,
-    index_bits: Array<C, Var<C::N>>,
-    opened_values: Array<C, Array<C, Ext<C::F, C::EF>>>,
+    dimensions: &Array<C, Dimensions<C>>,
+    index_bits: &Array<C, Var<C::N>>,
+    opened_values: &Array<C, Array<C, Ext<C::F, C::EF>>>,
     proof: &Array<C, Commitment<C>>,
 ) {
     // The index of which table to process next.
     let index: Var<C::N> = builder.eval(C::N::zero());
 
     // The height of the current layer (padded).
-    let current_height = builder.get(&dimensions, index).height;
+    let current_height = builder.get(dimensions, index).height;
 
     // Reduce all the tables that have the same height to a single root.
-    let root = reduce::<C, D>(builder, index, &dimensions, current_height, &opened_values);
+    let root = reduce::<C, D>(builder, index, dimensions, current_height, opened_values);
 
     // For each sibling in the proof, reconstruct the root.
     let one: Var<_> = builder.eval(C::N::one());
     builder.range(0, proof.len()).for_each(|i, builder| {
         let sibling = builder.get(proof, i);
 
-        let bit = builder.get(&index_bits, i);
+        let bit = builder.get(index_bits, i);
         let left: Array<C, Felt<C::F>> = builder.uninit();
         let right: Array<C, Felt<C::F>> = builder.uninit();
         builder.if_eq(bit, C::N::one()).then_or_else(
@@ -242,11 +242,11 @@ pub fn verify_batch<C: Config, const D: usize>(
         builder.assign(&root, new_root);
         builder.assign(&current_height, current_height * (C::N::two().inverse()));
 
-        let next_height = builder.get(&dimensions, index).height;
+        let next_height = builder.get(dimensions, index).height;
         builder.if_ne(index, dimensions.len()).then(|builder| {
             builder.if_eq(next_height, current_height).then(|builder| {
                 let next_height_openings_digest =
-                    reduce::<C, D>(builder, index, &dimensions, current_height, &opened_values);
+                    reduce::<C, D>(builder, index, dimensions, current_height, opened_values);
                 let new_root = builder.poseidon2_compress(&root, &next_height_openings_digest);
                 builder.assign(&root, new_root);
             });

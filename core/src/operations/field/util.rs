@@ -9,7 +9,7 @@ fn biguint_to_field<F: PrimeField32>(num: &BigUint) -> F {
     let mut power = F::from_canonical_u32(1u32);
     let base = F::from_canonical_u64((1 << 32) % F::ORDER_U64);
     let digits = num.iter_u32_digits();
-    for digit in digits.into_iter() {
+    for digit in digits {
         x += F::from_canonical_u32(digit) * power;
         power *= base;
     }

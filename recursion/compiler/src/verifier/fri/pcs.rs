@@ -44,8 +44,8 @@ pub struct TwoAdicPcsMatsVariable<C: Config> {
 pub fn verify_two_adic_pcs<C: Config>(
     builder: &mut Builder<C>,
     config: &FriConfigVariable<C>,
-    rounds: Array<C, TwoAdicPcsRoundVariable<C>>,
-    proof: TwoAdicPcsProofVariable<C>,
+    rounds: &Array<C, TwoAdicPcsRoundVariable<C>>,
+    proof: &TwoAdicPcsProofVariable<C>,
     challenger: &mut DuplexChallengerVariable<C>,
 ) where
     C::EF: TwoAdicField,
@@ -82,7 +82,7 @@ pub fn verify_two_adic_pcs<C: Config>(
 
             builder.range(0, rounds.len()).for_each(|j, builder| {
                 let batch_opening = builder.get(&query_opening, j);
-                let round = builder.get(&rounds, j);
+                let round = builder.get(rounds, j);
                 let batch_commit = round.batch_commit;
                 let mats = round.mats;
 
@@ -109,9 +109,9 @@ pub fn verify_two_adic_pcs<C: Config>(
                 fri::verify_batch::<C, 1>(
                     builder,
                     &batch_commit,
-                    batch_dims,
-                    index_bits_shifted_v1,
-                    batch_opening.opened_values.clone(),
+                    &batch_dims,
+                    &index_bits_shifted_v1,
+                    &batch_opening.opened_values,
                     &batch_opening.opening_proof,
                 );
 

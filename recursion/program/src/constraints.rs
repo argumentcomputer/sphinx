@@ -20,7 +20,7 @@ use crate::stark::StarkVerifier;
 
 // pub struct TwoAdicCose
 
-impl<C: Config, SC: StarkGenericConfig> StarkVerifier<C, SC>
+impl<C: Config, SC> StarkVerifier<C, SC>
 where
     SC: StarkGenericConfig<Val = C::F, Challenge = C::EF>,
     C::F: TwoAdicField,
@@ -76,7 +76,7 @@ where
     pub fn recompute_quotient(
         builder: &mut Builder<C>,
         opening: &ChipOpening<C>,
-        qc_domains: Vec<TwoAdicMultiplicativeCosetVariable<C>>,
+        qc_domains: &[TwoAdicMultiplicativeCosetVariable<C>],
         zeta: Ext<C::F, C::EF>,
     ) -> Ext<C::F, C::EF> {
         let zps = qc_domains
@@ -123,8 +123,8 @@ where
         builder: &mut Builder<C>,
         chip: &MachineChip<SC, A>,
         opening: &ChipOpening<C>,
-        trace_domain: TwoAdicMultiplicativeCosetVariable<C>,
-        qc_domains: Vec<TwoAdicMultiplicativeCosetVariable<C>>,
+        trace_domain: &TwoAdicMultiplicativeCosetVariable<C>,
+        qc_domains: &[TwoAdicMultiplicativeCosetVariable<C>],
         zeta: Ext<C::F, C::EF>,
         alpha: Ext<C::F, C::EF>,
         permutation_challenges: &[C::EF],
@@ -280,9 +280,9 @@ mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger.observe(proof.commitment.main_commit);
-        });
+        }
 
         // Run the verify inside the DSL and compare it to the calculated value.
         let mut builder = VmBuilder::<F, EF>::default();
@@ -342,7 +342,7 @@ mod tests {
                 let quotient = StarkVerifier::<_, SC>::recompute_quotient(
                     &mut builder,
                     &values,
-                    qc_domains,
+                    &qc_domains,
                     zeta,
                 );
 

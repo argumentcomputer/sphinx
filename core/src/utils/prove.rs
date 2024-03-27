@@ -189,7 +189,7 @@ where
 
     // For each checkpoint, generate events and shard again, then prove the shards.
     let mut shard_proofs = Vec::<ShardProof<SC>>::new();
-    for mut file in checkpoints.into_iter() {
+    for mut file in checkpoints {
         let shards = if reuse_shards {
             Option::take(&mut all_shards).unwrap()
         } else {

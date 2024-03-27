@@ -99,7 +99,7 @@ impl<F: PrimeField32, EF: ExtensionField<F>> AsmCompiler<F, EF> {
             let stack_size = F::from_canonical_usize(STACK_SIZE + 4);
             self.push(AsmInstruction::IMM(HEAP_PTR, stack_size));
         }
-        for op in operations.clone() {
+        for op in operations {
             match op {
                 DslIR::Imm(dst, src) => {
                     self.push(AsmInstruction::IMM(dst.fp(), src));
