@@ -3646,7 +3646,6 @@ dependencies = [
  "wp1-core",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
- "wp1-recursion-derive",
 ]
 
 [[package]]
