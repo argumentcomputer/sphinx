@@ -9,6 +9,7 @@ mod add4;
 mod add5;
 mod and;
 pub mod field;
+pub mod field2;
 mod fixed_rotate_right;
 mod fixed_shift_right;
 mod is_equal_word;
