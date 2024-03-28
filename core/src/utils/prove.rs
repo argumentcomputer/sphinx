@@ -205,7 +205,7 @@ where
                 let config = machine.config();
                 let shard_data =
                     LocalProver::commit_main(config, &machine, &shard, shard.index() as usize);
-                LocalProver::prove_shard(config, &pk, &chips, &shard_data, &mut challenger.clone())
+                LocalProver::prove_shard(config, &pk, &chips, shard_data, &mut challenger.clone())
             })
             .collect::<Vec<_>>();
         prove_time += start.elapsed().as_millis();

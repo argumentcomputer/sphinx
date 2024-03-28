@@ -124,8 +124,8 @@ where
         builder: &mut Builder<C>,
         chip: &MachineChip<SC, A>,
         opening: &ChipOpenedValuesVariable<C>,
-        trace_domain: TwoAdicMultiplicativeCosetVariable<C>,
-        qc_domains: Vec<TwoAdicMultiplicativeCosetVariable<C>>,
+        trace_domain: &TwoAdicMultiplicativeCosetVariable<C>,
+        qc_domains: &[TwoAdicMultiplicativeCosetVariable<C>],
         zeta: Ext<C::F, C::EF>,
         alpha: Ext<C::F, C::EF>,
         permutation_challenges: &[C::EF],
@@ -144,7 +144,7 @@ where
             permutation_challenges,
         );
 
-        let quotient: Ext<_, _> = Self::recompute_quotient(builder, &opening, &qc_domains, zeta);
+        let quotient: Ext<_, _> = Self::recompute_quotient(builder, &opening, qc_domains, zeta);
 
         // Assert that the quotient times the zerofier is equal to the folded constraints.
         builder.assert_ext_eq(folded_constraints * sels.inv_zeroifier, quotient);
@@ -399,9 +399,9 @@ mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger.observe(proof.commitment.main_commit);
-        });
+        }
 
         // Run the verify inside the DSL and compare it to the calculated value.
         let mut builder = VmBuilder::<F, EF>::default();
@@ -435,8 +435,8 @@ mod tests {
                     &mut builder,
                     chip,
                     &opening,
-                    trace_domain,
-                    qc_domains,
+                    &trace_domain,
+                    &qc_domains,
                     zeta,
                     alpha,
                     &permutation_challenges,

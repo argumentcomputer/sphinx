@@ -11,5 +11,5 @@ pub mod util;
 pub mod prelude {
     pub use crate::asm::AsmCompiler;
     pub use crate::ir::*;
-    pub use sp1_recursion_derive::DslVariable;
+    pub use wp1_recursion_derive::DslVariable;
 }

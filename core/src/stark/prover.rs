@@ -120,7 +120,7 @@ where
                                 config,
                                 pk,
                                 &chips,
-                                &data,
+                                data,
                                 &mut challenger.clone(),
                             );
                             finished.fetch_add(1, Ordering::Relaxed);
@@ -216,7 +216,7 @@ where
         config: &SC,
         _pk: &ProvingKey<SC>,
         chips: &[&MachineChip<SC, A>],
-        shard_data: &ShardMainData<SC>,
+        shard_data: ShardMainData<SC>,
         challenger: &mut SC::Challenger,
     ) -> ShardProof<SC>
     where

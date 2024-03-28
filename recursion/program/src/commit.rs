@@ -40,8 +40,8 @@ pub trait PcsVariable<C: Config, Challenger> {
     fn verify(
         &self,
         builder: &mut Builder<C>,
-        rounds: Array<C, TwoAdicPcsRoundVariable<C>>,
-        proof: Self::Proof,
+        rounds: &Array<C, TwoAdicPcsRoundVariable<C>>,
+        proof: &Self::Proof,
         challenger: &mut Challenger,
     );
 }

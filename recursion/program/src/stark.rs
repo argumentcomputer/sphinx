@@ -64,11 +64,11 @@ where
             );
         }
 
-        challenger.observe_commitment(builder, permutation_commit.clone());
+        challenger.observe_commitment(builder, permutation_commit);
 
         let alpha = challenger.sample_ext(builder);
 
-        challenger.observe_commitment(builder, quotient_commit.clone());
+        challenger.observe_commitment(builder, quotient_commit);
 
         let zeta = challenger.sample_ext(builder);
 
@@ -171,7 +171,7 @@ where
         builder.set(&mut rounds, 2, quotient_round);
 
         // Verify the pcs proof
-        pcs.verify(builder, rounds, opening_proof.clone(), challenger);
+        pcs.verify(builder, &rounds, opening_proof, challenger);
 
         for (i, chip) in machine.chips().iter().enumerate() {
             let index = sorted_indices[i];
@@ -185,8 +185,8 @@ where
                     builder,
                     chip,
                     &values,
-                    trace_domain,
-                    qc_domains,
+                    &trace_domain,
+                    &qc_domains,
                     zeta,
                     alpha,
                     permutation_challenges,
@@ -234,7 +234,7 @@ pub(crate) mod tests {
     pub(crate) fn const_proof<C>(
         builder: &mut Builder<C>,
         machine: &MachineStark<SC, A>,
-        proof: ShardProof<SC>,
+        proof: &ShardProof<SC>,
     ) -> ShardProofVariable<C>
     where
         C: Config<F = F, EF = EF>,
@@ -286,8 +286,7 @@ pub(crate) mod tests {
                 let index = proof
                     .chip_ordering
                     .get(&chip.name())
-                    .map(|i| C::N::from_canonical_usize(*i))
-                    .unwrap_or(C::N::neg_one());
+                    .map_or(C::N::neg_one(), |i| C::N::from_canonical_usize(*i));
                 builder.eval(index)
             })
             .collect();
@@ -330,9 +329,9 @@ pub(crate) mod tests {
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
 
         for proof in proofs {
-            let proof = const_proof(&mut builder, &machine, proof);
+            let proof = const_proof(&mut builder, &machine, &proof);
             let ShardCommitment { main_commit, .. } = proof.commitment;
-            challenger.observe_commitment(&mut builder, main_commit);
+            challenger.observe_commitment(&mut builder, &main_commit);
         }
 
         // Sample the permutation challenges.
@@ -372,9 +371,9 @@ pub(crate) mod tests {
             .shard_proofs;
         println!("Proof generated successfully");
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-        });
+        }
 
         let permutation_challenges = (0..2)
             .map(|_| challenger_val.sample_ext_element::<EF>())
@@ -389,9 +388,9 @@ pub(crate) mod tests {
 
         let mut shard_proofs = vec![];
         for proof_val in proofs {
-            let proof = const_proof(&mut builder, &machine, proof_val);
+            let proof = const_proof(&mut builder, &machine, &proof_val);
             let ShardCommitment { main_commit, .. } = &proof.commitment;
-            challenger.observe_commitment(&mut builder, main_commit.clone());
+            challenger.observe_commitment(&mut builder, main_commit);
             shard_proofs.push(proof);
         }
 
@@ -460,9 +459,9 @@ pub(crate) mod tests {
             // Change a commitment to be incorrect.
             let mut proof_val = proof_val;
             proof_val.commitment.main_commit = [F::zero(); DIGEST_SIZE].into();
-            let proof = const_proof(&mut builder, &machine, proof_val);
+            let proof = const_proof(&mut builder, &machine, &proof_val);
             let ShardCommitment { main_commit, .. } = &proof.commitment;
-            challenger.observe_commitment(&mut builder, main_commit.clone());
+            challenger.observe_commitment(&mut builder, main_commit);
             shard_proofs.push(proof);
         }
 

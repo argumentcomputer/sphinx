@@ -48,8 +48,8 @@ pub struct TwoAdicPcsMatsVariable<C: Config> {
 pub fn verify_two_adic_pcs<C: Config>(
     builder: &mut Builder<C>,
     config: &FriConfigVariable<C>,
-    rounds: Array<C, TwoAdicPcsRoundVariable<C>>,
-    proof: TwoAdicPcsProofVariable<C>,
+    rounds: &Array<C, TwoAdicPcsRoundVariable<C>>,
+    proof: &TwoAdicPcsProofVariable<C>,
     challenger: &mut DuplexChallengerVariable<C>,
 ) where
     C::EF: TwoAdicField,
@@ -86,7 +86,7 @@ pub fn verify_two_adic_pcs<C: Config>(
 
             builder.range(0, rounds.len()).for_each(|j, builder| {
                 let batch_opening = builder.get(&query_opening, j);
-                let round = builder.get(&rounds, j);
+                let round = builder.get(rounds, j);
                 let batch_commit = round.batch_commit;
                 let mats = round.mats;
 
@@ -113,9 +113,9 @@ pub fn verify_two_adic_pcs<C: Config>(
                 verify_batch::<C, 1>(
                     builder,
                     &batch_commit,
-                    batch_dims,
-                    index_bits_shifted_v1,
-                    batch_opening.opened_values.clone(),
+                    &batch_dims,
+                    &index_bits_shifted_v1,
+                    &batch_opening.opened_values,
                     &batch_opening.opening_proof,
                 );
 
@@ -270,8 +270,8 @@ where
     fn verify(
         &self,
         builder: &mut Builder<C>,
-        rounds: Array<C, TwoAdicPcsRoundVariable<C>>,
-        proof: Self::Proof,
+        rounds: &Array<C, TwoAdicPcsRoundVariable<C>>,
+        proof: &Self::Proof,
         challenger: &mut DuplexChallengerVariable<C>,
     ) {
         verify_two_adic_pcs(builder, &self.config, rounds, proof, challenger)
@@ -334,12 +334,12 @@ pub(crate) mod tests {
     use super::BatchOpeningVariable;
     use super::TwoAdicPcsProofVariable;
 
-    pub type Val = BabyBear;
-    pub type Challenge = BinomialExtensionField<Val, 4>;
-    pub type Perm = Poseidon2<Val, DiffusionMatrixBabybear, 16, 7>;
-    pub type Hash = PaddingFreeSponge<Perm, 16, 8, 8>;
-    pub type Compress = TruncatedPermutation<Perm, 2, 8, 16>;
-    pub type ValMmcs =
+    pub(crate) type Val = BabyBear;
+    pub(crate) type Challenge = BinomialExtensionField<Val, 4>;
+    pub(crate) type Perm = Poseidon2<Val, DiffusionMatrixBabybear, 16, 7>;
+    pub(crate) type Hash = PaddingFreeSponge<Perm, 16, 8, 8>;
+    pub(crate) type Compress = TruncatedPermutation<Perm, 2, 8, 16>;
+    pub(crate) type ValMmcs =
         FieldMerkleTreeMmcs<<Val as Field>::Packing, <Val as Field>::Packing, Hash, Compress, 8>;
     pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
     pub(crate) type Challenger = DuplexChallenger<Val, Perm, 16>;
@@ -467,7 +467,7 @@ pub(crate) mod tests {
         proof_var
     }
 
-    pub fn default_fri_config() -> FriConfig<ChallengeMmcs> {
+    pub(crate) fn default_fri_config() -> FriConfig<ChallengeMmcs> {
         let perm = Perm::new(8, 22, RC_16_30.to_vec(), DiffusionMatrixBabybear);
         let hash = Hash::new(perm.clone());
         let compress = Compress::new(perm.clone());
@@ -568,9 +568,9 @@ pub(crate) mod tests {
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
         let commit = <[Val; DIGEST_SIZE]>::from(commit).to_vec();
         let commit = builder.eval_const::<Array<_, _>>(commit);
-        challenger.observe_commitment(&mut builder, commit);
+        challenger.observe_commitment(&mut builder, &commit);
         challenger.sample_ext(&mut builder);
-        pcs.verify(&mut builder, rounds, proof, &mut challenger);
+        pcs.verify(&mut builder, &rounds, &proof, &mut challenger);
 
         let program = builder.compile();
         let mut runtime = Runtime::<Val, Challenge, _>::new(&program, perm.clone());
@@ -684,10 +684,10 @@ pub(crate) mod tests {
         for commit in batches_commits {
             let commit: [Val; DIGEST_SIZE] = commit.into();
             let commit = builder.eval_const::<Array<_, _>>(commit.to_vec());
-            challenger.observe_commitment(&mut builder, commit);
+            challenger.observe_commitment(&mut builder, &commit);
         }
         challenger.sample_ext(&mut builder);
-        pcs.verify(&mut builder, rounds, proof, &mut challenger);
+        pcs.verify(&mut builder, &rounds, &proof, &mut challenger);
 
         let program = builder.compile();
         let mut runtime = Runtime::<Val, Challenge, _>::new(&program, perm.clone());
