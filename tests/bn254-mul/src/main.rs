@@ -1,8 +1,8 @@
 #![no_main]
-sp1_zkvm::entrypoint!(main);
+wp1_zkvm::entrypoint!(main);
 
-use sp1_zkvm::precompiles::bn254::Bn254;
-use sp1_zkvm::precompiles::utils::AffinePoint;
+use wp1_zkvm::precompiles::bn254::Bn254;
+use wp1_zkvm::precompiles::utils::AffinePoint;
 
 #[sp1_derive::cycle_tracker]
 pub fn main() {

@@ -1808,16 +1808,10 @@ dependencies = [
  "serde_with",
  "serial_test",
  "size",
-<<<<<<< HEAD
  "wp1-derive",
-||||||| parent of c2f5bfae (fix:  few regression fixes (#441))
- "sp1-derive",
-=======
- "sp1-derive",
- "sp1-zkvm",
+ "wp1-zkvm",
  "strum",
  "strum_macros",
->>>>>>> c2f5bfae (fix:  few regression fixes (#441))
  "tempfile",
  "tiny-keccak",
  "tracing",

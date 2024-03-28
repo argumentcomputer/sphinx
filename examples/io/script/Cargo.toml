@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.196", features = ["derive"] }
-wp1-core = { path = "../../../core" }
+wp1-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
 wp1-helper = { path = "../../../helper" }

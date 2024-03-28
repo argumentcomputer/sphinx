@@ -161,9 +161,9 @@ mod tests {
             ShardMainData, ShardProof, StarkGenericConfig, Verifier,
         },
         utils::BabyBearPoseidon2,
-        SP1Prover, SP1Stdin,
     };
     use wp1_recursion_core::runtime::Runtime;
+    use wp1_sdk::{SP1Prover, SP1Stdin};
 
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::PrimeField32;
