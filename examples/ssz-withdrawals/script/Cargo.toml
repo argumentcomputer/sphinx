@@ -5,7 +5,7 @@ name = "ssz-withdrawals-script"
 edition = "2021"
 
 [dependencies]
-wp1-core = { path = "../../../core" }
+wp1-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
 wp1-helper = { path = "../../../helper" }

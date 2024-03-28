@@ -5,7 +5,7 @@ name = "unnamed-script"
 edition = "2021"
 
 [dependencies]
-wp1-core = { git = "ssh://git@github.com/wormhole-foundation/wp1.git" }
+wp1-sdk = { git = "https://github.com/wormhole-foundation/wp1.git" }
 
 [build-dependencies]
 wp1-helper = { git = "ssh://git@github.com/wormhole-foundation/wp1.git" }

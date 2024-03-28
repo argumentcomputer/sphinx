@@ -1327,33 +1327,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "rand",
- "serde",
-]
-
-[[package]]
-name = "wp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "rand",
- "serde",
- "wp1-precompiles",
-]
-
-[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1374,8 +1347,8 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha2 0.9.8",
- "wp1-zkvm",
  "ssz_rs",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -1736,6 +1709,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "818ce546a11a9986bc24f93d0cdf38a8a1a400f1473ea8c82e59f6e0ffab9249"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "wp1-precompiles"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "serde",
+]
+
+[[package]]
+name = "wp1-zkvm"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "libm",
+ "rand",
+ "serde",
+ "wp1-precompiles",
 ]
 
 [[package]]
