@@ -33,7 +33,7 @@ jobs:
           cargo nextest run -p wp1-core --release --profile ci
       - name: Run cargo test on wp1-recursion-compiler, wp1-recursion-program, wp1-recursion-circuit
         run: |
-          cargo nextest run -p wp1-recursion-compiler --release --profile ci
+          cargo nextest run -p wp1-recursion-compiler -p wp1-recursion-program -p wp1-recursion-circuit --release --profile ci
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --release --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
