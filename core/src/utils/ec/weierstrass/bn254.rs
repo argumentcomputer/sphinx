@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -27,8 +28,11 @@ impl FieldParameters for Bn254BaseField {
         129, 182, 69, 80, 184, 41, 160, 49, 225, 114, 78, 100, 48,
     ]);
 
-    const WITNESS_OFFSET: usize = 1usize << 20;
+    // A rough witness-offset estimate given the size of the limbs and the size of the field.
+    const WITNESS_OFFSET: usize = 1usize << 13;
 
+    // The modulus has been taken from py_ecc python library by Ethereum Foundation.
+    // https://github.com/ethereum/py_pairing/blob/5f609da/py_ecc/bn128/bn128_field_elements.py#L10-L11
     fn modulus() -> BigUint {
         BigUint::from_str_radix(
             "21888242871839275222246405745257275088696311157297823662689037894645226208583",
@@ -40,9 +44,13 @@ impl FieldParameters for Bn254BaseField {
 
 impl EllipticCurveParameters for Bn254Parameters {
     type BaseField = Bn254BaseField;
+
+    const CURVE_TYPE: CurveType = CurveType::Bn254;
 }
 
 impl WeierstrassParameters for Bn254Parameters {
+    // The values have been taken from py_ecc python library by Ethereum Foundation.
+    // https://github.com/ethereum/py_pairing/blob/5f609da/py_ecc/bn128/bn128_field_elements.py
     const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,

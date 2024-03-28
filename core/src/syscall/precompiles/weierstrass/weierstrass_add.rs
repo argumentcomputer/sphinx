@@ -19,6 +19,7 @@ use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
+use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
@@ -74,7 +75,11 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EllipticCurve<BaseFi
 {
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_add_event::<E>(rt, arg1, arg2);
-        rt.record_mut().weierstrass_add_events.push(event);
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => rt.record_mut().secp256k1_add_events.push(event),
+            CurveType::Bn254 => rt.record_mut().bn254_add_events.push(event),
+            _ => panic!("Unsupported curve"),
+        }
         None
     }
 
@@ -154,7 +159,11 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     type Record = ExecutionRecord;
 
     fn name(&self) -> String {
-        "WeierstrassAddAssign".to_string()
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => "Secp256k1AddAssign".to_string(),
+            CurveType::Bn254 => "Bn254AddAssign".to_string(),
+            _ => panic!("Unsupported curve"),
+        }
     }
 
     fn generate_trace(
@@ -162,12 +171,20 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         input: &ExecutionRecord,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
+        // collects the events based on the curve type.
+        let events = match E::CURVE_TYPE {
+            CurveType::Secp256k1 => &input.secp256k1_add_events,
+            CurveType::Bn254 => &input.bn254_add_events,
+            _ => panic!("Unsupported curve"),
+        };
+
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
 
-        for i in 0..input.weierstrass_add_events.len() {
-            let event = input.weierstrass_add_events[i].clone();
+        for i in 0..events.len() {
+            let event = &events[i];
+
             let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
             let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
@@ -218,7 +235,11 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
-        !shard.weierstrass_add_events.is_empty()
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => !shard.secp256k1_add_events.is_empty(),
+            CurveType::Bn254 => !shard.bn254_add_events.is_empty(),
+            _ => panic!("Unsupported curve"),
+        }
     }
 }
 
@@ -343,10 +364,19 @@ where
             row.is_real,
         );
 
+        // Fetch the syscall id for the curve type.
+        let syscall_id_fe = match E::CURVE_TYPE {
+            CurveType::Secp256k1 => {
+                AB::F::from_canonical_u32(SyscallCode::SECP256K1_ADD.syscall_id())
+            }
+            CurveType::Bn254 => AB::F::from_canonical_u32(SyscallCode::BN254_ADD.syscall_id()),
+            _ => panic!("Unsupported curve"),
+        };
+
         builder.receive_syscall(
             row.shard,
             row.clk,
-            AB::F::from_canonical_u32(SyscallCode::SECP256K1_ADD.syscall_id()),
+            syscall_id_fe,
             row.p_ptr,
             row.q_ptr,
             row.is_real,
@@ -356,15 +386,40 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use crate::{
         runtime::Program,
-        utils::{run_test, setup_logger, tests::SECP256K1_ADD_ELF},
+        utils::{
+            run_test, setup_logger,
+            tests::{BN254_ADD_ELF, BN254_MUL_ELF, SECP256K1_ADD_ELF, SECP256K1_MUL_ELF},
+        },
     };
 
     #[test]
     fn test_secp256k1_add_simple() {
         setup_logger();
         let program = Program::from(SECP256K1_ADD_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bn254_add_simple() {
+        setup_logger();
+        let program = Program::from(BN254_ADD_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bn254_mul_simple() {
+        setup_logger();
+        let program = Program::from(BN254_MUL_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_secp256k1_mul_simple() {
+        setup_logger();
+        let program = Program::from(SECP256K1_MUL_ELF);
         run_test(program).unwrap();
     }
 }

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::EllipticCurveParameters;
+use crate::utils::ec::{CurveType, EllipticCurveParameters};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -35,6 +35,7 @@ impl FieldParameters for Bls12381BaseField {
 
 impl EllipticCurveParameters for Bls12381Parameters {
     type BaseField = Bls12381BaseField;
+    const CURVE_TYPE: CurveType = CurveType::Bls12381;
 }
 
 /// The WeierstrassParameters for BLS12-381 G1
