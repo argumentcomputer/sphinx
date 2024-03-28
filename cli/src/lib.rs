@@ -45,7 +45,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
 
     let pb = ProgressBar::new(total_size);
     pb.set_style(ProgressStyle::default_bar()
-        .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
+        .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})").map_err(|_e| "Failed to set progress bar style".to_owned())?
         .progress_chars("#>-"));
     println!("Downloading {}", url);
 
@@ -62,7 +62,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         pb.set_position(new);
     }
 
-    pb.finish_with_message(&format!("Downloaded {} to {}", url, path));
+    pb.finish_with_message(format!("Downloaded {} to {}", url, path));
     Ok(())
 }
 
