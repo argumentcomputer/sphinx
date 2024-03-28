@@ -137,7 +137,7 @@ mod tests {
             let mut operands: Vec<BigUint> = (0..num_rows - 2)
                 .map(|_| {
                     // Take the square of a random number to make sure that the square root exists.
-                    let a = rng.gen_biguint(256);
+                    let a = rng.gen_biguint(Ed25519BaseField::nb_bits() as u64);
                     let sq = a.clone() * a.clone();
                     // We want to mod by the ed25519 modulus.
                     sq % &Ed25519BaseField::modulus()

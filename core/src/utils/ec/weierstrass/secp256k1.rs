@@ -27,8 +27,6 @@ pub struct Secp256k1BaseField;
 
 impl FieldParameters for Secp256k1BaseField {
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
-    // default const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
-    // default const NB_WITNESS_LIMBS: usize = 2 * U::USIZE - 2;
 
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
         0x2f, 0xfc, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -117,7 +115,8 @@ mod tests {
         for _ in 0..10 {
             // Check that sqrt(x^2)^2 == x^2
             // We use x^2 since not all field elements have a square root
-            let x = rng.gen_biguint(256) % Secp256k1BaseField::modulus();
+            let x = rng.gen_biguint(Secp256k1BaseField::nb_bits() as u64)
+                % Secp256k1BaseField::modulus();
             let x_2 = (&x * &x) % Secp256k1BaseField::modulus();
             let sqrt = secp256k1_sqrt(&x_2);
             if sqrt > x_2 {

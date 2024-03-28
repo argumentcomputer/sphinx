@@ -20,8 +20,6 @@ pub struct Ed25519BaseField;
 impl FieldParameters for Ed25519BaseField {
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
 
-    // default const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
-    // default const NB_WITNESS_LIMBS: usize = 2 * U32::USIZE - 2;
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([
         237, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
         255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 127,

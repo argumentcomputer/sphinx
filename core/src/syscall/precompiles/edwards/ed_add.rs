@@ -44,8 +44,6 @@ use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 /// A set of columns to compute `EdAdd` where a, b are field elements.
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
-/// or made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
@@ -233,12 +231,18 @@ where
         let y2 = limbs_from_prev_access(&row.q_access[8..16]);
 
         // x3_numerator = x1 * y2 + x2 * y1.
-        row.x3_numerator
-            .eval::<AB, E::BaseField, _>(builder, [x1, x2], [y2, y1]);
+        row.x3_numerator.eval::<AB, E::BaseField, _>(
+            builder,
+            [x1.clone(), x2.clone()],
+            [y2.clone(), y1.clone()],
+        );
 
         // y3_numerator = y1 * y2 + x1 * x2.
-        row.y3_numerator
-            .eval::<AB, E::BaseField, _>(builder, [y1, x1], [y2, x2]);
+        row.y3_numerator.eval::<AB, E::BaseField, _>(
+            builder,
+            [y1.clone(), x1.clone()],
+            [y2.clone(), x2.clone()],
+        );
 
         // f = x1 * x2 * y1 * y2.
         row.x1_mul_y1
