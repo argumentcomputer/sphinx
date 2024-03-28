@@ -11,11 +11,11 @@ vergen = { version = "8", default-features = false, features = ["build", "git", 
 [dependencies]
 anyhow = { version = "1.0.79", features = ["backtrace"] }
 cargo_metadata = "0.18.1"
-clap = { version = "4.4.15", features = ["derive", "env"] }
+clap = { version = "4.5.4", features = ["derive", "env"] }
 wp1-core = { path = "../core", features = ["perf"] }
-reqwest = { version = "0.11.3", features = ["stream", "json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12.2", features = ["stream", "json", "rustls-tls"], default-features = false }
 futures-util = "0.3.14"
-indicatif = "0.15.0"
+indicatif = "0.17.8"
 tokio = { version = "1", features = ["full"] }
 dirs = "5.0"
 serde = { version = "1", features = ["derive"] }
