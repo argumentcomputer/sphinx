@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
 use k256::FieldElement;
 use num::traits::FromBytes;
@@ -44,6 +45,7 @@ impl FieldParameters for Secp256k1BaseField {
 
 impl EllipticCurveParameters for Secp256k1Parameters {
     type BaseField = Secp256k1BaseField;
+    const CURVE_TYPE: CurveType = CurveType::Secp256k1;
 }
 
 impl WeierstrassParameters for Secp256k1Parameters {

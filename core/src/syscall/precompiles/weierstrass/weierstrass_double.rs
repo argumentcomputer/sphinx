@@ -19,6 +19,7 @@ use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
+use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
@@ -79,7 +80,11 @@ impl<
 {
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_double_event::<E>(rt, arg1, arg2);
-        rt.record_mut().weierstrass_double_events.push(event);
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => rt.record_mut().secp256k1_double_events.push(event),
+            CurveType::Bn254 => rt.record_mut().bn254_double_events.push(event),
+            _ => panic!("Unsupported curve"),
+        }
         None
     }
 
@@ -174,7 +179,11 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     type Record = ExecutionRecord;
 
     fn name(&self) -> String {
-        "WeierstrassDoubleAssign".to_string()
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => "Secp256k1DoubleAssign".to_string(),
+            CurveType::Bn254 => "Bn254DoubleAssign".to_string(),
+            _ => panic!("Unsupported curve"),
+        }
     }
 
     #[instrument(
@@ -187,11 +196,17 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         input: &ExecutionRecord,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let chunk_size = std::cmp::max(input.weierstrass_double_events.len() / num_cpus::get(), 1);
+        // collects the events based on the curve type.
+        let events = match E::CURVE_TYPE {
+            CurveType::Secp256k1 => &input.secp256k1_double_events,
+            CurveType::Bn254 => &input.bn254_double_events,
+            _ => panic!("Unsupported curve"),
+        };
+
+        let chunk_size = std::cmp::max(events.len() / num_cpus::get(), 1);
 
         // Generate the trace rows & corresponding records for each chunk of events in parallel.
-        let rows_and_records = input
-            .weierstrass_double_events
+        let rows_and_records = events
             .par_chunks(chunk_size)
             .map(|events| {
                 let mut record = ExecutionRecord::default();
@@ -254,7 +269,11 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
-        !shard.weierstrass_double_events.is_empty()
+        match E::CURVE_TYPE {
+            CurveType::Secp256k1 => !shard.secp256k1_double_events.is_empty(),
+            CurveType::Bn254 => !shard.bn254_double_events.is_empty(),
+            _ => panic!("Unsupported curve"),
+        }
     }
 }
 
@@ -386,10 +405,19 @@ where
             row.is_real,
         );
 
+        // Fetch the syscall id for the curve type.
+        let syscall_id_fe = match E::CURVE_TYPE {
+            CurveType::Secp256k1 => {
+                AB::F::from_canonical_u32(SyscallCode::SECP256K1_DOUBLE.syscall_id())
+            }
+            CurveType::Bn254 => AB::F::from_canonical_u32(SyscallCode::BN254_DOUBLE.syscall_id()),
+            _ => panic!("Unsupported curve"),
+        };
+
         builder.receive_syscall(
             row.shard,
             row.clk,
-            AB::F::from_canonical_u32(SyscallCode::SECP256K1_DOUBLE.syscall_id()),
+            syscall_id_fe,
             row.p_ptr,
             AB::Expr::zero(),
             row.is_real,
@@ -402,13 +430,20 @@ pub mod tests {
 
     use crate::{
         runtime::Program,
-        utils::{run_test, setup_logger, tests::SECP256K1_DOUBLE_ELF},
+        utils::{run_test, setup_logger, tests::BN254_DOUBLE_ELF, tests::SECP256K1_DOUBLE_ELF},
     };
 
     #[test]
     fn test_secp256k1_double_simple() {
         setup_logger();
         let program = Program::from(SECP256K1_DOUBLE_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bn254_double_simple() {
+        setup_logger();
+        let program = Program::from(BN254_DOUBLE_ELF);
         run_test(program).unwrap();
     }
 }

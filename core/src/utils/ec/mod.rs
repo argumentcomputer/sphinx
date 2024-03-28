@@ -9,7 +9,7 @@ use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
 use num::BigUint;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Formatter, Result};
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
@@ -19,6 +19,26 @@ pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
 
 pub const DEFAULT_COMPRESSED_POINT_BYTES: usize = 32;
+
+#[derive(Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum CurveType {
+    Secp256k1,
+    Bn254,
+    Ed25519,
+    Bls12381,
+}
+
+impl Display for CurveType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            CurveType::Secp256k1 => write!(f, "Secp256k1"),
+            CurveType::Bn254 => write!(f, "Bn254"),
+            CurveType::Ed25519 => write!(f, "Ed25519"),
+            _ => panic!("Unsupported curve"),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AffinePoint<E> {
@@ -78,6 +98,8 @@ pub trait EllipticCurveParameters:
     Debug + Send + Sync + Copy + Serialize + DeserializeOwned + 'static
 {
     type BaseField: FieldParameters;
+
+    const CURVE_TYPE: CurveType;
 }
 
 /// An interface for elliptic curve groups.

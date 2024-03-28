@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
+use super::CurveType;
+
 pub trait EdwardsParameters: EllipticCurveParameters {
     const D: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;
 
@@ -53,6 +55,8 @@ impl<E: EdwardsParameters> EdwardsParameters for EdwardsCurve<E> {
 
 impl<E: EdwardsParameters> EllipticCurveParameters for EdwardsCurve<E> {
     type BaseField = E::BaseField;
+
+    const CURVE_TYPE: CurveType = E::CURVE_TYPE;
 }
 
 impl<E: EdwardsParameters> EdwardsCurve<E> {
@@ -120,12 +124,10 @@ impl<E: EdwardsParameters> AffinePoint<EdwardsCurve<E>> {
 mod tests {
 
     use num::bigint::RandBigInt;
-    use num::BigUint;
     use rand::thread_rng;
 
-    use super::{EdwardsParameters, *};
+    use super::*;
     use crate::utils::ec::edwards::ed25519::{Ed25519, Ed25519Parameters};
-    use crate::utils::ec::{EllipticCurve, EllipticCurveParameters};
 
     #[test]
     fn test_bigint_ed_add() {
