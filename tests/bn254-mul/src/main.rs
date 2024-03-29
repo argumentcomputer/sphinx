@@ -4,7 +4,7 @@ wp1_zkvm::entrypoint!(main);
 use wp1_zkvm::precompiles::bn254::Bn254;
 use wp1_zkvm::precompiles::utils::AffinePoint;
 
-#[sp1_derive::cycle_tracker]
+#[wp1_derive::cycle_tracker]
 pub fn main() {
     // generator.
     // 1

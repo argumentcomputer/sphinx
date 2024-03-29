@@ -232,8 +232,8 @@ dependencies = [
 name = "keccak256-test"
 version = "0.1.0"
 dependencies = [
- "wp1-zkvm",
  "tiny-keccak",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -390,33 +390,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "rand",
- "serde",
-]
-
-[[package]]
-name = "wp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "rand",
- "serde",
- "wp1-precompiles",
-]
-
-[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -452,7 +425,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 [[package]]
 name = "tiny-keccak"
 version = "2.0.2"
-source = "git+https://github.com/succinctlabs/tiny-keccak-private?branch=chris/test#aa70bacdfece9dc7ea4936f808887c43a09b3b0a"
+source = "git+https://github.com/sp1-patches/tiny-keccak?branch=patch-v2.0.2#aa70bacdfece9dc7ea4936f808887c43a09b3b0a"
 dependencies = [
  "cfg-if",
  "crunchy",
@@ -481,6 +454,32 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "wp1-precompiles"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "serde",
+]
+
+[[package]]
+name = "wp1-zkvm"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "libm",
+ "rand",
+ "serde",
+ "wp1-precompiles",
+]
 
 [[package]]
 name = "wyz"

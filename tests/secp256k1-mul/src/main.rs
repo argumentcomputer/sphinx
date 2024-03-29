@@ -4,7 +4,7 @@ wp1_zkvm::entrypoint!(main);
 use wp1_zkvm::precompiles::secp256k1::Secp256k1Operations;
 use wp1_zkvm::precompiles::utils::AffinePoint;
 
-#[sp1_derive::cycle_tracker]
+#[wp1_derive::cycle_tracker]
 pub fn main() {
     // generator.
     // 55066263022277343669578718895168534326250603453777594175500187360389116729240
