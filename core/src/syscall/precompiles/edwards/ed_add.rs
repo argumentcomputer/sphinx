@@ -144,6 +144,12 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         input: &ExecutionRecord,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
+        // sanity-check
+        assert_eq!(
+            size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>(),
+            NUM_ED_ADD_COLS
+        );
+
         let (mut rows, new_byte_lookup_events): (
             Vec<[F; NUM_ED_ADD_COLS]>,
             Vec<Vec<ByteLookupEvent>>,

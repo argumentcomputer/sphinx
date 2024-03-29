@@ -182,6 +182,12 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         let mut new_byte_lookup_events = Vec::new();
 
+        // sanity-check
+        assert_eq!(
+            size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>(),
+            NUM_WEIERSTRASS_ADD_COLS
+        );
+
         for i in 0..events.len() {
             let event = &events[i];
 

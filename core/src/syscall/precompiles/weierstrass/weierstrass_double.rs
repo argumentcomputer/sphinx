@@ -42,6 +42,7 @@ use std::marker::PhantomData;
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
+// TODO(FG): mop up when making execution generic
 pub const NUM_WEIERSTRASS_DOUBLE_COLS: usize = size_of::<WeierstrassDoubleAssignCols<u8>>();
 
 /// A set of columns to double a point on a Weierstrass curve.
@@ -211,6 +212,12 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             .map(|events| {
                 let mut record = ExecutionRecord::default();
                 let mut new_byte_lookup_events = Vec::new();
+
+                // sanity-check
+                assert_eq!(
+                    size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>(),
+                    NUM_WEIERSTRASS_DOUBLE_COLS
+                );
 
                 let rows = events
                     .iter()
