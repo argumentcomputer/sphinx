@@ -138,7 +138,7 @@ pub mod proof_serde {
     mod tests {
         use crate::{SP1ProofWithIO, SP1Prover, SP1Stdin, SP1Verifier};
 
-        pub const FIBONACCI_IO_ELF: &[u8] =
+        pub(crate) const FIBONACCI_IO_ELF: &[u8] =
             include_bytes!("../../examples/fibonacci-io/program/elf/riscv32im-succinct-zkvm-elf");
 
         /// Tests serialization with a human-readable encoding

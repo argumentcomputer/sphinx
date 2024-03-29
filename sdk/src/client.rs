@@ -27,13 +27,13 @@ pub struct SP1ProverServiceClient {
 const DEFAULT_PROVER_NETWORK_RPC: &str = "https://rpc.succinct.xyz/";
 
 impl SP1ProverServiceClient {
-    pub fn with_token(access_token: String) -> Self {
+    pub fn with_token(access_token: &str) -> Self {
         let rpc_url = env::var("PROVER_NETWORK_RPC")
             .unwrap_or_else(|_| DEFAULT_PROVER_NETWORK_RPC.to_string());
-        Self::with_url(access_token, rpc_url)
+        Self::with_url(access_token, &rpc_url)
     }
 
-    pub fn with_url(access_token: String, rpc_url: String) -> Self {
+    pub fn with_url(access_token: &str, rpc_url: &str) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert(
             "Authorization",
@@ -47,7 +47,7 @@ impl SP1ProverServiceClient {
             .unwrap();
 
         let rpc =
-            TwirpClient::new(Url::parse(&rpc_url).unwrap(), twirp_http_client, vec![]).unwrap();
+            TwirpClient::new(Url::parse(rpc_url).unwrap(), twirp_http_client, vec![]).unwrap();
 
         let http_client = HttpClient::builder()
             .pool_max_idle_per_host(0)

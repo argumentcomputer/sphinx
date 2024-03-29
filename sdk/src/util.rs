@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
-pub struct StageProgressBar {
+pub(crate) struct StageProgressBar {
     pb: ProgressBar,
     current_stage: u32,
     current_stage_name: String,
@@ -10,7 +10,7 @@ pub struct StageProgressBar {
 }
 
 impl StageProgressBar {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let pb = ProgressBar::new(1);
         pb.set_style(
             ProgressStyle::default_bar()
@@ -32,7 +32,7 @@ impl StageProgressBar {
         }
     }
 
-    pub fn update(
+    pub(crate) fn update(
         &mut self,
         stage: u32,
         total_stages: u32,
@@ -68,7 +68,7 @@ impl StageProgressBar {
             .set_message(format!("[{}/{}] {}", stage, total_stages, stage_name));
     }
 
-    pub fn finish(&mut self) {
+    pub(crate) fn finish(&mut self) {
         self.pb.finish_and_clear();
     }
 }
