@@ -46,3 +46,12 @@ p3-symmetric = { git = "https://github.com/lurk-lab/plonky3.git", branch = "sp1"
 p3-uni-stark = { git = "https://github.com/lurk-lab/plonky3.git", branch = "sp1"  }
 p3-maybe-rayon = { git = "https://github.com/lurk-lab/plonky3.git", branch = "sp1"  }
 p3-bn254-fr = { git = "https://github.com/lurk-lab/plonky3.git", branch = "sp1" }
+
+[profile.dev-ci]
+inherits = "dev"
+# By compiling dependencies with optimizations, performing tests gets much faster.
+opt-level = 3
+overflow-checks = true
+lto = "thin"
+incremental = false
+codegen-units = 16
