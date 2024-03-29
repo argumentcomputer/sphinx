@@ -77,7 +77,7 @@ impl<E> AffinePoint<E> {
 
 impl<E: EllipticCurveParameters> AffinePoint<E> {
     const fn field_u32_digits() -> usize {
-        BaseLimbWidth::<E>::USIZE * E::BaseField::NB_BITS_PER_LIMB / 32
+        WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE
     }
 
     pub fn to_words_le(&self) -> Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> {
