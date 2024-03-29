@@ -13,7 +13,7 @@ use std::fmt::{Debug, Display, Formatter, Result};
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
-use crate::operations::field::params::WORDS_CURVEPOINT;
+use crate::operations::field::params::{WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT};
 
 pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
@@ -81,10 +81,29 @@ impl<E: EllipticCurveParameters> AffinePoint<E> {
     }
 
     pub fn to_words_le(&self) -> Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> {
-        let x_digits = self.x.to_u32_digits();
-        assert_eq!(x_digits.len(), Self::field_u32_digits());
-        let y_digits = self.y.to_u32_digits();
-        assert_eq!(y_digits.len(), Self::field_u32_digits());
+        let mut x_digits = self.x.to_u32_digits();
+        let field_u32_digits = Self::field_u32_digits();
+
+        match x_digits.len().cmp(&field_u32_digits) {
+            std::cmp::Ordering::Less => {
+                x_digits.resize(field_u32_digits, 0u32);
+            }
+            std::cmp::Ordering::Greater => {
+                panic!("Input point coordinates too large for the chosen representation");
+            }
+            std::cmp::Ordering::Equal => {}
+        }
+
+        let mut y_digits = self.y.to_u32_digits();
+        match y_digits.len().cmp(&field_u32_digits) {
+            std::cmp::Ordering::Less => {
+                y_digits.resize(field_u32_digits, 0u32);
+            }
+            std::cmp::Ordering::Greater => {
+                panic!("Input point coordinates too large for the chosen representation");
+            }
+            std::cmp::Ordering::Equal => {}
+        }
 
         x_digits.into_iter().chain(y_digits).collect()
     }
