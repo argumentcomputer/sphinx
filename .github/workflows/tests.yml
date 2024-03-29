@@ -30,7 +30,7 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - name: Run cargo test on wp1 except the fibonacci tests
         run: |
-          cargo nextest run -p wp1-core --release --profile ci -E 'all() - test(tests::test_fibonacci_)'
+          cargo nextest run -p wp1-core --release --profile ci -E 'all() - (package(wp1-recursion-core) & test(tests::test_fibonacci_))'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --release --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
