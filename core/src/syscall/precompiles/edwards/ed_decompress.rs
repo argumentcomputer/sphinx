@@ -318,6 +318,12 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
+        // sanity-check
+        assert_eq!(
+            size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>(),
+            NUM_ED_DECOMPRESS_COLS
+        );
+
         for i in 0..input.ed_decompress_events.len() {
             let event = &input.ed_decompress_events[i];
             let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
