@@ -92,7 +92,7 @@ pub fn secp256k1_sqrt(n: &BigUint) -> BigUint {
     bytes[32 - be_bytes.len()..].copy_from_slice(&be_bytes);
     let fe = FieldElement::from_bytes(&bytes.into()).unwrap();
     let result_bytes = fe.sqrt().unwrap().to_bytes();
-    BigUint::from_be_bytes(&result_bytes as &[u8])
+    BigUint::from_be_bytes(&result_bytes)
 }
 
 #[cfg(test)]

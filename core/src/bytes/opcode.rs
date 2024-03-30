@@ -35,21 +35,21 @@ pub enum ByteOpcode {
 }
 
 impl ByteOpcode {
+    const OPCODES: [Self; NUM_BYTE_OPS] = [
+        ByteOpcode::AND,
+        ByteOpcode::OR,
+        ByteOpcode::XOR,
+        ByteOpcode::SLL,
+        ByteOpcode::U8Range,
+        ByteOpcode::ShrCarry,
+        ByteOpcode::LTU,
+        ByteOpcode::MSB,
+        ByteOpcode::U16Range,
+    ];
+
     /// Get all the byte opcodes.
     pub fn all() -> Vec<Self> {
-        let opcodes = vec![
-            ByteOpcode::AND,
-            ByteOpcode::OR,
-            ByteOpcode::XOR,
-            ByteOpcode::SLL,
-            ByteOpcode::U8Range,
-            ByteOpcode::ShrCarry,
-            ByteOpcode::LTU,
-            ByteOpcode::MSB,
-            ByteOpcode::U16Range,
-        ];
-        assert_eq!(opcodes.len(), NUM_BYTE_OPS);
-        opcodes
+        Self::OPCODES.to_vec()
     }
 
     /// Convert the opcode to a field element.
