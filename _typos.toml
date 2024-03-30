@@ -1,0 +1,10 @@
+[default.extend-identifiers]
+# don't fix jargon
+TwoAdicCase = "TwoAdicCase"
+GROTH16 = "GROTH16"
+
+[default.extend-words]
+# Don't correct the surname "Wich"
+wich = "wich"
+# or the acronym TRE
+tre =  "tre"

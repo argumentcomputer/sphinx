@@ -19,7 +19,7 @@ use wp1_recursion_compiler::prelude::{Builder, Ext, SymbolicExt};
 
 use crate::stark::StarkVerifier;
 
-// pub struct TwoAdicCose
+// pub struct TwoAdicCase
 
 impl<C: Config, SC> StarkVerifier<C, SC>
 where
