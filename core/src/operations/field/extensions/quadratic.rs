@@ -202,8 +202,8 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
         });
         let p_witness_split = p_witness.map(|w| split_u16_limbs_to_u8_limbs(&w));
 
-        self.result = p_result.map(|r| r.into());
-        self.carry = p_carry.map(|c| c.into());
+        self.result = p_result.map(|r| r.try_into().unwrap());
+        self.carry = p_carry.map(|c| c.try_into().unwrap());
         self.witness_low = [
             (&p_witness_split[0].0[..]).try_into().unwrap(),
             (&p_witness_split[1].0[..]).try_into().unwrap(),

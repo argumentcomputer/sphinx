@@ -125,8 +125,8 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
         );
         let (p_witness_low, p_witness_high) = split_u16_limbs_to_u8_limbs(&p_witness);
 
-        self.result = p_result.into();
-        self.carry = p_carry.into();
+        self.result = p_result.try_into().unwrap();
+        self.carry = p_carry.try_into().unwrap();
         self.witness_low = (&p_witness_low[..]).try_into().unwrap();
         self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 

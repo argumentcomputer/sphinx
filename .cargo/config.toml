@@ -13,6 +13,7 @@ xclippy = [
     "-Wclippy::derive_partial_eq_without_eq",
     "-Wclippy::enum_glob_use",
     "-Wclippy::explicit_into_iter_loop",
+    "-Wclippy::fallible_impl_from",
     "-Wclippy::filter_map_next",
     "-Wclippy::flat_map_option",
     "-Wclippy::from_iter_instead_of_collect",
@@ -44,4 +45,6 @@ xclippy = [
     "-Wtrivial_numeric_casts",
     "-Wunused_lifetimes",
     "-Wunreachable_pub",
+    "-Wtrivial_numeric_casts",
+    "-Wunused_qualifications",
 ]

@@ -3,6 +3,7 @@ use hybrid_array::typenum::{Double, Shright, Sub1, B1};
 use hybrid_array::{Array, ArraySize, AssocArraySize};
 
 use crate::air::Polynomial;
+use std::array::TryFromSliceError;
 use std::fmt::Debug;
 use std::ops::{Div, Mul, Shl, Shr, Sub};
 use std::slice::Iter;
@@ -91,9 +92,16 @@ impl<'a, Var: Into<Expr> + Clone, Expr: Clone> From<Iter<'a, Var>> for Polynomia
     }
 }
 
-impl<T: Debug + Default + Clone, U: ArraySize> From<Polynomial<T>> for Limbs<T, U> {
-    fn from(value: Polynomial<T>) -> Self {
-        Array::try_from(&value.as_coefficients()[..]).unwrap()
+impl<T, U> TryFrom<Polynomial<T>> for Limbs<T, U>
+where
+    T: Debug + Default + Clone,
+    U: ArraySize,
+{
+    type Error = TryFromSliceError;
+
+    fn try_from(value: Polynomial<T>) -> Result<Self, Self::Error> {
+        let coefficients = value.as_coefficients();
+        Array::try_from(&coefficients[..])
     }
 }
 
