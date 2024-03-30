@@ -197,7 +197,7 @@ mod tests {
         Com<SC>: Send + Sync,
         PcsProverData<SC>: Send + Sync,
         ShardMainData<SC>: Serialize + DeserializeOwned,
-        SC::Val: p3_field::PrimeField32,
+        SC::Val: PrimeField32,
     {
         let ShardProof {
             commitment,

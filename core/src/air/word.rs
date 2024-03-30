@@ -83,13 +83,7 @@ impl<T> IndexMut<usize> for Word<T> {
 
 impl<F: Field> From<u32> for Word<F> {
     fn from(value: u32) -> Self {
-        let inner = value
-            .to_le_bytes()
-            .into_iter()
-            .map(F::from_canonical_u8)
-            .collect::<Vec<_>>()
-            .try_into()
-            .unwrap();
+        let inner = value.to_le_bytes().map(F::from_canonical_u8);
         Word(inner)
     }
 }

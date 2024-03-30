@@ -101,7 +101,7 @@ impl<C: Config> PolynomialSpaceVariable<C> for TwoAdicMultiplicativeCosetVariabl
 where
     C::F: TwoAdicField,
 {
-    type Constant = p3_commit::TwoAdicMultiplicativeCoset<C::F>;
+    type Constant = TwoAdicMultiplicativeCoset<C::F>;
 
     fn from_constant(builder: &mut Builder<C>, constant: Self::Constant) -> Self {
         let log_d_val = constant.log_n as u32;
