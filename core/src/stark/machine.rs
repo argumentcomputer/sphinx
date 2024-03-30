@@ -310,7 +310,6 @@ pub enum ProgramVerificationError {
 #[cfg(test)]
 pub mod tests {
 
-    use crate::runtime::tests::ecall_lwa_program;
     use crate::runtime::tests::fibonacci_program;
     use crate::runtime::tests::simple_memory_program;
     use crate::runtime::tests::simple_program;
@@ -326,13 +325,6 @@ pub mod tests {
     fn test_simple_prove() {
         setup_logger();
         let program = simple_program();
-        run_test(program).unwrap();
-    }
-
-    #[test]
-    fn test_ecall_lwa_prove() {
-        setup_logger();
-        let program = ecall_lwa_program();
         run_test(program).unwrap();
     }
 

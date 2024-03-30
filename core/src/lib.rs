@@ -19,7 +19,7 @@ pub mod alu;
 pub mod bytes;
 pub mod cpu;
 pub mod disassembler;
-#[deprecated(note = "Import from sp1_sdk instead of sp1_core")]
+#[deprecated(note = "Import from wp1_sdk instead of wp1_core")]
 pub mod io;
 pub mod lookup;
 pub mod memory;
@@ -65,7 +65,7 @@ impl SP1Prover {
     pub fn execute(elf: &[u8], stdin: &SP1Stdin) -> Result<SP1Stdout> {
         let program = Program::from(elf);
         let mut runtime = Runtime::new(program);
-        runtime.write_stdin_slice(&stdin.buffer.data);
+        runtime.write_vecs(&stdin.buffer);
         runtime.run();
         Ok(SP1Stdout::from(&runtime.state.output_stream))
     }
@@ -75,7 +75,7 @@ impl SP1Prover {
         let config = BabyBearPoseidon2::new();
 
         let program = Program::from(elf);
-        let (proof, stdout) = run_and_prove(&program, &stdin.buffer.data, config);
+        let (proof, stdout) = run_and_prove(&program, stdin.clone(), config);
         let stdout = SP1Stdout::from(&stdout);
         Ok(SP1ProofWithIO {
             proof,
@@ -101,7 +101,7 @@ impl SP1Prover {
     {
         let program = Program::from(elf);
         let mut runtime = Runtime::new(program);
-        runtime.write_stdin_slice(&stdin.buffer.data);
+        runtime.write_vecs(&stdin.buffer);
         runtime.run();
         let stdout = SP1Stdout::from(&runtime.state.output_stream);
         let proof = prove_core(config, runtime);
