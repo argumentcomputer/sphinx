@@ -179,6 +179,7 @@ impl<F: Field> GOperation<F> {
             }
         }
         // Degree 3 constraint to avoid "OodEvaluationMismatch".
+        #[allow(clippy::eq_op)]
         builder.assert_zero(is_real * is_real * is_real - is_real * is_real * is_real);
     }
 }

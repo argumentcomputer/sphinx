@@ -119,7 +119,6 @@ where
     }
 
     /// Reference: `[sp1_core::stark::Verifier::verify_constraints]`
-    #[allow(clippy::too_many_arguments)]
     pub fn verify_constraints<A>(
         builder: &mut Builder<C>,
         chip: &MachineChip<SC, A>,

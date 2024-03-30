@@ -343,7 +343,6 @@ impl Runtime {
     }
 
     /// Emit a CPU event.
-    #[allow(clippy::too_many_arguments)]
     fn emit_cpu(
         &mut self,
         shard: u32,

@@ -26,7 +26,6 @@ pub struct Instruction<F> {
 }
 
 impl<F: PrimeField32> Instruction<F> {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         opcode: Opcode,
         op_a: F,

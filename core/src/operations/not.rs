@@ -53,6 +53,7 @@ impl<F: Field> NotOperation<F> {
         }
 
         // A dummy constraint to keep the degree 3.
+        #[allow(clippy::eq_op)]
         builder.assert_zero(a[0] * a[0] * a[0] - a[0] * a[0] * a[0]);
     }
 }

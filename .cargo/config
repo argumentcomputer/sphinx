@@ -18,6 +18,7 @@ xclippy = [
     "-Wclippy::from_iter_instead_of_collect",
     "-Wclippy::implicit_clone",
     "-Wclippy::inefficient_to_string",
+    "-Wclippy::invalid_upcast_comparisons",
     "-Wclippy::large_stack_arrays",
     "-Wclippy::large_types_passed_by_value",
     "-Wclippy::macro_use_imports",

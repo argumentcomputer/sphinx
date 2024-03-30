@@ -192,6 +192,7 @@ mod tests {
             local.sqrt.eval::<AB, P>(builder, &local.a);
 
             // A dummy constraint to keep the degree 3.
+            #[allow(clippy::eq_op)]
             builder.assert_zero(
                 local.a[0] * local.a[0] * local.a[0] - local.a[0] * local.a[0] * local.a[0],
             )

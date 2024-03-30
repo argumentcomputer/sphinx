@@ -743,6 +743,7 @@ where
         }
 
         // A dummy constraint to keep the degree 3.
+        #[allow(clippy::eq_op)]
         builder.assert_zero(
             local.a[0] * local.b[0] * local.c[0] - local.a[0] * local.b[0] * local.c[0],
         )

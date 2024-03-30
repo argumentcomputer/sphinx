@@ -17,7 +17,6 @@ use p3_util::log2_strict_usize;
 
 use super::StarkGenericConfig;
 
-#[allow(clippy::too_many_arguments)]
 pub fn quotient_values<SC, A, Mat>(
     chip: &Chip<Val<SC>, A>,
     cumulative_sum: SC::Challenge,

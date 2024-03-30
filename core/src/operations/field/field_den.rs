@@ -250,6 +250,7 @@ mod tests {
                 .eval::<AB, P>(builder, &local.a, &local.b, self.sign);
 
             // A dummy constraint to keep the degree 3.
+            #[allow(clippy::eq_op)]
             builder.assert_zero(
                 local.a[0] * local.b[0] * local.a[0] - local.a[0] * local.b[0] * local.a[0],
             )
