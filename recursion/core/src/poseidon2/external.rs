@@ -126,12 +126,8 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip {
                         state[j] += sums[j % 4];
                     }
                 } else if cols.is_internal == F::one() {
-                    let matmul_constants: [F; WIDTH] = MATRIX_DIAG_16_BABYBEAR_U32
-                        .iter()
-                        .map(|x| F::from_wrapped_u32(*x))
-                        .collect::<Vec<_>>()
-                        .try_into()
-                        .unwrap();
+                    let matmul_constants: [F; WIDTH] =
+                        MATRIX_DIAG_16_BABYBEAR_U32.map(|x| F::from_wrapped_u32(x));
                     matmul_internal(&mut state, matmul_constants);
                 }
 
@@ -180,12 +176,8 @@ where
         let rounds = rounds_f + rounds_p;
 
         // Convert the u32 round constants to field elements.
-        let constants: [[AB::F; WIDTH]; 30] = RC_16_30_U32
-            .iter()
-            .map(|round| round.map(AB::F::from_wrapped_u32))
-            .collect::<Vec<_>>()
-            .try_into()
-            .unwrap();
+        let constants: [[AB::F; WIDTH]; 30] =
+            RC_16_30_U32.map(|round| round.map(AB::F::from_wrapped_u32));
 
         // Apply the round constants.
         //
@@ -278,11 +270,7 @@ where
             let mut state: [AB::Expr; WIDTH] = sbox_result.clone();
             let matmul_constants: [<<AB as AirBuilder>::Expr as AbstractField>::F; WIDTH] =
                 MATRIX_DIAG_16_BABYBEAR_U32
-                    .iter()
-                    .map(|x| <<AB as AirBuilder>::Expr as AbstractField>::F::from_wrapped_u32(*x))
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap();
+                    .map(<<AB as AirBuilder>::Expr as AbstractField>::F::from_wrapped_u32);
             matmul_internal(&mut state, matmul_constants);
             for i in 0..WIDTH {
                 builder

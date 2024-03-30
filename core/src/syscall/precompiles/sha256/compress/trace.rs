@@ -152,11 +152,7 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
                 rows.push(row);
             }
 
-            let mut v: [u32; 8] = (0..8)
-                .map(|i| event.h[i])
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap();
+            let mut v: [u32; 8] = [0, 1, 2, 3, 4, 5, 6, 7].map(|i| event.h[i]);
 
             octet_num_idx += 1;
             // Store a, b, c, d, e, f, g, h.
