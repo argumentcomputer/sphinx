@@ -105,17 +105,17 @@ pub const SERVICE_FQN: &str = "/prover.SP1ProverService";
 pub trait Sp1ProverService {
     async fn create_proof(
         &self,
-        ctx: twirp::Context,
+        ctx: twirp::context::Context,
         req: CreateProofRequest,
     ) -> Result<CreateProofResponse, twirp::TwirpErrorResponse>;
     async fn submit_proof(
         &self,
-        ctx: twirp::Context,
+        ctx: twirp::context::Context,
         req: SubmitProofRequest,
     ) -> Result<SubmitProofResponse, twirp::TwirpErrorResponse>;
     async fn get_proof_status(
         &self,
-        ctx: twirp::Context,
+        ctx: twirp::context::Context,
         req: GetProofStatusRequest,
     ) -> Result<GetProofStatusResponse, twirp::TwirpErrorResponse>;
 }
@@ -126,19 +126,19 @@ where
     twirp::details::TwirpRouterBuilder::new(api)
         .route(
             "/CreateProof",
-            |api: std::sync::Arc<T>, ctx: twirp::Context, req: CreateProofRequest| async move {
+            |api: std::sync::Arc<T>, ctx: twirp::context::Context, req: CreateProofRequest| async move {
                 api.create_proof(ctx, req).await
             },
         )
         .route(
             "/SubmitProof",
-            |api: std::sync::Arc<T>, ctx: twirp::Context, req: SubmitProofRequest| async move {
+            |api: std::sync::Arc<T>, ctx: twirp::context::Context, req: SubmitProofRequest| async move {
                 api.submit_proof(ctx, req).await
             },
         )
         .route(
             "/GetProofStatus",
-            |api: std::sync::Arc<T>, ctx: twirp::Context, req: GetProofStatusRequest| async move {
+            |api: std::sync::Arc<T>, ctx: twirp::context::Context, req: GetProofStatusRequest| async move {
                 api.get_proof_status(ctx, req).await
             },
         )
