@@ -237,9 +237,9 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                     cols.c_neg = cols.c_msb;
                     cols.is_overflow =
                         F::from_bool(event.b as i32 == i32::MIN && event.c as i32 == -1);
-                    cols.abs_remainder = Word::from((remainder as i32).abs() as u32);
-                    cols.abs_c = Word::from((event.c as i32).abs() as u32);
-                    cols.max_abs_c_or_1 = Word::from(u32::max(1, (event.c as i32).abs() as u32));
+                    cols.abs_remainder = Word::from((remainder as i32).unsigned_abs());
+                    cols.abs_c = Word::from((event.c as i32).unsigned_abs());
+                    cols.max_abs_c_or_1 = Word::from(u32::max(1, (event.c as i32).unsigned_abs()));
                 } else {
                     cols.abs_remainder = cols.remainder;
                     cols.abs_c = cols.c;
@@ -340,8 +340,8 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         AluEvent {
                             opcode: Opcode::SLT,
                             a: 1,
-                            b: (remainder as i32).abs() as u32,
-                            c: u32::max(1, (event.c as i32).abs() as u32),
+                            b: (remainder as i32).unsigned_abs(),
+                            c: u32::max(1, (event.c as i32).unsigned_abs()),
                             clk: event.clk,
                         }
                     } else {
