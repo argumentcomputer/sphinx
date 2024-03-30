@@ -109,6 +109,12 @@ impl Blake3CompressInnerChip {
     }
 }
 
+impl Default for Blake3CompressInnerChip {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 pub mod compress_tests {
     use crate::runtime::Instruction;

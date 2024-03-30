@@ -586,7 +586,7 @@ mod tests {
             memory: None,
             memory_record: None,
         }];
-        let chip = CpuChip::default();
+        let chip = CpuChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values);
@@ -597,7 +597,7 @@ mod tests {
         let program = simple_program();
         let mut runtime = Runtime::new(program);
         runtime.run();
-        let chip = CpuChip::default();
+        let chip = CpuChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&runtime.record, &mut ExecutionRecord::default());
         for cpu_event in runtime.record.cpu_events {
@@ -614,7 +614,7 @@ mod tests {
         let program = simple_program();
         let mut runtime = Runtime::new(program);
         runtime.run();
-        let chip = CpuChip::default();
+        let chip = CpuChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&runtime.record, &mut ExecutionRecord::default());
         trace.rows().for_each(|row| println!("{:?}", row));

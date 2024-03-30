@@ -76,7 +76,7 @@ impl<F: PrimeField> MachineAir<F> for BitwiseChip {
 
                 for ((b_a, b_b), b_c) in a.into_iter().zip(b).zip(c) {
                     let byte_event = ByteLookupEvent {
-                        opcode: ByteOpcode::from(event.opcode),
+                        opcode: ByteOpcode::try_from(event.opcode).unwrap(),
                         a1: u32::from(b_a),
                         a2: 0,
                         b: u32::from(b_b),
@@ -168,7 +168,7 @@ mod tests {
     fn generate_trace() {
         let mut shard = ExecutionRecord::default();
         shard.bitwise_events = vec![AluEvent::new(0, Opcode::XOR, 25, 10, 19)];
-        let chip = BitwiseChip::default();
+        let chip = BitwiseChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values)
@@ -186,7 +186,7 @@ mod tests {
             AluEvent::new(0, Opcode::AND, 2, 10, 19),
         ]
         .repeat(1000);
-        let chip = BitwiseChip::default();
+        let chip = BitwiseChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         let proof = prove::<BabyBearPoseidon2, _>(&config, &chip, &mut challenger, trace);

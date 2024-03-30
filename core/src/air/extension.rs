@@ -83,7 +83,11 @@ where
     AF::F: BinomiallyExtendable<DEGREE>,
 {
     fn from(value: BinomialExtensionField<AF, DEGREE>) -> Self {
-        let arr: [AF; DEGREE] = value.as_base_slice().try_into().unwrap();
+        // Safety: BinomialExtensionField always returns a slice of length DEGREE
+        let arr: [AF; DEGREE] = value
+            .as_base_slice()
+            .try_into()
+            .expect("BinomialExtensionField invariant violated");
         Self(arr)
     }
 }

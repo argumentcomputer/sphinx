@@ -201,7 +201,7 @@ mod tests {
     fn generate_trace() {
         let mut shard = ExecutionRecord::default();
         shard.add_events = vec![AluEvent::new(0, Opcode::ADD, 14, 8, 6)];
-        let chip = AddSubChip::default();
+        let chip = AddSubChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values)
@@ -230,7 +230,7 @@ mod tests {
                 .push(AluEvent::new(0, Opcode::SUB, result, operand_1, operand_2));
         }
 
-        let chip = AddSubChip::default();
+        let chip = AddSubChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         let proof = prove::<BabyBearPoseidon2, _>(&config, &chip, &mut challenger, trace);

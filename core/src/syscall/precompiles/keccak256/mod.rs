@@ -35,6 +35,12 @@ impl KeccakPermuteChip {
     }
 }
 
+impl Default for KeccakPermuteChip {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 pub mod permute_tests {
     use crate::runtime::SyscallCode;

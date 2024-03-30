@@ -9,7 +9,7 @@ use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
 use num::BigUint;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::{Debug, Display, Formatter, Result};
+use std::fmt::{self, Debug, Display, Formatter, Result};
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
@@ -35,7 +35,7 @@ impl Display for CurveType {
             CurveType::Secp256k1 => write!(f, "Secp256k1"),
             CurveType::Bn254 => write!(f, "Bn254"),
             CurveType::Ed25519 => write!(f, "Ed25519"),
-            _ => panic!("Unsupported curve"),
+            _ => Err(fmt::Error),
         }
     }
 }

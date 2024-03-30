@@ -1,5 +1,6 @@
 use p3_field::Field;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{bytes::NUM_BYTE_OPS, runtime::Opcode};
 
@@ -58,15 +59,22 @@ impl ByteOpcode {
     }
 }
 
-impl From<Opcode> for ByteOpcode {
-    /// Convert an opcode to a byte opcode.
-    fn from(value: Opcode) -> Self {
+impl TryFrom<Opcode> for ByteOpcode {
+    type Error = OpcodeConversionError;
+
+    fn try_from(value: Opcode) -> Result<Self, Self::Error> {
         match value {
-            Opcode::AND => Self::AND,
-            Opcode::OR => Self::OR,
-            Opcode::XOR => Self::XOR,
-            Opcode::SLL => Self::SLL,
-            _ => panic!("Invalid opcode for ByteChip: {:?}", value),
+            Opcode::AND => Ok(Self::AND),
+            Opcode::OR => Ok(Self::OR),
+            Opcode::XOR => Ok(Self::XOR),
+            Opcode::SLL => Ok(Self::SLL),
+            _ => Err(OpcodeConversionError::InvalidOpcode(value)),
         }
     }
+}
+
+#[derive(Error, Debug)]
+pub enum OpcodeConversionError {
+    #[error("invalid opcode for ByteChip: {0:?}")]
+    InvalidOpcode(Opcode),
 }

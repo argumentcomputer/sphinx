@@ -364,7 +364,7 @@ mod tests {
     fn generate_trace() {
         let mut shard = ExecutionRecord::default();
         shard.shift_left_events = vec![AluEvent::new(0, Opcode::SLL, 16, 8, 1)];
-        let chip = ShiftLeft::default();
+        let chip = ShiftLeft;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values)
@@ -408,7 +408,7 @@ mod tests {
 
         let mut shard = ExecutionRecord::default();
         shard.shift_left_events = shift_events;
-        let chip = ShiftLeft::default();
+        let chip = ShiftLeft;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         let proof = prove::<BabyBearPoseidon2, _>(&config, &chip, &mut challenger, trace);

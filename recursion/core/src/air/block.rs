@@ -6,6 +6,7 @@ use p3_field::PrimeField32;
 use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
 
+use std::array::TryFromSliceError;
 use std::ops::Index;
 use std::ops::IndexMut;
 
@@ -76,10 +77,12 @@ impl<F: PrimeField32> From<F> for Block<F> {
     }
 }
 
-impl<T: Copy> From<&[T]> for Block<T> {
-    fn from(slice: &[T]) -> Self {
-        let arr: [T; D] = slice.try_into().unwrap();
-        Self(arr)
+impl<T: Copy> TryFrom<&[T]> for Block<T> {
+    type Error = TryFromSliceError;
+
+    fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
+        let arr: [T; D] = slice.try_into()?;
+        Ok(Self(arr))
     }
 }
 

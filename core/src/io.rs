@@ -17,6 +17,12 @@ pub struct SP1Stdout {
     pub buffer: Buffer,
 }
 
+impl Default for SP1Stdin {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SP1Stdin {
     /// Create a new `SP1Stdin`.
     pub fn new() -> Self {
@@ -62,6 +68,12 @@ impl SP1Stdin {
 
     pub fn write_vec(&mut self, vec: Vec<u8>) {
         self.buffer.push(vec);
+    }
+}
+
+impl Default for SP1Stdout {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

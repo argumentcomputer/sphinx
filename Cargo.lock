@@ -4243,6 +4243,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
+ "thiserror",
  "tiny-keccak",
  "tracing",
  "tracing-forest",

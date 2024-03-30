@@ -8,6 +8,12 @@ impl SyscallHalt {
     }
 }
 
+impl Default for SyscallHalt {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Syscall for SyscallHalt {
     fn execute(&self, ctx: &mut SyscallContext<'_>, _: u32, _: u32) -> Option<u32> {
         let exit_code = ctx.register_unsafe(Register::X10);

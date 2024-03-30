@@ -275,28 +275,28 @@ where
                 Opcode::EADD | Opcode::EFADD => {
                     let (a_ptr, b_val, c_val) = self.alu_rr(&instruction);
                     let sum = EF::from_base_slice(&b_val.0) + EF::from_base_slice(&c_val.0);
-                    let a_val = Block::from(sum.as_base_slice());
+                    let a_val = Block::try_from(sum.as_base_slice()).unwrap();
                     self.mw(a_ptr, a_val, MemoryAccessPosition::A);
                     (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::EMUL | Opcode::EFMUL => {
                     let (a_ptr, b_val, c_val) = self.alu_rr(&instruction);
                     let product = EF::from_base_slice(&b_val.0) * EF::from_base_slice(&c_val.0);
-                    let a_val = Block::from(product.as_base_slice());
+                    let a_val = Block::try_from(product.as_base_slice()).unwrap();
                     self.mw(a_ptr, a_val, MemoryAccessPosition::A);
                     (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::ESUB | Opcode::EFSUB | Opcode::FESUB => {
                     let (a_ptr, b_val, c_val) = self.alu_rr(&instruction);
                     let diff = EF::from_base_slice(&b_val.0) - EF::from_base_slice(&c_val.0);
-                    let a_val = Block::from(diff.as_base_slice());
+                    let a_val = Block::try_from(diff.as_base_slice()).unwrap();
                     self.mw(a_ptr, a_val, MemoryAccessPosition::A);
                     (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::EDIV | Opcode::EFDIV | Opcode::FEDIV => {
                     let (a_ptr, b_val, c_val) = self.alu_rr(&instruction);
                     let quotient = EF::from_base_slice(&b_val.0) / EF::from_base_slice(&c_val.0);
-                    let a_val = Block::from(quotient.as_base_slice());
+                    let a_val = Block::try_from(quotient.as_base_slice()).unwrap();
                     self.mw(a_ptr, a_val, MemoryAccessPosition::A);
                     (a, b, c) = (a_val, b_val, c_val);
                 }
