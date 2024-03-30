@@ -405,7 +405,7 @@ impl CpuChip {
     ) {
         // Verify that the pc increments by 4 for all instructions except branch, jump and halt instructions.
         // The other case is handled by eval_jump, eval_branch and eval_ecall (for halt).
-        // Note that when the instruction is halt, we already contrain that the next new is not real,
+        // Note that when the instruction is halt, we already constrain that the next new is not real,
         // so the `when(next.is_real)` condition implies that the instruction is not halt.
         builder
             .when_transition()

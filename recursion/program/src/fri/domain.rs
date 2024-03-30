@@ -281,7 +281,7 @@ pub(crate) mod tests {
                 zeta_val,
             );
 
-            // Now try splited domains
+            // Now try split domains
             let qc_domains_val = disjoint_domain_val.split_domains(1 << log_quotient_degree);
             for dom_val in qc_domains_val.iter() {
                 let dom = builder.eval_const(*dom_val);

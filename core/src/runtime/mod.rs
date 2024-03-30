@@ -939,7 +939,7 @@ impl Runtime {
             },
         };
 
-        memory_initialize_events.push(MemoryInitializeFinalizeEvent::intialize(0, 0, true));
+        memory_initialize_events.push(MemoryInitializeFinalizeEvent::initialize(0, 0, true));
         memory_finalize_events.push(MemoryInitializeFinalizeEvent::finalize_from_record(
             0,
             addr_0_final_record,
@@ -964,7 +964,7 @@ impl Runtime {
             // program_memory_image table.
             if !self.program.memory_image.contains_key(addr) {
                 memory_initialize_events
-                    .push(MemoryInitializeFinalizeEvent::intialize(*addr, 0, true));
+                    .push(MemoryInitializeFinalizeEvent::initialize(*addr, 0, true));
             }
 
             memory_finalize_events.push(MemoryInitializeFinalizeEvent::finalize_from_record(
@@ -975,7 +975,7 @@ impl Runtime {
         let mut program_memory_events = program_memory_map
             .into_iter()
             .map(|(addr, (value, used))| {
-                MemoryInitializeFinalizeEvent::intialize(*addr, value, used)
+                MemoryInitializeFinalizeEvent::initialize(*addr, value, used)
             })
             .collect::<Vec<MemoryInitializeFinalizeEvent>>();
         // Sort the program_memory_events by addr to create a canonical ordering for the
