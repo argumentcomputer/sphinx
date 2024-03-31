@@ -26,7 +26,7 @@ use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::limbs_from_access;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_rows;
+use crate::utils::pad_vec_rows;
 use crate::utils::words_to_bytes_le;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
@@ -301,9 +301,6 @@ impl<E: EdwardsParameters> EdDecompressChip<E> {
     }
 }
 
-// TODO(FG): mop up when making execution generic
-const NUM_ED_DECOMPRESS_COLS: usize = size_of::<EdDecompressCols<u8>>();
-
 impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E> {
     type Record = ExecutionRecord;
 
@@ -318,23 +315,17 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
-        // sanity-check
-        assert_eq!(
-            size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>(),
-            NUM_ED_DECOMPRESS_COLS
-        );
-
         for i in 0..input.ed_decompress_events.len() {
             let event = &input.ed_decompress_events[i];
-            let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
+            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             cols.populate::<E::BaseField, E>(event, output);
 
             rows.push(row);
         }
 
-        pad_rows(&mut rows, || {
-            let mut row = [F::zero(); NUM_ED_DECOMPRESS_COLS];
+        pad_vec_rows(&mut rows, || {
+            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             cols.populate_field_ops::<E::BaseField, E>(&zero);
@@ -343,7 +334,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_ED_DECOMPRESS_COLS,
+            size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>(),
         )
     }
 
@@ -354,7 +345,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
 impl<F, E: EdwardsParameters> BaseAir<F> for EdDecompressChip<E> {
     fn width(&self) -> usize {
-        NUM_ED_DECOMPRESS_COLS
+        size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()
     }
 }
 
