@@ -23,7 +23,7 @@ use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_rows;
+use crate::utils::pad_vec_rows;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use hybrid_array::typenum::Unsigned;
@@ -63,9 +63,6 @@ pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub(crate) x3_ins: FieldDenCols<T, U>,
     pub(crate) y3_ins: FieldDenCols<T, U>,
 }
-
-// TODO(FG): Mop this up when making execution generic
-pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
 
 #[derive(Default)]
 pub struct EdAddAssignChip<E> {
@@ -144,20 +141,11 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         input: &ExecutionRecord,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        // sanity-check
-        assert_eq!(
-            size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>(),
-            NUM_ED_ADD_COLS
-        );
-
-        let (mut rows, new_byte_lookup_events): (
-            Vec<[F; NUM_ED_ADD_COLS]>,
-            Vec<Vec<ByteLookupEvent>>,
-        ) = input
+        let (mut rows, new_byte_lookup_events): (Vec<Vec<F>>, Vec<Vec<ByteLookupEvent>>) = input
             .ed_add_events
             .par_iter()
             .map(|event| {
-                let mut row = [F::zero(); NUM_ED_ADD_COLS];
+                let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()];
                 let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> =
                     row.as_mut_slice().borrow_mut();
 
@@ -197,8 +185,8 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
             output.add_byte_lookup_events(byte_lookup_events);
         }
 
-        pad_rows(&mut rows, || {
-            let mut row = [F::zero(); NUM_ED_ADD_COLS];
+        pad_vec_rows(&mut rows, || {
+            let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
@@ -208,7 +196,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         // Convert the trace to a row major matrix.
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_ED_ADD_COLS,
+            size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>(),
         )
     }
 
@@ -219,7 +207,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
 
 impl<F, E: EllipticCurve + EdwardsParameters> BaseAir<F> for EdAddAssignChip<E> {
     fn width(&self) -> usize {
-        NUM_ED_ADD_COLS
+        size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()
     }
 }
 

@@ -22,7 +22,7 @@ use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_rows;
+use crate::utils::pad_vec_rows;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use hybrid_array::typenum::Unsigned;
@@ -41,9 +41,6 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
-
-// TODO(FG): mop up when making execution generic
-pub const NUM_WEIERSTRASS_DOUBLE_COLS: usize = size_of::<WeierstrassDoubleAssignCols<u8>>();
 
 /// A set of columns to double a point on a Weierstrass curve.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -213,16 +210,14 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
                 let mut record = ExecutionRecord::default();
                 let mut new_byte_lookup_events = Vec::new();
 
-                // sanity-check
-                assert_eq!(
-                    size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>(),
-                    NUM_WEIERSTRASS_DOUBLE_COLS
-                );
-
                 let rows = events
                     .iter()
                     .map(|event| {
-                        let mut row = [F::zero(); NUM_WEIERSTRASS_DOUBLE_COLS];
+                        let mut row =
+                            vec![
+                                F::zero();
+                                size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>()
+                            ];
                         let cols: &mut WeierstrassDoubleAssignCols<F, BaseLimbWidth<E>> =
                             row.as_mut_slice().borrow_mut();
 
@@ -254,13 +249,14 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         // Generate the trace rows for each event.
         let mut rows = Vec::new();
-        for mut row_and_record in rows_and_records {
-            rows.extend(row_and_record.0);
-            output.append(&mut row_and_record.1);
+        for (row, mut record) in rows_and_records {
+            rows.extend(row);
+            output.append(&mut record);
         }
 
-        pad_rows(&mut rows, || {
-            let mut row = [F::zero(); NUM_WEIERSTRASS_DOUBLE_COLS];
+        pad_vec_rows(&mut rows, || {
+            let mut row =
+                vec![F::zero(); size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut WeierstrassDoubleAssignCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
             let zero = &BigUint::zero();
@@ -271,7 +267,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         // Convert the trace to a row major matrix.
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_WEIERSTRASS_DOUBLE_COLS,
+            size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>(),
         )
     }
 
@@ -286,7 +282,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
 impl<F, E: EllipticCurve + WeierstrassParameters> BaseAir<F> for WeierstrassDoubleAssignChip<E> {
     fn width(&self) -> usize {
-        NUM_WEIERSTRASS_DOUBLE_COLS
+        size_of::<WeierstrassDoubleAssignCols<u8, BaseLimbWidth<E>>>()
     }
 }
 

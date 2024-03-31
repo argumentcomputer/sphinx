@@ -22,7 +22,7 @@ use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_rows;
+use crate::utils::pad_vec_rows;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use hybrid_array::typenum::Unsigned;
@@ -61,8 +61,6 @@ pub struct WeierstrassAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub(crate) slope_times_p_x_minus_x: FieldOpCols<T, U>,
 }
 
-// TODO(FG): mop up when making execution generic
-const NUM_WEIERSTRASS_ADD_COLS: usize = size_of::<WeierstrassAddAssignCols<u8>>();
 #[derive(Default)]
 pub struct WeierstrassAddAssignChip<E> {
     _marker: PhantomData<E>,
@@ -182,16 +180,11 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         let mut new_byte_lookup_events = Vec::new();
 
-        // sanity-check
-        assert_eq!(
-            size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>(),
-            NUM_WEIERSTRASS_ADD_COLS
-        );
-
         for i in 0..events.len() {
             let event = &events[i];
 
-            let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
+            let mut row =
+                vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
 
@@ -224,8 +217,9 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         }
         output.add_byte_lookup_events(new_byte_lookup_events);
 
-        pad_rows(&mut rows, || {
-            let mut row = [F::zero(); NUM_WEIERSTRASS_ADD_COLS];
+        pad_vec_rows(&mut rows, || {
+            let mut row =
+                vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>()];
             let cols: &mut WeierstrassAddAssignCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
             let zero = &BigUint::zero();
@@ -236,7 +230,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         // Convert the trace to a row major matrix.
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_WEIERSTRASS_ADD_COLS,
+            size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>(),
         )
     }
 
@@ -251,7 +245,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
 impl<F, E: EllipticCurve> BaseAir<F> for WeierstrassAddAssignChip<E> {
     fn width(&self) -> usize {
-        NUM_WEIERSTRASS_ADD_COLS
+        size_of::<WeierstrassAddAssignCols<u8, BaseLimbWidth<E>>>()
     }
 }
 

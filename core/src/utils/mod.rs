@@ -70,7 +70,25 @@ pub fn limbs_from_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) ->
     Array::try_from(&vec[..]).unwrap_or_else(|_| panic!("failed to convert to limbs"))
 }
 
+/// Pads `rows` to a length that is a power of two, using `row_fn` to generate new rows.
 pub fn pad_rows<T: Clone, const N: usize>(rows: &mut Vec<[T; N]>, row_fn: impl Fn() -> [T; N]) {
+    let nb_rows = rows.len();
+    let mut padded_nb_rows = nb_rows.next_power_of_two();
+    if padded_nb_rows == 2 || padded_nb_rows == 1 {
+        padded_nb_rows = 4;
+    }
+    if padded_nb_rows == nb_rows {
+        return;
+    }
+    let dummy_row = row_fn();
+    rows.resize(padded_nb_rows, dummy_row);
+}
+
+/// Pads `rows` to a length that is a power of two, using `row_fn` to generate new rows.
+//
+// A non const-generic variant of [`crate::util::pad_rows`], where the size of rows is hard to encode in
+// the type system (in our case, for rows which const-generic sizing would require generic_const_expr)
+pub fn pad_vec_rows<T: Clone>(rows: &mut Vec<Vec<T>>, row_fn: impl Fn() -> Vec<T>) {
     let nb_rows = rows.len();
     let mut padded_nb_rows = nb_rows.next_power_of_two();
     if padded_nb_rows == 2 || padded_nb_rows == 1 {
