@@ -75,7 +75,7 @@ impl SP1Prover {
         let config = BabyBearPoseidon2::new();
 
         let program = Program::from(elf);
-        let (proof, stdout) = run_and_prove(&program, stdin.clone(), config);
+        let (proof, stdout) = run_and_prove(&program, &stdin, config);
         let stdout = SP1Stdout::from(&stdout);
         Ok(SP1ProofWithIO {
             proof,

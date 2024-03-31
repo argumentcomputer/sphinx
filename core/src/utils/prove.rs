@@ -110,7 +110,7 @@ fn reset_seek(file: &mut File) {
 
 pub fn run_and_prove<SC: StarkGenericConfig + Send + Sync>(
     program: &Program,
-    stdin: SP1Stdin,
+    stdin: &SP1Stdin,
     config: SC,
 ) -> (crate::stark::Proof<SC>, Vec<u8>)
 where

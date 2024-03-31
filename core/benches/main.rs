@@ -25,7 +25,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                     run_and_prove(
                         black_box(&program),
                         #[allow(deprecated)]
-                        wp1_core::SP1Stdin::new(),
+                        &wp1_core::SP1Stdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })

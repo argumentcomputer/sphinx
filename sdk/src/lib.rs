@@ -134,7 +134,7 @@ impl SP1Prover {
             let (proof, stdout_vec) = run_and_prove(
                 &program,
                 #[allow(deprecated)]
-                wp1_core::SP1Stdin {
+                &wp1_core::SP1Stdin {
                     buffer: stdin.buffer.clone(),
                     ptr: 0,
                 },
