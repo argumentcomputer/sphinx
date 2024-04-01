@@ -13,6 +13,7 @@ use crate::operations::field::params::Limbs;
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::runtime::ExecutionRecord;
+use crate::runtime::Program;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
 use crate::syscall::precompiles::create_ec_add_event;
@@ -130,6 +131,8 @@ impl<
 
 impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E> {
     type Record = ExecutionRecord;
+
+    type Program = Program;
 
     fn name(&self) -> String {
         "EdAddAssign".to_string()

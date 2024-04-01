@@ -10,6 +10,7 @@ use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
+use crate::runtime::Program;
 use crate::runtime::SyscallCode;
 use crate::stark::MachineRecord;
 use crate::utils::ec::field::FieldParameters;
@@ -151,6 +152,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDoubling> M
     for WeierstrassDoubleAssignChip<E>
 {
     type Record = ExecutionRecord;
+    type Program = Program;
 
     fn name(&self) -> String {
         match E::CURVE_TYPE {

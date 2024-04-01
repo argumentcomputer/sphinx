@@ -299,6 +299,7 @@ mod tests {
     use crate::operations::field::params::Limbs;
 
     use crate::air::MachineAir;
+    use crate::runtime::Program;
     use crate::operations::field::params::LimbWidth;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::field::FieldParameters;
@@ -340,6 +341,8 @@ mod tests {
 
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for QuadFieldOpChip<P> {
         type Record = ExecutionRecord;
+
+        type Program = Program;
 
         fn name(&self) -> String {
             format!("QuadFieldOp{:?}", self.operation)

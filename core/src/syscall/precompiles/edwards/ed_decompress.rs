@@ -15,6 +15,7 @@ use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::MemoryReadRecord;
 use crate::runtime::MemoryWriteRecord;
+use crate::runtime::Program;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
 use crate::syscall::precompiles::SyscallContext;
@@ -303,6 +304,8 @@ impl<E: EdwardsParameters> EdDecompressChip<E> {
 
 impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E> {
     type Record = ExecutionRecord;
+
+    type Program = Program;
 
     fn name(&self) -> String {
         "EdDecompress".to_string()

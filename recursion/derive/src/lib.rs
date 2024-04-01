@@ -60,9 +60,9 @@ pub fn derive_variable(input: TokenStream) -> TokenStream {
                     let ftype = &f.ty;
                     quote! {
                         {
-                            let address = builder.eval(ptr + Usize::Const(offset));
-                            self.#fname.load(address, builder);
-                            offset += <#ftype as MemVariable<C>>::size_of();
+                            // let address = builder.eval(ptr + Usize::Const(offset));
+                            self.#fname.load(ptr, index, builder);
+                            index.offset += <#ftype as MemVariable<C>>::size_of();
                         }
                     }
                 });
@@ -72,9 +72,9 @@ pub fn derive_variable(input: TokenStream) -> TokenStream {
                     let ftype = &f.ty;
                     quote! {
                         {
-                            let address = builder.eval(ptr + Usize::Const(offset));
-                            self.#fname.store(address, builder);
-                            offset += <#ftype as MemVariable<C>>::size_of();
+                            // let address = builder.eval(ptr + Usize::Const(offset));
+                            self.#fname.store(ptr, index, builder);
+                            index.offset += <#ftype as MemVariable<C>>::size_of();
                         }
                     }
                 });
@@ -121,13 +121,17 @@ pub fn derive_variable(input: TokenStream) -> TokenStream {
                             size
                         }
 
-                        fn load(&self, ptr: Ptr<<C as Config>::N>, builder: &mut Builder<C>) {
-                            let mut offset = 0;
+                        fn load(&self, ptr: Ptr<<C as Config>::N>,
+                            index: MemIndex<<C as Config>::N>,
+                            builder: &mut Builder<C>) {
+                            let mut index = index;
                             #(#field_loads)*
                         }
 
-                        fn store(&self, ptr: Ptr<<C as Config>::N>, builder: &mut Builder<C>) {
-                            let mut offset = 0;
+                        fn store(&self, ptr: Ptr<<C as Config>::N>,
+                                 index: MemIndex<<C as Config>::N>,
+                                builder: &mut Builder<C>) {
+                            let mut index = index;
                             #(#field_stores)*
                         }
                     }

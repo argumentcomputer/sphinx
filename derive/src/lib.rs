@@ -90,7 +90,7 @@ pub fn aligned_borrow_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(methods)
 }
 
-#[proc_macro_derive(MachineAir, attributes(wp1_core_path, execution_record_path))]
+#[proc_macro_derive(MachineAir, attributes(wp1_core_path, execution_record_path, program_path))]
 pub fn machine_air_derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
 
@@ -98,6 +98,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
     let generics = &ast.generics;
     let wp1_core_path = find_wp1_core_path(&ast.attrs);
     let execution_record_path = find_execution_record_path(&ast.attrs);
+    let program_path = find_program_path(&ast.attrs);
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     match &ast.data {
@@ -183,6 +184,8 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
                 impl #impl_generics #wp1_core_path::air::MachineAir<F> for #name #ty_generics #where_clause {
                     type Record = #execution_record_path;
 
+                    type Program = #program_path;
+
                     fn name(&self) -> String {
                         match self {
                             #(#name_arms,)*
@@ -197,7 +200,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
                     fn generate_preprocessed_trace(
                         &self,
-                        program: &#wp1_core_path::runtime::Program,
+                        program: &#program_path,
                     ) -> Option<p3_matrix::dense::RowMajorMatrix<F>> {
                         match self {
                             #(#generate_preprocessed_trace_arms,)*
@@ -244,7 +247,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
             let mut new_generics = generics.clone();
             new_generics
                 .params
-                .push(syn::parse_quote! { AB: #wp1_core_path::air::SP1AirBuilder<F = F> });
+                .push(syn::parse_quote! { AB: p3_air::PairBuilder + #wp1_core_path::air::SP1AirBuilder<F = F> });
 
             let (air_impl_generics, _, _) = new_generics.split_for_impl();
 
@@ -320,4 +323,19 @@ fn find_execution_record_path(attrs: &[syn::Attribute]) -> syn::Path {
         }
     }
     parse_quote!(crate::runtime::ExecutionRecord)
+}
+
+fn find_program_path(attrs: &[syn::Attribute]) -> syn::Path {
+    for attr in attrs {
+        if attr.path.is_ident("program_path") {
+            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
+                if let syn::Lit::Str(lit_str) = &meta.lit {
+                    if let Ok(path) = lit_str.parse::<syn::Path>() {
+                        return path;
+                    }
+                }
+            }
+        }
+    }
+    parse_quote!(crate::runtime::Program)
 }

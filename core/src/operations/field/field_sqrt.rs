@@ -83,6 +83,7 @@ mod tests {
     use crate::air::MachineAir;
 
     use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+    use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::{ed25519_sqrt, Ed25519BaseField};
     use crate::utils::ec::field::FieldParameters;
@@ -122,6 +123,8 @@ mod tests {
         for EdSqrtChip<P>
     {
         type Record = ExecutionRecord;
+
+        type Program = Program;
 
         fn name(&self) -> String {
             "EdSqrtChip".to_string()
