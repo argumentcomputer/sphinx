@@ -104,3 +104,19 @@ Doubles a Bn256 point inplace.
 ```rust,noplayground
 pub extern "C" fn syscall_bn254_double(p: *mut u32)
 ```
+
+#### Bls12-381 Add
+
+Adds two Bls12-381 points in place.
+
+```rust,noplayground
+pub extern "C" fn syscall_bls12381_add(p: *mut u32, q: *mut u32)
+```
+
+#### Bls12-381 Double
+
+Doubles a Bls12-381 point in place.
+
+```rust,noplayground
+pub extern "C" fn syscall_bls12381_double(p: *mut u32)
+```

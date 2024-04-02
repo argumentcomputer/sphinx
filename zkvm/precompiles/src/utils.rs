@@ -1,17 +1,28 @@
-pub trait CurveOperations {
-    const GENERATOR: [u32; 16];
-    fn add_assign(limbs: &mut [u32; 16], other: &[u32; 16]);
-    fn double(limbs: &mut [u32; 16]);
+use std::{
+    ops::{Mul, Shl, Shr},
+    slice,
+};
+
+use hybrid_array::{
+    sizes::{U16, U4},
+    typenum::B1,
+    Array, ArraySize,
+};
+
+pub trait CurveOperations<N: ArraySize = U16> {
+    const GENERATOR: N::ArrayType<u32>;
+    fn add_assign(limbs: &mut N::ArrayType<u32>, other: &N::ArrayType<u32>);
+    fn double(limbs: &mut N::ArrayType<u32>);
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct AffinePoint<C: CurveOperations> {
-    pub(crate) limbs: [u32; 16],
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AffinePoint<C: CurveOperations<N>, N: ArraySize = U16> {
+    pub(crate) limbs: N::ArrayType<u32>,
     _marker: std::marker::PhantomData<C>,
 }
 
-impl<C: CurveOperations + Copy> AffinePoint<C> {
-    const GENERATOR: [u32; 16] = C::GENERATOR;
+impl<N: ArraySize, C: CurveOperations<N>> AffinePoint<C, N> {
+    const GENERATOR: N::ArrayType<u32> = C::GENERATOR;
 
     pub const fn generator_in_affine() -> Self {
         Self {
@@ -20,42 +31,97 @@ impl<C: CurveOperations + Copy> AffinePoint<C> {
         }
     }
 
-    pub fn new(limbs: [u32; 16]) -> Self {
+    pub fn new(limbs: N::ArrayType<u32>) -> Self {
         Self {
             limbs,
             _marker: std::marker::PhantomData,
         }
     }
 
-    /// Construct an AffinePoint from the x and y coordinates. The coordinates are expected to be
-    /// in little-endian byte order.
-    pub fn from(x_bytes: [u8; 32], y_bytes: [u8; 32]) -> Self {
-        let mut limbs = [0u32; 16];
-        let x = bytes_to_words_le::<8>(&x_bytes);
-        let y = bytes_to_words_le::<8>(&y_bytes);
-        limbs[..8].copy_from_slice(&x);
-        limbs[8..].copy_from_slice(&y);
-        Self::new(limbs)
-    }
-
-    pub fn add_assign(&mut self, other: &AffinePoint<C>) {
-        C::add_assign(&mut self.limbs, &other.limbs);
+    pub fn from_array(limbs: Array<u32, N>) -> Self {
+        Self {
+            limbs: limbs.into(),
+            _marker: std::marker::PhantomData,
+        }
     }
 
     pub fn double(&mut self) {
         C::double(&mut self.limbs);
     }
 
-    pub fn mul_assign(&mut self, scalar: &[u32; 8]) {
-        let mut res: Option<Self> = None;
-        let mut temp = *self;
+    pub fn add_assign(&mut self, other: &AffinePoint<C, N>) {
+        C::add_assign(&mut self.limbs, &other.limbs);
+    }
+}
 
-        for &words in scalar.iter() {
+impl<N: ArraySize + Shl<B1, Output = O>, O: ArraySize, C: CurveOperations<N>> AffinePoint<C, N> {
+    /// Construct an AffinePoint from the x and y coordinates. The coordinates are expected to be
+    /// in little-endian byte order.
+    pub fn from(x_bytes: &O::ArrayType<u8>, y_bytes: &O::ArrayType<u8>) -> Self {
+        let mut limbs = Array::<u32, N>::default();
+
+        // Safety : by the type logic
+        let x = unsafe {
+            slice::from_raw_parts(
+                x_bytes.as_ref().as_ptr() as *const u32,
+                x_bytes.as_ref().len() / 4,
+            )
+        };
+        let y = unsafe {
+            slice::from_raw_parts(
+                y_bytes.as_ref().as_ptr() as *const u32,
+                y_bytes.as_ref().len() / 4,
+            )
+        };
+
+        // assumes N divisible by 2
+        // TODO(FG): encode in the types?
+        let n = limbs.len();
+        limbs[..n / 2].copy_from_slice(x);
+        limbs[n / 2..].copy_from_slice(y);
+        Self::from_array(limbs)
+    }
+}
+
+impl<N: ArraySize + Mul<U4, Output = O>, O: ArraySize, C: CurveOperations<N>> AffinePoint<C, N> {
+    pub fn from_le_bytes(limbs: &O::ArrayType<u8>) -> Self {
+        // Safety : by the type logic
+        let v = unsafe {
+            slice::from_raw_parts(
+                limbs.as_ref().as_ptr() as *const u32,
+                limbs.as_ref().len() / 4,
+            )
+        };
+        Self::from_array(Array::try_from(v).unwrap())
+    }
+
+    pub fn to_le_bytes(&self) -> O::ArrayType<u8> {
+        // Safety : by the type logic
+        let v = unsafe {
+            slice::from_raw_parts(
+                self.limbs.as_ref().as_ptr() as *const u8,
+                self.limbs.as_ref().len() * 4,
+            )
+        };
+        Array::try_from(v).unwrap().into()
+    }
+}
+
+impl<N: ArraySize + Shr<B1, Output = O>, O: ArraySize, C: CurveOperations<N> + Clone>
+    AffinePoint<C, N>
+where
+    N::ArrayType<u32>: Clone,
+{
+    pub fn mul_assign(&mut self, scalar: &O::ArrayType<u32>) {
+        let mut res: Option<Self> = None;
+        let mut temp = self.clone();
+
+        for &words in scalar.as_ref().iter() {
             for i in 0..32 {
                 if (words >> i) & 1 == 1 {
                     match res.as_mut() {
-                        Some(res) => res.add_assign(&temp),
-                        None => res = Some(temp),
+                        Some(res) => res.add_assign(&temp.clone()),
+                        None => res = Some(temp.clone()),
                     };
                 }
 
@@ -65,38 +131,4 @@ impl<C: CurveOperations + Copy> AffinePoint<C> {
 
         *self = res.unwrap();
     }
-
-    pub fn from_le_bytes(limbs: [u8; 64]) -> Self {
-        let u32_limbs = bytes_to_words_le::<16>(&limbs);
-        Self {
-            limbs: u32_limbs,
-            _marker: std::marker::PhantomData,
-        }
-    }
-
-    pub fn to_le_bytes(&self) -> [u8; 64] {
-        words_to_bytes_le::<64>(&self.limbs)
-    }
-}
-
-/// Converts a slice of words to a byte array in little endian.
-pub fn words_to_bytes_le<const B: usize>(words: &[u32]) -> [u8; B] {
-    debug_assert_eq!(words.len() * 4, B);
-    words
-        .iter()
-        .flat_map(|word| word.to_le_bytes().to_vec())
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
-}
-
-/// Converts a byte array in little endian to a slice of words.
-pub fn bytes_to_words_le<const W: usize>(bytes: &[u8]) -> [u32; W] {
-    debug_assert_eq!(bytes.len(), W * 4);
-    bytes
-        .chunks_exact(4)
-        .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
 }

@@ -4289,6 +4289,7 @@ dependencies = [
  "bincode",
  "cfg-if",
  "getrandom",
+ "hybrid-array",
  "k256",
  "serde",
 ]

@@ -17,6 +17,8 @@ use crate::syscall::precompiles::k256::K256DecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
 use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
 use crate::utils::env;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -79,6 +81,11 @@ pub struct ExecutionRecord {
 
     pub bn254_double_events: Vec<ECDoubleEvent>,
 
+    pub bls12381_add_events: Vec<ECAddEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
+
+    pub bls12381_double_events:
+        Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
+
     pub k256_decompress_events: Vec<K256DecompressEvent>,
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
@@ -106,6 +113,8 @@ pub struct ShardingConfig {
     pub secp256k1_double_len: usize,
     pub bn254_add_len: usize,
     pub bn254_double_len: usize,
+    pub bls12381_add_len: usize,
+    pub bls12381_double_len: usize,
 }
 
 impl ShardingConfig {
@@ -133,6 +142,8 @@ impl Default for ShardingConfig {
             secp256k1_double_len: shard_size,
             bn254_add_len: shard_size,
             bn254_double_len: shard_size,
+            bls12381_add_len: shard_size,
+            bls12381_double_len: shard_size,
         }
     }
 }
@@ -196,6 +207,14 @@ impl MachineRecord for ExecutionRecord {
             self.bn254_double_events.len(),
         );
         stats.insert(
+            "bls12381_add_events".to_string(),
+            self.bls12381_add_events.len(),
+        );
+        stats.insert(
+            "bls12381_double_events".to_string(),
+            self.bls12381_double_events.len(),
+        );
+        stats.insert(
             "k256_decompress_events".to_string(),
             self.k256_decompress_events.len(),
         );
@@ -232,6 +251,10 @@ impl MachineRecord for ExecutionRecord {
         self.bn254_add_events.append(&mut other.bn254_add_events);
         self.bn254_double_events
             .append(&mut other.bn254_double_events);
+        self.bls12381_add_events
+            .append(&mut other.bls12381_add_events);
+        self.bls12381_double_events
+            .append(&mut other.bls12381_double_events);
         self.k256_decompress_events
             .append(&mut other.k256_decompress_events);
         self.blake3_compress_inner_events
@@ -395,6 +418,26 @@ impl MachineRecord for ExecutionRecord {
             shard
                 .bn254_double_events
                 .extend_from_slice(bn254_double_chunk);
+        }
+
+        // BLS12-381 curve add events.
+        for (bls12381_add_chunk, shard) in take(&mut self.bls12381_add_events)
+            .chunks_mut(config.bls12381_add_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_add_events
+                .extend_from_slice(bls12381_add_chunk);
+        }
+
+        // BLS12-381 curve double events.
+        for (bls12381_double_chunk, shard) in take(&mut self.bls12381_double_events)
+            .chunks_mut(config.bls12381_double_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_double_events
+                .extend_from_slice(bls12381_double_chunk);
         }
 
         // Put the precompile events in the first shard.

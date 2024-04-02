@@ -4,8 +4,11 @@ use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
+use crate::runtime::Syscall;
+use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
+use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
 use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::{CurveType, EllipticCurveParameters};
+use crate::utils::ec::{CurveType, EllipticCurveParameters, WithAddition, WithDoubling};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -36,6 +39,25 @@ impl FieldParameters for Bls12381BaseField {
 impl EllipticCurveParameters for Bls12381Parameters {
     type BaseField = Bls12381BaseField;
     const CURVE_TYPE: CurveType = CurveType::Bls12381;
+}
+
+impl WithAddition for Bls12381Parameters {
+    fn add_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
+    {
+        &record.bls12381_add_events
+    }
+}
+
+impl WithDoubling for Bls12381Parameters {
+    fn double_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.bls12381_double_events
+    }
 }
 
 /// The WeierstrassParameters for BLS12-381 G1
@@ -77,6 +99,35 @@ impl WeierstrassParameters for Bls12381Parameters {
             16,
         )
         .unwrap()
+    }
+}
+
+impl Syscall for WeierstrassAddAssignChip<Bls12381> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_add_event::<Bls12381>(rt, arg1, arg2);
+        rt.record_mut().bls12381_add_events.push(event);
+        None
+    }
+    fn num_extra_cycles(&self) -> u32 {
+        1
+    }
+}
+
+impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_double_event::<Bls12381>(rt, arg1, arg2);
+        rt.record_mut().bls12381_double_events.push(event);
+        None
     }
 }
 
