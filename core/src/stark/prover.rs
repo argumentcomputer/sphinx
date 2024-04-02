@@ -339,15 +339,18 @@ where
                 .into_par_iter()
                 .enumerate()
                 .map(|(i, quotient_domain)| {
-                    let preprocessed_trace_on_quotient_domains = pk
-                        .chip_ordering
-                        .get(&chips[i].name())
-                        .map(|&index| {
-                            pcs.get_evaluations_on_domain(&pk.data, index, *quotient_domain)
-                        })
-                        .unwrap_or_else(|| {
-                            RowMajorMatrix::new_col(vec![SC::Val::zero(); quotient_domain.size()])
-                        });
+                    let preprocessed_trace_on_quotient_domains =
+                        pk.chip_ordering.get(&chips[i].name()).map_or_else(
+                            || {
+                                RowMajorMatrix::new_col(vec![
+                                    SC::Val::zero();
+                                    quotient_domain.size()
+                                ])
+                            },
+                            |&index| {
+                                pcs.get_evaluations_on_domain(&pk.data, index, *quotient_domain)
+                            },
+                        );
                     let main_trace_on_quotient_domains =
                         pcs.get_evaluations_on_domain(&shard_data.main_data, i, *quotient_domain);
                     let permutation_trace_on_quotient_domains =
@@ -469,14 +472,13 @@ where
             .enumerate()
             .map(
                 |(i, ((((main, permutation), quotient), cumulative_sum), log_degree))| {
-                    let preprocessed = pk
-                        .chip_ordering
-                        .get(&chips[i].name())
-                        .map(|&index| preprocessed_opened_values[index].clone())
-                        .unwrap_or(AirOpenedValues {
+                    let preprocessed = pk.chip_ordering.get(&chips[i].name()).map_or(
+                        AirOpenedValues {
                             local: vec![],
                             next: vec![],
-                        });
+                        },
+                        |&index| preprocessed_opened_values[index].clone(),
+                    );
                     ChipOpenedValues {
                         preprocessed,
                         main,

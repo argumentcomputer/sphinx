@@ -299,8 +299,8 @@ mod tests {
     use crate::operations::field::params::Limbs;
 
     use crate::air::MachineAir;
-    use crate::runtime::Program;
     use crate::operations::field::params::LimbWidth;
+    use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::field::FieldParameters;
     use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;

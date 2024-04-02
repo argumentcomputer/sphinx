@@ -54,81 +54,66 @@ pub(crate) fn generate_permutation_trace<F: PrimeField, EF: ExtensionField<F>>(
     let mut permutation_trace_values = {
         // Compute the permutation trace values in parallel.
 
-        match preprocessed {
-            Some(prep) => {
-                let mut values = prep
-                    .par_row_chunks(chunk_rate)
-                    .zip_eq(main.par_row_chunks(chunk_rate))
-                    .flat_map(|(prep_rows_chunk, main_rows_chunk)| {
-                        prep_rows_chunk
-                            .rows()
-                            .zip(main_rows_chunk.rows())
-                            .flat_map(|(prep_row, main_row)| {
-                                compute_permutation_row(
-                                    prep_row,
-                                    main_row,
-                                    sends,
-                                    receives,
-                                    &alphas,
-                                    &betas,
-                                )
-                            })
-                            .collect::<Vec<_>>()
-                    })
-                    .collect::<Vec<_>>();
+        if let Some(prep) = preprocessed {
+            let mut values = prep
+                .par_row_chunks(chunk_rate)
+                .zip_eq(main.par_row_chunks(chunk_rate))
+                .flat_map(|(prep_rows_chunk, main_rows_chunk)| {
+                    prep_rows_chunk
+                        .rows()
+                        .zip(main_rows_chunk.rows())
+                        .flat_map(|(prep_row, main_row)| {
+                            compute_permutation_row(
+                                prep_row, main_row, sends, receives, &alphas, &betas,
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
 
-                // Compute the permutation trace values for the remainder.
-                let remainder = main.height() % chunk_rate;
-                for i in 0..remainder {
-                    let perm_row = compute_permutation_row(
-                        prep.row_slice(main.height() - remainder + i),
-                        main.row_slice(main.height() - remainder + i),
-                        sends,
-                        receives,
-                        &alphas,
-                        &betas,
-                    );
-                    values.extend(perm_row);
-                }
-
-                values
+            // Compute the permutation trace values for the remainder.
+            let remainder = main.height() % chunk_rate;
+            for i in 0..remainder {
+                let perm_row = compute_permutation_row(
+                    prep.row_slice(main.height() - remainder + i),
+                    main.row_slice(main.height() - remainder + i),
+                    sends,
+                    receives,
+                    &alphas,
+                    &betas,
+                );
+                values.extend(perm_row);
             }
-            None => {
-                let mut values = main
-                    .par_row_chunks(chunk_rate)
-                    .flat_map(|main_rows_chunk| {
-                        main_rows_chunk
-                            .rows()
-                            .flat_map(|main_row| {
-                                compute_permutation_row(
-                                    &[],
-                                    main_row,
-                                    sends,
-                                    receives,
-                                    &alphas,
-                                    &betas,
-                                )
-                            })
-                            .collect::<Vec<_>>()
-                    })
-                    .collect::<Vec<_>>();
 
-                // Compute the permutation trace values for the remainder.
-                let remainder = main.height() % chunk_rate;
-                for i in 0..remainder {
-                    let perm_row = compute_permutation_row(
-                        &[],
-                        main.row_slice(main.height() - remainder + i),
-                        sends,
-                        receives,
-                        &alphas,
-                        &betas,
-                    );
-                    values.extend(perm_row);
-                }
+            values
+        } else {
+            let mut values = main
+                .par_row_chunks(chunk_rate)
+                .flat_map(|main_rows_chunk| {
+                    main_rows_chunk
+                        .rows()
+                        .flat_map(|main_row| {
+                            compute_permutation_row(&[], main_row, sends, receives, &alphas, &betas)
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
 
-                values
+            // Compute the permutation trace values for the remainder.
+            let remainder = main.height() % chunk_rate;
+            for i in 0..remainder {
+                let perm_row = compute_permutation_row(
+                    &[],
+                    main.row_slice(main.height() - remainder + i),
+                    sends,
+                    receives,
+                    &alphas,
+                    &betas,
+                );
+                values.extend(perm_row);
             }
+
+            values
         }
     };
 

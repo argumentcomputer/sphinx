@@ -97,7 +97,7 @@ impl<C: Config> Builder<C> {
                     size: V::size_of(),
                 };
                 let var: V = self.uninit();
-                self.load(var.clone(), *ptr, index);
+                self.load(&var, *ptr, index);
                 var
             }
         }
@@ -122,7 +122,7 @@ impl<C: Config> Builder<C> {
                     size: V::size_of(),
                 };
                 let value: V = self.eval(value);
-                self.store(*ptr, index, value);
+                self.store(*ptr, index, &value);
             }
         }
     }

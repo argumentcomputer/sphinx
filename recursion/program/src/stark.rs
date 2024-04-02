@@ -380,9 +380,9 @@ pub(crate) mod tests {
 
         challenger_val.observe(vk.commit);
 
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-        });
+        }
 
         let permutation_challenges = (0..2)
             .map(|_| challenger_val.sample_ext_element::<EF>())
@@ -443,9 +443,9 @@ pub(crate) mod tests {
         println!("Proof generated successfully");
 
         challenger_val.observe(vk.commit);
-        proofs.iter().for_each(|proof| {
+        for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-        });
+        }
 
         let permutation_challenges = (0..2)
             .map(|_| challenger_val.sample_ext_element::<EF>())

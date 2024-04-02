@@ -90,7 +90,10 @@ pub fn aligned_borrow_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(methods)
 }
 
-#[proc_macro_derive(MachineAir, attributes(wp1_core_path, execution_record_path, program_path))]
+#[proc_macro_derive(
+    MachineAir,
+    attributes(wp1_core_path, execution_record_path, program_path)
+)]
 pub fn machine_air_derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
 

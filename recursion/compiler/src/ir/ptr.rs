@@ -19,11 +19,11 @@ impl<C: Config> Builder<C> {
         ptr
     }
 
-    pub fn load<V: MemVariable<C>>(&mut self, var: V, ptr: Ptr<C::N>, index: MemIndex<C::N>) {
+    pub fn load<V: MemVariable<C>>(&mut self, var: &V, ptr: Ptr<C::N>, index: MemIndex<C::N>) {
         var.load(ptr, index, self);
     }
 
-    pub fn store<V: MemVariable<C>>(&mut self, ptr: Ptr<C::N>, index: MemIndex<C::N>, value: V) {
+    pub fn store<V: MemVariable<C>>(&mut self, ptr: Ptr<C::N>, index: MemIndex<C::N>, value: &V) {
         value.store(ptr, index, self);
     }
 }

@@ -127,7 +127,7 @@ fn test_compiler_break() {
         builder.assert_var_eq(value, exp_value);
         builder
             .if_eq(i, break_len)
-            .then(|builder| builder.assign(is_break, F::zero()));
+            .then(|builder| builder.assign(&is_break, F::zero()));
     });
 
     // Test the break instructions in a nested loop.
@@ -137,7 +137,7 @@ fn test_compiler_break() {
         let counter: Var<_> = builder.eval(F::zero());
 
         builder.range(0, i).for_each(|_, builder| {
-            builder.assign(counter, counter + F::one());
+            builder.assign(&counter, counter + F::one());
             builder
                 .if_eq(counter, break_len)
                 .then(|builder| builder.break_loop());
@@ -156,7 +156,7 @@ fn test_compiler_break() {
         builder.assert_var_eq(value, exp_value);
         builder
             .if_eq(i, break_len)
-            .then(|builder| builder.assign(is_break, F::zero()));
+            .then(|builder| builder.assign(&is_break, F::zero()));
     });
 
     let code = builder.compile_to_asm();
@@ -184,7 +184,7 @@ fn test_compiler_step_by() {
 
     let i_counter: Var<_> = builder.eval(F::zero());
     builder.range(zero, n).step_by(2).for_each(|_, builder| {
-        builder.assign(i_counter, i_counter + F::one());
+        builder.assign(&i_counter, i_counter + F::one());
     });
     // Assert that the outer loop ran n times, in two different ways.
     let n_exp = n_val / F::two();
