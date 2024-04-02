@@ -6,6 +6,12 @@ use crate::{
 pub struct SyscallHintLen;
 
 /// SyscallHintLen returns the length of the next slice in the hint input stream.
+impl Default for SyscallHintLen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SyscallHintLen {
     pub fn new() -> Self {
         Self
@@ -25,6 +31,12 @@ impl Syscall for SyscallHintLen {
 pub struct SyscallHintRead;
 
 /// SyscallHintRead returns the length of the next slice in the hint input stream.
+impl Default for SyscallHintRead {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SyscallHintRead {
     pub fn new() -> Self {
         Self
