@@ -1,3 +1,5 @@
+use crate::air::{PublicValuesDigest, Word};
+
 use super::folder::ProverConstraintFolder;
 use super::Chip;
 use super::Domain;
@@ -26,6 +28,7 @@ pub fn quotient_values<SC, A, Mat>(
     permutation_trace_on_quotient_domain: &Mat,
     perm_challenges: &[SC::Challenge],
     alpha: SC::Challenge,
+    public_values_digest: PublicValuesDigest<Word<Val<SC>>>,
 ) -> Vec<SC::Challenge>
 where
     A: for<'a> Air<ProverConstraintFolder<'a, SC>>,
@@ -122,6 +125,7 @@ where
                 .collect();
 
             let accumulator = PackedChallenge::<SC>::zero();
+            let public_values: Vec<Val<SC>> = public_values_digest.into();
             let mut folder = ProverConstraintFolder {
                 preprocessed: TwoRowMatrixView {
                     local: &prep_local,
@@ -142,6 +146,7 @@ where
                 is_transition,
                 alpha,
                 accumulator,
+                public_values: &public_values,
             };
             chip.eval(&mut folder);
 

@@ -27,5 +27,5 @@ pub fn main() {
     let result = regex.is_match(&target_string);
 
     // Write the result (true or false) to the output.
-    wp1_zkvm::io::write(&result);
+    wp1_zkvm::io::commit(&result);
 }

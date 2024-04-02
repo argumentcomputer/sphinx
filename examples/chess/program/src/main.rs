@@ -16,5 +16,5 @@ pub fn main() {
     let is_valid_move = ChessMove::from_san(&b, &san).is_ok();
 
     // Write whether or not the move is legal
-    wp1_zkvm::io::write(&is_valid_move);
+    wp1_zkvm::io::commit(&is_valid_move);
 }

@@ -72,7 +72,7 @@ impl Syscall for SyscallWrite {
                     println!("stderr: {line}");
                 }
             } else if fd == 3 {
-                rt.state.output_stream.extend_from_slice(slice);
+                rt.state.public_values_stream.extend_from_slice(slice);
             } else if fd == 4 {
                 rt.state.input_stream.push(slice.to_vec());
             } else {

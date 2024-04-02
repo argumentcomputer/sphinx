@@ -1742,8 +1742,10 @@ dependencies = [
  "getrandom",
  "k256",
  "libm",
+ "once_cell",
  "rand",
  "serde",
+ "sha2 0.10.8",
  "wp1-precompiles",
 ]
 

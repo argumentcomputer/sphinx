@@ -27,6 +27,6 @@ fn main() {
             new_account_state.balance += tx.amount;
         }
     }
-    wp1_zkvm::io::write(&val);
-    wp1_zkvm::io::write(&new_account_state);
+    wp1_zkvm::io::commit(&val);
+    wp1_zkvm::io::commit(&new_account_state);
 }

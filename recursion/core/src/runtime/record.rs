@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use p3_field::PrimeField32;
+use wp1_core::air::PublicValuesDigest;
 use std::collections::HashMap;
 use wp1_core::stark::MachineRecord;
 
@@ -37,5 +38,9 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
 
     fn shard(self, _: &Self::Config) -> Vec<Self> {
         vec![self]
+    }
+
+    fn public_values_digest(&self) -> PublicValuesDigest<u32> {
+        todo!()
     }
 }

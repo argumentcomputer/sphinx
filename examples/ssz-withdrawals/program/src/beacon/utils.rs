@@ -22,9 +22,9 @@ pub fn is_valid_merkle_big_branch<'a>(
         };
         if index.bit(i) {
             hasher.update(next_node.as_ref());
-            hasher.update(value.as_ref());
+            hasher.update(&value);
         } else {
-            hasher.update(value.as_ref());
+            hasher.update(&value);
             hasher.update(next_node.as_ref());
         }
         value = hasher.finalize_reset().into();

@@ -23,5 +23,5 @@ pub fn main() {
     result[0] = 4;
     result[1..].copy_from_slice(&decompressed_key);
 
-    wp1_zkvm::io::write_slice(&result);
+    wp1_zkvm::io::commit_slice(&result);
 }

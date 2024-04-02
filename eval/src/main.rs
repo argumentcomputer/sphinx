@@ -8,7 +8,7 @@ use std::{fs, time::Instant};
 use wp1_core::runtime::{Program, Runtime};
 use wp1_core::utils::{get_cycles, prove_core};
 use wp1_sdk::utils::{BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
-use wp1_sdk::{SP1ProofWithIO, SP1Stdin, SP1Stdout, SP1Verifier};
+use wp1_sdk::{SP1ProofWithIO, SP1PublicValues, SP1Stdin, SP1Verifier};
 
 /// An identifier used to select the hash function to evaluate.
 #[derive(clap::ValueEnum, Clone)]
@@ -142,7 +142,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             let prove_duration = prove_start.elapsed().as_secs_f64();
             let proof = SP1ProofWithIO {
                 stdin: SP1Stdin::new(),
-                stdout: SP1Stdout::new(),
+                public_values: SP1PublicValues::new(),
                 proof,
             };
 
@@ -164,7 +164,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             let prove_duration = prove_start.elapsed().as_secs_f64();
             let proof = SP1ProofWithIO {
                 stdin: SP1Stdin::new(),
-                stdout: SP1Stdout::new(),
+                public_values: SP1PublicValues::new(),
                 proof,
             };
 
@@ -186,7 +186,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             let prove_duration = prove_start.elapsed().as_secs_f64();
             let proof = SP1ProofWithIO {
                 stdin: SP1Stdin::new(),
-                stdout: SP1Stdout::new(),
+                public_values: SP1PublicValues::new(),
                 proof,
             };
 
