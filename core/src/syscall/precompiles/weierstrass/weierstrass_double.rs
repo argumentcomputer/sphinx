@@ -410,7 +410,10 @@ pub mod tests {
 
     use crate::{
         runtime::Program,
-        utils::{run_test, setup_logger, tests::BN254_DOUBLE_ELF, tests::SECP256K1_DOUBLE_ELF},
+        utils::{
+            run_test, setup_logger,
+            tests::{BLS12381_DOUBLE_ELF, BN254_DOUBLE_ELF, SECP256K1_DOUBLE_ELF},
+        },
     };
 
     #[test]
@@ -424,6 +427,13 @@ pub mod tests {
     fn test_bn254_double_simple() {
         setup_logger();
         let program = Program::from(BN254_DOUBLE_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_double_simple() {
+        setup_logger();
+        let program = Program::from(BLS12381_DOUBLE_ELF);
         run_test(program).unwrap();
     }
 }

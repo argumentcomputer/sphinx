@@ -371,7 +371,10 @@ mod tests {
         runtime::Program,
         utils::{
             run_test, setup_logger,
-            tests::{BN254_ADD_ELF, BN254_MUL_ELF, SECP256K1_ADD_ELF, SECP256K1_MUL_ELF},
+            tests::{
+                BLS12381_ADD_ELF, BLS12381_MUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
+                SECP256K1_ADD_ELF, SECP256K1_MUL_ELF,
+            },
         },
     };
 
@@ -400,6 +403,20 @@ mod tests {
     fn test_secp256k1_mul_simple() {
         setup_logger();
         let program = Program::from(SECP256K1_MUL_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_add_simple() {
+        setup_logger();
+        let program = Program::from(BLS12381_ADD_ELF);
+        run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_mul_simple() {
+        setup_logger();
+        let program = Program::from(BLS12381_MUL_ELF);
         run_test(program).unwrap();
     }
 }
