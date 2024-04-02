@@ -203,7 +203,7 @@ dependencies = [
 name = "hint-io-test"
 version = "0.1.0"
 dependencies = [
- "sp1-zkvm",
+ "wp1-zkvm",
 ]
 
 [[package]]
@@ -213,6 +213,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
 dependencies = [
  "digest",
+]
+
+[[package]]
+name = "hybrid-array"
+version = "0.2.0-rc.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53668f5da5a41d9eaf4bf7064be46d1ebe6a4e1ceed817f387587b18f2b51047"
+dependencies = [
+ "typenum",
 ]
 
 [[package]]
@@ -383,33 +392,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "rand",
- "serde",
-]
-
-[[package]]
-name = "sp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "rand",
- "serde",
- "sp1-precompiles",
-]
-
-[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -465,6 +447,33 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "wp1-precompiles"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "hybrid-array",
+ "k256",
+ "serde",
+]
+
+[[package]]
+name = "wp1-zkvm"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "libm",
+ "rand",
+ "serde",
+ "wp1-precompiles",
+]
 
 [[package]]
 name = "wyz"
