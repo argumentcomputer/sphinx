@@ -75,10 +75,10 @@ pub enum SyscallCode {
     BN254_DOUBLE = 0x00_00_01_0F,
 
     /// Executes the `BLS12381_ADD` precompile.
-    BLS12381_ADD = 0x00_01_01_11,
+    BLS12381_ADD = 0x00_01_01_71,
 
     /// Executes the `BLS12381_DOUBLE` precompile.
-    BLS12381_DOUBLE = 0x00_00_01_12,
+    BLS12381_DOUBLE = 0x00_00_01_72,
 
     /// Executes the `HINT_LEN` precompile.
     HINT_LEN = 0x00_00_00_F0,
@@ -108,8 +108,8 @@ impl SyscallCode {
             0x00_00_01_0F => SyscallCode::BN254_DOUBLE,
             0x00_00_00_F0 => SyscallCode::HINT_LEN,
             0x00_00_00_F1 => SyscallCode::HINT_READ,
-            0x00_01_01_11 => SyscallCode::BLS12381_ADD,
-            0x00_00_01_12 => SyscallCode::BLS12381_DOUBLE,
+            0x00_01_01_71 => SyscallCode::BLS12381_ADD,
+            0x00_00_01_72 => SyscallCode::BLS12381_DOUBLE,
             _ => panic!("invalid syscall number: {}", value),
         }
     }

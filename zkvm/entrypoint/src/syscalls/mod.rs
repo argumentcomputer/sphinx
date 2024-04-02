@@ -80,7 +80,7 @@ pub const HINT_LEN: u32 = 0x00_00_00_F0;
 pub const HINT_READ: u32 = 0x00_00_00_F1;
 
 /// Executes `BLS12381_ADD`
-pub const BLS12381_ADD: u32 = 0x00_01_01_11;
+pub const BLS12381_ADD: u32 = 0x00_01_01_71;
 
 /// Executes `BLS12381_DOUBLE`
-pub const BLS12381_DOUBLE: u32 = 0x00_00_01_12;
+pub const BLS12381_DOUBLE: u32 = 0x00_00_01_72;
