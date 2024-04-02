@@ -4,9 +4,16 @@ use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::runtime::Syscall;
+use crate::stark::WeierstrassAddAssignChip;
+use crate::stark::WeierstrassDoubleAssignChip;
+use crate::syscall::precompiles::create_ec_add_event;
+use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
+use crate::utils::ec::WithAddition;
+use crate::utils::ec::WithDoubling;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 curve parameter
@@ -46,6 +53,55 @@ impl EllipticCurveParameters for Bn254Parameters {
     type BaseField = Bn254BaseField;
 
     const CURVE_TYPE: CurveType = CurveType::Bn254;
+}
+
+impl WithAddition for Bn254Parameters {
+    fn add_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
+    {
+        &record.bn254_add_events
+    }
+}
+
+impl WithDoubling for Bn254Parameters {
+    fn double_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.bn254_double_events
+    }
+}
+
+impl Syscall for WeierstrassAddAssignChip<Bn254> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_add_event::<Bn254>(rt, arg1, arg2);
+        rt.record_mut().bn254_add_events.push(event);
+        None
+    }
+
+    fn num_extra_cycles(&self) -> u32 {
+        1
+    }
+}
+
+impl Syscall for WeierstrassDoubleAssignChip<Bn254> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_double_event::<Bn254>(rt, arg1, arg2);
+        rt.record_mut().bn254_double_events.push(event);
+        None
+    }
 }
 
 impl WeierstrassParameters for Bn254Parameters {

@@ -8,7 +8,7 @@ use crate::utils::ec::utils::biguint_to_bits_le;
 use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
 pub mod bls12381;
-use super::CurveType;
+use super::{CurveType, WithAddition, WithDoubling};
 
 pub mod bn254;
 pub mod secp256k1;
@@ -75,6 +75,25 @@ impl<E: WeierstrassParameters> EllipticCurveParameters for SwCurve<E> {
     type BaseField = E::BaseField;
 
     const CURVE_TYPE: CurveType = E::CURVE_TYPE;
+}
+
+impl<E: WithAddition + WeierstrassParameters> WithAddition for SwCurve<E> {
+    fn add_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
+    {
+        E::add_events(record)
+    }
+}
+
+impl<E: WithDoubling + WeierstrassParameters> WithDoubling for SwCurve<E> {
+    fn double_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        E::double_events(record)
+    }
 }
 
 impl<E: WeierstrassParameters> EllipticCurve for SwCurve<E> {

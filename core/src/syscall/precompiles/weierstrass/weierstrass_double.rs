@@ -10,17 +10,15 @@ use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
-use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
 use crate::stark::MachineRecord;
-use crate::syscall::precompiles::create_ec_double_event;
-use crate::syscall::precompiles::SyscallContext;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
+use crate::utils::ec::WithDoubling;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use core::borrow::{Borrow, BorrowMut};
@@ -67,28 +65,6 @@ pub struct WeierstrassDoubleAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 #[derive(Default)]
 pub struct WeierstrassDoubleAssignChip<E> {
     _marker: PhantomData<E>,
-}
-
-// Specialized to 32-bit limb field representations, extensible generically if
-// the receiver weierstrass_double_events matches the desired limb length
-impl<
-        F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>,
-        E: EllipticCurve<BaseField = F> + WeierstrassParameters,
-    > Syscall for WeierstrassDoubleAssignChip<E>
-{
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_ec_double_event::<E>(rt, arg1, arg2);
-        match E::CURVE_TYPE {
-            CurveType::Secp256k1 => rt.record_mut().secp256k1_double_events.push(event),
-            CurveType::Bn254 => rt.record_mut().bn254_double_events.push(event),
-            _ => panic!("Unsupported curve"),
-        }
-        None
-    }
-
-    fn num_extra_cycles(&self) -> u32 {
-        0
-    }
 }
 
 impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDoubleAssignChip<E> {
@@ -171,7 +147,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDoubleAssignChip<E> {
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
+impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDoubling> MachineAir<F>
     for WeierstrassDoubleAssignChip<E>
 {
     type Record = ExecutionRecord;
@@ -180,6 +156,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => "Secp256k1DoubleAssign".to_string(),
             CurveType::Bn254 => "Bn254DoubleAssign".to_string(),
+            CurveType::Bls12381 => "Bls12381DoubleAssign".to_string(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -195,11 +172,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
-        let events = match E::CURVE_TYPE {
-            CurveType::Secp256k1 => &input.secp256k1_double_events,
-            CurveType::Bn254 => &input.bn254_double_events,
-            _ => panic!("Unsupported curve"),
-        };
+        let events = E::double_events(input);
 
         let chunk_size = std::cmp::max(events.len() / num_cpus::get(), 1);
 
@@ -275,6 +248,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => !shard.secp256k1_double_events.is_empty(),
             CurveType::Bn254 => !shard.bn254_double_events.is_empty(),
+            CurveType::Bls12381 => !shard.bls12381_double_events.is_empty(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -414,6 +388,9 @@ where
                 AB::F::from_canonical_u32(SyscallCode::SECP256K1_DOUBLE.syscall_id())
             }
             CurveType::Bn254 => AB::F::from_canonical_u32(SyscallCode::BN254_DOUBLE.syscall_id()),
+            CurveType::Bls12381 => {
+                AB::F::from_canonical_u32(SyscallCode::BLS12381_DOUBLE.syscall_id())
+            }
             _ => panic!("Unsupported curve"),
         };
 

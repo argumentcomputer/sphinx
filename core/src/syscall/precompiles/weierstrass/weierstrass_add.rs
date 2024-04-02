@@ -11,16 +11,13 @@ use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::operations::field::params::WORDS_CURVEPOINT;
 use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
-use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::create_ec_add_event;
-use crate::syscall::precompiles::SyscallContext;
-use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
+use crate::utils::ec::WithAddition;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use core::borrow::{Borrow, BorrowMut};
@@ -64,26 +61,6 @@ pub struct WeierstrassAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 #[derive(Default)]
 pub struct WeierstrassAddAssignChip<E> {
     _marker: PhantomData<E>,
-}
-
-// Specialized to 32-bit limb field representations, extensible generically if
-// the receiver weierstrass_add_events matches the desired limb length
-impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EllipticCurve<BaseField = F>> Syscall
-    for WeierstrassAddAssignChip<E>
-{
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_ec_add_event::<E>(rt, arg1, arg2);
-        match E::CURVE_TYPE {
-            CurveType::Secp256k1 => rt.record_mut().secp256k1_add_events.push(event),
-            CurveType::Bn254 => rt.record_mut().bn254_add_events.push(event),
-            _ => panic!("Unsupported curve"),
-        }
-        None
-    }
-
-    fn num_extra_cycles(&self) -> u32 {
-        1
-    }
 }
 
 impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
@@ -151,7 +128,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
+impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithAddition> MachineAir<F>
     for WeierstrassAddAssignChip<E>
 {
     type Record = ExecutionRecord;
@@ -160,6 +137,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => "Secp256k1AddAssign".to_string(),
             CurveType::Bn254 => "Bn254AddAssign".to_string(),
+            CurveType::Bls12381 => "Bls12381AddAssign".to_string(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -170,11 +148,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
-        let events = match E::CURVE_TYPE {
-            CurveType::Secp256k1 => &input.secp256k1_add_events,
-            CurveType::Bn254 => &input.bn254_add_events,
-            _ => panic!("Unsupported curve"),
-        };
+        let events = E::add_events(input);
 
         let mut rows = Vec::new();
 
@@ -238,6 +212,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => !shard.secp256k1_add_events.is_empty(),
             CurveType::Bn254 => !shard.bn254_add_events.is_empty(),
+            CurveType::Bls12381 => !shard.bls12381_add_events.is_empty(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -338,15 +313,17 @@ where
             );
         }
 
+        let words_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]. This is to
         // ensure that p_access is updated with the new value.
         for i in 0..BaseLimbWidth::<E>::USIZE {
             builder
                 .when(row.is_real)
                 .assert_eq(row.x3_ins.result[i], row.p_access[i / 4].value()[i % 4]);
-            builder
-                .when(row.is_real)
-                .assert_eq(row.y3_ins.result[i], row.p_access[8 + i / 4].value()[i % 4]);
+            builder.when(row.is_real).assert_eq(
+                row.y3_ins.result[i],
+                row.p_access[words_field_elt + i / 4].value()[i % 4],
+            );
         }
 
         builder.constraint_memory_access_slice(
@@ -370,6 +347,9 @@ where
                 AB::F::from_canonical_u32(SyscallCode::SECP256K1_ADD.syscall_id())
             }
             CurveType::Bn254 => AB::F::from_canonical_u32(SyscallCode::BN254_ADD.syscall_id()),
+            CurveType::Bls12381 => {
+                AB::F::from_canonical_u32(SyscallCode::BLS12381_ADD.syscall_id())
+            }
             _ => panic!("Unsupported curve"),
         };
 

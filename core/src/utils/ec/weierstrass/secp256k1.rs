@@ -9,9 +9,16 @@ use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::runtime::Syscall;
+use crate::stark::WeierstrassAddAssignChip;
+use crate::stark::WeierstrassDoubleAssignChip;
+use crate::syscall::precompiles::create_ec_add_event;
+use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
+use crate::utils::ec::WithAddition;
+use crate::utils::ec::WithDoubling;
 use k256::FieldElement;
 use num::traits::FromBytes;
 use num::traits::ToBytes;
@@ -46,6 +53,25 @@ impl FieldParameters for Secp256k1BaseField {
 impl EllipticCurveParameters for Secp256k1Parameters {
     type BaseField = Secp256k1BaseField;
     const CURVE_TYPE: CurveType = CurveType::Secp256k1;
+}
+
+impl WithAddition for Secp256k1Parameters {
+    fn add_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
+    {
+        &record.secp256k1_add_events
+    }
+}
+
+impl WithDoubling for Secp256k1Parameters {
+    fn double_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.secp256k1_double_events
+    }
 }
 
 impl WeierstrassParameters for Secp256k1Parameters {
@@ -83,6 +109,36 @@ impl WeierstrassParameters for Secp256k1Parameters {
 
     fn b_int() -> BigUint {
         BigUint::from(7u32)
+    }
+}
+
+impl Syscall for WeierstrassAddAssignChip<Secp256k1> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_add_event::<Secp256k1>(rt, arg1, arg2);
+        rt.record_mut().secp256k1_add_events.push(event);
+        None
+    }
+
+    fn num_extra_cycles(&self) -> u32 {
+        1
+    }
+}
+
+impl Syscall for WeierstrassDoubleAssignChip<Secp256k1> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_double_event::<Secp256k1>(rt, arg1, arg2);
+        rt.record_mut().secp256k1_double_events.push(event);
+        None
     }
 }
 

@@ -154,23 +154,23 @@ fn double_and_add_base(
     B: &AffinePoint<Secp256k1Operations>,
 ) -> Option<AffinePoint<Secp256k1Operations>> {
     let mut res: Option<AffinePoint<Secp256k1Operations>> = None;
-    let mut temp_A = *A;
-    let mut temp_B = *B;
+    let mut temp_A = A.clone();
+    let mut temp_B = B.clone();
 
     let a_bits = a.to_le_bits();
     let b_bits = b.to_le_bits();
     for (a_bit, b_bit) in a_bits.iter().zip(b_bits) {
         if *a_bit {
             match res.as_mut() {
-                Some(res) => res.add_assign(&temp_A),
-                None => res = Some(temp_A),
+                Some(res) => res.add_assign(&temp_A.clone()),
+                None => res = Some(temp_A.clone()),
             };
         }
 
         if b_bit {
             match res.as_mut() {
-                Some(res) => res.add_assign(&temp_B),
-                None => res = Some(temp_B),
+                Some(res) => res.add_assign(&temp_B.clone()),
+                None => res = Some(temp_B.clone()),
             };
         }
 
