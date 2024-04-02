@@ -49,6 +49,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
+      - name: check *everything* compiles
+        run: cargo check --all-targets --all-features --all --examples --tests --benches
       # See '.cargo/config' for list of enabled/disabled clippy lints
       - name: Check clippy warnings
         run: cargo xclippy -D warnings
