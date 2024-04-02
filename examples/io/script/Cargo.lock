@@ -3458,6 +3458,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
+ "thiserror",
  "tiny-keccak",
  "tracing",
  "tracing-forest",
@@ -3492,6 +3493,7 @@ dependencies = [
  "bincode",
  "cfg-if",
  "getrandom",
+ "hybrid-array",
  "k256",
  "serde",
 ]
