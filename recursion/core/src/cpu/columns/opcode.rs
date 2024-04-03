@@ -86,12 +86,14 @@ impl<F: Field> OpcodeSelectorCols<F> {
             Opcode::JAL => self.is_jal = F::one(),
             Opcode::JALR => self.is_jalr = F::one(),
             Opcode::TRAP => self.is_trap = F::one(),
-            _ => unimplemented!(),
+            Opcode::PrintF => self.is_noop = F::one(),
+            Opcode::PrintE => self.is_noop = F::one(),
+            _ => unimplemented!("opcode {:?} not supported", instruction.opcode),
         }
     }
 }
 
-impl<T> IntoIterator for OpcodeSelectorCols<T> {
+impl<T: Copy> IntoIterator for &OpcodeSelectorCols<T> {
     type Item = T;
 
     type IntoIter = std::array::IntoIter<T, OPCODE_COUNT>;
