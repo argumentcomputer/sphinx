@@ -19,3 +19,18 @@ jobs:
 
   typos:
     uses: lurk-lab/ci-workflows/.github/workflows/typos.yml@main
+
+  prove:
+    name: Prove integration tests and examples
+    runs-on: buildjet-16vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          dirs -c && for i in $(find ./ -depth -type d); do pushd "$i/script"; cargo run --release; popd; done
+        working-directory: ${{ github.workspace }}/examples

@@ -56,3 +56,32 @@ jobs:
         run: cargo xclippy -D warnings
       - name: Doctests
         run: cargo test --doc --workspace
+
+  integration-tests-examples:
+    name: Build integration tests and examples
+    runs-on: buildjet-16vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Set up git private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com/".insteadOf ssh://git@github.com
+          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com".insteadOf https://github.com
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
+      - name: Build integration tests
+        run: |
+          make
+        working-directory: ${{ github.workspace }}/tests
+      - name: Build examples
+        run: |
+          make
+        working-directory: ${{ github.workspace }}/examples
