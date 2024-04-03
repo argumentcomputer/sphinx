@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use std::{
-    array::IntoIter,
+    array::{IntoIter, TryFromSliceError},
     ops::{Index, IndexMut},
 };
 
@@ -22,19 +22,16 @@ const PV_DIGEST_NUM_WORDS: usize = 8;
 pub struct PublicValuesDigest<T>([T; PV_DIGEST_NUM_WORDS]);
 
 /// Conversion from a byte array into a PublicValuesDigest<u32>.
-impl From<&[u8]> for PublicValuesDigest<u32> {
-    fn from(bytes: &[u8]) -> Self {
-        assert!(bytes.len() == PV_DIGEST_NUM_WORDS * WORD_SIZE);
+impl TryFrom<&[u8]> for PublicValuesDigest<u32> {
+    type Error = TryFromSliceError;
 
-        let mut words = [0u32; PV_DIGEST_NUM_WORDS];
-        for i in 0..PV_DIGEST_NUM_WORDS {
-            words[i] = u32::from_le_bytes(
-                bytes[i * WORD_SIZE..(i + 1) * WORD_SIZE]
-                    .try_into()
-                    .unwrap(),
-            );
-        }
-        Self(words)
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        let words = bytes
+            .chunks_exact(WORD_SIZE)
+            .map(|bytes| bytes.try_into().map(u32::from_le_bytes))
+            .collect::<Result<Vec<_>, _>>()?;
+        let arr: [u32; PV_DIGEST_NUM_WORDS] = (&words[..]).try_into()?;
+        Ok(PublicValuesDigest(arr))
     }
 }
 

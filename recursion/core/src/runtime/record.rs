@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use p3_field::PrimeField32;
-use wp1_core::air::PublicValuesDigest;
 use std::collections::HashMap;
+use wp1_core::air::PublicValuesDigest;
 use wp1_core::stark::MachineRecord;
 
 use super::Program;

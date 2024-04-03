@@ -17,7 +17,7 @@ impl Default for SyscallCommit {
 impl Syscall for SyscallCommit {
     fn execute(
         &self,
-        ctx: &mut SyscallContext,
+        ctx: &mut SyscallContext<'_>,
         word_idx: u32,
         public_values_digest_word: u32,
     ) -> Option<u32> {
