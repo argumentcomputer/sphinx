@@ -16,3 +16,7 @@ tracing = "0.1.40"
 wp1-core = { path = "../../core" }
 hashbrown = "0.14.3"
 itertools = "0.12.1"
+
+[features]
+default = ["avx2"]
+avx2 = ["p3-baby-bear/nightly-features"]
