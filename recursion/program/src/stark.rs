@@ -383,7 +383,7 @@ pub(crate) mod tests {
     #[test]
     fn test_permutation_challenges() {
         // Generate a dummy proof.
-        wp1_core::utils::setup_logger();
+        setup_logger();
         let elf =
             include_bytes!("../../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -446,7 +446,7 @@ pub(crate) mod tests {
     #[test]
     fn test_recursive_verify_shard() {
         // Generate a dummy proof.
-        wp1_core::utils::setup_logger();
+        setup_logger();
         let elf =
             include_bytes!("../../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -548,7 +548,7 @@ pub(crate) mod tests {
     #[should_panic]
     fn test_recursive_verify_bad_proof() {
         // Generate a dummy proof.
-        wp1_core::utils::setup_logger();
+        setup_logger();
         let elf =
             include_bytes!("../../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
 

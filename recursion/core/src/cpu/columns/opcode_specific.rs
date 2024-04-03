@@ -2,7 +2,7 @@ use crate::cpu::columns::AluCols;
 use std::fmt::{Debug, Formatter};
 use std::mem::{size_of, transmute};
 
-pub const NUM_OPCODE_SPECIFIC_COLS: usize = size_of::<OpcodeSpecificCols<u8>>();
+pub(crate) const NUM_OPCODE_SPECIFIC_COLS: usize = size_of::<OpcodeSpecificCols<u8>>();
 
 /// Shared columns whose interpretation depends on the instruction being executed.
 #[derive(Clone, Copy)]
