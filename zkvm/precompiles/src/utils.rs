@@ -60,7 +60,10 @@ impl<N: ArraySize + Shl<B1, Output = O>, O: ArraySize, C: CurveOperations<N>> Af
     pub fn from(x_bytes: &O::ArrayType<u8>, y_bytes: &O::ArrayType<u8>) -> Self {
         let mut limbs = Array::<u32, N>::default();
 
-        // Safety : by the type logic
+        #[cfg(target_endian = "big")]
+        unreachable!("This function is only intended for little-endian platforms");
+
+        // Safety : by the type logic & above check
         let x = unsafe {
             slice::from_raw_parts(
                 x_bytes.as_ref().as_ptr() as *const u32,
@@ -85,7 +88,10 @@ impl<N: ArraySize + Shl<B1, Output = O>, O: ArraySize, C: CurveOperations<N>> Af
 
 impl<N: ArraySize + Mul<U4, Output = O>, O: ArraySize, C: CurveOperations<N>> AffinePoint<C, N> {
     pub fn from_le_bytes(limbs: &O::ArrayType<u8>) -> Self {
-        // Safety : by the type logic
+        #[cfg(target_endian = "big")]
+        unreachable!("This function is only intended for little-endian platforms");
+
+        // Safety : by the type logic & above check
         let v = unsafe {
             slice::from_raw_parts(
                 limbs.as_ref().as_ptr() as *const u32,
@@ -96,7 +102,10 @@ impl<N: ArraySize + Mul<U4, Output = O>, O: ArraySize, C: CurveOperations<N>> Af
     }
 
     pub fn to_le_bytes(&self) -> O::ArrayType<u8> {
-        // Safety : by the type logic
+        #[cfg(target_endian = "big")]
+        unreachable!("This function is only intended for little-endian platforms");
+
+        // Safety : by the type logic & above check
         let v = unsafe {
             slice::from_raw_parts(
                 self.limbs.as_ref().as_ptr() as *const u8,
