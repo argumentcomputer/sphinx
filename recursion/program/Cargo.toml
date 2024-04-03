@@ -30,5 +30,5 @@ p3-poseidon2 = { workspace = true }
 rand = "0.8.4"
 
 [features]
-default = ["avx2"]
-avx2 = ["p3-baby-bear/nightly-features"]
+default = ["avx512"]
+avx512 = ["p3-baby-bear/nightly-features"]
