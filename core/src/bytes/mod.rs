@@ -36,7 +36,9 @@ impl<F: Field> ByteChip<F> {
     ///  - `trace` is a matrix containing all possible byte operations.
     /// - `map` is a map map from a byte lookup to the corresponding row it appears in the table and
     /// the index of the result in the array of multiplicities.
-    pub fn trace_and_map() -> (RowMajorMatrix<F>, BTreeMap<ByteLookupEvent, (usize, usize)>) {
+    pub fn trace_and_map(
+        shard: u32,
+    ) -> (RowMajorMatrix<F>, BTreeMap<ByteLookupEvent, (usize, usize)>) {
         // A map from a byte lookup to its corresponding row in the table and index in the array of
         // multiplicities.
         let mut event_map = BTreeMap::new();
@@ -64,31 +66,32 @@ impl<F: Field> ByteChip<F> {
                     ByteOpcode::AND => {
                         let and = b & c;
                         col.and = F::from_canonical_u8(and);
-                        ByteLookupEvent::new(*opcode, u32::from(and), 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, u32::from(and), 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::OR => {
                         let or = b | c;
                         col.or = F::from_canonical_u8(or);
-                        ByteLookupEvent::new(*opcode, u32::from(or), 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, u32::from(or), 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::XOR => {
                         let xor = b ^ c;
                         col.xor = F::from_canonical_u8(xor);
-                        ByteLookupEvent::new(*opcode, u32::from(xor), 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, u32::from(xor), 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::SLL => {
                         let sll = b << (c & 7);
                         col.sll = F::from_canonical_u8(sll);
-                        ByteLookupEvent::new(*opcode, u32::from(sll), 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, u32::from(sll), 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::U8Range => {
-                        ByteLookupEvent::new(*opcode, 0, 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, 0, 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::ShrCarry => {
                         let (res, carry) = shr_carry(b, c);
                         col.shr = F::from_canonical_u8(res);
                         col.shr_carry = F::from_canonical_u8(carry);
                         ByteLookupEvent::new(
+                            shard,
                             *opcode,
                             u32::from(res),
                             u32::from(carry),
@@ -99,17 +102,17 @@ impl<F: Field> ByteChip<F> {
                     ByteOpcode::LTU => {
                         let ltu = b < c;
                         col.ltu = F::from_bool(ltu);
-                        ByteLookupEvent::new(*opcode, u32::from(ltu), 0, u32::from(b), u32::from(c))
+                        ByteLookupEvent::new(shard, *opcode, u32::from(ltu), 0, u32::from(b), u32::from(c))
                     }
                     ByteOpcode::MSB => {
                         let msb = (b & 0b1000_0000) != 0;
                         col.msb = F::from_bool(msb);
-                        ByteLookupEvent::new(*opcode, u32::from(msb), 0, u32::from(b), 0)
+                        ByteLookupEvent::new(shard, *opcode, u32::from(msb), 0, u32::from(b), 0_u32)
                     }
                     ByteOpcode::U16Range => {
                         let v = (u32::from(b) << 8) + u32::from(c);
                         col.value_u16 = F::from_canonical_u32(v);
-                        ByteLookupEvent::new(*opcode, v, 0, 0, 0)
+                        ByteLookupEvent::new(shard, *opcode, v, 0, 0, 0)
                     }
                 };
                 event_map.insert(event, (row_index, i));

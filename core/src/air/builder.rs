@@ -90,31 +90,35 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
 /// A trait which contains methods for byte interactions in an AIR.
 pub trait ByteAirBuilder: BaseAirBuilder {
     /// Sends a byte operation to be processed.
-    fn send_byte<EOp, Ea, Eb, Ec, EMult>(
+    fn send_byte<EOp, Ea, Eb, Ec, EShard, EMult>(
         &mut self,
         opcode: EOp,
         a: Ea,
         b: Eb,
         c: Ec,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
         Ea: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
-        self.send_byte_pair(opcode, a, Self::Expr::zero(), b, c, multiplicity)
+        self.send_byte_pair(opcode, a, Self::Expr::zero(), b, c, shard, multiplicity)
     }
 
     /// Sends a byte operation with two outputs to be processed.
-    fn send_byte_pair<EOp, Ea1, Ea2, Eb, Ec, EMult>(
+    #[allow(clippy::too_many_arguments)]
+    fn send_byte_pair<EOp, Ea1, Ea2, Eb, Ec, EShard, EMult>(
         &mut self,
         opcode: EOp,
         a1: Ea1,
         a2: Ea2,
         b: Eb,
         c: Ec,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
@@ -122,41 +126,53 @@ pub trait ByteAirBuilder: BaseAirBuilder {
         Ea2: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
         self.send(AirInteraction::new(
-            vec![opcode.into(), a1.into(), a2.into(), b.into(), c.into()],
+            vec![
+                opcode.into(),
+                a1.into(),
+                a2.into(),
+                b.into(),
+                c.into(),
+                shard.into(),
+            ],
             multiplicity.into(),
             InteractionKind::Byte,
         ));
     }
 
     /// Receives a byte operation to be processed.
-    fn receive_byte<EOp, Ea, Eb, Ec, EMult>(
+    fn receive_byte<EOp, Ea, Eb, Ec, EMult, EShard>(
         &mut self,
         opcode: EOp,
         a: Ea,
         b: Eb,
         c: Ec,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
         Ea: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
-        self.receive_byte_pair(opcode, a, Self::Expr::zero(), b, c, multiplicity)
+        self.receive_byte_pair(opcode, a, Self::Expr::zero(), b, c, shard, multiplicity)
     }
 
     /// Receives a byte operation with two outputs to be processed.
-    fn receive_byte_pair<EOp, Ea1, Ea2, Eb, Ec, EMult>(
+    #[allow(clippy::too_many_arguments)]
+    fn receive_byte_pair<EOp, Ea1, Ea2, Eb, Ec, EMult, EShard>(
         &mut self,
         opcode: EOp,
         a1: Ea1,
         a2: Ea2,
         b: Eb,
         c: Ec,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
@@ -164,10 +180,18 @@ pub trait ByteAirBuilder: BaseAirBuilder {
         Ea2: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
         self.receive(AirInteraction::new(
-            vec![opcode.into(), a1.into(), a2.into(), b.into(), c.into()],
+            vec![
+                opcode.into(),
+                a1.into(),
+                a2.into(),
+                b.into(),
+                c.into(),
+                shard.into(),
+            ],
             multiplicity.into(),
             InteractionKind::Byte,
         ));
@@ -215,9 +239,14 @@ pub trait WordAirBuilder: ByteAirBuilder {
     }
 
     /// Check that each limb of the given slice is a u8.
-    fn slice_range_check_u8<EWord: Into<Self::Expr> + Clone, EMult: Into<Self::Expr> + Clone>(
+    fn slice_range_check_u8<
+        EWord: Into<Self::Expr> + Clone,
+        EShard: Into<Self::Expr> + Clone,
+        EMult: Into<Self::Expr> + Clone,
+    >(
         &mut self,
         input: &[EWord],
+        shard: EShard,
         mult: EMult,
     ) {
         let mut index = 0;
@@ -227,6 +256,7 @@ pub trait WordAirBuilder: ByteAirBuilder {
                 Self::Expr::zero(),
                 input[index].clone(),
                 input[index + 1].clone(),
+                shard.clone(),
                 mult.clone(),
             );
             index += 2;
@@ -237,15 +267,21 @@ pub trait WordAirBuilder: ByteAirBuilder {
                 Self::Expr::zero(),
                 input[index].clone(),
                 Self::Expr::zero(),
+                shard.clone(),
                 mult.clone(),
             );
         }
     }
 
     /// Check that each limb of the given slice is a u16.
-    fn slice_range_check_u16<EWord: Into<Self::Expr> + Copy, EMult: Into<Self::Expr> + Clone>(
+    fn slice_range_check_u16<
+        EWord: Into<Self::Expr> + Copy,
+        EShard: Into<Self::Expr> + Clone,
+        EMult: Into<Self::Expr> + Clone,
+    >(
         &mut self,
         input: &[EWord],
+        shard: EShard,
         mult: EMult,
     ) {
         for limb in input.iter() {
@@ -254,6 +290,7 @@ pub trait WordAirBuilder: ByteAirBuilder {
                 *limb,
                 Self::Expr::zero(),
                 Self::Expr::zero(),
+                shard.clone(),
                 mult.clone(),
             );
         }
@@ -263,24 +300,27 @@ pub trait WordAirBuilder: ByteAirBuilder {
 /// A trait which contains methods related to ALU interactions in an AIR.
 pub trait AluAirBuilder: BaseAirBuilder {
     /// Sends an ALU operation to be processed.
-    fn send_alu<EOp, Ea, Eb, Ec, EMult>(
+    fn send_alu<EOp, Ea, Eb, Ec, EShard, EMult>(
         &mut self,
         opcode: EOp,
         a: Word<Ea>,
         b: Word<Eb>,
         c: Word<Ec>,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
         Ea: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
         let values = once(opcode.into())
             .chain(a.0.into_iter().map(Into::into))
             .chain(b.0.into_iter().map(Into::into))
             .chain(c.0.into_iter().map(Into::into))
+            .chain(once(shard.into()))
             .collect();
 
         self.send(AirInteraction::new(
@@ -291,24 +331,27 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Receives an ALU operation to be processed.
-    fn receive_alu<EOp, Ea, Eb, Ec, EMult>(
+    fn receive_alu<EOp, Ea, Eb, Ec, EShard, EMult>(
         &mut self,
         opcode: EOp,
         a: Word<Ea>,
         b: Word<Eb>,
         c: Word<Ec>,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EOp: Into<Self::Expr>,
         Ea: Into<Self::Expr>,
         Eb: Into<Self::Expr>,
         Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr>,
         EMult: Into<Self::Expr>,
     {
         let values = once(opcode.into())
             .chain(a.0.into_iter().map(Into::into))
             .chain(b.0.into_iter().map(Into::into))
             .chain(c.0.into_iter().map(Into::into))
+            .chain(once(shard.into()))
             .collect();
 
         self.receive(AirInteraction::new(
@@ -455,12 +498,12 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
     ) where
         Eb: Into<Self::Expr> + Clone,
         EVerify: Into<Self::Expr>,
-        EShard: Into<Self::Expr>,
+        EShard: Into<Self::Expr> + Clone,
         EClk: Into<Self::Expr>,
     {
         let do_check: Self::Expr = do_check.into();
         let compare_clk: Self::Expr = mem_access.compare_clk.clone().into();
-        let shard: Self::Expr = shard.into();
+        let shard: Self::Expr = shard.clone().into();
         let prev_shard: Self::Expr = mem_access.prev_shard.clone().into();
 
         // First verify that compare_clk's value is correct.
@@ -476,7 +519,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
             mem_access.prev_shard.clone(),
         );
 
-        let current_comp_val = self.if_else(compare_clk.clone(), clk.into(), shard);
+        let current_comp_val = self.if_else(compare_clk.clone(), clk.into(), shard.clone());
 
         // Assert `current_comp_val > prev_comp_val`. We check this by asserting that
         // `0 <= current_comp_val-prev_comp_val-1 < 2^24`.
@@ -493,6 +536,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
             diff_minus_one,
             mem_access.diff_16bit_limb.clone(),
             mem_access.diff_8bit_limb.clone(),
+            shard.clone(),
             do_check,
         );
     }
@@ -503,15 +547,17 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
     /// check on it's limbs.  It will also verify that the limbs are correct.  This method is needed
     /// since the memory access timestamp check (see [Self::verify_mem_access_ts]) needs to assume
     /// the clk is within 24 bits.
-    fn verify_range_24bits<EValue, ELimb, EVerify>(
+    fn verify_range_24bits<EValue, ELimb, EShard, EVerify>(
         &mut self,
         value: EValue,
         limb_16: ELimb,
         limb_8: ELimb,
+        shard: EShard,
         do_check: EVerify,
     ) where
         EValue: Into<Self::Expr>,
         ELimb: Into<Self::Expr> + Clone,
+        EShard: Into<Self::Expr> + Clone,
         EVerify: Into<Self::Expr> + Clone,
     {
         // Verify that value = limb_16 + limb_8 * 2^16.
@@ -527,6 +573,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
             limb_16,
             Self::Expr::zero(),
             Self::Expr::zero(),
+            shard.clone(),
             do_check.clone(),
         );
 
@@ -535,6 +582,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
             Self::Expr::zero(),
             Self::Expr::zero(),
             limb_8,
+            shard.clone(),
             do_check,
         )
     }
@@ -569,22 +617,25 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
 /// A trait which contains methods related to program interactions in an AIR.
 pub trait ProgramAirBuilder: BaseAirBuilder {
     /// Sends an instruction.
-    fn send_program<EPc, EInst, ESel, EMult>(
+    fn send_program<EPc, EInst, ESel, EShard, EMult>(
         &mut self,
         pc: EPc,
         instruction: InstructionCols<EInst>,
         selectors: OpcodeSelectorCols<ESel>,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EPc: Into<Self::Expr>,
         EInst: Into<Self::Expr> + Copy,
         ESel: Into<Self::Expr> + Copy,
+        EShard: Into<Self::Expr> + Copy,
         EMult: Into<Self::Expr>,
     {
         let values = once(pc.into())
             .chain(once(instruction.opcode.into()))
             .chain(instruction.into_iter().map(|x| x.into()))
             .chain(selectors.into_iter().map(|x| x.into()))
+            .chain(once(shard.into()))
             .collect();
 
         self.send(AirInteraction::new(
@@ -595,22 +646,25 @@ pub trait ProgramAirBuilder: BaseAirBuilder {
     }
 
     /// Receives an instruction.
-    fn receive_program<EPc, EInst, ESel, EMult>(
+    fn receive_program<EPc, EInst, ESel, EShard, EMult>(
         &mut self,
         pc: EPc,
         instruction: InstructionCols<EInst>,
         selectors: OpcodeSelectorCols<ESel>,
+        shard: EShard,
         multiplicity: EMult,
     ) where
         EPc: Into<Self::Expr>,
         EInst: Into<Self::Expr> + Copy,
         ESel: Into<Self::Expr> + Copy,
+        EShard: Into<Self::Expr> + Copy,
         EMult: Into<Self::Expr>,
     {
         let values: Vec<<Self as AirBuilder>::Expr> = once(pc.into())
             .chain(once(instruction.opcode.into()))
             .chain(instruction.into_iter().map(|x| x.into()))
             .chain(selectors.into_iter().map(|x| x.into()))
+            .chain(once(shard.into()))
             .collect();
 
         self.receive(AirInteraction::new(

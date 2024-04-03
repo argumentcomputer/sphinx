@@ -12,7 +12,7 @@ vergen = { version = "8", default-features = false, features = ["build", "git", 
 anyhow = { version = "1.0.79", features = ["backtrace"] }
 cargo_metadata = "0.18.1"
 clap = { version = "4.5.4", features = ["derive", "env"] }
-wp1-core = { path = "../core", features = ["perf"] }
+wp1-core = { path = "../core" }
 wp1-sdk = { path = "../sdk" }
 reqwest = { version = "0.12.2", features = ["stream", "json", "rustls-tls"], default-features = false }
 futures-util = "0.3.14"

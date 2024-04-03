@@ -26,6 +26,9 @@ pub struct LtChip;
 #[derive(AlignedBorrow, Default, Clone, Copy)]
 #[repr(C)]
 pub struct LtCols<T> {
+    /// The shard number, used for byte lookup table.
+    pub shard: T,
+
     /// The output operand.
     pub a: Word<T>,
 
@@ -101,6 +104,7 @@ impl<F: PrimeField> MachineAir<F> for LtChip {
                 let b = event.b.to_le_bytes();
                 let c = event.c.to_le_bytes();
 
+                cols.shard = F::from_canonical_u32(event.shard);
                 cols.a = Word(a.map(F::from_canonical_u8));
                 cols.b = Word(b.map(F::from_canonical_u8));
                 cols.c = Word(c.map(F::from_canonical_u8));
@@ -297,6 +301,7 @@ where
             local.a,
             local.b,
             local.c,
+            local.shard,
             local.is_slt + local.is_sltu,
         );
     }
@@ -324,7 +329,7 @@ mod tests {
     #[test]
     fn generate_trace() {
         let mut shard = ExecutionRecord::default();
-        shard.lt_events = vec![AluEvent::new(0, Opcode::SLT, 0, 3, 2)];
+        shard.lt_events = vec![AluEvent::new(0, 0, Opcode::SLT, 0, 3, 2)];
         let chip = LtChip;
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
@@ -352,21 +357,21 @@ mod tests {
         const NEG_4: u32 = 0b11111111111111111111111111111100;
         shard.lt_events = vec![
             // 0 == 3 < 2
-            AluEvent::new(0, Opcode::SLT, 0, 3, 2),
+            AluEvent::new(0, 0, Opcode::SLT, 0, 3, 2),
             // 1 == 2 < 3
-            AluEvent::new(1, Opcode::SLT, 1, 2, 3),
+            AluEvent::new(0, 1, Opcode::SLT, 1, 2, 3),
             // 0 == 5 < -3
-            AluEvent::new(3, Opcode::SLT, 0, 5, NEG_3),
+            AluEvent::new(0, 3, Opcode::SLT, 0, 5, NEG_3),
             // 1 == -3 < 5
-            AluEvent::new(2, Opcode::SLT, 1, NEG_3, 5),
+            AluEvent::new(0, 2, Opcode::SLT, 1, NEG_3, 5),
             // 0 == -3 < -4
-            AluEvent::new(4, Opcode::SLT, 0, NEG_3, NEG_4),
+            AluEvent::new(0, 4, Opcode::SLT, 0, NEG_3, NEG_4),
             // 1 == -4 < -3
-            AluEvent::new(4, Opcode::SLT, 1, NEG_4, NEG_3),
+            AluEvent::new(0, 4, Opcode::SLT, 1, NEG_4, NEG_3),
             // 0 == 3 < 3
-            AluEvent::new(5, Opcode::SLT, 0, 3, 3),
+            AluEvent::new(0, 5, Opcode::SLT, 0, 3, 3),
             // 0 == -3 < -3
-            AluEvent::new(5, Opcode::SLT, 0, NEG_3, NEG_3),
+            AluEvent::new(0, 5, Opcode::SLT, 0, NEG_3, NEG_3),
         ];
 
         prove_babybear_template(&mut shard);
@@ -379,17 +384,17 @@ mod tests {
         const LARGE: u32 = 0b11111111111111111111111111111101;
         shard.lt_events = vec![
             // 0 == 3 < 2
-            AluEvent::new(0, Opcode::SLTU, 0, 3, 2),
+            AluEvent::new(0, 0, Opcode::SLTU, 0, 3, 2),
             // 1 == 2 < 3
-            AluEvent::new(1, Opcode::SLTU, 1, 2, 3),
+            AluEvent::new(0, 1, Opcode::SLTU, 1, 2, 3),
             // 0 == LARGE < 5
-            AluEvent::new(2, Opcode::SLTU, 0, LARGE, 5),
+            AluEvent::new(0, 2, Opcode::SLTU, 0, LARGE, 5),
             // 1 == 5 < LARGE
-            AluEvent::new(3, Opcode::SLTU, 1, 5, LARGE),
+            AluEvent::new(0, 3, Opcode::SLTU, 1, 5, LARGE),
             // 0 == 0 < 0
-            AluEvent::new(5, Opcode::SLTU, 0, 0, 0),
+            AluEvent::new(0, 5, Opcode::SLTU, 0, 0, 0),
             // 0 == LARGE < LARGE
-            AluEvent::new(5, Opcode::SLTU, 0, LARGE, LARGE),
+            AluEvent::new(0, 5, Opcode::SLTU, 0, LARGE, LARGE),
         ];
 
         prove_babybear_template(&mut shard);

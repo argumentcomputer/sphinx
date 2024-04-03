@@ -183,15 +183,36 @@ impl CpuChip {
         new_blu_events: &mut Vec<ByteLookupEvent>,
     ) {
         cols.shard = F::from_canonical_u32(event.shard);
-        new_blu_events.push(ByteLookupEvent::new(U16Range, event.shard, 0, 0, 0));
+        new_blu_events.push(ByteLookupEvent::new(
+            event.shard,
+            U16Range,
+            event.shard,
+            0,
+            0,
+            0,
+        ));
 
         cols.clk = F::from_canonical_u32(event.clk);
         let clk_16bit_limb = event.clk & 0xffff;
         cols.clk_16bit_limb = F::from_canonical_u32(clk_16bit_limb);
         let clk_8bit_limb = (event.clk >> 16) & 0xff;
         cols.clk_8bit_limb = F::from_canonical_u32(clk_8bit_limb);
-        new_blu_events.push(ByteLookupEvent::new(U16Range, clk_16bit_limb, 0, 0, 0));
-        new_blu_events.push(ByteLookupEvent::new(U8Range, 0, 0, 0, clk_8bit_limb));
+        new_blu_events.push(ByteLookupEvent::new(
+            event.shard,
+            U16Range,
+            clk_16bit_limb,
+            0,
+            0,
+            0,
+        ));
+        new_blu_events.push(ByteLookupEvent::new(
+            event.shard,
+            U8Range,
+            0,
+            0,
+            0,
+            clk_8bit_limb,
+        ));
     }
 
     /// Populates columns related to memory.
@@ -225,6 +246,7 @@ impl CpuChip {
 
         // Add event to ALU check to check that addr == b + c
         let add_event = AluEvent {
+            shard: event.shard,
             clk: event.clk,
             opcode: Opcode::ADD,
             a: memory_addr,
@@ -288,6 +310,7 @@ impl CpuChip {
                 if memory_columns.most_sig_byte_decomp[7] == F::one() {
                     cols.mem_value_is_neg = F::one();
                     let sub_event = AluEvent {
+                        shard: event.shard,
                         clk: event.clk,
                         opcode: Opcode::SUB,
                         a: event.a,
@@ -307,6 +330,7 @@ impl CpuChip {
         let addr_bytes = memory_addr.to_le_bytes();
         for byte_pair in addr_bytes.chunks_exact(2) {
             new_blu_events.push(ByteLookupEvent {
+                shard: event.shard,
                 opcode: U8Range,
                 a1: 0,
                 a2: 0,
@@ -349,6 +373,7 @@ impl CpuChip {
             };
             // Add the ALU events for the comparisons
             let lt_comp_event = AluEvent {
+                shard: event.shard,
                 clk: event.clk,
                 opcode: alu_op_code,
                 a: u32::from(a_lt_b),
@@ -362,6 +387,7 @@ impl CpuChip {
                 .or_insert(vec![lt_comp_event]);
 
             let gt_comp_event = AluEvent {
+                shard: event.shard,
                 clk: event.clk,
                 opcode: alu_op_code,
                 a: u32::from(a_gt_b),
@@ -394,6 +420,7 @@ impl CpuChip {
                 branch_columns.next_pc = next_pc.into();
 
                 let add_event = AluEvent {
+                    shard: event.shard,
                     clk: event.clk,
                     opcode: Opcode::ADD,
                     a: next_pc,
@@ -428,6 +455,7 @@ impl CpuChip {
                     jump_columns.next_pc = next_pc.into();
 
                     let add_event = AluEvent {
+                        shard: event.shard,
                         clk: event.clk,
                         opcode: Opcode::ADD,
                         a: next_pc,
@@ -445,6 +473,7 @@ impl CpuChip {
                     jump_columns.next_pc = next_pc.into();
 
                     let add_event = AluEvent {
+                        shard: event.shard,
                         clk: event.clk,
                         opcode: Opcode::ADD,
                         a: next_pc,
@@ -475,6 +504,7 @@ impl CpuChip {
             auipc_columns.pc = event.pc.into();
 
             let add_event = AluEvent {
+                shard: event.shard,
                 clk: event.clk,
                 opcode: Opcode::ADD,
                 a: event.a,

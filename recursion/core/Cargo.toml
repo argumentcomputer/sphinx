@@ -8,7 +8,7 @@ p3-field = { workspace = true }
 p3-baby-bear = { workspace = true }
 p3-air = { workspace = true }
 p3-matrix = { workspace = true }
-p3-maybe-rayon = { workspace = true }
+p3-maybe-rayon = { workspace = true, features = ["parallel"] }
 p3-poseidon2 = { workspace = true }
 p3-symmetric = { workspace = true }
 wp1-derive = { path = "../../derive" }
