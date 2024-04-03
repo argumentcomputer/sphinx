@@ -77,6 +77,10 @@ serial = []
 
 [[bench]]
 harness = false
+name = "fibonacci"
+
+[[bench]]
+harness = false
 name = "main"
 
 [lib]

@@ -17,3 +17,6 @@ benchmark.csv
 
 # Jetbrain config
 ./.idea
+
+# VSCode config
+**/.vscode
