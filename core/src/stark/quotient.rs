@@ -36,14 +36,23 @@ where
     let prep_width = preprocessed_trace_on_quotient_domain.width();
     let main_width = main_trace_on_quotient_domain.width();
     let perm_width = permutation_trace_on_quotient_domain.width();
-    let sels = trace_domain.selectors_on_coset(quotient_domain);
+    let mut sels = trace_domain.selectors_on_coset(quotient_domain);
 
     let qdb = log2_strict_usize(quotient_domain.size()) - log2_strict_usize(trace_domain.size());
     let next_step = 1 << qdb;
 
     let ext_degree = SC::Challenge::D;
 
-    assert!(quotient_size >= PackedVal::<SC>::WIDTH);
+    // We have a few vectors of length `quotient_size`, and we're going to take slices therein of
+    // length `WIDTH`. In the edge case where `quotient_size < WIDTH`, we need to pad those vectors
+    // in order for the slices to exist. The entries beyond quotient_size will be ignored, so we can
+    // just use default values.
+    for _ in quotient_size..PackedVal::<SC>::WIDTH {
+        sels.inv_zeroifier.push(SC::Val::default());
+        sels.is_transition.push(SC::Val::default());
+        sels.is_first_row.push(SC::Val::default());
+        sels.is_last_row.push(SC::Val::default());
+    }
 
     (0..quotient_size)
         .into_par_iter()
@@ -140,7 +149,8 @@ where
             let quotient = folder.accumulator * inv_zeroifier;
 
             // "Transpose" D packed base coefficients into WIDTH scalar extension coefficients.
-            (0..PackedVal::<SC>::WIDTH).map(move |idx_in_packing| {
+            let limit = PackedVal::<SC>::WIDTH.min(quotient_size);
+            (0..limit).map(move |idx_in_packing| {
                 let quotient_value = (0..<SC::Challenge as AbstractExtensionField<Val<SC>>>::D)
                     .map(|coeff_idx| quotient.as_base_slice()[coeff_idx].as_slice()[idx_in_packing])
                     .collect::<Vec<_>>();
