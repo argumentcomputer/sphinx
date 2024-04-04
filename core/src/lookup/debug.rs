@@ -144,8 +144,7 @@ where
     for chip in chips.iter() {
         let mut total_events = 0;
         for shard in shards {
-            let (_, count) =
-                debug_interactions::<SC, A>(chip, pkey, shard, interaction_kinds);
+            let (_, count) = debug_interactions::<SC, A>(chip, pkey, shard, interaction_kinds);
             total_events += count.len();
             for (key, value) in count.iter() {
                 let entry = final_map
@@ -226,8 +225,12 @@ mod test {
         let mut runtime = Runtime::new(program);
         runtime.run();
         let shards = machine.shard(runtime.record, &ShardingConfig::default());
-        let ok =
-            debug_interactions_with_all_chips(&machine, &pk, &shards, &InteractionKind::all_kinds());
+        let ok = debug_interactions_with_all_chips(
+            &machine,
+            &pk,
+            &shards,
+            &InteractionKind::all_kinds(),
+        );
         assert!(ok);
     }
 }

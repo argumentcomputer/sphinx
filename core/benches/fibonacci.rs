@@ -9,11 +9,7 @@ fn elf_path(p: &str) -> String {
     format!("examples/{}/program/elf/riscv32im-succinct-zkvm-elf", p)
 }
 
-#[allow(unreachable_code)]
 pub fn criterion_benchmark(c: &mut Criterion) {
-    #[cfg(not(feature = "perf"))]
-    unreachable!("--features=perf must be enabled to run this benchmark");
-
     let programs = ["fibonacci"];
     let mut cycles_map = HashMap::new();
     for p in programs {
