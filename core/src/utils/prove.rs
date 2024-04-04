@@ -298,6 +298,51 @@ where
 }
 
 #[cfg(debug_assertions)]
+pub fn uni_stark_prove_with_public_values<SC, A>(
+    config: &SC,
+    air: &A,
+    challenger: &mut SC::Challenger,
+    trace: RowMajorMatrix<SC::Val>,
+    public_values: &Vec<SC::Val>,
+) -> Proof<UniConfig<SC>>
+where
+    SC: StarkGenericConfig,
+    A: Air<p3_uni_stark::SymbolicAirBuilder<SC::Val>>
+        + for<'a> Air<p3_uni_stark::ProverConstraintFolder<'a, UniConfig<SC>>>
+        + for<'a> Air<p3_uni_stark::DebugConstraintBuilder<'a, SC::Val>>,
+{
+    p3_uni_stark::prove(
+        &UniConfig(config.clone()),
+        air,
+        challenger,
+        trace,
+        public_values,
+    )
+}
+
+#[cfg(not(debug_assertions))]
+pub fn uni_stark_prove_with_public_values<SC, A>(
+    config: &SC,
+    air: &A,
+    challenger: &mut SC::Challenger,
+    trace: RowMajorMatrix<SC::Val>,
+    public_values: &Vec<SC::Val>,
+) -> Proof<UniConfig<SC>>
+where
+    SC: StarkGenericConfig,
+    A: Air<p3_uni_stark::SymbolicAirBuilder<SC::Val>>
+        + for<'a> Air<p3_uni_stark::ProverConstraintFolder<'a, UniConfig<SC>>>,
+{
+    p3_uni_stark::prove(
+        &UniConfig(config.clone()),
+        air,
+        challenger,
+        trace,
+        public_values,
+    )
+}
+
+#[cfg(debug_assertions)]
 pub fn uni_stark_verify<SC, A>(
     config: &SC,
     air: &A,
@@ -326,6 +371,51 @@ where
         + for<'a> Air<p3_uni_stark::VerifierConstraintFolder<'a, UniConfig<SC>>>,
 {
     p3_uni_stark::verify(&UniConfig(config.clone()), air, challenger, proof, &vec![])
+}
+
+#[cfg(debug_assertions)]
+pub fn uni_stark_verify_with_public_values<SC, A>(
+    config: &SC,
+    air: &A,
+    challenger: &mut SC::Challenger,
+    proof: &Proof<UniConfig<SC>>,
+    public_values: &Vec<SC::Val>,
+) -> Result<(), p3_uni_stark::VerificationError>
+where
+    SC: StarkGenericConfig,
+    A: Air<p3_uni_stark::SymbolicAirBuilder<SC::Val>>
+        + for<'a> Air<p3_uni_stark::VerifierConstraintFolder<'a, UniConfig<SC>>>
+        + for<'a> Air<p3_uni_stark::DebugConstraintBuilder<'a, SC::Val>>,
+{
+    p3_uni_stark::verify(
+        &UniConfig(config.clone()),
+        air,
+        challenger,
+        proof,
+        public_values,
+    )
+}
+
+#[cfg(not(debug_assertions))]
+pub fn uni_stark_verify_with_public_values<SC, A>(
+    config: &SC,
+    air: &A,
+    challenger: &mut SC::Challenger,
+    proof: &Proof<UniConfig<SC>>,
+    public_values: &Vec<SC::Val>,
+) -> Result<(), p3_uni_stark::VerificationError>
+where
+    SC: StarkGenericConfig,
+    A: Air<p3_uni_stark::SymbolicAirBuilder<SC::Val>>
+        + for<'a> Air<p3_uni_stark::VerifierConstraintFolder<'a, UniConfig<SC>>>,
+{
+    p3_uni_stark::verify(
+        &UniConfig(config.clone()),
+        air,
+        challenger,
+        proof,
+        public_values,
+    )
 }
 
 pub use baby_bear_keccak::BabyBearKeccak;

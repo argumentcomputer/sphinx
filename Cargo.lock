@@ -3726,6 +3726,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
+name = "tutorials"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-field",
+ "p3-matrix",
+ "p3-maybe-rayon",
+ "wp1-core",
+ "wp1-derive",
+]
+
+[[package]]
 name = "twirp"
 version = "0.3.0"
 source = "git+https://github.com/github/twirp-rs.git#6f90763c9bbea7529ab6a54edcf923ae2611cc69"

@@ -60,11 +60,11 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
 
     /// Will return `a` if `condition` is 1, else `b`.  This assumes that `condition` is already
     /// checked to be a boolean.
-    fn if_else<ECond, EA, EB>(&mut self, condition: ECond, a: EA, b: EB) -> Self::Expr
+    fn if_else<ECond, EA, EB>(&self, condition: ECond, a: EA, b: EB) -> Self::Expr
     where
         ECond: Into<Self::Expr> + Clone,
-        EA: Into<Self::Expr> + Clone,
-        EB: Into<Self::Expr> + Clone,
+        EA: Into<Self::Expr>,
+        EB: Into<Self::Expr>,
     {
         condition.clone().into() * a.into() + (Self::Expr::one() - condition.into()) * b.into()
     }
