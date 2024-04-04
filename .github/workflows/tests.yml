@@ -26,7 +26,7 @@ jobs:
           echo "RUST_LOG=1" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
       - name: Run cargo test on wp1 except the fibonacci tests
         run: |
@@ -85,3 +85,41 @@ jobs:
         run: |
           make
         working-directory: ${{ github.workspace }}/examples
+
+  mac-m1:
+    name: CI Tests on OSX ARM
+    runs-on: macos-latest-xlarge
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - name: Set env
+        run: |
+          echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
+          echo "RUST_LOG=1" | tee -a $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@nextest
+      - name: Run cargo test on wp1 except the fibonacci tests
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - (package(wp1-recursion-core) & test(tests::test_fibonacci_))'
+      - name: Run cargo test with no default features
+        run: |
+          cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+      - name: Set env
+        if: failure()
+        run: |
+          echo "WORKFLOW_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" | tee -a $GITHUB_ENV
+      - name: Open an issue on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_COMMIT: ${{ github.sha }}
+          WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
+        with:
+          filename: .github/M1_MAC_FAILURE.md
+          update_existing: true
