@@ -70,7 +70,7 @@ fn test_compiler_caching_arithmetic() {
     let random: Felt<_> = builder.eval(rng.gen::<F>());
 
     let num_ops = 10;
-    let mut a: SymbolicFelt<_> = one.into();
+    let mut a: SymbolicFelt<F> = one.into();
     let mut b: SymbolicFelt<_> = one.into();
     let mut c = a.clone() + a.clone() + a.clone();
     for _ in 0..num_ops {
