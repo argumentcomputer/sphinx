@@ -124,7 +124,7 @@ impl SP1Prover {
         callback_datas: Vec<Vec<u8>>,
     ) -> Result<Vec<String>> {
         let client = NetworkClient::with_token(access_token);
-        let verifier = NetworkClient::get_sp1_verifier_address();
+        let verifier = NetworkClient::get_wp1_verifier_address();
 
         let mut tx_details = Vec::new();
         for ((i, callback), callback_data) in

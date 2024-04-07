@@ -29,12 +29,13 @@ pub fn prove_sp1() -> (Proof<InnerSC>, VerifyingKey<InnerSC>) {
     (proof, vk)
 }
 
-pub fn prove_compress(sp1_proof: Proof<InnerSC>, vk: &VerifyingKey<InnerSC>) {
-    let program = build_compress(sp1_proof, vk);
+pub fn prove_compress(wp1_proof: Proof<InnerSC>, vk: &VerifyingKey<InnerSC>) {
+    let (program, witness_stream) = build_compress(wp1_proof, vk);
 
     let config = InnerSC::default();
     let machine = InnerA::machine(config);
     let mut runtime = Runtime::<InnerF, InnerEF, _>::new(&program, machine.config().perm.clone());
+    runtime.witness_stream = witness_stream;
 
     let time = Instant::now();
     runtime.run();
@@ -74,7 +75,7 @@ mod tests {
     fn test_prove_sp1() {
         setup_logger();
 
-        let (sp1_proof, vk) = prove_sp1();
-        prove_compress(sp1_proof, &vk);
+        let (wp1_proof, vk) = prove_sp1();
+        prove_compress(wp1_proof, &vk);
     }
 }

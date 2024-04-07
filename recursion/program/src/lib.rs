@@ -4,5 +4,6 @@ pub mod compress;
 pub mod constraints;
 pub mod folder;
 pub mod fri;
+pub mod hints;
 pub mod stark;
 pub mod types;

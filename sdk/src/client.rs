@@ -63,7 +63,7 @@ impl NetworkClient {
         }
     }
 
-    pub fn get_sp1_verifier_address() -> [u8; 20] {
+    pub fn get_wp1_verifier_address() -> [u8; 20] {
         let verifier_hex = env::var("SP1_VERIFIER_ADDRESS")
             .unwrap_or_else(|_| DEFAULT_SP1_VERIFIER_ADDRESS.to_string());
         let verifier_bytes = hex::decode(verifier_hex.trim_start_matches("0x"))
