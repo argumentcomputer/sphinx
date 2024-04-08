@@ -533,7 +533,7 @@ pub(crate) mod tests {
             challenger.observe(&mut builder, commit);
         }
         challenger.sample_ext(&mut builder);
-        pcs.verify(&mut builder, &rounds,& proofvar, &mut challenger);
+        pcs.verify(&mut builder, &rounds, &proofvar, &mut challenger);
 
         let program = builder.compile();
         let mut runtime = Runtime::<InnerVal, InnerChallenge, _>::new(&program, perm.clone());

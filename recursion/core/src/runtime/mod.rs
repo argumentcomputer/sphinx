@@ -635,7 +635,8 @@ where
 
                     self.memory[ro_ptr + log_height].value = Block::try_from(
                         (ro_at_log_height + alpha_pow_at_log_height * quotient).as_base_slice(),
-                    ).unwrap();
+                    )
+                    .unwrap();
                     self.memory[alpha_pow_ptr + log_height].value =
                         Block::try_from((alpha_pow_at_log_height * alpha).as_base_slice()).unwrap();
 
