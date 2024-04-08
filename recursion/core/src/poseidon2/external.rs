@@ -321,6 +321,7 @@ mod tests {
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
     use p3_poseidon2::Poseidon2;
+    use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
     use wp1_core::stark::StarkGenericConfig;
     use wp1_core::{
         air::MachineAir,
@@ -356,7 +357,13 @@ mod tests {
             &mut ExecutionRecord::<BabyBear>::default(),
         );
 
-        let gt: Poseidon2<BabyBear, DiffusionMatrixBabybear, 16, 7> = inner_perm();
+        let gt: Poseidon2<
+            BabyBear,
+            Poseidon2ExternalMatrixGeneral,
+            DiffusionMatrixBabybear,
+            16,
+            7,
+        > = inner_perm();
         let input = [BabyBear::one(); WIDTH];
         let output = gt.permute(input);
 
