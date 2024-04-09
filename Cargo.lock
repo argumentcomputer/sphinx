@@ -4043,6 +4043,9 @@ name = "wp1-prover"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "p3-baby-bear",
+ "p3-challenger",
+ "p3-commit",
  "wp1-core",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
