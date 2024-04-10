@@ -28,6 +28,7 @@ use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
 use crate::utils::env;
 use itertools::Itertools;
+use p3_field::AbstractField;
 use serde::{Deserialize, Serialize};
 
 /// A record of the execution of a program. Contains event data for everything that happened during
@@ -627,8 +628,8 @@ impl MachineRecord for ExecutionRecord {
 
     /// Retrieves the public values.  This method is needed for the `MachineRecord` trait, since
     /// the public values digest is used by the prover.
-    fn public_values(&self) -> PublicValues<u32, u32> {
-        self.public_values
+    fn public_values<F: AbstractField>(&self) -> Vec<F> {
+        self.public_values.to_vec()
     }
 }
 

@@ -9,7 +9,7 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_field::{ExtensionField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix, MatrixRowSlices};
 
-use crate::air::{EmptyMessageBuilder, MachineAir, MultiTableAirBuilder, PublicValues, Word};
+use crate::air::{EmptyMessageBuilder, MachineAir, MultiTableAirBuilder};
 
 use super::{MachineChip, StarkGenericConfig, Val};
 
@@ -22,7 +22,7 @@ pub fn debug_constraints<SC, A>(
     main: &RowMajorMatrix<Val<SC>>,
     perm: &RowMajorMatrix<SC::Challenge>,
     perm_challenges: &[SC::Challenge],
-    public_values: PublicValues<Word<Val<SC>>, Val<SC>>,
+    public_values: &[Val<SC>],
 ) where
     SC: StarkGenericConfig,
     Val<SC>: PrimeField32,
@@ -55,7 +55,6 @@ pub fn debug_constraints<SC, A>(
         let perm_local = perm.row_slice(i);
         let perm_next = perm.row_slice(i_next);
 
-        let public_values = public_values.to_vec();
         let mut builder = DebugConstraintBuilder {
             preprocessed: TwoRowMatrixView {
                 local: preprocessed_local,
@@ -74,7 +73,7 @@ pub fn debug_constraints<SC, A>(
             is_first_row: Val::<SC>::zero(),
             is_last_row: Val::<SC>::zero(),
             is_transition: Val::<SC>::one(),
-            public_values: &public_values,
+            public_values,
         };
         if i == 0 {
             builder.is_first_row = Val::<SC>::one();

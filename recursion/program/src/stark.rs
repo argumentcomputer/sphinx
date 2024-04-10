@@ -258,17 +258,14 @@ where
 #[cfg(test)]
 pub(crate) mod tests {
     use crate::challenger::CanObserveVariable;
-    use crate::challenger::DuplexChallengerVariable;
     use crate::challenger::FeltChallenger;
     use crate::hints::Hintable;
+    use crate::stark::DuplexChallengerVariable;
     use crate::stark::Ext;
     use crate::types::ShardCommitmentVariable;
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::AbstractField;
     use rand::Rng;
-    use std::time::Instant;
-    use wp1_core::air::PublicValues;
-    use wp1_core::air::Word;
     use wp1_core::runtime::Program;
     use wp1_core::stark::LocalProver;
     use wp1_core::{
@@ -285,9 +282,11 @@ pub(crate) mod tests {
     use wp1_recursion_core::runtime::{Runtime, DIGEST_SIZE};
     use wp1_recursion_core::stark::config::InnerChallenge;
     use wp1_recursion_core::stark::config::InnerVal;
+    use wp1_sdk::{SP1Prover, SP1Stdin};
+
+    use std::time::Instant;
     use wp1_recursion_core::stark::RecursionAir;
     use wp1_sdk::utils::setup_logger;
-    use wp1_sdk::{SP1Prover, SP1Stdin};
 
     type SC = BabyBearPoseidon2;
     type F = InnerVal;
@@ -315,8 +314,7 @@ pub(crate) mod tests {
 
         for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-            let public_values_field = PublicValues::<Word<F>, F>::new(proof.public_values);
-            challenger_val.observe_slice(&public_values_field.to_vec());
+            challenger_val.observe_slice(&proof.public_values);
         }
 
         let permutation_challenges = (0..2)
@@ -338,9 +336,7 @@ pub(crate) mod tests {
             let proof = ShardProof::<_>::read(&mut builder);
             let ShardCommitmentVariable { main_commit, .. } = proof.commitment;
             challenger.observe(&mut builder, main_commit);
-
-            let public_values_elements = proof.public_values.to_vec(&mut builder);
-            challenger.observe_slice(&mut builder, &public_values_elements);
+            challenger.observe_slice(&mut builder, proof.public_values);
         }
 
         // Sample the permutation challenges.
