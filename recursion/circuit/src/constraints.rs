@@ -175,10 +175,10 @@ mod tests {
         ShardMainData, ShardProof, StarkGenericConfig,
     };
     use wp1_recursion_compiler::{
-        constraints::{gnark_ffi, ConstraintBackend},
+        config::OuterConfig,
+        constraints::{gnark_ffi, ConstraintCompiler},
         ir::Builder,
         prelude::ExtConst,
-        OuterConfig,
     };
     use wp1_recursion_core::{
         runtime::Runtime,
@@ -358,8 +358,8 @@ mod tests {
             }
         }
 
-        let mut backend = ConstraintBackend::<OuterConfig>::default();
+        let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::test_circuit(&constraints);
+        gnark_ffi::execute(&constraints);
     }
 }

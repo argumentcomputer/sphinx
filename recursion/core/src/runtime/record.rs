@@ -4,13 +4,13 @@ use p3_field::{AbstractField, PrimeField32};
 use std::collections::HashMap;
 use wp1_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
 
-use super::{Program, DIGEST_SIZE};
+use super::{RecursionProgram, DIGEST_SIZE};
 use crate::air::Block;
 use crate::cpu::CpuEvent;
 
 #[derive(Default, Debug, Clone)]
 pub struct ExecutionRecord<F: Default> {
-    pub program: Arc<Program<F>>,
+    pub program: Arc<RecursionProgram<F>>,
     pub cpu_events: Vec<CpuEvent<F>>,
 
     // (address)

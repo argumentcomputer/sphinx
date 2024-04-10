@@ -14,7 +14,7 @@ use wp1_core::utils::poseidon2_instance::RC_16_30_U32;
 use wp1_derive::AlignedBorrow;
 
 use super::{apply_m_4, matmul_internal, MATRIX_DIAG_16_BABYBEAR_U32};
-use crate::runtime::{ExecutionRecord, Program};
+use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 /// The number of main trace columns for `AddChip`.
 pub(crate) const NUM_POSEIDON2_COLS: usize = size_of::<Poseidon2Cols<u8>>();
@@ -44,7 +44,7 @@ pub struct Poseidon2Cols<T> {
 impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip {
     type Record = ExecutionRecord<F>;
 
-    type Program = Program<F>;
+    type Program = RecursionProgram<F>;
 
     fn name(&self) -> String {
         "Poseidon2".to_string()

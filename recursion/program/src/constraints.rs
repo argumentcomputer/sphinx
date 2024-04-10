@@ -176,7 +176,8 @@ mod tests {
 
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::PrimeField32;
-    use wp1_recursion_compiler::{asm::VmBuilder, ir::Array, ir::Felt, prelude::ExtConst};
+    use wp1_recursion_compiler::prelude::Array;
+    use wp1_recursion_compiler::{asm::AsmBuilder, ir::Felt, prelude::ExtConst};
 
     use p3_commit::{Pcs, PolynomialSpace};
 
@@ -306,7 +307,7 @@ mod tests {
         }
 
         // Run the verify inside the DSL and compare it to the calculated value.
-        let mut builder = VmBuilder::<F, EF>::default();
+        let mut builder = AsmBuilder::<F, EF>::default();
 
         for proof in proof.shard_proofs.into_iter().take(1) {
             let (
@@ -390,7 +391,7 @@ mod tests {
             }
         }
 
-        let program = builder.compile();
+        let program = builder.compile_program();
 
         let mut runtime = Runtime::<F, EF, _>::new(&program, machine.config().perm.clone());
         runtime.run();
@@ -430,7 +431,7 @@ mod tests {
         }
 
         // Run the verify inside the DSL and compare it to the calculated value.
-        let mut builder = VmBuilder::<F, EF>::default();
+        let mut builder = AsmBuilder::<F, EF>::default();
 
         for proof in proof.shard_proofs.into_iter().take(1) {
             let (
@@ -478,7 +479,7 @@ mod tests {
             }
         }
 
-        let program = builder.compile();
+        let program = builder.compile_program();
 
         let mut runtime = Runtime::<F, EF, _>::new(&program, machine.config().perm.clone());
         runtime.run();

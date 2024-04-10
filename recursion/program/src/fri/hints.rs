@@ -1,9 +1,9 @@
 use p3_field::AbstractExtensionField;
 use p3_field::AbstractField;
+use wp1_recursion_compiler::config::InnerConfig;
 use wp1_recursion_compiler::{
     asm::AsmConfig,
     ir::{Array, Builder, Config},
-    InnerConfig,
 };
 use wp1_recursion_core::stark::config::{
     InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerFriProof,
