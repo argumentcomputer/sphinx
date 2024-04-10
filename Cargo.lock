@@ -4046,6 +4046,8 @@ dependencies = [
  "p3-baby-bear",
  "p3-challenger",
  "p3-commit",
+ "p3-field",
+ "serde",
  "wp1-core",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
