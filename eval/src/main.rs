@@ -1,14 +1,14 @@
 use clap::{command, Parser};
 use csv::WriterBuilder;
 use serde::Serialize;
+use wp1_core::runtime::{Program, Runtime};
+use wp1_core::utils::{get_cycles, prove_core};
+use wp1_sdk::utils::{BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
+use wp1_sdk::{ProverClient, SP1ProofWithIO, SP1PublicValues, SP1Stdin};
 use std::fmt;
 use std::fs::OpenOptions;
 use std::io;
 use std::{fs, time::Instant};
-use wp1_core::runtime::{Program, Runtime};
-use wp1_core::utils::{get_cycles, prove_core};
-use wp1_sdk::utils::{BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
-use wp1_sdk::{SP1ProofWithIO, SP1PublicValues, SP1Stdin, SP1Verifier};
 
 /// An identifier used to select the hash function to evaluate.
 #[derive(clap::ValueEnum, Clone)]
@@ -129,6 +129,7 @@ fn main() {
 }
 
 fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64, f64) {
+    let client = ProverClient::new();
     match hashfn {
         HashFnId::Blake3 => {
             let mut runtime = Runtime::new(program.clone());
@@ -147,7 +148,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             };
 
             let verify_start = Instant::now();
-            SP1Verifier::verify_with_config(elf, &proof, config).unwrap();
+            client.verify_with_config(elf, &proof, config).unwrap();
             let verify_duration = verify_start.elapsed().as_secs_f64();
 
             (execution_duration, prove_duration, verify_duration)
@@ -169,7 +170,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             };
 
             let verify_start = Instant::now();
-            SP1Verifier::verify_with_config(elf, &proof, config).unwrap();
+            client.verify_with_config(elf, &proof, config).unwrap();
             let verify_duration = verify_start.elapsed().as_secs_f64();
 
             (execution_duration, prove_duration, verify_duration)
@@ -191,7 +192,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, elf: &[u8]) -> (f64, f64
             };
 
             let verify_start = Instant::now();
-            SP1Verifier::verify_with_config(elf, &proof, config).unwrap();
+            client.verify_with_config(elf, &proof, config).unwrap();
             let verify_duration = verify_start.elapsed().as_secs_f64();
 
             (execution_duration, prove_duration, verify_duration)

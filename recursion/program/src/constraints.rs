@@ -172,7 +172,7 @@ mod tests {
         utils::BabyBearPoseidon2,
     };
     use wp1_recursion_core::runtime::Runtime;
-    use wp1_sdk::{SP1Prover, SP1Stdin, SP1Verifier};
+    use wp1_sdk::{ProverClient, SP1Stdin};
 
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::PrimeField32;
@@ -295,7 +295,9 @@ mod tests {
         let machine = A::machine(SC::default());
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
-        let proof = SP1Prover::prove_with_config(elf, SP1Stdin::new(), machine.config().clone())
+        let client = ProverClient::new();
+        let proof = client
+            .prove_local(elf, SP1Stdin::new(), machine.config().clone())
             .unwrap()
             .proof;
         println!("Proof generated successfully");
@@ -416,9 +418,13 @@ mod tests {
         let machine = A::machine(SC::default());
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
-        let proof =
-            SP1Prover::prove_with_config(elf, SP1Stdin::new(), machine.config().clone()).unwrap();
-        SP1Verifier::verify_with_config(elf, &proof, machine.config().clone()).unwrap();
+        let client = ProverClient::new();
+        let proof = client
+            .prove_local(elf, SP1Stdin::new(), machine.config().clone())
+            .unwrap();
+        client
+            .verify_with_config(elf, &proof, machine.config().clone())
+            .unwrap();
 
         let proof = proof.proof;
         println!("Proof generated and verified successfully");

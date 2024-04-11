@@ -1,9 +1,9 @@
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
+use wp1_sdk::{utils, ProverClient, SP1Stdin};
 use std::time::Instant;
 use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr};
-use wp1_sdk::{utils, SP1Prover, SP1Stdin};
 
 use crate::{
     build::{build_program, BuildArgs},
@@ -109,8 +109,10 @@ impl ProveCmd {
                 }
             }
         }
+
         let start_time = Instant::now();
-        let proof = SP1Prover::prove(&elf, stdin).unwrap();
+        let client = ProverClient::new();
+        let proof = client.prove(&elf, stdin).unwrap();
 
         if let Some(ref path) = self.output {
             proof
