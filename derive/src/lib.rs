@@ -290,9 +290,13 @@ pub fn cycle_tracker(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let result = quote! {
         #visibility fn #name #generics (#inputs) #output #where_clause {
-            println!("cycle-tracker-start: {}", stringify!(#name));
+            wp1_zkvm::precompiles::unconstrained! {
+                println!("cycle-tracker-start: {}", stringify!(#name));
+            }
             let result = (|| #block)();
-            println!("cycle-tracker-end: {}", stringify!(#name));
+            wp1_zkvm::precompiles::unconstrained! {
+                println!("cycle-tracker-end: {}", stringify!(#name));
+            }
             result
         }
     };

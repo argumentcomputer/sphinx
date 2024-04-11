@@ -9,25 +9,27 @@
 #[macro_export]
 macro_rules! unconstrained {
     (  $($block:tt)* ) => {
-        use $crate::{syscall_enter_unconstrained, syscall_exit_unconstrained};
+        {
+            use $crate::{syscall_enter_unconstrained, syscall_exit_unconstrained};
 
-        let continue_unconstrained: bool;
-        unsafe {
-            continue_unconstrained = syscall_enter_unconstrained();
-        }
-
-        // If continue_unconstrained is true (only possible in the runtime), execute
-        // the inner code. Otherwise, nothing happens.
-        if continue_unconstrained {
-            // Declare an immutable closure to ensure at compile time that no memory is changed
-            let _unconstrained_closure = || -> () {
-                $($block)*
-            };
-
-            _unconstrained_closure();
-
+            let continue_unconstrained: bool;
             unsafe {
-                syscall_exit_unconstrained();
+                continue_unconstrained = syscall_enter_unconstrained();
+            }
+
+            // If continue_unconstrained is true (only possible in the runtime), execute
+            // the inner code. Otherwise, nothing happens.
+            if continue_unconstrained {
+                // Declare an immutable closure to ensure at compile time that no memory is changed
+                let _unconstrained_closure = || -> () {
+                    $($block)*
+                };
+
+                _unconstrained_closure();
+
+                unsafe {
+                    syscall_exit_unconstrained();
+                }
             }
         }
 
