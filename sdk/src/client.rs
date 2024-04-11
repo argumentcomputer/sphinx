@@ -3,13 +3,13 @@ use std::{env, time::Duration};
 use crate::auth::NetworkAuth;
 use anyhow::{Ok, Result};
 use futures::future::join_all;
-use twirp::reqwest::{Client as HttpClient, Url};
 use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
 use rmp_serde::{Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
-use wp1_core::stark::StarkGenericConfig;
 use std::time::{SystemTime, UNIX_EPOCH};
+use twirp::reqwest::{Client as HttpClient, Url};
 use twirp::Client as TwirpClient;
+use wp1_core::stark::StarkGenericConfig;
 
 use crate::{
     proto::network::{

@@ -159,9 +159,9 @@ mod tests {
     use p3_symmetric::Hash;
     use serial_test::serial;
     use wp1_recursion_compiler::config::OuterConfig;
-    use wp1_recursion_compiler::constraints::{gnark_ffi, ConstraintCompiler};
-    use wp1_recursion_compiler::ir::Builder;
+    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
     use wp1_recursion_compiler::ir::SymbolicExt;
+    use wp1_recursion_compiler::ir::{Builder, Witness};
     use wp1_recursion_core::stark::config::{outer_perm, OuterChallenger};
 
     use super::reduce_32;
@@ -183,7 +183,7 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -201,7 +201,7 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -220,7 +220,7 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -301,6 +301,6 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 }

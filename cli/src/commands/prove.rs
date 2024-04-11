@@ -1,9 +1,9 @@
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
 use std::time::Instant;
 use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr};
+use wp1_sdk::{utils, ProverClient, SP1Stdin};
 
 use crate::{
     build::{build_program, BuildArgs},

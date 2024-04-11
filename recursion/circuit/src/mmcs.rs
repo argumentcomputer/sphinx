@@ -3,15 +3,15 @@ use p3_matrix::Dimensions;
 use std::cmp::Reverse;
 use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
 
-use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigest};
+use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigestVariable};
 
 pub fn verify_batch<C: Config, const D: usize>(
     builder: &mut Builder<C>,
-    commit: OuterDigest<C>,
+    commit: OuterDigestVariable<C>,
     dimensions: &[Dimensions],
     index_bits: &[Var<C::N>],
     opened_values: &[Vec<Vec<Felt<C::F>>>],
-    proof: &[OuterDigest<C>],
+    proof: &[OuterDigestVariable<C>],
 ) {
     let mut heights_tallest_first = dimensions
         .iter()

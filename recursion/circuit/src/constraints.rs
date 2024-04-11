@@ -176,8 +176,8 @@ mod tests {
     };
     use wp1_recursion_compiler::{
         config::OuterConfig,
-        constraints::{gnark_ffi, ConstraintCompiler},
-        ir::Builder,
+        constraints::{groth16_ffi, ConstraintCompiler},
+        ir::{Builder, Witness},
         prelude::ExtConst,
     };
     use wp1_recursion_core::{
@@ -360,6 +360,6 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        gnark_ffi::execute(&constraints);
+        groth16_ffi::prove::<OuterConfig>(&constraints, Witness::default());
     }
 }
