@@ -7,11 +7,13 @@ use wp1_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
 use super::{RecursionProgram, DIGEST_SIZE};
 use crate::air::Block;
 use crate::cpu::CpuEvent;
+use crate::poseidon2::Poseidon2Event;
 
 #[derive(Default, Debug, Clone)]
 pub struct ExecutionRecord<F: Default> {
     pub program: Arc<RecursionProgram<F>>,
     pub cpu_events: Vec<CpuEvent<F>>,
+    pub poseidon2_events: Vec<Poseidon2Event<F>>,
 
     // (address)
     pub first_memory_record: Vec<F>,
