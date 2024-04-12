@@ -4,10 +4,10 @@ use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::MatrixRowSlices;
+use tracing::instrument;
 use wp1_core::air::{MachineAir, SP1AirBuilder};
 use wp1_core::utils::pad_to_power_of_two;
 use wp1_derive::AlignedBorrow;
-use tracing::instrument;
 
 use crate::runtime::{ExecutionRecord, RecursionProgram};
 

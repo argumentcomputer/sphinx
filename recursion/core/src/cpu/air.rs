@@ -14,11 +14,12 @@ use p3_matrix::MatrixRowSlices;
 use std::borrow::Borrow;
 use std::borrow::BorrowMut;
 use std::mem::transmute;
+use tracing::instrument;
 use wp1_core::air::AirInteraction;
 use wp1_core::air::BinomialExtension;
 use wp1_core::air::MachineAir;
+use wp1_core::air::SP1AirBuilder;
 use wp1_core::lookup::InteractionKind;
-use wp1_core::stark::SP1AirBuilder;
 use wp1_core::utils::indices_arr;
 use wp1_core::utils::pad_rows;
 
@@ -42,6 +43,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip<F> {
         "CPU".to_string()
     }
 
+    #[instrument(name = "generate cpu trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord<F>,
