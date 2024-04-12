@@ -17,4 +17,4 @@ jobs:
         source_repo: "https://github.com/succinctlabs/sp1.git"
         source_branch: "main"
         destination_branch: "main"
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.REPO_TOKEN }}
