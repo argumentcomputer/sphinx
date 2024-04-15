@@ -2,12 +2,12 @@ use std::{env, time::Duration};
 
 use anyhow::{Ok, Result};
 use futures::future::join_all;
-use reqwest::{
+use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
+use serde::{de::DeserializeOwned, Serialize};
+use twirp::reqwest::{
     header::{HeaderMap, HeaderValue},
     Client as HttpClient, Url,
 };
-use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
-use serde::{de::DeserializeOwned, Serialize};
 use twirp::Client as TwirpClient;
 use wp1_core::stark::StarkGenericConfig;
 
