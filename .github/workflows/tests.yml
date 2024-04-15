@@ -40,6 +40,16 @@ jobs:
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+      - name: Run fibonacci-io example
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --release --manifest-path examples/fibonacci-io/script/Cargo.toml
+        env:
+          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0
+          RUST_LOG: 1
+          RUST_BACKTRACE: 1
+  
 
   clippy:
     runs-on: ubuntu-latest
