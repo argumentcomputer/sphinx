@@ -2420,15 +2420,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prost-types"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3235c33eb02c1f1e212abdbe34c78b264b038fb58ca612664343271e36e55ffe"
-dependencies = [
- "prost",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3920,7 +3911,6 @@ dependencies = [
  "bincode",
  "blake3",
  "cfg-if",
- "clap",
  "criterion",
  "curve25519-dalek",
  "elf",
@@ -4159,7 +4149,6 @@ dependencies = [
  "p3-field",
  "p3-matrix",
  "prost",
- "prost-types",
  "reqwest-middleware",
  "serde",
  "serde_json",
