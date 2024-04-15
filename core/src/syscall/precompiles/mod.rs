@@ -1,7 +1,10 @@
 pub mod blake3;
+pub mod bls12381;
 pub mod edwards;
+pub mod field;
 pub mod k256;
 pub mod keccak256;
+pub mod quad_field;
 pub mod sha256;
 pub mod weierstrass;
 

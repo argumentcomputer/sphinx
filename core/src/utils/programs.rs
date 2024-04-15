@@ -93,4 +93,22 @@ pub mod tests {
 
     pub const BLS12381_MUL_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-mul/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP_ADD_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp-add/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP_SUB_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp-sub/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP_MUL_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp-mul/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP2_ADD_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp2-add/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP2_SUB_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp2-sub/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS12381_FP2_MUL_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-fp2-mul/elf/riscv32im-succinct-zkvm-elf");
 }

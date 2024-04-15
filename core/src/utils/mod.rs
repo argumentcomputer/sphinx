@@ -11,7 +11,7 @@ mod tracer;
 use std::borrow::Borrow;
 
 pub use buffer::*;
-use hybrid_array::Array;
+use hybrid_array::{Array, ArraySize};
 pub use logger::*;
 pub use prove::*;
 pub use tracer::*;
@@ -102,25 +102,29 @@ pub fn pad_vec_rows<T: Clone>(rows: &mut Vec<Vec<T>>, row_fn: impl Fn() -> Vec<T
 }
 
 /// Converts a slice of words to a byte array in little endian.
-pub fn words_to_bytes_le<const B: usize>(words: &[u32]) -> [u8; B] {
-    debug_assert_eq!(words.len() * 4, B);
-    words
-        .iter()
-        .flat_map(|word| word.to_le_bytes().to_vec())
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
+pub fn words_to_bytes_le<B: ArraySize>(words: &[u32]) -> <B as ArraySize>::ArrayType<u8> {
+    debug_assert_eq!(words.len() * 4, B::USIZE);
+    Array::try_from(
+        &words
+            .iter()
+            .flat_map(|word| word.to_le_bytes().to_vec())
+            .collect::<Vec<_>>()[..],
+    )
+    .unwrap()
+    .into()
 }
 
-/// Converts a byte array in little endian to a slice of words.
-pub fn bytes_to_words_le<const W: usize>(bytes: &[u8]) -> [u32; W] {
-    debug_assert_eq!(bytes.len(), W * 4);
-    bytes
-        .chunks_exact(4)
-        .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
+/// Converts a byte array in little endian to an array of words.
+pub fn bytes_to_words_le<W: ArraySize>(bytes: &[u8]) -> <W as ArraySize>::ArrayType<u32> {
+    debug_assert_eq!(bytes.len(), W::USIZE * 4);
+    Array::try_from(
+        &bytes
+            .chunks_exact(4)
+            .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
+            .collect::<Vec<_>>()[..],
+    )
+    .unwrap()
+    .into()
 }
 
 /// Converts a num to a string with commas every 3 digits.

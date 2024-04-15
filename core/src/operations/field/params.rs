@@ -35,6 +35,12 @@ pub type WORDS_CURVEPOINT<N> = Shright<N, B1>;
 #[allow(non_camel_case_types)]
 pub type WORDS_FIELD_ELEMENT<N> = <N as Div<U4>>::Output;
 
+/// Number of words needed to represent a quadratic extension field element. This is twice the number of
+/// words needed to represent a field element.
+// Can also be seen as a type-level function N -> N / 2
+#[allow(non_camel_case_types)]
+pub type WORDS_QUAD_EXT_FIELD_ELEMENT<N> = Shright<N, B1>;
+
 /// Number of bytes needed to represent a field element.
 /// Can also be seen as a type-level function N -> WORDS_FIELD_ELEMENT(N) * WORD_SIZE
 #[allow(non_camel_case_types)]

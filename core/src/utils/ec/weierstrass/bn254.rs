@@ -10,6 +10,7 @@ use crate::stark::WeierstrassDoubleAssignChip;
 use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::field::FieldType;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
 use crate::utils::ec::WithAddition;
@@ -26,6 +27,8 @@ pub type Bn254 = SwCurve<Bn254Parameters>;
 pub struct Bn254BaseField;
 
 impl FieldParameters for Bn254BaseField {
+    const FIELD_TYPE: FieldType = FieldType::Bn254;
+
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
 
     const NB_BITS_PER_LIMB: usize = 8;

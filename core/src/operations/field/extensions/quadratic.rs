@@ -128,7 +128,6 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
             return result;
         }
 
-        let modulus_minus_one = modulus - BigUint::one();
         let unreduced_result = match op {
             // Compute field addition in the integers.
             QuadFieldOperation::Add => [&a[0] + &b[0], &a[1] + &b[1]],

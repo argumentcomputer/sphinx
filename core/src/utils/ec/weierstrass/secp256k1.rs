@@ -15,6 +15,7 @@ use crate::stark::WeierstrassDoubleAssignChip;
 use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::field::FieldType;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
 use crate::utils::ec::WithAddition;
@@ -34,6 +35,8 @@ pub type Secp256k1 = SwCurve<Secp256k1Parameters>;
 pub struct Secp256k1BaseField;
 
 impl FieldParameters for Secp256k1BaseField {
+    const FIELD_TYPE: FieldType = FieldType::Secp256k1;
+
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
 
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([

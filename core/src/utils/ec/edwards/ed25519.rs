@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::utils::ec::edwards::{EdwardsCurve, EdwardsParameters};
-use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::field::{FieldParameters, FieldType};
 use crate::utils::ec::{AffinePoint, CurveType, EllipticCurveParameters, WithAddition};
 
 pub type Ed25519 = EdwardsCurve<Ed25519Parameters>;
@@ -18,6 +18,8 @@ pub struct Ed25519Parameters;
 pub struct Ed25519BaseField;
 
 impl FieldParameters for Ed25519BaseField {
+    const FIELD_TYPE: FieldType = FieldType::Ed25519;
+
     type NB_LIMBS = DEFAULT_NUM_LIMBS_T;
 
     const MODULUS: Array<u8, Self::NB_LIMBS> = Array([

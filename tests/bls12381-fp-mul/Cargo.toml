@@ -1,0 +1,10 @@
+[workspace]
+[package]
+name = "bls12381-fp-add-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wp1-zkvm = { path = "../../zkvm/entrypoint" }
+hex-literal = "0.4.1"
+num = { version = "0.4.1", default-features = false }

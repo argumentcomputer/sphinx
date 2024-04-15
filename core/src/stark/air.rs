@@ -2,7 +2,7 @@ use crate::air::MachineAir;
 pub use crate::air::SP1AirBuilder;
 use crate::memory::MemoryChipKind;
 use crate::stark::Chip;
-use crate::utils::ec::weierstrass::bls12381::Bls12381Parameters;
+use crate::utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters};
 use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
@@ -25,8 +25,14 @@ pub(crate) mod riscv_chips {
     pub use crate::syscall::precompiles::blake3::Blake3CompressInnerChip;
     pub use crate::syscall::precompiles::edwards::EdAddAssignChip;
     pub use crate::syscall::precompiles::edwards::EdDecompressChip;
+    pub use crate::syscall::precompiles::field::add::FieldAddChip;
+    pub use crate::syscall::precompiles::field::mul::FieldMulChip;
+    pub use crate::syscall::precompiles::field::sub::FieldSubChip;
     pub use crate::syscall::precompiles::k256::K256DecompressChip;
     pub use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
+    pub use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
+    pub use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
+    pub use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
     pub use crate::syscall::precompiles::sha256::ShaCompressChip;
     pub use crate::syscall::precompiles::sha256::ShaExtendChip;
     pub use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
@@ -97,6 +103,18 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Add(WeierstrassAddAssignChip<SwCurve<Bls12381Parameters>>),
     /// A precompile for doubling a point on the Elliptic curve bls12_381.
     Bls12381Double(WeierstrassDoubleAssignChip<SwCurve<Bls12381Parameters>>),
+    /// A precompile for addition of BLS12-381 field elements.
+    Bls12381FpAdd(FieldAddChip<Bls12381BaseField>),
+    /// A precompile for subtraction of BLS12-381 field elements.
+    Bls12381FpSub(FieldSubChip<Bls12381BaseField>),
+    /// A precompile for multiplication of BLS12-381 field elements.
+    Bls12381FpMul(FieldMulChip<Bls12381BaseField>),
+    /// A precompile for addition of BLS12-381 quadratic extension field elements.
+    Bls12381Fp2Add(QuadFieldAddChip<Bls12381BaseField>),
+    /// A precompile for subtraction of BLS12-381 quadratic field elements.
+    Bls12381Fp2Sub(QuadFieldSubChip<Bls12381BaseField>),
+    /// A precompile for multiplication of BLS12-381 quadratic field elements.
+    Bls12381Fp2Mul(QuadFieldMulChip<Bls12381BaseField>),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -142,6 +160,18 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Add(bls12381_add));
         let bls12381_double = WeierstrassDoubleAssignChip::<SwCurve<Bls12381Parameters>>::new();
         chips.push(RiscvAir::Bls12381Double(bls12381_double));
+        let bls12381_fp_add = FieldAddChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381FpAdd(bls12381_fp_add));
+        let bls12381_fp_sub = FieldSubChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381FpSub(bls12381_fp_sub));
+        let bls12381_fp_mul = FieldMulChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381FpMul(bls12381_fp_mul));
+        let bls12381_fp2_add = QuadFieldAddChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381Fp2Add(bls12381_fp2_add));
+        let bls12381_fp2_sub = QuadFieldSubChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381Fp2Sub(bls12381_fp2_sub));
+        let bls12381_fp2_mul = QuadFieldMulChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
         let add = AddSubChip;
         chips.push(RiscvAir::Add(add));
         let bitwise = BitwiseChip;

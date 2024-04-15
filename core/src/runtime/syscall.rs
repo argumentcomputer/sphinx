@@ -1,8 +1,14 @@
 use crate::runtime::{Register, Runtime};
 use crate::syscall::precompiles::edwards::EdAddAssignChip;
 use crate::syscall::precompiles::edwards::EdDecompressChip;
+use crate::syscall::precompiles::field::add::FieldAddChip;
+use crate::syscall::precompiles::field::mul::FieldMulChip;
+use crate::syscall::precompiles::field::sub::FieldSubChip;
 use crate::syscall::precompiles::k256::K256DecompressChip;
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
+use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
+use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
+use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
 use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
 use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
@@ -11,7 +17,7 @@ use crate::syscall::{
     SyscallHintLen, SyscallHintRead, SyscallWrite,
 };
 use crate::utils::ec::edwards::ed25519::{Ed25519, Ed25519Parameters};
-use crate::utils::ec::weierstrass::bls12381::Bls12381;
+use crate::utils::ec::weierstrass::bls12381::{Bls12381, Bls12381BaseField};
 use crate::utils::ec::weierstrass::{bn254::Bn254, secp256k1::Secp256k1};
 use crate::{runtime::ExecutionRecord, runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
 use std::collections::HashMap;
@@ -78,6 +84,14 @@ pub enum SyscallCode {
     /// Executes the `BLS12381_DOUBLE` precompile.
     BLS12381_DOUBLE = 0x00_00_01_72,
 
+    /// Executes the `BLS12381_FP_ADD` precompile.
+    BLS12381_FP_ADD = 0x00_01_01_73,
+    BLS12381_FP_SUB = 0x00_01_01_74,
+    BLS12381_FP_MUL = 0x00_01_01_75,
+    BLS12381_FP2_ADD = 0x00_01_01_77,
+    BLS12381_FP2_SUB = 0x00_01_01_78,
+    BLS12381_FP2_MUL = 0x00_01_01_79,
+
     /// Executes the `COMMIT` precompile.
     COMMIT = 0x00_00_00_10,
 
@@ -107,6 +121,12 @@ impl SyscallCode {
             0x00_38_01_0D => SyscallCode::BLAKE3_COMPRESS_INNER,
             0x00_01_01_0E => SyscallCode::BN254_ADD,
             0x00_00_01_0F => SyscallCode::BN254_DOUBLE,
+            0x00_01_01_73 => SyscallCode::BLS12381_FP_ADD,
+            0x00_01_01_74 => SyscallCode::BLS12381_FP_SUB,
+            0x00_01_01_75 => SyscallCode::BLS12381_FP_MUL,
+            0x00_01_01_77 => SyscallCode::BLS12381_FP2_ADD,
+            0x00_01_01_78 => SyscallCode::BLS12381_FP2_SUB,
+            0x00_01_01_79 => SyscallCode::BLS12381_FP2_MUL,
             0x00_00_00_10 => SyscallCode::COMMIT,
             0x00_00_00_F0 => SyscallCode::HINT_LEN,
             0x00_00_00_F1 => SyscallCode::HINT_READ,
@@ -280,6 +300,30 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
         Rc::new(WeierstrassDoubleAssignChip::<Bls12381>::new()),
     );
     syscall_map.insert(
+        SyscallCode::BLS12381_FP_ADD,
+        Rc::new(FieldAddChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::BLS12381_FP_SUB,
+        Rc::new(FieldSubChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::BLS12381_FP_MUL,
+        Rc::new(FieldMulChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::BLS12381_FP2_ADD,
+        Rc::new(QuadFieldAddChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::BLS12381_FP2_SUB,
+        Rc::new(QuadFieldSubChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::BLS12381_FP2_MUL,
+        Rc::new(QuadFieldMulChip::<Bls12381BaseField>::new()),
+    );
+    syscall_map.insert(
         SyscallCode::ENTER_UNCONSTRAINED,
         Rc::new(SyscallEnterUnconstrained::new()),
     );
@@ -366,6 +410,24 @@ mod tests {
                 SyscallCode::BN254_ADD => assert_eq!(code as u32, wp1_zkvm::syscalls::BN254_ADD),
                 SyscallCode::BN254_DOUBLE => {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BN254_DOUBLE)
+                }
+                SyscallCode::BLS12381_FP_ADD => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP_ADD)
+                }
+                SyscallCode::BLS12381_FP_SUB => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP_SUB)
+                }
+                SyscallCode::BLS12381_FP_MUL => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP_MUL)
+                }
+                SyscallCode::BLS12381_FP2_ADD => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP2_ADD)
+                }
+                SyscallCode::BLS12381_FP2_SUB => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP2_SUB)
+                }
+                SyscallCode::BLS12381_FP2_MUL => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP2_MUL)
                 }
                 SyscallCode::HINT_LEN => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_LEN),
                 SyscallCode::HINT_READ => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_READ),

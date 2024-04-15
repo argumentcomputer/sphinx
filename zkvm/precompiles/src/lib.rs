@@ -22,6 +22,12 @@ extern "C" {
     pub fn syscall_bls12381_double(p: *mut u32);
     pub fn syscall_keccak_permute(state: *mut u64);
     pub fn syscall_blake3_compress_inner(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp_add(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp_sub(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp_mul(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp2_add(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp2_sub(p: *mut u32, q: *const u32);
+    pub fn syscall_bls12381_fp2_mul(p: *mut u32, q: *const u32);
     pub fn syscall_enter_unconstrained() -> bool;
     pub fn syscall_exit_unconstrained();
     pub fn syscall_hint_len() -> usize;

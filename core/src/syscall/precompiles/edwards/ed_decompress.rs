@@ -34,7 +34,6 @@ use core::mem::size_of;
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
-use hybrid_array::ArraySize;
 use num::BigUint;
 use num::One;
 use num::Zero;
@@ -246,8 +245,7 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<Ba
 
         let sign_bool = sign != 0;
 
-        let y_bytes: <BYTES_COMPRESSED_CURVEPOINT<BaseLimbWidth<E>> as ArraySize>::ArrayType<u8> =
-            words_to_bytes_le(&y_vec);
+        let y_bytes = words_to_bytes_le::<BYTES_COMPRESSED_CURVEPOINT<BaseLimbWidth<E>>>(&y_vec);
 
         // Copy bytes into another array so we can modify the last byte and make CompressedEdwardsY,
         // which we'll use to compute the expected X.
@@ -264,9 +262,8 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<Ba
         let mut decompressed_x_bytes = decompressed.x.to_bytes_le();
         decompressed_x_bytes.resize(bytes_field_elt, 0u8);
 
-        let decompressed_x_words: <WORDS_FIELD_ELEMENT<BaseLimbWidth<E>> as ArraySize>::ArrayType<
-            u32,
-        > = bytes_to_words_le(&decompressed_x_bytes);
+        let decompressed_x_words =
+            bytes_to_words_le::<WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>>(&decompressed_x_bytes);
 
         // Write decompressed X into slice
         let x_memory_records_vec = rt.mw_slice(slice_ptr, &decompressed_x_words);

@@ -73,6 +73,14 @@ pub const BN254_ADD: u32 = 0x00_01_01_0E;
 /// Executes `BN254_DOUBLE`.
 pub const BN254_DOUBLE: u32 = 0x00_00_01_0F;
 
+/// Executes `BLS12381_FP_ADD`
+pub const BLS12381_FP_ADD: u32 = 0x00_01_01_73;
+pub const BLS12381_FP_SUB: u32 = 0x00_01_01_74;
+pub const BLS12381_FP_MUL: u32 = 0x00_01_01_75;
+pub const BLS12381_FP2_ADD: u32 = 0x00_01_01_77;
+pub const BLS12381_FP2_SUB: u32 = 0x00_01_01_78;
+pub const BLS12381_FP2_MUL: u32 = 0x00_01_01_79;
+
 /// Executes the `COMMIT` precompile.
 pub const COMMIT: u32 = 0x00_00_00_10;
 

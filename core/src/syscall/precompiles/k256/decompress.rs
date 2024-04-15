@@ -8,6 +8,9 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
 use crate::operations::field::params::Limbs;
+use crate::operations::field::params::BYTES_COMPRESSED_CURVEPOINT;
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::MemoryReadRecord;
 use crate::runtime::MemoryWriteRecord;
@@ -93,7 +96,7 @@ impl Syscall for K256DecompressChip {
         );
         let x_memory_records: [MemoryReadRecord; 8] = x_memory_records_vec.try_into().unwrap();
 
-        let x_bytes: [u8; DEFAULT_COMPRESSED_POINT_BYTES] = words_to_bytes_le(&x_vec);
+        let x_bytes = words_to_bytes_le::<BYTES_COMPRESSED_CURVEPOINT<DEFAULT_NUM_LIMBS_T>>(&x_vec);
         let mut x_bytes_be = x_bytes;
         x_bytes_be.reverse();
 
@@ -107,8 +110,8 @@ impl Syscall for K256DecompressChip {
         decompressed_y_bytes
             .copy_from_slice(&decompressed_point_bytes[1 + DEFAULT_NUM_BYTES_FIELD_ELEMENT..]);
         decompressed_y_bytes.reverse();
-        let y_words: [u32; DEFAULT_NUM_WORDS_FIELD_ELEMENT] =
-            bytes_to_words_le(&decompressed_y_bytes);
+        let y_words =
+            bytes_to_words_le::<WORDS_FIELD_ELEMENT<DEFAULT_NUM_LIMBS_T>>(&decompressed_y_bytes);
 
         let y_memory_records_vec = rt.mw_slice(slice_ptr, &y_words);
         let y_memory_records: [MemoryWriteRecord; 8] = y_memory_records_vec.try_into().unwrap();
