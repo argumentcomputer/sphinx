@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use dirs::home_dir;
+use home::home_dir;
 use rand::{distributions::Alphanumeric, Rng};
 use reqwest::Client;
 use std::fs::{self};

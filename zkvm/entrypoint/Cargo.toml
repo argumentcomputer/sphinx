@@ -1,7 +1,9 @@
 [package]
 name = "wp1-zkvm"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 wp1-precompiles = { path = "../precompiles" }

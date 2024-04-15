@@ -76,6 +76,8 @@ jobs:
         run: cargo xclippy -D warnings
       - name: Doctests
         run: cargo test --doc --workspace
+      - name: Cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v1
 
   integration-tests-examples:
     name: Build integration tests and examples

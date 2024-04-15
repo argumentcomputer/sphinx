@@ -1,7 +1,9 @@
 [package]
 name = "wp1-cli"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,13 +14,13 @@ vergen = { version = "8", default-features = false, features = ["build", "git", 
 anyhow = { version = "1.0.79", features = ["backtrace"] }
 cargo_metadata = "0.18.1"
 clap = { version = "4.5.4", features = ["derive", "env"] }
+home = "0.5.9"
 wp1-core = { path = "../core" }
 wp1-sdk = { path = "../sdk" }
-reqwest = { version = "0.12.2", features = ["stream", "json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12.3", features = ["stream", "json", "default-tls"], default-features = false }
 futures-util = "0.3.14"
 indicatif = "0.17.8"
 tokio = { version = "1", features = ["full"] }
-dirs = "5.0"
 serde = { version = "1", features = ["derive"] }
 rand = "0.8"
 serde_json = "1.0.113"

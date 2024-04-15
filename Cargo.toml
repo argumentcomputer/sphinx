@@ -57,3 +57,11 @@ overflow-checks = true
 lto = "thin"
 incremental = false
 codegen-units = 16
+
+# All workspace members should inherit these keys
+# for package declarations.
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/wormhole-foundation/wp1"
+
