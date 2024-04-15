@@ -485,7 +485,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
 
     /// Verifies the memory access timestamp.
     ///
-    /// This method verifies that the current memory access happend after the previous one's.  Specifically
+    /// This method verifies that the current memory access happened after the previous one's.  Specifically
     /// it will ensure that if the current and previous access are in the same shard, then the
     /// current's clk val is greater than the previous's.  If they are not in the same shard, then
     /// it will ensure that the current's shard val is greater than the previous's.

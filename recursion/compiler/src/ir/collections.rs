@@ -40,7 +40,7 @@ impl<C: Config, V: MemVariable<C>> Array<C, V> {
         }
     }
 
-    /// Gets the n'th elment.
+    /// Gets the n'th element.
     pub fn static_get(&self, index: usize) -> V {
         match self {
             Self::Fixed(vec) => vec[index].clone(),

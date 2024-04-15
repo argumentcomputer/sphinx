@@ -2,6 +2,8 @@
 # don't fix jargon
 TwoAdicCase = "TwoAdicCase"
 GROTH16 = "GROTH16"
+# ot Groth16, even when mincased
+groth16 = "groth16"
 
 [default.extend-words]
 # Don't correct the surname "Wich"

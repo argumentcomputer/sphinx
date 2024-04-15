@@ -229,7 +229,7 @@ pub(crate) mod tests {
 
             let log_quotient_degree = 2;
 
-            // Initialize a reference doamin.
+            // Initialize a reference domain.
             let domain_val = natural_domain_for_degree(1 << log_d_val);
             let domain = builder.eval_const(domain_val);
             // builder.assert_felt_eq(domain.shift, domain_val.shift);

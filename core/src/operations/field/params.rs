@@ -46,7 +46,7 @@ pub type WORDS_QUAD_EXT_FIELD_ELEMENT<N> = Shright<N, B1>;
 #[allow(non_camel_case_types)]
 pub type BYTES_FIELD_ELEMENT<N> = <WORDS_FIELD_ELEMENT<N> as Mul<WORD_SIZE>>::Output;
 
-/// Number of bytes neede to represent a curve point in compressed form.
+/// Number of bytes needed to represent a curve point in compressed form.
 /// This is the number of bytes needed to represent a single field element (since we only represent the x-coordinate).
 /// Can also be seen as a type-level function N -> WORDS_FIELD_ELEMENT(N) * WORD_SIZE
 #[allow(non_camel_case_types)]

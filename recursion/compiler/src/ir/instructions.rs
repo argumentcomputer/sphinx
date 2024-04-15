@@ -86,9 +86,9 @@ pub enum DslIR<C: Config> {
     LoadE(Ext<C::F, C::EF>, Ptr<C::N>, MemIndex<C::N>),
     /// Store variable at address
     StoreV(Ptr<C::N>, Var<C::N>, MemIndex<C::N>),
-    /// Store field element at adress
+    /// Store field element at address
     StoreF(Ptr<C::N>, Felt<C::F>, MemIndex<C::N>),
-    /// Store extension field at adress
+    /// Store extension field at address
     StoreE(Ptr<C::N>, Ext<C::F, C::EF>, MemIndex<C::N>),
 
     // Miscellaneous instructions.
