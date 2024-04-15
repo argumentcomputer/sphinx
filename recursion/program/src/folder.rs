@@ -2,7 +2,8 @@ use p3_air::{
     AirBuilder, AirBuilderWithPublicValues, ExtensionBuilder, PairBuilder, PermutationAirBuilder,
     TwoRowMatrixView,
 };
-use wp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder, PublicValuesBuilder};
+use wp1_core::air::PublicValuesBuilder;
+use wp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder};
 
 use wp1_recursion_compiler::{
     ir::{Builder, Config, Ext, Felt},

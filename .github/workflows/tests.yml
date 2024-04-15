@@ -25,6 +25,12 @@ jobs:
           echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
           echo "RUST_LOG=1" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: Dup4/actions-setup-gcc@v1
+        with:
+          version: latest
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
@@ -46,6 +52,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: Dup4/actions-setup-gcc@v1
+        with:
+          version: latest
       - uses: Swatinem/rust-cache@v2
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
@@ -100,6 +112,12 @@ jobs:
           echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
           echo "RUST_LOG=1" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: Dup4/actions-setup-gcc@v1
+        with:
+          version: latest
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
