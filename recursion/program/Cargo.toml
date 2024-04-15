@@ -12,21 +12,20 @@ p3-commit = { workspace = true }
 p3-fri = { workspace = true }
 p3-matrix = { workspace = true }
 p3-util = { workspace = true }
+p3-symmetric = { workspace = true }
+p3-challenger = { workspace = true }
+p3-baby-bear = { workspace = true }
+p3-dft = { workspace = true }
+p3-merkle-tree = { workspace = true }
+p3-poseidon2 = { workspace = true }
 wp1-recursion-core = { path = "../core" }
 wp1-recursion-compiler = { path = "../compiler" }
 wp1-core = { path = "../../core" }
 wp1-sdk = { path = "../../sdk" }
 itertools = "0.12.1"
 serde = { version = "1.0.197", features = ["derive"] }
-p3-symmetric = { workspace = true }
 
 [dev-dependencies]
-p3-baby-bear = { workspace = true }
-p3-challenger = { workspace = true }
-p3-symmetric = { workspace = true }
-p3-dft = { workspace = true }
-p3-merkle-tree = { workspace = true }
-p3-poseidon2 = { workspace = true }
 rand = "0.8.4"
 
 [features]

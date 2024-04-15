@@ -131,15 +131,7 @@ impl SP1Prover {
             }
         } else {
             let program = Program::from(elf);
-            let (proof, public_values_vec) = run_and_prove(
-                &program,
-                #[allow(deprecated)]
-                &wp1_core::SP1Stdin {
-                    buffer: stdin.buffer.clone(),
-                    ptr: 0,
-                },
-                config,
-            );
+            let (proof, public_values_vec) = run_and_prove(&program, &[], config);
             let public_values = SP1PublicValues::from(&public_values_vec);
             Ok(SP1ProofWithIO {
                 proof,
