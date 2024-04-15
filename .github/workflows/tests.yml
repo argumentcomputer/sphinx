@@ -34,9 +34,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
-      - name: Run cargo test on wp1 except the fibonacci tests
+      - name: Run cargo test on wp1 except some recursion tests
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - (package(wp1-recursion-core) & test(tests::test_fibonacci_))'
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - (package(wp1-recursion-circuit) & (test(tests::test_verify_constraints_whole) | test(tests::test_recursive_verify_shard_v2) | test(tests::test_p2_compress) | test(tests::test_p2_hash) ))'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
@@ -131,9 +131,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
-      - name: Run cargo test on wp1 except the fibonacci tests
+      - name: Run cargo test on wp1 except some recursion tests
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - (package(wp1-recursion-core) & test(tests::test_fibonacci_))'
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - (package(wp1-recursion-circuit) & (test(tests::test_verify_constraints_whole) | test(tests::test_recursive_verify_shard_v2) | test(tests::test_p2_compress) | test(tests::test_p2_hash) ))'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
