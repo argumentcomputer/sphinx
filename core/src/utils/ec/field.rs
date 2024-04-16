@@ -21,7 +21,7 @@ pub enum FieldType {
 }
 
 pub trait FieldParameters:
-    Send + Sync + Copy + 'static + Debug + Serialize + DeserializeOwned
+Send + Sync + Copy + 'static + Debug + Serialize + DeserializeOwned
 {
     #[allow(non_camel_case_types)]
     type NB_LIMBS: LimbWidth;

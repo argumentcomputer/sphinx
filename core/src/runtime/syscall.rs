@@ -4,13 +4,13 @@ use crate::syscall::precompiles::edwards::EdDecompressChip;
 use crate::syscall::precompiles::field::add::FieldAddChip;
 use crate::syscall::precompiles::field::mul::FieldMulChip;
 use crate::syscall::precompiles::field::sub::FieldSubChip;
-use crate::syscall::precompiles::k256::K256DecompressChip;
+//use crate::syscall::precompiles::k256::K256DecompressChip;
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
 use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
-use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
+use crate::syscall::precompiles::weierstrass::{WeierstrassAddAssignChip, WeierstrassDecompressChip};
 use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
 use crate::syscall::{
     SyscallCommit, SyscallEnterUnconstrained, SyscallExitUnconstrained, SyscallHalt,
@@ -100,6 +100,9 @@ pub enum SyscallCode {
 
     /// Executes the `HINT_READ` precompile.
     HINT_READ = 0x00_00_00_F1,
+
+    /// Executes the `BLS12381_DECOMPRESS` precompile.
+    BLS12381_DECOMPRESS = 0x00_00_01_F2,
 }
 
 impl SyscallCode {
@@ -132,6 +135,7 @@ impl SyscallCode {
             0x00_00_00_F1 => SyscallCode::HINT_READ,
             0x00_01_01_71 => SyscallCode::BLS12381_ADD,
             0x00_00_01_72 => SyscallCode::BLS12381_DOUBLE,
+            0x00_00_01_F2 => SyscallCode::BLS12381_DECOMPRESS,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -288,7 +292,8 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
     syscall_map.insert(SyscallCode::SHA_COMPRESS, Rc::new(ShaCompressChip::new()));
     syscall_map.insert(
         SyscallCode::SECP256K1_DECOMPRESS,
-        Rc::new(K256DecompressChip::new()),
+        //Rc::new(K256DecompressChip::new()),
+        Rc::new(WeierstrassDecompressChip::<Secp256k1>::new()),
     );
     syscall_map.insert(
         SyscallCode::BN254_ADD,
@@ -342,6 +347,10 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
     syscall_map.insert(SyscallCode::COMMIT, Rc::new(SyscallCommit::new()));
     syscall_map.insert(SyscallCode::HINT_LEN, Rc::new(SyscallHintLen::new()));
     syscall_map.insert(SyscallCode::HINT_READ, Rc::new(SyscallHintRead::new()));
+    syscall_map.insert(
+        SyscallCode::BLS12381_DECOMPRESS,
+        Rc::new(WeierstrassDecompressChip::<Bls12381>::new()),
+    );
 
     syscall_map
 }
@@ -445,6 +454,9 @@ mod tests {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_DOUBLE)
                 }
                 SyscallCode::COMMIT => assert_eq!(code as u32, wp1_zkvm::syscalls::COMMIT),
+                SyscallCode::BLS12381_DECOMPRESS => {
+                    assert_eq!(code as u32, sp1_zkvm::syscalls::BLS12381_DECOMPRESS)
+                }
             }
         }
     }

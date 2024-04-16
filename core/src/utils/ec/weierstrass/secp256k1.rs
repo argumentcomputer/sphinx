@@ -3,7 +3,11 @@
 
 use std::str::FromStr;
 
+use elliptic_curve::sec1::ToEncodedPoint;
+use elliptic_curve::subtle::Choice;
 use hybrid_array::Array;
+use k256::elliptic_curve::point::DecompressPoint;
+
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
@@ -15,8 +19,11 @@ use crate::stark::WeierstrassDoubleAssignChip;
 use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
+//use crate::utils::ec::field::NumLimbs;
 use crate::utils::ec::field::FieldType;
+use crate::utils::ec::AffinePoint;
 use crate::utils::ec::CurveType;
+use crate::utils::ec::EllipticCurve;
 use crate::utils::ec::EllipticCurveParameters;
 use crate::utils::ec::WithAddition;
 use crate::utils::ec::WithDoubling;
@@ -52,6 +59,13 @@ impl FieldParameters for Secp256k1BaseField {
         BigUint::from_bytes_le(&Self::MODULUS)
     }
 }
+
+/*
+impl NumLimbs for Secp256k1BaseField {
+    type Limbs = U32;
+    type Witness = U62;
+}
+*/
 
 impl EllipticCurveParameters for Secp256k1Parameters {
     type BaseField = Secp256k1BaseField;
@@ -113,6 +127,16 @@ impl WeierstrassParameters for Secp256k1Parameters {
     fn b_int() -> BigUint {
         BigUint::from(7u32)
     }
+}
+
+pub fn secp256k1_decompress<E: EllipticCurve>(bytes_be: &[u8], sign: u32) -> AffinePoint<E> {
+    let computed_point =
+        k256::AffinePoint::decompress(bytes_be.into(), Choice::from(sign as u8)).unwrap();
+    let point = computed_point.to_encoded_point(false);
+
+    let x = BigUint::from_bytes_be(point.x().unwrap());
+    let y = BigUint::from_bytes_be(point.y().unwrap());
+    AffinePoint::<E>::new(x, y)
 }
 
 impl Syscall for WeierstrassAddAssignChip<Secp256k1> {

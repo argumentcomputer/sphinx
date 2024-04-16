@@ -17,3 +17,11 @@ benchmark.csv
 
 # Environment
 .env
+
+# Jetbrain config
+./.idea
+
+# VSCode config
+**/.vscode
+
+.idea

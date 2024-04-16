@@ -95,3 +95,7 @@ pub const BLS12381_ADD: u32 = 0x00_01_01_71;
 
 /// Executes `BLS12381_DOUBLE`
 pub const BLS12381_DOUBLE: u32 = 0x00_00_01_72;
+
+/// Executes `BLS12381_DECOMPRESS`.
+pub const BLS12381_DECOMPRESS: u32 = 0x00_00_01_F2;
+

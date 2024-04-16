@@ -12,12 +12,13 @@ use crate::cpu::CpuEvent;
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
+use crate::syscall::precompiles::ECDecompressEvent;
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::field::add::FieldAddEvent;
 use crate::syscall::precompiles::field::mul::FieldMulEvent;
 use crate::syscall::precompiles::field::sub::FieldSubEvent;
-use crate::syscall::precompiles::k256::K256DecompressEvent;
+//use crate::syscall::precompiles::k256::K256DecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddEvent;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulEvent;
@@ -95,7 +96,8 @@ pub struct ExecutionRecord {
     pub bls12381_double_events:
         Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
-    pub k256_decompress_events: Vec<K256DecompressEvent>,
+    //pub k256_decompress_events: Vec<K256DecompressEvent>,
+    pub k256_decompress_events: Vec<ECDecompressEvent>,
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
 
@@ -105,6 +107,7 @@ pub struct ExecutionRecord {
     pub bls12381_fp2_add_events: Vec<QuadFieldAddEvent<Bls12381BaseField>>,
     pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
+    pub bls12381_decompress_events: Vec<ECDecompressEvent>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -254,6 +257,10 @@ impl MachineRecord for ExecutionRecord {
             self.blake3_compress_inner_events.len(),
         );
         stats.insert(
+            "bls12381_decompress_events".to_string(),
+            self.bls12381_decompress_events.len(),
+        );
+        stats.insert(
             "bls12381_fp_add_events".to_string(),
             self.bls12381_fp_add_events.len(),
         );
@@ -326,6 +333,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_fp2_sub_events);
         self.bls12381_fp2_mul_events
             .append(&mut other.bls12381_fp2_mul_events);
+        self.bls12381_decompress_events
+            .append(&mut other.bls12381_decompress_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -591,6 +600,9 @@ impl MachineRecord for ExecutionRecord {
 
         // Put the precompile events in the first shard.
         let first = shards.first_mut().unwrap();
+
+        // Bls12-381 decompress events .
+        first.bls12381_decompress_events = std::mem::take(&mut self.bls12381_decompress_events);
 
         // SHA-256 extend events.
         first.sha_extend_events = take(&mut self.sha_extend_events);

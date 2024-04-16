@@ -111,4 +111,7 @@ pub mod tests {
 
     pub const BLS12381_FP2_MUL_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-fp2-mul/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLS_DECOMPRESS_ELF: &[u8] =
+        include_bytes!("../../../tests/bls-decompress/elf/riscv32im-succinct-zkvm-elf");
 }
