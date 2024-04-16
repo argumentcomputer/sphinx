@@ -5,7 +5,7 @@ use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
 use super::field_op::FieldOpCols;
-use super::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T};
+use super::params::Limbs;
 use crate::air::SP1AirBuilder;
 use crate::utils::ec::field::FieldParameters;
 
@@ -13,29 +13,25 @@ use crate::utils::ec::field::FieldParameters;
 /// limb lives.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldSqrtCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct FieldSqrtCols<T, P: FieldParameters> {
     /// The multiplication operation to verify that the sqrt and the input match.
     ///
     /// In order to save space, we actually store the sqrt of the input in `multiplication.result`
     /// since we'll receive the input again in the `eval` function.
-    pub multiplication: FieldOpCols<T, U>,
+    pub multiplication: FieldOpCols<T, P>,
 }
 
-impl<F: PrimeField32, U: LimbWidth> FieldSqrtCols<F, U> {
+impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
     /// Populates the trace.
     ///
     /// `P` is the parameter of the field that each limb lives in.
-    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
-        &mut self,
-        a: &BigUint,
-        sqrt_fn: impl Fn(&BigUint) -> BigUint,
-    ) -> BigUint {
+    pub fn populate(&mut self, a: &BigUint, sqrt_fn: impl Fn(&BigUint) -> BigUint) -> BigUint {
         let sqrt = sqrt_fn(a);
 
         // Use FieldOpCols to compute result * result.
         let sqrt_squared =
             self.multiplication
-                .populate::<P>(&sqrt, &sqrt, super::field_op::FieldOperation::Mul);
+                .populate(&sqrt, &sqrt, super::field_op::FieldOperation::Mul);
 
         // If the result is indeed the square root of a, then result * result = a.
         assert_eq!(sqrt_squared, a.clone());
@@ -48,12 +44,13 @@ impl<F: PrimeField32, U: LimbWidth> FieldSqrtCols<F, U> {
     }
 }
 
-impl<V: Copy, U: LimbWidth> FieldSqrtCols<V, U> {
+impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
-    pub fn eval<AB: SP1AirBuilder<Var = V>, P: FieldParameters<NB_LIMBS = U>>(
+    pub fn eval<AB: SP1AirBuilder<Var = V>, E: Into<AB::Expr>>(
         &self,
         builder: &mut AB,
-        a: &Limbs<AB::Var, U>,
+        a: &Limbs<AB::Var, P::NB_LIMBS>,
+        is_real: E,
     ) where
         V: Into<AB::Expr>,
     {
@@ -65,11 +62,12 @@ impl<V: Copy, U: LimbWidth> FieldSqrtCols<V, U> {
         multiplication.result = a.clone();
 
         // Compute sqrt * sqrt. We pass in P since we want its BaseField to be the mod.
-        multiplication.eval::<AB, P, Limbs<V, U>, Limbs<V, U>>(
+        multiplication.eval(
             builder,
             &sqrt,
             &sqrt,
             super::field_op::FieldOperation::Mul,
+            is_real,
         );
     }
 }
@@ -83,13 +81,13 @@ mod tests {
     use num::{BigUint, One, Zero};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
-    use p3_field::{Field, PrimeField32};
+    use p3_field::{AbstractField, Field, PrimeField32};
     use p3_matrix::dense::RowMajorMatrix;
     use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
 
-    use super::{FieldSqrtCols, LimbWidth, Limbs};
+    use super::{FieldSqrtCols, Limbs};
     use crate::air::{MachineAir, SP1AirBuilder};
     use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
     use crate::runtime::{ExecutionRecord, Program};
@@ -101,12 +99,12 @@ mod tests {
         BabyBearPoseidon2,
     };
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
-        pub a: Limbs<T, U>,
-        pub sqrt: FieldSqrtCols<T, U>,
+    pub struct TestCols<T, P: FieldParameters> {
+        pub a: Limbs<T, P::NB_LIMBS>,
+        pub sqrt: FieldSqrtCols<T, P>,
     }
 
-    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
+    pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8, Ed25519BaseField>>();
 
     struct EdSqrtChip<P: FieldParameters> {
         pub(crate) _phantom: std::marker::PhantomData<P>,
@@ -155,9 +153,9 @@ mod tests {
                 .iter()
                 .map(|a| {
                     let mut row = [F::zero(); NUM_TEST_COLS];
-                    let cols: &mut TestCols<F> = row.as_mut_slice().borrow_mut();
+                    let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
-                    cols.sqrt.populate::<P>(a, ed25519_sqrt);
+                    cols.sqrt.populate(a, ed25519_sqrt);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -191,10 +189,10 @@ mod tests {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
             let local = main.row_slice(0);
-            let local: &TestCols<AB::Var, P::NB_LIMBS> = (*local).borrow();
+            let local: &TestCols<AB::Var, P> = (*local).borrow();
 
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
-            local.sqrt.eval::<AB, P>(builder, &local.a);
+            local.sqrt.eval(builder, &local.a, AB::F::one());
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]

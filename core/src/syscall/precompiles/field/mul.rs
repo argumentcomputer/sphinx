@@ -36,7 +36,7 @@ pub struct FieldMulCols<T, FP: FieldParameters> {
     pub q_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
     pub q_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
-    pub(crate) p_mul_q: FieldOpCols<T, FP::NB_LIMBS>,
+    pub(crate) p_mul_q: FieldOpCols<T, FP>,
 }
 
 #[derive(Default)]
@@ -152,8 +152,7 @@ impl<F: PrimeField32, FP: FieldParameters + WithFieldMultiplication> MachineAir<
                 let q = &event.q;
                 let p_int = BigUint::from_slice(p);
                 let q_int = BigUint::from_slice(q);
-                cols.p_mul_q
-                    .populate::<FP>(&p_int, &q_int, FieldOperation::Mul);
+                cols.p_mul_q.populate(&p_int, &q_int, FieldOperation::Mul);
 
                 // Populate the memory access columns.
                 let mut new_byte_lookup_events = Vec::new();
@@ -178,8 +177,7 @@ impl<F: PrimeField32, FP: FieldParameters + WithFieldMultiplication> MachineAir<
             let mut row = vec![F::zero(); size_of::<FieldMulCols<u8, FP>>()];
             let cols: &mut FieldMulCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            cols.p_mul_q
-                .populate::<FP>(&zero, &zero, FieldOperation::Mul);
+            cols.p_mul_q.populate(&zero, &zero, FieldOperation::Mul);
             row
         });
 
@@ -218,7 +216,7 @@ where
         let q: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[0..words_len]);
 
         row.p_mul_q
-            .eval::<AB, FP, _, _>(builder, &p, &q, FieldOperation::Mul);
+            .eval(builder, &p, &q, FieldOperation::Mul, row.is_real);
 
         // Constraint self.p_access.value = [self.p_mul_q.result]
         // This is to ensure that p_access is updated with the new value.

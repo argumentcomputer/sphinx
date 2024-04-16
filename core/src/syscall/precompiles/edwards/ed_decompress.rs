@@ -58,25 +58,25 @@ pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 /// After `EdDecompress`, the first 32 bytes of the slice are overwritten with the decompressed X.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct EdDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct EdDecompressCols<T, P: FieldParameters> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
     pub ptr: T,
     pub sign: T,
-    pub x_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<U>>,
-    pub y_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<U>>,
-    pub(crate) yy: FieldOpCols<T, U>,
-    pub(crate) u: FieldOpCols<T, U>,
-    pub(crate) dyy: FieldOpCols<T, U>,
-    pub(crate) v: FieldOpCols<T, U>,
-    pub(crate) u_div_v: FieldOpCols<T, U>,
-    pub(crate) x: FieldSqrtCols<T, U>,
-    pub(crate) neg_x: FieldOpCols<T, U>,
+    pub x_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
+    pub y_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
+    pub(crate) yy: FieldOpCols<T, P>,
+    pub(crate) u: FieldOpCols<T, P>,
+    pub(crate) dyy: FieldOpCols<T, P>,
+    pub(crate) v: FieldOpCols<T, P>,
+    pub(crate) u_div_v: FieldOpCols<T, P>,
+    pub(crate) x: FieldSqrtCols<T, P>,
+    pub(crate) neg_x: FieldOpCols<T, P>,
 }
 
-impl<F: PrimeField32, U: LimbWidth> EdDecompressCols<F, U> {
-    pub fn populate<P: FieldParameters<NB_LIMBS = U>, E: EdwardsParameters<BaseField = P>>(
+impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
+    pub fn populate<E: EdwardsParameters<BaseField = P>>(
         &mut self,
         event: &EdDecompressEvent,
         record: &mut ExecutionRecord,
@@ -87,42 +87,33 @@ impl<F: PrimeField32, U: LimbWidth> EdDecompressCols<F, U> {
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
         self.sign = F::from_bool(event.sign);
-        let nw_field_elt = WORDS_FIELD_ELEMENT::<U>::USIZE;
+        let nw_field_elt = WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE;
         for i in 0..nw_field_elt {
             self.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
             self.y_access[i].populate(event.y_memory_records[i], &mut new_byte_lookup_events);
         }
 
         let y = &BigUint::from_bytes_le(&event.y_bytes);
-        self.populate_field_ops::<P, E>(y);
+        self.populate_field_ops::<E>(y);
 
         record.add_byte_lookup_events(new_byte_lookup_events);
     }
 
-    fn populate_field_ops<P: FieldParameters<NB_LIMBS = U>, E: EdwardsParameters<BaseField = P>>(
-        &mut self,
-        y: &BigUint,
-    ) {
+    fn populate_field_ops<E: EdwardsParameters<BaseField = P>>(&mut self, y: &BigUint) {
         let one = BigUint::one();
-        let yy = self.yy.populate::<P>(y, y, FieldOperation::Mul);
-        let u = self.u.populate::<P>(&yy, &one, FieldOperation::Sub);
-        let dyy = self
-            .dyy
-            .populate::<P>(&E::d_biguint(), &yy, FieldOperation::Mul);
-        let v = self.v.populate::<P>(&one, &dyy, FieldOperation::Add);
-        let u_div_v = self.u_div_v.populate::<P>(&u, &v, FieldOperation::Div);
-        let x = self.x.populate::<P>(&u_div_v, ed25519_sqrt);
+        let yy = self.yy.populate(y, y, FieldOperation::Mul);
+        let u = self.u.populate(&yy, &one, FieldOperation::Sub);
+        let dyy = self.dyy.populate(&E::d_biguint(), &yy, FieldOperation::Mul);
+        let v = self.v.populate(&one, &dyy, FieldOperation::Add);
+        let u_div_v = self.u_div_v.populate(&u, &v, FieldOperation::Div);
+        let x = self.x.populate(&u_div_v, ed25519_sqrt);
         self.neg_x
-            .populate::<P>(&BigUint::zero(), &x, FieldOperation::Sub);
+            .populate(&BigUint::zero(), &x, FieldOperation::Sub);
     }
 }
 
-impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
-    pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
-        P: FieldParameters<NB_LIMBS = U>,
-        E: EdwardsParameters<BaseField = P>,
-    >(
+impl<V: Copy, P: FieldParameters> EdDecompressCols<V, P> {
+    pub fn eval<AB: SP1AirBuilder<Var = V>, E: EdwardsParameters<BaseField = P>>(
         &self,
         builder: &mut AB,
     ) where
@@ -130,40 +121,49 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
     {
         builder.assert_bool(self.sign);
 
-        let y: Limbs<_, U> = limbs_from_prev_access(&self.y_access);
+        let y: Limbs<_, P::NB_LIMBS> = limbs_from_prev_access(&self.y_access);
         self.yy
-            .eval::<AB, P, _, _>(builder, &y, &y, FieldOperation::Mul);
-        self.u.eval::<AB, P, _, _>(
+            .eval(builder, &y, &y, FieldOperation::Mul, self.is_real);
+        self.u.eval(
             builder,
             &self.yy.result,
             &[AB::Expr::one()].iter(),
             FieldOperation::Sub,
+            self.is_real,
         );
         let d_biguint = E::d_biguint();
         let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
-        self.dyy
-            .eval::<AB, P, _, _>(builder, &d_const, &self.yy.result, FieldOperation::Mul);
-        self.v.eval::<AB, P, _, _>(
+        self.dyy.eval(
+            builder,
+            &d_const,
+            &self.yy.result,
+            FieldOperation::Mul,
+            self.is_real,
+        );
+        self.v.eval(
             builder,
             &[AB::Expr::one()].iter(),
             &self.dyy.result,
             FieldOperation::Add,
+            self.is_real,
         );
-        self.u_div_v.eval::<AB, P, _, _>(
+        self.u_div_v.eval(
             builder,
             &self.u.result,
             &self.v.result,
             FieldOperation::Div,
+            self.is_real,
         );
-        self.x.eval::<AB, P>(builder, &self.u_div_v.result);
-        self.neg_x.eval::<AB, P, _, _>(
+        self.x.eval(builder, &self.u_div_v.result, self.is_real);
+        self.neg_x.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &self.x.multiplication.result,
             FieldOperation::Sub,
+            self.is_real,
         );
 
-        for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
+        for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
             builder.eval_memory_access(
                 self.shard,
                 self.clk,
@@ -172,7 +172,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
                 self.is_real,
             );
         }
-        for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
+        for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
             builder.eval_memory_access(
                 self.shard,
                 self.clk,
@@ -183,7 +183,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
         }
 
         // Constrain that the correct result is written into x.
-        let x_limbs: Limbs<_, U> = limbs_from_access(&self.x_access);
+        let x_limbs: Limbs<_, P::NB_LIMBS> = limbs_from_access(&self.x_access);
         builder
             .when(self.is_real)
             .when(self.sign)
@@ -301,24 +301,24 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
         for i in 0..input.ed_decompress_events.len() {
             let event = &input.ed_decompress_events[i];
-            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()];
-            let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
-            cols.populate::<E::BaseField, E>(event, output);
+            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, E::BaseField>>()];
+            let cols: &mut EdDecompressCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
+            cols.populate::<E>(event, output);
 
             rows.push(row);
         }
 
         pad_vec_rows(&mut rows, || {
-            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()];
-            let cols: &mut EdDecompressCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
+            let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, E::BaseField>>()];
+            let cols: &mut EdDecompressCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            cols.populate_field_ops::<E::BaseField, E>(&zero);
+            cols.populate_field_ops::<E>(&zero);
             row
         });
 
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>(),
+            size_of::<EdDecompressCols<u8, E::BaseField>>(),
         )
     }
 
@@ -329,7 +329,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
 
 impl<F, E: EdwardsParameters> BaseAir<F> for EdDecompressChip<E> {
     fn width(&self) -> usize {
-        size_of::<EdDecompressCols<u8, BaseLimbWidth<E>>>()
+        size_of::<EdDecompressCols<u8, E::BaseField>>()
     }
 }
 
@@ -340,8 +340,8 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let row = main.row_slice(0);
-        let row: &EdDecompressCols<AB::Var, BaseLimbWidth<E>> = (*row).borrow();
-        row.eval::<AB, E::BaseField, E>(builder);
+        let row: &EdDecompressCols<AB::Var, E::BaseField> = (*row).borrow();
+        row.eval::<AB, E>(builder);
     }
 }
 

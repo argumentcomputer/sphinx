@@ -20,35 +20,36 @@ use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
 use crate::operations::field::field_den::FieldDenCols;
 use crate::operations::field::field_inner_product::FieldInnerProductCols;
 use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
-use crate::operations::field::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
+use crate::operations::field::params::{Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
 use crate::runtime::{ExecutionRecord, Program, Syscall, SyscallCode};
 use crate::syscall::precompiles::{create_ec_add_event, SyscallContext};
+use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
 use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
 use crate::utils::{limbs_from_prev_access, pad_vec_rows};
 
-pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
+pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8, Ed25519BaseField>>();
 
 /// A set of columns to compute `EdAdd` where a, b are field elements.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct EdAddAssignCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct EdAddAssignCols<T, P: FieldParameters = Ed25519BaseField> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<U>>,
-    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<U>>,
-    pub(crate) x3_numerator: FieldInnerProductCols<T, U>,
-    pub(crate) y3_numerator: FieldInnerProductCols<T, U>,
-    pub(crate) x1_mul_y1: FieldOpCols<T, U>,
-    pub(crate) x2_mul_y2: FieldOpCols<T, U>,
-    pub(crate) f: FieldOpCols<T, U>,
-    pub(crate) d_mul_f: FieldOpCols<T, U>,
-    pub(crate) x3_ins: FieldDenCols<T, U>,
-    pub(crate) y3_ins: FieldDenCols<T, U>,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
+    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
+    pub(crate) x3_numerator: FieldInnerProductCols<T, P>,
+    pub(crate) y3_numerator: FieldInnerProductCols<T, P>,
+    pub(crate) x1_mul_y1: FieldOpCols<T, P>,
+    pub(crate) x2_mul_y2: FieldOpCols<T, P>,
+    pub(crate) f: FieldOpCols<T, P>,
+    pub(crate) d_mul_f: FieldOpCols<T, P>,
+    pub(crate) x3_ins: FieldDenCols<T, P::NB_LIMBS>,
+    pub(crate) y3_ins: FieldDenCols<T, P::NB_LIMBS>,
 }
 
 #[derive(Default)]
@@ -63,32 +64,22 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         }
     }
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>>,
+        cols: &mut EdAddAssignCols<F, E::BaseField>,
         p_x: BigUint,
         p_y: BigUint,
         q_x: BigUint,
         q_y: BigUint,
     ) {
-        let x1_mul_y1 = cols
-            .x1_mul_y1
-            .populate::<E::BaseField>(&p_x, &p_y, FieldOperation::Mul);
-        let x2_mul_y2 = cols
-            .x2_mul_y2
-            .populate::<E::BaseField>(&q_x, &q_y, FieldOperation::Mul);
-        let f = cols
-            .f
-            .populate::<E::BaseField>(&x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
+        let x1_mul_y1 = cols.x1_mul_y1.populate(&p_x, &p_y, FieldOperation::Mul);
+        let x2_mul_y2 = cols.x2_mul_y2.populate(&q_x, &q_y, FieldOperation::Mul);
+        let f = cols.f.populate(&x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
         let x3_numerator = cols
             .x3_numerator
-            .populate::<E::BaseField>(&[p_x.clone(), q_x.clone()], &[q_y.clone(), p_y.clone()]);
-        let y3_numerator = cols
-            .y3_numerator
-            .populate::<E::BaseField>(&[p_y, p_x], &[q_y, q_x]);
+            .populate(&[p_x.clone(), q_x.clone()], &[q_y.clone(), p_y.clone()]);
+        let y3_numerator = cols.y3_numerator.populate(&[p_y, p_x], &[q_y, q_x]);
 
         let d = E::d_biguint();
-        let d_mul_f = cols
-            .d_mul_f
-            .populate::<E::BaseField>(&f, &d, FieldOperation::Mul);
+        let d_mul_f = cols.d_mul_f.populate(&f, &d, FieldOperation::Mul);
 
         cols.x3_ins
             .populate::<E::BaseField>(&x3_numerator, &d_mul_f, true);
@@ -134,9 +125,8 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
             .ed_add_events
             .par_iter()
             .map(|event| {
-                let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()];
-                let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> =
-                    row.as_mut_slice().borrow_mut();
+                let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
+                let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
 
                 // Decode affine points.
                 let p = &event.p;
@@ -175,8 +165,8 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         }
 
         pad_vec_rows(&mut rows, || {
-            let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()];
-            let cols: &mut EdAddAssignCols<F, BaseLimbWidth<E>> = row.as_mut_slice().borrow_mut();
+            let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
+            let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(cols, zero.clone(), zero.clone(), zero.clone(), zero);
             row
@@ -185,7 +175,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         // Convert the trace to a row major matrix.
         RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>(),
+            size_of::<EdAddAssignCols<u8, E::BaseField>>(),
         )
     }
 
@@ -196,7 +186,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
 
 impl<F, E: EllipticCurve + EdwardsParameters> BaseAir<F> for EdAddAssignChip<E> {
     fn width(&self) -> usize {
-        size_of::<EdAddAssignCols<u8, BaseLimbWidth<E>>>()
+        size_of::<EdAddAssignCols<u8, E::BaseField>>()
     }
 }
 
@@ -207,7 +197,7 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let row = main.row_slice(0);
-        let row: &EdAddAssignCols<AB::Var, BaseLimbWidth<E>> = (*row).borrow();
+        let row: &EdAddAssignCols<AB::Var, E::BaseField> = (*row).borrow();
 
         let x1 = limbs_from_prev_access(&row.p_access[0..8]);
         let x2 = limbs_from_prev_access(&row.q_access[0..8]);
@@ -215,29 +205,28 @@ where
         let y2 = limbs_from_prev_access(&row.q_access[8..16]);
 
         // x3_numerator = x1 * y2 + x2 * y1.
-        row.x3_numerator.eval::<AB, E::BaseField, _>(
-            builder,
-            [x1.clone(), x2.clone()],
-            [y2.clone(), y1.clone()],
-        );
+        row.x3_numerator
+            .eval(builder, [x1.clone(), x2.clone()], [y2.clone(), y1.clone()]);
 
         // y3_numerator = y1 * y2 + x1 * x2.
-        row.y3_numerator.eval::<AB, E::BaseField, _>(
-            builder,
-            [y1.clone(), x1.clone()],
-            [y2.clone(), x2.clone()],
-        );
+        row.y3_numerator
+            .eval(builder, [y1.clone(), x1.clone()], [y2.clone(), x2.clone()]);
 
         // f = x1 * x2 * y1 * y2.
         row.x1_mul_y1
-            .eval::<AB, E::BaseField, _, _>(builder, &x1, &y1, FieldOperation::Mul);
+            .eval(builder, &x1, &y1, FieldOperation::Mul, row.is_real);
         row.x2_mul_y2
-            .eval::<AB, E::BaseField, _, _>(builder, &x2, &y2, FieldOperation::Mul);
+            .eval(builder, &x2, &y2, FieldOperation::Mul, row.is_real);
 
-        let x1_mul_y1 = row.x1_mul_y1.result.clone();
-        let x2_mul_y2 = row.x2_mul_y2.result.clone();
-        row.f
-            .eval::<AB, E::BaseField, _, _>(builder, &x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
+        let x1_mul_y1 = &row.x1_mul_y1.result;
+        let x2_mul_y2 = &row.x2_mul_y2.result;
+        row.f.eval(
+            builder,
+            x1_mul_y1,
+            x2_mul_y2,
+            FieldOperation::Mul,
+            row.is_real,
+        );
 
         // d * f.
         let f = row.f.result.clone();
@@ -245,17 +234,17 @@ where
         let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
         let d_const_expr: Limbs<AB::Expr, BaseLimbWidth<E>> = d_const.map(|x| x.into());
         row.d_mul_f
-            .eval::<AB, E::BaseField, _, _>(builder, &f, &d_const_expr, FieldOperation::Mul);
+            .eval(builder, &f, &d_const_expr, FieldOperation::Mul, row.is_real);
 
         let d_mul_f = row.d_mul_f.result.clone();
 
         // x3 = x3_numerator / (1 + d * f).
         row.x3_ins
-            .eval::<AB, E::BaseField>(builder, &row.x3_numerator.result, &d_mul_f, true);
+            .eval::<_, E::BaseField>(builder, &row.x3_numerator.result, &d_mul_f, true);
 
         // y3 = y3_numerator / (1 - d * f).
         row.y3_ins
-            .eval::<AB, E::BaseField>(builder, &row.y3_numerator.result, &d_mul_f, false);
+            .eval::<_, E::BaseField>(builder, &row.y3_numerator.result, &d_mul_f, false);
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]
         // This is to ensure that p_access is updated with the new value.

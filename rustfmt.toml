@@ -1,0 +1,4 @@
+edition = "2021"
+use_field_init_shorthand = true
+imports_granularity = "Module"
+group_imports = "StdExternalCrate"
