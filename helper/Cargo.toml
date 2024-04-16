@@ -9,4 +9,4 @@ license.workspace = true
 
 [dependencies]
 cargo_metadata = "0.18.1"
-chrono = { version = "0.4.37", default-features = false, features = ["clock"] }
+chrono = { version = "0.4.38", default-features = false, features = ["clock"] }

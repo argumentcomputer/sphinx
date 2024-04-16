@@ -13,7 +13,7 @@ itertools = "0.12.0"
 lazy_static = "1.4"
 log = "0.4.20"
 nohash-hasher = "0.2.0"
-num = { version = "0.4.1" }
+num = { version = "0.4.2" }
 p3-air = { workspace = true }
 p3-baby-bear = { workspace = true }
 p3-blake3 = { workspace = true, features = ["parallel"] }
@@ -47,7 +47,7 @@ hybrid-array = "0.2.0-rc"
 k256 = { version = "0.13.3", features = ["expose-field"] }
 num_cpus = "1.16.0"
 serde_with = "3.7.0"
-serde_json = { version = "1.0.113", default-features = false, features = [
+serde_json = { version = "1.0.116", default-features = false, features = [
   "alloc",
 ] }
 size = "0.4.1"
@@ -63,7 +63,7 @@ thiserror = "1.0.58"
 
 [dev-dependencies]
 criterion = "0.5.1"
-num = { version = "0.4.1", features = ["rand"] }
+num = { version = "0.4.2", features = ["rand"] }
 rand = "0.8.5"
 
 [features]
