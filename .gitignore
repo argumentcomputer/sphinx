@@ -15,8 +15,5 @@ pgo-data.profdata
 # Benchmark
 benchmark.csv
 
-# Jetbrain config
-./.idea
-
-# VSCode config
-**/.vscode
+# Environment
+.env
