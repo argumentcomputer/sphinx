@@ -6,6 +6,7 @@ edition = "2021"
 
 [dependencies]
 wp1-core = { path = "../../../core", features = ["neon"]  }
+wp1-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
 wp1-helper = { path = "../../../helper" }
