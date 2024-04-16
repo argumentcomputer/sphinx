@@ -15,7 +15,8 @@ fn main() {
 
     // Generate and verify the proof
     let mut proof = SP1Prover::prove(ELF, stdin).expect("proving failed");
-    let is_prime = proof.stdout.read::<bool>();
+
+    let is_prime = proof.public_values.read::<bool>();
     println!("Is 29 prime? {}", is_prime);
 
     SP1Verifier::verify(ELF, &proof).expect("verification failed");
