@@ -32,6 +32,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: |
+          make
           for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
             cd "$i/script"
             cargo run --release
@@ -44,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_COMMIT: ${{ github.sha }}
-          WORKFLOW_URL: {{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           filename: .github/NIGHTLY_FAILURE.md
           update_existing: true

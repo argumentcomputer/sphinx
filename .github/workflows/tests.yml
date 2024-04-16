@@ -38,9 +38,6 @@ jobs:
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
-      - name: check examples compile
-        run: |
-          dirs -c && for i in $(find ./ -depth 1 -type d); do pushd "$i/script"; cargo check --all; popd; done
         working-directory: ${{ github.workspace }}/examples
       - name: Run fibonacci-io example
         uses: actions-rs/cargo@v1
@@ -103,9 +100,6 @@ jobs:
           cargo install --locked --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
-      - name: Build integration tests
-        run: make
-        working-directory: ${{ github.workspace }}/tests
       - name: Build & check examples
         run: |
           make
@@ -115,6 +109,9 @@ jobs:
             cd ../../
           done
         working-directory: ${{ github.workspace }}/examples
+      - name: Build integration tests
+        run: make
+        working-directory: ${{ github.workspace }}/tests
 
   mac-m1:
     name: CI Tests on OSX ARM
@@ -147,7 +144,11 @@ jobs:
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
       - name: check examples compile
         run: |
-          dirs -c && for i in $(find ./ -depth 1 -type d); do pushd "$i/script"; cargo check --all; popd; done
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i/script"
+            cargo check
+            cd ../../
+          done
         working-directory: ${{ github.workspace }}/examples
       - name: Set env
         if: failure()
