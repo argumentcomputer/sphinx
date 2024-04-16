@@ -104,12 +104,16 @@ jobs:
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
       - name: Build integration tests
-        run: |
-          make
+        run: make
         working-directory: ${{ github.workspace }}/tests
-      - name: Build examples
+      - name: Build & check examples
         run: |
           make
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i/script"
+            cargo check
+            cd ../../
+          done
         working-directory: ${{ github.workspace }}/examples
 
   mac-m1:

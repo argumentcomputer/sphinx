@@ -32,5 +32,19 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: |
-          dirs -c && for i in $(find ./ -depth -type d); do pushd "$i/script"; cargo run --release; popd; done
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i/script"
+            cargo run --release
+            cd ../../
+          done
         working-directory: ${{ github.workspace }}/examples
+      - name: Open an issue on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_COMMIT: ${{ github.sha }}
+          WORKFLOW_URL: {{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          filename: .github/NIGHTLY_FAILURE.md
+          update_existing: true
