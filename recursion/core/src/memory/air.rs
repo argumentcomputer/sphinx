@@ -34,7 +34,6 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
         match self.kind {
             MemoryChipKind::Init => "MemoryInit".to_string(),
             MemoryChipKind::Finalize => "MemoryFinalize".to_string(),
-            MemoryChipKind::Program => "MemoryProgram".to_string(),
         }
     }
 
@@ -73,7 +72,6 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
                     row
                 })
                 .collect::<Vec<_>>(),
-            _ => unreachable!(),
         };
 
         let mut trace = RowMajorMatrix::new(
@@ -90,8 +88,6 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
         match self.kind {
             MemoryChipKind::Init => !shard.first_memory_record.is_empty(),
             MemoryChipKind::Finalize => !shard.last_memory_record.is_empty(),
-            _ => unreachable!(),
-            // MemoryChipKind::Program => !shard.program_memory_record.is_empty(),
         }
     }
 }
@@ -140,7 +136,6 @@ where
                     InteractionKind::Memory,
                 ));
             }
-            _ => unreachable!(),
         };
 
         // Dummy constraint of degree 3.
