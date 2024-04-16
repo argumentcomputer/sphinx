@@ -15,5 +15,5 @@ retries = 1
 limited = { max-threads = 4 }
 
 [[profile.ci.overrides]]
-filter = 'test(syscall::precompiles)'
+filter = '(test(syscall::precompiles) | test(stark::machine))'
 test-group = 'limited'
