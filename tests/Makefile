@@ -1,10 +1,11 @@
 SHELL := /bin/bash
 
 all:
-	@for dir in */ ; do \
+	@set -e; \
+	for dir in */ ; do \
 		if [ -d "$${dir}" ]; then \
 			echo "Building in $${dir}program..."; \
-			cd $${dir} && cargo clean && cargo prove build && cd ../; \
+			(cd $${dir} && cargo clean && cargo prove build && cd ../); \
 		else \
 			echo "No program directory in $${dir}, skipping..."; \
 		fi; \
