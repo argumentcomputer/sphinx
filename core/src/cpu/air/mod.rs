@@ -167,7 +167,7 @@ where
             is_alu_instruction,
         );
 
-        self.shard_clk_eval(builder, local, next, num_cycles);
+        self.shard_clk_eval(builder, local, next, &num_cycles);
 
         self.pc_eval(
             builder,
@@ -497,7 +497,7 @@ impl CpuChip {
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
         is_commit: AB::Expr,
-        commit_digest: [Word<AB::Expr>; PV_DIGEST_NUM_WORDS],
+        commit_digest: &[Word<AB::Expr>; PV_DIGEST_NUM_WORDS],
     ) {
         // Get the ecall specific columns.
         let ecall_columns = local.opcode_specific_columns.ecall();
@@ -530,7 +530,7 @@ impl CpuChip {
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
         next: &CpuCols<AB::Var>,
-        is_halt: AB::Expr,
+        is_halt: &AB::Expr,
     ) {
         // If we're halting and it's a transition, then the next.is_real should be 0.
         builder
