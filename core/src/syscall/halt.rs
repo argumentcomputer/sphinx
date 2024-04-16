@@ -23,6 +23,7 @@ impl Syscall for SyscallHalt {
                 exit_code
             );
         ctx.set_next_pc(0);
+        ctx.set_exit_code(exit_code);
         None
     }
 }

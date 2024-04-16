@@ -23,7 +23,8 @@ impl Syscall for SyscallCommit {
     ) -> Option<u32> {
         let rt = &mut ctx.rt;
 
-        rt.record.public_values_digest[word_idx as usize] = public_values_digest_word;
+        rt.record.public_values.committed_value_digest[word_idx as usize] =
+            public_values_digest_word;
 
         None
     }

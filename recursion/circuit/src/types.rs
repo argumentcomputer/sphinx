@@ -1,13 +1,12 @@
 use p3_air::BaseAir;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractExtensionField;
-use wp1_core::air::PublicValuesDigest;
-use wp1_core::air::Word;
 use wp1_core::{
     air::MachineAir,
     stark::{AirOpenedValues, Chip, ChipOpenedValues, ShardCommitment},
 };
 use wp1_recursion_compiler::ir::{Builder, Config, Ext, ExtConst, Felt, FromConstant, Var};
+use wp1_recursion_program::types::PublicValuesVariable;
 
 use crate::DIGEST_SIZE;
 
@@ -18,7 +17,7 @@ pub struct RecursionShardProofVariable<C: Config> {
     pub commitment: ShardCommitment<OuterDigest<C>>,
     pub opened_values: RecursionShardOpenedValuesVariable<C>,
     pub opening_proof: TwoAdicPcsProofVariable<C>,
-    pub public_values_digest: PublicValuesDigest<Word<Felt<C::F>>>,
+    pub public_values: PublicValuesVariable<C>,
     pub sorted_chips: Vec<String>,
     pub sorted_indices: Vec<usize>,
 }

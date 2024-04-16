@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use p3_field::PrimeField32;
 use std::collections::HashMap;
-use wp1_core::air::PublicValuesDigest;
+use wp1_core::air::PublicValues;
 use wp1_core::stark::MachineRecord;
 
 use super::Program;
@@ -46,7 +46,7 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
         vec![self]
     }
 
-    fn public_values_digest(&self) -> PublicValuesDigest<u32> {
-        PublicValuesDigest::default()
+    fn public_values(&self) -> PublicValues<u32, u32> {
+        PublicValues::default()
     }
 }

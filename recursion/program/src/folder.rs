@@ -2,7 +2,6 @@ use p3_air::{
     AirBuilder, AirBuilderWithPublicValues, ExtensionBuilder, PairBuilder, PermutationAirBuilder,
     TwoRowMatrixView,
 };
-use wp1_core::air::PublicValuesBuilder;
 use wp1_core::air::{EmptyMessageBuilder, MultiTableAirBuilder};
 
 use wp1_recursion_compiler::{
@@ -100,8 +99,6 @@ impl<'a, C: Config> PairBuilder for RecursiveVerifierConstraintFolder<'a, C> {
 }
 
 impl<'a, C: Config> EmptyMessageBuilder for RecursiveVerifierConstraintFolder<'a, C> {}
-
-impl<'a, C: Config> PublicValuesBuilder for RecursiveVerifierConstraintFolder<'a, C> {}
 
 impl<'a, C: Config> AirBuilderWithPublicValues for RecursiveVerifierConstraintFolder<'a, C> {
     type PublicVar = Felt<C::F>;
