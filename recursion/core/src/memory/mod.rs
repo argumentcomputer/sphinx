@@ -39,7 +39,6 @@ impl<T: Clone> MemoryReadWriteCols<T> {
 pub enum MemoryChipKind {
     Init,
     Finalize,
-    Program,
 }
 
 pub struct MemoryGlobalChip {
