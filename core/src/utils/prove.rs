@@ -5,7 +5,6 @@ use std::time::Instant;
 use nohash_hasher::BuildNoHashHasher;
 
 use crate::air::SP1_PROOF_NUM_PV_ELTS;
-use crate::air::{PublicValues, Word};
 use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
 use crate::stark::MachineRecord;
 use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};

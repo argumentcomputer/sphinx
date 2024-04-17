@@ -4,7 +4,6 @@ use crate::syscall::precompiles::edwards::EdDecompressChip;
 use crate::syscall::precompiles::field::add::FieldAddChip;
 use crate::syscall::precompiles::field::mul::FieldMulChip;
 use crate::syscall::precompiles::field::sub::FieldSubChip;
-//use crate::syscall::precompiles::k256::K256DecompressChip;
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
@@ -292,7 +291,6 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
     syscall_map.insert(SyscallCode::SHA_COMPRESS, Rc::new(ShaCompressChip::new()));
     syscall_map.insert(
         SyscallCode::SECP256K1_DECOMPRESS,
-        //Rc::new(K256DecompressChip::new()),
         Rc::new(WeierstrassDecompressChip::<Secp256k1>::new()),
     );
     syscall_map.insert(

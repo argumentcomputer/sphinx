@@ -19,7 +19,6 @@ use crate::stark::WeierstrassDoubleAssignChip;
 use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
-//use crate::utils::ec::field::NumLimbs;
 use crate::utils::ec::field::FieldType;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::CurveType;
@@ -59,13 +58,6 @@ impl FieldParameters for Secp256k1BaseField {
         BigUint::from_bytes_le(&Self::MODULUS)
     }
 }
-
-/*
-impl NumLimbs for Secp256k1BaseField {
-    type Limbs = U32;
-    type Witness = U62;
-}
-*/
 
 impl EllipticCurveParameters for Secp256k1Parameters {
     type BaseField = Secp256k1BaseField;

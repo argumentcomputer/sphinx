@@ -18,7 +18,6 @@ use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::field::add::FieldAddEvent;
 use crate::syscall::precompiles::field::mul::FieldMulEvent;
 use crate::syscall::precompiles::field::sub::FieldSubEvent;
-//use crate::syscall::precompiles::k256::K256DecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddEvent;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulEvent;
@@ -96,7 +95,6 @@ pub struct ExecutionRecord {
     pub bls12381_double_events:
         Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
-    //pub k256_decompress_events: Vec<K256DecompressEvent>,
     pub k256_decompress_events: Vec<ECDecompressEvent>,
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,

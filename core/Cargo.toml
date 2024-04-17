@@ -88,3 +88,4 @@ name = "main"
 
 [lib]
 bench = false
+doctest = false

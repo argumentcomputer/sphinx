@@ -137,7 +137,12 @@ pub fn create_ec_decompress_event<E: EllipticCurve>(
     assert!(slice_ptr % 4 == 0, "slice_ptr must be 4-byte aligned");
     assert!(is_odd <= 1, "is_odd must be 0 or 1");
 
-    let num_limbs = 48usize;
+    let num_limbs = match E::CURVE_TYPE {
+        CurveType::Secp256k1 => 32usize,
+        CurveType::Bls12381 => 48usize,
+        _ => panic!("Unsupported curve"),
+    };
+
     let num_words_field_element = num_limbs / 4;
 
     let (x_memory_records, x_vec) =

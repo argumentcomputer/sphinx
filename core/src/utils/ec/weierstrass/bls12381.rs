@@ -59,13 +59,6 @@ impl FieldParameters for Bls12381BaseField {
     }
 }
 
-/*
-impl NumLimbs for Bls12381BaseField {
-    type Limbs = U48;
-    type Witness = U94;
-}
-*/
-
 impl WithFieldAddition for Bls12381BaseField {
     fn add_events(
         record: &crate::runtime::ExecutionRecord,
@@ -275,10 +268,10 @@ mod tests {
                 let y_neg = Bls12381BaseField::modulus() - y.clone();
 
                 // Set flags
-                let mut is_odd = 0;
+                let mut is_odd = 1;
                 if y > y_neg {
                     result[0] += Y_IS_ODD_FLAG;
-                    is_odd = 1;
+                    is_odd = 0;
                 }
                 result[0] += COMPRESION_FLAG;
 

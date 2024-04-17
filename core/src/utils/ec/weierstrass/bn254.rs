@@ -15,7 +15,6 @@ use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
 use crate::utils::ec::WithAddition;
 use crate::utils::ec::WithDoubling;
-//use crate::utils::ec::field::NumLimbs;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 curve parameter
@@ -52,13 +51,6 @@ impl FieldParameters for Bn254BaseField {
         .unwrap()
     }
 }
-
-/*
-impl NumLimbs for Bn254BaseField {
-    type Limbs = U32;
-    type Witness = U62;
-}
-*/
 
 impl EllipticCurveParameters for Bn254Parameters {
     type BaseField = Bn254BaseField;
