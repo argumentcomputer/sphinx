@@ -144,7 +144,7 @@ mod tests {
     use p3_air::Air;
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
-    use p3_matrix::MatrixRowSlices;
+    use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
 
@@ -238,7 +238,8 @@ mod tests {
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
-            let local: &TestCols<AB::Var, P::NB_LIMBS> = main.row_slice(0).borrow();
+            let local = main.row_slice(0);
+            let local: &TestCols<AB::Var, P::NB_LIMBS> = (*local).borrow();
             local
                 .a_ip_b
                 .eval::<AB, P, _>(builder, local.a.clone(), local.b.clone());

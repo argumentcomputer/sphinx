@@ -5,7 +5,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::MatrixRowSlices;
+use p3_matrix::Matrix;
 use std::borrow::BorrowMut;
 use tracing::instrument;
 use wp1_core::air::{MachineAir, SP1AirBuilder};
@@ -174,7 +174,8 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let local: &Poseidon2Cols<AB::Var> = main.row_slice(0).borrow();
+        let local = main.row_slice(0);
+        let local: &Poseidon2Cols<AB::Var> = (*local).borrow();
 
         let rounds_f = 8;
         let rounds_p = 22;

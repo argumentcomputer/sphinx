@@ -2,7 +2,7 @@ use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, Field};
-use p3_matrix::{dense::RowMajorMatrix, MatrixRowSlices};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use std::borrow::{Borrow, BorrowMut};
 use wp1_core::stark::SP1AirBuilder;
 use wp1_derive::AlignedBorrow;
@@ -111,8 +111,11 @@ impl<F: Send + Sync> BaseAir<F> for CpuChip {
 impl<AB: SP1AirBuilder> Air<AB> for CpuChip {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let local: &CpuCols<AB::Var> = main.row_slice(0).borrow();
-        let next: &CpuCols<AB::Var> = main.row_slice(1).borrow();
+        let local = main.row_slice(0);
+        let local: &CpuCols<AB::Var> = (*local).borrow();
+
+        let next = main.row_slice(1);
+        let next: &CpuCols<AB::Var> = (*next).borrow();
 
         let op_is_some = local.op.is_add + local.op.is_sub + local.op.is_mul + local.op.is_div;
 

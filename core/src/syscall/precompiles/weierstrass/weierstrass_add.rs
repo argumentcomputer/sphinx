@@ -32,7 +32,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::MatrixRowSlices;
+use p3_matrix::Matrix;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use wp1_derive::AlignedBorrow;
@@ -232,7 +232,8 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &WeierstrassAddAssignCols<AB::Var, BaseLimbWidth<E>> = main.row_slice(0).borrow();
+        let row = main.row_slice(0);
+        let row: &WeierstrassAddAssignCols<AB::Var, BaseLimbWidth<E>> = (*row).borrow();
 
         let nw_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         let p_x: Limbs<_, BaseLimbWidth<E>> =

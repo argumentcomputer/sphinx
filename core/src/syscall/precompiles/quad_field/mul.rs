@@ -31,7 +31,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::MatrixRowSlices;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::IntoParallelRefIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use serde::Deserialize;
@@ -268,7 +268,8 @@ where
     fn eval(&self, builder: &mut AB) {
         let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;
         let main = builder.main();
-        let row: &QuadFieldMulCols<AB::Var, FP> = main.row_slice(0).borrow();
+        let local = main.row_slice(0);
+        let row: &QuadFieldMulCols<AB::Var, FP> = (*local).borrow();
 
         let p0: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[..words_len]);
         let p1: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[words_len..]);

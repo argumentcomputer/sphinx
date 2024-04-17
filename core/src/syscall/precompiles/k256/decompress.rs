@@ -44,7 +44,7 @@ use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
-use p3_matrix::MatrixRowSlices;
+use p3_matrix::Matrix;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -367,7 +367,8 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row: &K256DecompressCols<AB::Var> = main.row_slice(0).borrow();
+        let row = main.row_slice(0);
+        let row: &K256DecompressCols<AB::Var> = (*row).borrow();
         row.eval::<AB>(builder);
     }
 }

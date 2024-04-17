@@ -78,7 +78,7 @@ mod tests {
     use p3_air::BaseAir;
     use p3_field::{Field, PrimeField32};
 
-    use super::{FieldSqrtCols, Limbs};
+    use super::{FieldSqrtCols, LimbWidth, Limbs};
 
     use crate::air::MachineAir;
 
@@ -96,13 +96,13 @@ mod tests {
     use p3_air::Air;
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
-    use p3_matrix::MatrixRowSlices;
+    use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T> {
-        pub a: Limbs<T>,
-        pub sqrt: FieldSqrtCols<T>,
+    pub struct TestCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+        pub a: Limbs<T, U>,
+        pub sqrt: FieldSqrtCols<T, U>,
     }
 
     pub(crate) const NUM_TEST_COLS: usize = size_of::<TestCols<u8>>();
@@ -189,7 +189,8 @@ mod tests {
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
-            let local: &TestCols<AB::Var> = main.row_slice(0).borrow();
+            let local = main.row_slice(0);
+            let local: &TestCols<AB::Var, P::NB_LIMBS> = (*local).borrow();
 
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
             local.sqrt.eval::<AB, P>(builder, &local.a);
