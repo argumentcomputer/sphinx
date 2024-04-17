@@ -1,0 +1,29 @@
+name: Test setup
+inputs:
+  pull_token:
+    description: "Token to use for private repo access"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set up git private repo access
+      shell: bash
+      run: |
+        git config --global url."https://${{ inputs.pull_token }}@github.com/".insteadOf ssh://git@github.com
+        git config --global url."https://${{ inputs.pull_token }}@github.com".insteadOf https://github.com
+    - name: Set env
+      shell: bash
+      run: |
+        echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -Ctarget-cpu=native" | tee -a $GITHUB_ENV
+        echo "RUST_LOG=1" | tee -a $GITHUB_ENV
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        cache-dependency-path: "**/go.sum"
+    - uses: Dup4/actions-setup-gcc@v1
+      with:
+        version: latest
+    - uses: Swatinem/rust-cache@v2
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: taiki-e/install-action@nextest
+

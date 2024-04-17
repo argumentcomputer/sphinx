@@ -18,20 +18,11 @@ jobs:
         with:
           repository: lurk-lab/ci-workflows
       - uses: ./.github/actions/ci-env
-      - name: Set env
-        run: |
-          echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
-          echo "RUST_LOG=1" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Setup CI
+        uses: ./.github/actions/setup
         with:
-          go-version: '1.22'
-      - uses: Dup4/actions-setup-gcc@v1
-        with:
-          version: latest
-      - uses: Swatinem/rust-cache@v2
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@nextest
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
@@ -44,10 +35,6 @@ jobs:
         with:
           command: run
           args: --release --manifest-path examples/fibonacci-io/script/Cargo.toml
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
   
 
   clippy:
@@ -58,16 +45,10 @@ jobs:
           repository: lurk-lab/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup CI
+        uses: ./.github/actions/setup
         with:
-          components: rustfmt, clippy
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-      - uses: Dup4/actions-setup-gcc@v1
-        with:
-          version: latest
-      - uses: Swatinem/rust-cache@v2
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
       - name: check *everything* compiles
@@ -89,12 +70,10 @@ jobs:
           repository: lurk-lab/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Set up git private repo access
-        run: |
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com".insteadOf https://github.com
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --path ./cli
@@ -126,20 +105,11 @@ jobs:
         with:
           repository: lurk-lab/ci-workflows
       - uses: ./.github/actions/ci-env
-      - name: Set env
-        run: |
-          echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0" | tee -a $GITHUB_ENV
-          echo "RUST_LOG=1" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Setup CI
+        uses: ./.github/actions/setup
         with:
-          go-version: '1.22'
-      - uses: Dup4/actions-setup-gcc@v1
-        with:
-          version: latest
-      - uses: Swatinem/rust-cache@v2
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@nextest
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
