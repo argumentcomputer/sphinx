@@ -15,7 +15,7 @@ use p3_field::AbstractField;
 use p3_field::ExtensionField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::{Matrix, MatrixRowSlices};
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use p3_util::log2_ceil_usize;
 use p3_util::log2_strict_usize;
@@ -225,7 +225,7 @@ where
         config: &SC,
         pk: &ProvingKey<SC>,
         chips: &[&MachineChip<SC, A>],
-        shard_data: ShardMainData<SC>,
+        mut shard_data: ShardMainData<SC>,
         challenger: &mut SC::Challenger,
     ) -> ShardProof<SC>
     where
@@ -237,7 +237,7 @@ where
             + for<'a> Air<VerifierConstraintFolder<'a, SC>>,
     {
         // Get the traces.
-        let traces = &shard_data.traces;
+        let traces = &mut shard_data.traces;
 
         let degrees = traces
             .iter()
@@ -276,7 +276,7 @@ where
         tracing::debug_span!("generate permutation traces").in_scope(|| {
             chips
                 .par_iter()
-                .zip(traces.par_iter())
+                .zip(traces.par_iter_mut())
                 .map(|(chip, main_trace)| {
                     let preprocessed_trace = pk
                         .chip_ordering
@@ -359,12 +359,15 @@ where
                             },
                             |&index| {
                                 pcs.get_evaluations_on_domain(&pk.data, index, *quotient_domain)
+                                    .to_row_major_matrix()
                             },
                         );
-                    let main_trace_on_quotient_domains =
-                        pcs.get_evaluations_on_domain(&shard_data.main_data, i, *quotient_domain);
-                    let permutation_trace_on_quotient_domains =
-                        pcs.get_evaluations_on_domain(&permutation_data, i, *quotient_domain);
+                    let main_trace_on_quotient_domains = pcs
+                        .get_evaluations_on_domain(&shard_data.main_data, i, *quotient_domain)
+                        .to_row_major_matrix();
+                    let permutation_trace_on_quotient_domains = pcs
+                        .get_evaluations_on_domain(&permutation_data, i, *quotient_domain)
+                        .to_row_major_matrix();
                     quotient_values(
                         chips[i],
                         cumulative_sums[i],
@@ -450,6 +453,7 @@ where
                 AirOpenedValues { local, next }
             })
             .collect::<Vec<_>>();
+
         let main_opened_values = main_values
             .into_iter()
             .map(|op| {
