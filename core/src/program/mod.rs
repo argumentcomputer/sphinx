@@ -1,21 +1,25 @@
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
-use p3_air::{Air, BaseAir, PairBuilder};
-use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
 use std::collections::HashMap;
 
+use p3_air::{Air, BaseAir, PairBuilder};
+use p3_field::PrimeField;
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::SP1AirBuilder;
-use crate::cpu::columns::InstructionCols;
-use crate::cpu::columns::OpcodeSelectorCols;
-use crate::runtime::{ExecutionRecord, Program};
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder},
+    cpu::columns::{InstructionCols, OpcodeSelectorCols},
+    runtime::{ExecutionRecord, Program},
+    utils::pad_to_power_of_two,
+};
 
+/// The number of preprocessed program columns.
 pub const NUM_PROGRAM_PREPROCESSED_COLS: usize = size_of::<ProgramPreprocessedCols<u8>>();
+
+/// The number of columns for the program multiplicities.
 pub const NUM_PROGRAM_MULT_COLS: usize = size_of::<ProgramMultiplicityCols<u8>>();
 
 /// The column layout for the chip.
@@ -186,7 +190,6 @@ mod tests {
     use std::{collections::BTreeMap, sync::Arc};
 
     use p3_baby_bear::BabyBear;
-
     use p3_matrix::dense::RowMajorMatrix;
 
     use crate::{

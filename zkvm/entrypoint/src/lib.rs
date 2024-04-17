@@ -38,10 +38,10 @@ mod libm;
 
 #[cfg(target_os = "zkvm")]
 mod zkvm {
-    use crate::syscalls::syscall_halt;
-
     use getrandom::{register_custom_getrandom, Error};
     use sha2::{Digest, Sha256};
+
+    use crate::syscalls::syscall_halt;
 
     pub static mut PUBLIC_VALUES_HASHER: Option<Sha256> = None;
 
@@ -84,8 +84,7 @@ mod zkvm {
     static GETRANDOM_WARNING_ONCE: std::sync::Once = std::sync::Once::new();
 
     fn zkvm_getrandom(s: &mut [u8]) -> Result<(), Error> {
-        use rand::Rng;
-        use rand::SeedableRng;
+        use rand::{Rng, SeedableRng};
 
         GETRANDOM_WARNING_ONCE.call_once(|| {
             println!("WARNING: Using insecure random number generator");

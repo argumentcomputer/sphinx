@@ -1,8 +1,9 @@
 mod air;
 mod columns;
 
-use crate::air::Block;
 use wp1_derive::AlignedBorrow;
+
+use crate::air::Block;
 
 #[derive(Debug, Clone)]
 pub struct MemoryRecord<F> {

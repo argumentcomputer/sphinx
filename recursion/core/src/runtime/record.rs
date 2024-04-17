@@ -1,13 +1,10 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use p3_field::{AbstractField, PrimeField32};
-use std::collections::HashMap;
 use wp1_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
 
 use super::{RecursionProgram, DIGEST_SIZE};
-use crate::air::Block;
-use crate::cpu::CpuEvent;
-use crate::poseidon2::Poseidon2Event;
+use crate::{air::Block, cpu::CpuEvent, poseidon2::Poseidon2Event};
 
 #[derive(Default, Debug, Clone)]
 pub struct ExecutionRecord<F: Default> {

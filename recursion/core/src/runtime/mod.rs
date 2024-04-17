@@ -3,25 +3,18 @@ mod opcode;
 mod program;
 mod record;
 
-use std::process::exit;
-use std::{marker::PhantomData, sync::Arc};
+use std::{marker::PhantomData, process::exit, sync::Arc};
 
 pub use instruction::*;
 pub use opcode::*;
-use p3_poseidon2::Poseidon2;
-use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
-use p3_symmetric::CryptographicPermutation;
-use p3_symmetric::Permutation;
+use p3_field::{ExtensionField, PrimeField32};
+use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
+use p3_symmetric::{CryptographicPermutation, Permutation};
 pub use program::*;
 pub use record::*;
-
-use crate::air::Block;
-use crate::cpu::CpuEvent;
-use crate::memory::MemoryRecord;
-use crate::poseidon2::Poseidon2Event;
-
-use p3_field::{ExtensionField, PrimeField32};
 use wp1_core::runtime::MemoryAccessPosition;
+
+use crate::{air::Block, cpu::CpuEvent, memory::MemoryRecord, poseidon2::Poseidon2Event};
 
 pub const STACK_SIZE: usize = 1 << 24;
 pub const MEMORY_SIZE: usize = 1 << 28;

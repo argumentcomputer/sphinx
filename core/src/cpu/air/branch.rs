@@ -1,9 +1,14 @@
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
-use crate::air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder};
-use crate::cpu::columns::{CpuCols, OpcodeSelectorCols};
-use crate::{cpu::CpuChip, runtime::Opcode};
+use crate::{
+    air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder},
+    cpu::{
+        columns::{CpuCols, OpcodeSelectorCols},
+        CpuChip,
+    },
+    runtime::Opcode,
+};
 
 impl CpuChip {
     /// Computes whether the opcode is a branch instruction.

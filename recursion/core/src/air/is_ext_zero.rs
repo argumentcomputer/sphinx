@@ -4,19 +4,18 @@
 //!
 //! The idea is that 1 - input * inverse is exactly the boolean value indicating whether the input
 //! is 0.
-use crate::air::Block;
 use p3_air::AirBuilder;
-use p3_field::extension::BinomialExtensionField;
-use p3_field::extension::BinomiallyExtendable;
-use p3_field::AbstractField;
-use p3_field::Field;
-use wp1_core::air::BinomialExtension;
+use p3_field::{
+    extension::{BinomialExtensionField, BinomiallyExtendable},
+    AbstractField, Field,
+};
+use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::extension::BinomialExtensionUtils;
-use wp1_core::air::SP1AirBuilder;
-
-use crate::runtime::D;
+use crate::{
+    air::{extension::BinomialExtensionUtils, Block},
+    runtime::D,
+};
 
 /// A set of columns needed to compute whether the given word is 0.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]

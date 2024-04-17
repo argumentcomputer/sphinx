@@ -1,14 +1,12 @@
-use p3_field::Field;
+use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::SP1AirBuilder;
-use crate::air::Word;
-use crate::bytes::utils::shr_carry;
-use crate::bytes::ByteLookupEvent;
-use crate::bytes::ByteOpcode;
-use crate::disassembler::WORD_SIZE;
-use crate::runtime::ExecutionRecord;
-use p3_field::AbstractField;
+use crate::{
+    air::{SP1AirBuilder, Word},
+    bytes::{utils::shr_carry, ByteLookupEvent, ByteOpcode},
+    disassembler::WORD_SIZE,
+    runtime::ExecutionRecord,
+};
 
 /// A set of columns needed to compute `>>` of a word with a fixed offset R.
 ///

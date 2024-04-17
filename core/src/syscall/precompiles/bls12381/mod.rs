@@ -1,14 +1,19 @@
+use super::{
+    field::{
+        add::{create_fp_add_event, FieldAddChip},
+        mul::{create_fp_mul_event, FieldMulChip},
+        sub::{create_fp_sub_event, FieldSubChip},
+    },
+    quad_field::{
+        add::{create_fp2_add_event, QuadFieldAddChip},
+        mul::{create_fp2_mul_event, QuadFieldMulChip},
+        sub::{create_fp2_sub_event, QuadFieldSubChip},
+    },
+};
 use crate::{
     runtime::{Syscall, SyscallContext},
     utils::ec::weierstrass::bls12381::Bls12381BaseField,
 };
-
-use super::field::add::{create_fp_add_event, FieldAddChip};
-use super::field::mul::{create_fp_mul_event, FieldMulChip};
-use super::field::sub::{create_fp_sub_event, FieldSubChip};
-use super::quad_field::add::{create_fp2_add_event, QuadFieldAddChip};
-use super::quad_field::mul::{create_fp2_mul_event, QuadFieldMulChip};
-use super::quad_field::sub::{create_fp2_sub_event, QuadFieldSubChip};
 
 impl Syscall for FieldAddChip<Bls12381BaseField> {
     fn num_extra_cycles(&self) -> u32 {

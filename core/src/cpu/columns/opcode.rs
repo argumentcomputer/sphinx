@@ -1,6 +1,6 @@
+use std::{mem::size_of, vec::IntoIter};
+
 use p3_field::PrimeField;
-use std::mem::size_of;
-use std::vec::IntoIter;
 use wp1_derive::AlignedBorrow;
 
 use crate::runtime::{Instruction, Opcode};

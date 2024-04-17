@@ -1,11 +1,12 @@
-use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
-use p3_keccak_air::KeccakAir;
-use serde::{Deserialize, Serialize};
-
 mod air;
 pub mod columns;
 mod execute;
 mod trace;
+
+use p3_keccak_air::KeccakAir;
+use serde::{Deserialize, Serialize};
+
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 
 pub(crate) const STATE_SIZE: usize = 25;
 
@@ -43,11 +44,9 @@ impl Default for KeccakPermuteChip {
 
 #[cfg(test)]
 pub mod permute_tests {
-    use crate::runtime::SyscallCode;
-    use crate::utils::run_test;
     use crate::{
-        runtime::{Instruction, Opcode, Program, Runtime},
-        utils::{self, tests::KECCAK_PERMUTE_ELF},
+        runtime::{Instruction, Opcode, Program, Runtime, SyscallCode},
+        utils::{self, run_test, tests::KECCAK_PERMUTE_ELF},
     };
 
     pub fn keccak_permute_program() -> Program {

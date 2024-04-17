@@ -1,8 +1,7 @@
 use p3_field::PrimeField32;
 
-use crate::air::Block;
-
 use super::{Opcode, D};
+use crate::air::Block;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Instruction<F> {

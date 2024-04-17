@@ -24,12 +24,7 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::parse_macro_input;
-use syn::parse_quote;
-use syn::Data;
-use syn::DeriveInput;
-use syn::GenericParam;
-use syn::ItemFn;
+use syn::{parse_macro_input, parse_quote, Data, DeriveInput, GenericParam, ItemFn};
 
 #[proc_macro_derive(AlignedBorrow)]
 pub fn aligned_borrow_derive(input: TokenStream) -> TokenStream {

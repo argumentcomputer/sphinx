@@ -5,9 +5,9 @@ mod flags;
 mod trace;
 
 pub use columns::*;
+use serde::{Deserialize, Serialize};
 
 use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShaExtendEvent {
@@ -47,9 +47,9 @@ pub fn sha_extend(w: &mut [u32]) {
 pub mod extend_tests {
 
     use p3_baby_bear::BabyBear;
-
     use p3_matrix::dense::RowMajorMatrix;
 
+    use super::ShaExtendChip;
     use crate::{
         air::MachineAir,
         alu::AluEvent,
@@ -59,8 +59,6 @@ pub mod extend_tests {
             tests::{SHA2_ELF, SHA_EXTEND_ELF},
         },
     };
-
-    use super::ShaExtendChip;
 
     pub fn sha_extend_program() -> Program {
         let w_ptr = 100;

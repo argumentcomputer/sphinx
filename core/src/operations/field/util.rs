@@ -1,8 +1,8 @@
-use crate::air::Polynomial;
-
 use num::BigUint;
 use p3_field::PrimeField32;
 use p3_maybe_rayon::prelude::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+
+use crate::air::Polynomial;
 
 fn biguint_to_field<F: PrimeField32>(num: &BigUint) -> F {
     let mut x = F::zero();

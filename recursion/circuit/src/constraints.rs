@@ -1,24 +1,23 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
-use p3_field::AbstractExtensionField;
-use p3_field::AbstractField;
-use p3_field::TwoAdicField;
-use wp1_core::air::MachineAir;
-use wp1_core::stark::AirOpenedValues;
-use wp1_core::stark::PROOF_MAX_NUM_PVS;
-use wp1_core::stark::{MachineChip, StarkGenericConfig};
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::ir::SymbolicFelt;
-use wp1_recursion_compiler::ir::{Builder, Config, Ext};
-use wp1_recursion_compiler::prelude::SymbolicExt;
-use wp1_recursion_program::commit::PolynomialSpaceVariable;
-use wp1_recursion_program::folder::RecursiveVerifierConstraintFolder;
+use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
+use wp1_core::{
+    air::MachineAir,
+    stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
+};
+use wp1_recursion_compiler::{
+    ir::{Array, Builder, Config, Ext, Felt, SymbolicFelt},
+    prelude::SymbolicExt,
+};
+use wp1_recursion_program::{
+    commit::PolynomialSpaceVariable, folder::RecursiveVerifierConstraintFolder,
+};
 
-use crate::domain::TwoAdicMultiplicativeCosetVariable;
-use crate::stark::StarkVerifierCircuit;
-use crate::types::ChipOpenedValuesVariable;
-use crate::types::ChipOpening;
+use crate::{
+    domain::TwoAdicMultiplicativeCosetVariable,
+    stark::StarkVerifierCircuit,
+    types::{ChipOpenedValuesVariable, ChipOpening},
+};
 
 impl<C: Config, SC> StarkVerifierCircuit<C, SC>
 where

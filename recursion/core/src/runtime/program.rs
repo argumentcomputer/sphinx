@@ -1,5 +1,6 @@
-use super::Instruction;
 use backtrace::Backtrace;
+
+use super::Instruction;
 
 #[derive(Debug, Clone, Default)]
 pub struct RecursionProgram<F> {

@@ -1,30 +1,32 @@
-use crate::challenger::DuplexChallengerVariable;
-use crate::fri::TwoAdicMultiplicativeCosetVariable;
-use crate::types::{
-    AirOpenedValuesVariable, ChipOpenedValuesVariable, ShardCommitmentVariable,
-    ShardOpenedValuesVariable, ShardProofVariable, VerifyingKeyVariable,
-};
 use p3_challenger::DuplexChallenger;
 use p3_commit::TwoAdicMultiplicativeCoset;
-use p3_field::TwoAdicField;
-use p3_field::{AbstractExtensionField, AbstractField};
+use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
 use wp1_core::stark::{
     AirOpenedValues, ChipOpenedValues, Com, ShardCommitment, ShardOpenedValues, ShardProof,
+    StarkGenericConfig, VerifyingKey,
 };
-use wp1_core::stark::{StarkGenericConfig, VerifyingKey};
 use wp1_recursion_compiler::{
     config::InnerConfig,
     ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var},
 };
-use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
-use wp1_recursion_core::stark::config::BabyBearPoseidon2Inner;
 use wp1_recursion_core::{
     air::Block,
+    runtime::PERMUTATION_WIDTH,
     stark::config::{
-        InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm, InnerVal,
+        BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof,
+        InnerPerm, InnerVal,
     },
 };
 use wp1_sdk::utils::BabyBearPoseidon2;
+
+use crate::{
+    challenger::DuplexChallengerVariable,
+    fri::TwoAdicMultiplicativeCosetVariable,
+    types::{
+        AirOpenedValuesVariable, ChipOpenedValuesVariable, ShardCommitmentVariable,
+        ShardOpenedValuesVariable, ShardProofVariable, VerifyingKeyVariable,
+    },
+};
 
 pub trait Hintable<C: Config> {
     type HintVariable: MemVariable<C>;

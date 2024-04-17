@@ -1,48 +1,40 @@
-use crate::air::MachineAir;
-use crate::air::SP1AirBuilder;
-use crate::bytes::ByteLookupEvent;
-use crate::memory::MemoryCols;
-use crate::memory::MemoryReadCols;
-use crate::memory::MemoryWriteCols;
-use crate::operations::field::field_den::FieldDenCols;
-use crate::operations::field::field_inner_product::FieldInnerProductCols;
-use crate::operations::field::field_op::FieldOpCols;
-use crate::operations::field::field_op::FieldOperation;
-use crate::operations::field::params::LimbWidth;
-use crate::operations::field::params::Limbs;
-use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::WORDS_CURVEPOINT;
-use crate::runtime::ExecutionRecord;
-use crate::runtime::Program;
-use crate::runtime::Syscall;
-use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::create_ec_add_event;
-use crate::syscall::precompiles::SyscallContext;
-use crate::utils::ec::edwards::EdwardsParameters;
-use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::AffinePoint;
-use crate::utils::ec::BaseLimbWidth;
-use crate::utils::ec::EllipticCurve;
-use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
-use hybrid_array::typenum::Unsigned;
-use hybrid_array::Array;
-use num::BigUint;
-use num::Zero;
-use p3_air::AirBuilder;
-use p3_air::{Air, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
-use p3_maybe_rayon::prelude::IntoParallelRefIterator;
-use p3_maybe_rayon::prelude::ParallelIterator;
-use std::fmt::Debug;
-use std::marker::PhantomData;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+use std::{fmt::Debug, marker::PhantomData};
+
+use hybrid_array::{typenum::Unsigned, Array};
+use num::{BigUint, Zero};
+use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::{AbstractField, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
+
+use crate::{
+    air::{MachineAir, SP1AirBuilder},
+    bytes::ByteLookupEvent,
+    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
+    operations::field::{
+        field_den::FieldDenCols,
+        field_inner_product::FieldInnerProductCols,
+        field_op::{FieldOpCols, FieldOperation},
+        params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
+    },
+    runtime::{ExecutionRecord, Program, Syscall, SyscallCode},
+    syscall::precompiles::{create_ec_add_event, SyscallContext},
+    utils::{
+        ec::{
+            edwards::EdwardsParameters, field::FieldParameters, AffinePoint, BaseLimbWidth,
+            EllipticCurve,
+        },
+        limbs_from_prev_access, pad_vec_rows,
+    },
+};
+
+pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
 
 /// A set of columns to compute `EdAdd` where a, b are field elements.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -283,7 +275,7 @@ where
         }
 
         for i in 0..16 {
-            builder.constraint_memory_access(
+            builder.eval_memory_access(
                 row.shard,
                 row.clk, // clk + 0 -> Memory
                 row.q_ptr + AB::F::from_canonical_u32(i * 4),
@@ -292,7 +284,7 @@ where
             );
         }
         for i in 0..16 {
-            builder.constraint_memory_access(
+            builder.eval_memory_access(
                 row.shard,
                 row.clk + AB::F::from_canonical_u32(1), // The clk for p is moved by 1.
                 row.p_ptr + AB::F::from_canonical_u32(i * 4),
@@ -314,9 +306,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::utils;
-    use crate::utils::tests::{ED25519_ELF, ED_ADD_ELF};
-    use crate::Program;
+    use crate::{
+        utils,
+        utils::tests::{ED25519_ELF, ED_ADD_ELF},
+        Program,
+    };
 
     #[test]
     fn test_ed_add_simple() {

@@ -3,9 +3,8 @@ use core::mem::size_of;
 use p3_keccak_air::KeccakCols;
 use wp1_derive::AlignedBorrow;
 
-use crate::memory::MemoryReadWriteCols;
-
 use super::STATE_NUM_WORDS;
+use crate::memory::MemoryReadWriteCols;
 
 /// KeccakMemCols is the column layout for the keccak permutation.
 ///

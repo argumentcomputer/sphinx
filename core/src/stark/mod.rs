@@ -17,6 +17,8 @@ pub use chip::*;
 pub use config::*;
 pub use debug::*;
 pub use folder::*;
+#[cfg(test)]
+pub use machine::tests;
 pub use machine::*;
 pub use permutation::*;
 pub use prover::*;
@@ -24,6 +26,3 @@ pub use quotient::*;
 pub use record::*;
 pub use types::*;
 pub use verifier::*;
-
-#[cfg(test)]
-pub use machine::tests;

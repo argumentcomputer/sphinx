@@ -1,17 +1,20 @@
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    bytes::{ByteLookupEvent, ByteOpcode},
+    runtime::{ExecutionRecord, Opcode, Program},
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `BitwiseChip`.
 pub const NUM_BITWISE_COLS: usize = size_of::<BitwiseCols<u8>>();
@@ -140,17 +143,26 @@ where
             builder.send_byte(opcode.clone(), a, b, c, local.shard, mult.clone());
         }
 
+        // Get the cpu opcode, which corresponds to the opcode being sent in the CPU table.
+        let cpu_opcode = local.is_xor * Opcode::XOR.as_field::<AB::F>()
+            + local.is_or * Opcode::OR.as_field::<AB::F>()
+            + local.is_and * Opcode::AND.as_field::<AB::F>();
+
         // Receive the arguments.
         builder.receive_alu(
-            local.is_xor * Opcode::XOR.as_field::<AB::F>()
-                + local.is_or * Opcode::OR.as_field::<AB::F>()
-                + local.is_and * Opcode::AND.as_field::<AB::F>(),
+            cpu_opcode,
             local.a,
             local.b,
             local.c,
             local.shard,
             local.is_xor + local.is_or + local.is_and,
         );
+
+        let is_real = local.is_xor + local.is_or + local.is_and;
+        builder.assert_bool(local.is_xor);
+        builder.assert_bool(local.is_or);
+        builder.assert_bool(local.is_and);
+        builder.assert_bool(is_real);
 
         // Degree 3 constraint to avoid "OodEvaluationMismatch".
         #[allow(clippy::eq_op)]
@@ -165,14 +177,14 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
-    use crate::air::MachineAir;
-    use crate::stark::StarkGenericConfig;
-    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-
     use super::BitwiseChip;
-    use crate::alu::AluEvent;
-    use crate::runtime::{ExecutionRecord, Opcode};
-    use crate::utils::BabyBearPoseidon2;
+    use crate::{
+        air::MachineAir,
+        alu::AluEvent,
+        runtime::{ExecutionRecord, Opcode},
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
+    };
 
     #[test]
     fn generate_trace() {

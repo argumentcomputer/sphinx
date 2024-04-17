@@ -1,24 +1,22 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
-use p3_field::AbstractExtensionField;
-use p3_field::AbstractField;
-use p3_field::TwoAdicField;
-use wp1_core::air::MachineAir;
-use wp1_core::stark::AirOpenedValues;
-use wp1_core::stark::PROOF_MAX_NUM_PVS;
-use wp1_core::stark::{MachineChip, StarkGenericConfig};
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::prelude::Config;
-use wp1_recursion_compiler::prelude::ExtConst;
-use wp1_recursion_compiler::prelude::{Builder, Ext, SymbolicExt};
+use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
+use wp1_core::{
+    air::MachineAir,
+    stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
+};
+use wp1_recursion_compiler::{
+    ir::{Array, Felt},
+    prelude::{Builder, Config, Ext, ExtConst, SymbolicExt},
+};
 
-use crate::commit::PolynomialSpaceVariable;
-use crate::folder::RecursiveVerifierConstraintFolder;
-use crate::fri::TwoAdicMultiplicativeCosetVariable;
-use crate::stark::StarkVerifier;
-use crate::types::ChipOpenedValuesVariable;
-use crate::types::ChipOpening;
+use crate::{
+    commit::PolynomialSpaceVariable,
+    folder::RecursiveVerifierConstraintFolder,
+    fri::TwoAdicMultiplicativeCosetVariable,
+    stark::StarkVerifier,
+    types::{ChipOpenedValuesVariable, ChipOpening},
+};
 
 impl<C: Config, SC> StarkVerifier<C, SC>
 where
@@ -162,6 +160,9 @@ where
 #[cfg(test)]
 mod tests {
     use itertools::{izip, Itertools};
+    use p3_challenger::{CanObserve, FieldChallenger};
+    use p3_commit::{Pcs, PolynomialSpace};
+    use p3_field::PrimeField32;
     use serde::{de::DeserializeOwned, Serialize};
     use wp1_core::{
         air::SP1_PROOF_NUM_PV_ELTS,
@@ -172,15 +173,13 @@ mod tests {
         },
         utils::BabyBearPoseidon2,
     };
+    use wp1_recursion_compiler::{
+        asm::AsmBuilder,
+        ir::Felt,
+        prelude::{Array, ExtConst},
+    };
     use wp1_recursion_core::runtime::Runtime;
     use wp1_sdk::{ProverClient, SP1Stdin};
-
-    use p3_challenger::{CanObserve, FieldChallenger};
-    use p3_field::PrimeField32;
-    use wp1_recursion_compiler::prelude::Array;
-    use wp1_recursion_compiler::{asm::AsmBuilder, ir::Felt, prelude::ExtConst};
-
-    use p3_commit::{Pcs, PolynomialSpace};
 
     use crate::{
         commit::PolynomialSpaceVariable,

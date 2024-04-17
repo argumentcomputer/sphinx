@@ -1,21 +1,14 @@
-use super::folder::ProverConstraintFolder;
-use super::Chip;
-use super::Domain;
-use super::PackedChallenge;
-use super::PackedVal;
-use super::Val;
 use p3_air::Air;
 use p3_commit::PolynomialSpace;
-use p3_field::AbstractExtensionField;
-use p3_field::AbstractField;
-use p3_field::PackedValue;
-use p3_matrix::dense::RowMajorMatrixView;
-use p3_matrix::stack::VerticalPair;
-use p3_matrix::Matrix;
+use p3_field::{AbstractExtensionField, AbstractField, PackedValue};
+use p3_matrix::{dense::RowMajorMatrixView, stack::VerticalPair, Matrix};
 use p3_maybe_rayon::prelude::*;
 use p3_util::log2_strict_usize;
 
-use super::StarkGenericConfig;
+use super::{
+    folder::ProverConstraintFolder, Chip, Domain, PackedChallenge, PackedVal, StarkGenericConfig,
+    Val,
+};
 
 pub fn quotient_values<SC, A, Mat>(
     chip: &Chip<Val<SC>, A>,

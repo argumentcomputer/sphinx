@@ -1,7 +1,8 @@
 #![allow(clippy::needless_range_loop)]
 
-use crate::poseidon2::external::WIDTH;
 use p3_field::{AbstractField, Field};
+
+use crate::poseidon2::external::WIDTH;
 
 mod external;
 

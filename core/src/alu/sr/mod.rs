@@ -43,24 +43,25 @@
 
 mod utils;
 
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_field::{AbstractField, PrimeField};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::alu::sr::utils::{nb_bits_to_shift, nb_bytes_to_shift};
-use crate::bytes::utils::shr_carry;
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
-use crate::disassembler::WORD_SIZE;
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    alu::sr::utils::{nb_bits_to_shift, nb_bytes_to_shift},
+    bytes::{utils::shr_carry, ByteLookupEvent, ByteOpcode},
+    disassembler::WORD_SIZE,
+    runtime::{ExecutionRecord, Opcode, Program},
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `ShiftRightChip`.
 pub const NUM_SHIFT_RIGHT_COLS: usize = size_of::<ShiftRightCols<u8>>();
@@ -330,6 +331,7 @@ where
                     .when(local.shift_by_n_bits[i])
                     .assert_eq(num_bits_to_shift.clone(), AB::F::from_canonical_usize(i));
             }
+
             // Exactly one of the shift_by_n_bits must be 1.
             builder.assert_eq(
                 local
@@ -343,12 +345,14 @@ where
             // number of bytes to shift.
             let num_bytes_to_shift = local.c_least_sig_byte[3]
                 + local.c_least_sig_byte[4] * AB::F::from_canonical_u32(2);
+
             // If shift_by_n_bytes[i] = 1, then i = num_bytes_to_shift.
             for i in 0..WORD_SIZE {
                 builder
                     .when(local.shift_by_n_bytes[i])
                     .assert_eq(num_bytes_to_shift.clone(), AB::F::from_canonical_usize(i));
             }
+
             // Exactly one of the shift_by_n_bytes must be 1.
             builder.assert_eq(
                 local
@@ -392,6 +396,7 @@ where
                 carry_multiplier +=
                     AB::Expr::from_canonical_u32(1u32 << (8 - i)) * local.shift_by_n_bits[i];
             }
+
             // The 3-bit number represented by the 3 least significant bits of c equals the number
             // of bits to shift.
             let mut num_bits_to_shift = AB::Expr::zero();
@@ -464,6 +469,11 @@ where
             local.a[0] * local.b[0] * local.c[0] - local.a[0] * local.b[0] * local.c[0],
         );
 
+        // Check that the operation flags are boolean.
+        builder.assert_bool(local.is_srl);
+        builder.assert_bool(local.is_sra);
+        builder.assert_bool(local.is_real);
+
         // Receive the arguments.
         builder.receive_alu(
             local.is_srl * AB::F::from_canonical_u32(Opcode::SRL as u32)
@@ -479,21 +489,17 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        air::MachineAir,
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify},
-    };
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
+    use super::ShiftRightChip;
     use crate::{
+        air::MachineAir,
         alu::AluEvent,
         runtime::{ExecutionRecord, Opcode},
-        utils::BabyBearPoseidon2,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };
-
-    use super::ShiftRightChip;
 
     #[test]
     fn generate_trace() {

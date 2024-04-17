@@ -1,12 +1,13 @@
 #![allow(deprecated)]
 
+use std::time::Instant;
+
 use p3_baby_bear::BabyBear;
 use p3_challenger::CanObserve;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::time::Instant;
 use wp1_core::{
     air::MachineAir,
     runtime::Program,
@@ -353,12 +354,12 @@ impl SP1ProverImpl {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
-    use wp1_core::air::SP1_PROOF_NUM_PV_ELTS;
-    use wp1_core::utils::setup_logger;
+    use wp1_core::{air::SP1_PROOF_NUM_PV_ELTS, utils::setup_logger};
     use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
     use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
     use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
+
+    use super::*;
 
     #[test]
     #[ignore]

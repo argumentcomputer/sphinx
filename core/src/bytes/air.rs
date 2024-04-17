@@ -1,19 +1,14 @@
 use core::borrow::Borrow;
-use p3_air::PairBuilder;
-use p3_air::{Air, BaseAir};
-use p3_field::AbstractField;
-use p3_field::Field;
+
+use p3_air::{Air, BaseAir, PairBuilder};
+use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
 
-use super::columns::{ByteMultCols, BytePreprocessedCols, NUM_BYTE_MULT_COLS};
-use super::{ByteChip, ByteOpcode};
+use super::{
+    columns::{ByteMultCols, BytePreprocessedCols, NUM_BYTE_MULT_COLS},
+    ByteChip, ByteOpcode,
+};
 use crate::air::SP1AirBuilder;
-
-/// The column map for the byte chip.
-// pub(crate) const BYTE_COL_MAP: ByteCols<usize> = make_col_map();
-
-/// The multiplicity indices for each byte operation.
-// pub(crate) const BYTE_MULT_INDICES: [usize; NUM_BYTE_OPS] = BYTE_COL_MAP.multiplicities;
 
 impl<F: Field> BaseAir<F> for ByteChip<F> {
     fn width(&self) -> usize {

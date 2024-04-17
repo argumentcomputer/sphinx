@@ -62,26 +62,30 @@
 
 mod utils;
 
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_field::{AbstractField, PrimeField};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 use self::utils::eval_abs_value;
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::alu::divrem::utils::{get_msb, get_quotient_and_remainder, is_signed_operation};
-use crate::alu::AluEvent;
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
-use crate::disassembler::WORD_SIZE;
-use crate::operations::{IsEqualWordOperation, IsZeroWordOperation};
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    alu::{
+        divrem::utils::{get_msb, get_quotient_and_remainder, is_signed_operation},
+        AluEvent,
+    },
+    bytes::{ByteLookupEvent, ByteOpcode},
+    disassembler::WORD_SIZE,
+    operations::{IsEqualWordOperation, IsZeroWordOperation},
+    runtime::{ExecutionRecord, Opcode, Program},
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `DivRemChip`.
 pub const NUM_DIVREM_COLS: usize = size_of::<DivRemCols<u8>>();
@@ -716,17 +720,18 @@ where
         // Check that the flags are boolean.
         {
             let bool_flags = [
-                local.is_real,
-                local.is_remu,
+                local.is_div,
                 local.is_divu,
                 local.is_rem,
-                local.is_div,
-                local.b_neg,
-                local.rem_neg,
+                local.is_remu,
+                local.is_overflow,
                 local.b_msb,
                 local.rem_msb,
-                local.c_neg,
                 local.c_msb,
+                local.b_neg,
+                local.rem_neg,
+                local.c_neg,
+                local.is_real,
             ];
 
             for flag in bool_flags.iter() {
@@ -775,21 +780,17 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        air::MachineAir,
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify},
-    };
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
+    use super::DivRemChip;
     use crate::{
+        air::MachineAir,
         alu::AluEvent,
         runtime::{ExecutionRecord, Opcode},
-        utils::BabyBearPoseidon2,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };
-
-    use super::DivRemChip;
 
     #[test]
     fn generate_trace() {

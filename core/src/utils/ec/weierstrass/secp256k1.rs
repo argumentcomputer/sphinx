@@ -4,25 +4,24 @@
 use std::str::FromStr;
 
 use hybrid_array::Array;
-use num::{BigUint, Zero};
+use k256::FieldElement;
+use num::{
+    traits::{FromBytes, ToBytes},
+    BigUint, Zero,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::runtime::Syscall;
-use crate::stark::WeierstrassAddAssignChip;
-use crate::stark::WeierstrassDoubleAssignChip;
-use crate::syscall::precompiles::create_ec_add_event;
-use crate::syscall::precompiles::create_ec_double_event;
-use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::field::FieldType;
-use crate::utils::ec::CurveType;
-use crate::utils::ec::EllipticCurveParameters;
-use crate::utils::ec::WithAddition;
-use crate::utils::ec::WithDoubling;
-use k256::FieldElement;
-use num::traits::FromBytes;
-use num::traits::ToBytes;
+use crate::{
+    operations::field::params::DEFAULT_NUM_LIMBS_T,
+    runtime::Syscall,
+    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
+    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
+    utils::ec::{
+        field::{FieldParameters, FieldType},
+        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
+    },
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Secp256k1 curve parameter
@@ -157,10 +156,11 @@ pub fn secp256k1_sqrt(n: &BigUint) -> BigUint {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
-    use crate::utils::ec::utils::biguint_from_limbs;
     use num::bigint::RandBigInt;
     use rand::thread_rng;
+
+    use super::*;
+    use crate::utils::ec::utils::biguint_from_limbs;
 
     #[test]
     fn test_weierstrass_biguint_scalar_mul() {

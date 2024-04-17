@@ -1,15 +1,16 @@
-use super::utils::biguint_from_limbs;
-use crate::operations::field::params::LimbWidth;
-use crate::operations::field::params::Limbs;
-use crate::operations::field::params::NB_BITS_PER_LIMB;
-use crate::runtime::ExecutionRecord;
-use crate::syscall::precompiles;
-use hybrid_array::typenum::Unsigned;
-use hybrid_array::Array;
+use std::fmt::Debug;
+
+use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
 use p3_field::Field;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
+
+use super::utils::biguint_from_limbs;
+use crate::{
+    operations::field::params::{LimbWidth, Limbs, NB_BITS_PER_LIMB},
+    runtime::ExecutionRecord,
+    syscall::precompiles,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]

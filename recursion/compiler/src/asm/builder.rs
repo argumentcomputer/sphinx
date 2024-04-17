@@ -1,9 +1,8 @@
 use p3_field::{ExtensionField, PrimeField32, TwoAdicField};
 use wp1_recursion_core::runtime::RecursionProgram;
 
-use crate::prelude::Builder;
-
 use super::{config::AsmConfig, AsmCompiler, AssemblyCode};
+use crate::prelude::Builder;
 
 /// A builder that compiles assembly code.
 pub type AsmBuilder<F, EF> = Builder<AsmConfig<F, EF>>;

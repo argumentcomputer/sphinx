@@ -1,10 +1,10 @@
-use std::fmt;
-use std::marker::PhantomData;
-use std::mem::MaybeUninit;
+use std::{fmt, marker::PhantomData, mem::MaybeUninit};
 
 use hybrid_array::{Array, ArraySize};
-use serde::de::{Deserialize, Deserializer, Error, SeqAccess, Visitor};
-use serde::ser::{Serialize, SerializeTuple, Serializer};
+use serde::{
+    de::{Deserialize, Deserializer, Error, SeqAccess, Visitor},
+    ser::{Serialize, SerializeTuple, Serializer},
+};
 
 pub(crate) struct PartiallyInitialized<T, U: ArraySize>(
     pub(crate) Option<MaybeUninit<Array<T, U>>>,

@@ -1,7 +1,8 @@
-use super::Runtime;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 use std::io::Read;
+
+use serde::{de::DeserializeOwned, Serialize};
+
+use super::Runtime;
 
 impl Read for Runtime {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
@@ -44,11 +45,13 @@ impl Runtime {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use super::*;
-    use crate::runtime::Program;
-    use crate::utils::tests::IO_ELF;
-    use crate::utils::{self, prove_core, BabyBearBlake3};
     use serde::Deserialize;
+
+    use super::*;
+    use crate::{
+        runtime::Program,
+        utils::{self, prove_core, tests::IO_ELF, BabyBearBlake3},
+    };
 
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct MyPointUnaligned {

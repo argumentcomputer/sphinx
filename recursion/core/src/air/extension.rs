@@ -1,9 +1,10 @@
-use p3_field::extension::{BinomialExtensionField, BinomiallyExtendable};
-use p3_field::{AbstractExtensionField, Field};
+use p3_field::{
+    extension::{BinomialExtensionField, BinomiallyExtendable},
+    AbstractExtensionField, Field,
+};
 use wp1_core::air::BinomialExtension;
 
 use super::Block;
-
 use crate::runtime::D;
 
 pub trait BinomialExtensionUtils<T> {

@@ -1,8 +1,8 @@
+use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr, time::Instant};
+
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
-use std::time::Instant;
-use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr};
 use wp1_sdk::{utils, ProverClient, SP1Stdin};
 
 use crate::{

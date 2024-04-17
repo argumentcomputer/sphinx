@@ -1,5 +1,6 @@
-use crate::air::Block;
 use wp1_derive::AlignedBorrow;
+
+use crate::air::Block;
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

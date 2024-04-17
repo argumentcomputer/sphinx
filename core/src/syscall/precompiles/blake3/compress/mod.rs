@@ -25,9 +25,9 @@ mod columns;
 mod execute;
 mod g;
 mod trace;
-use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
-
 use serde::{Deserialize, Serialize};
+
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 
 /// The number of `Word`s in the message of the compress inner operation.
 pub(crate) const MSG_SIZE: usize = 16;
@@ -117,13 +117,11 @@ impl Default for Blake3CompressInnerChip {
 
 #[cfg(test)]
 pub mod compress_tests {
-    use crate::runtime::Instruction;
-    use crate::runtime::Opcode;
-    use crate::runtime::Register;
-    use crate::runtime::SyscallCode;
-    use crate::Program;
-
     use super::MSG_SIZE;
+    use crate::{
+        runtime::{Instruction, Opcode, Register, SyscallCode},
+        Program,
+    };
 
     /// The number of `Word`s in the state of the compress inner operation.
     const STATE_SIZE: usize = 16;

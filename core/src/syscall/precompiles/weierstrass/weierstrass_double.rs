@@ -1,45 +1,35 @@
-use crate::air::MachineAir;
-use crate::air::SP1AirBuilder;
-use crate::memory::MemoryCols;
-use crate::memory::MemoryWriteCols;
-use crate::operations::field::field_op::FieldOpCols;
-use crate::operations::field::field_op::FieldOperation;
-use crate::operations::field::params::LimbWidth;
-use crate::operations::field::params::Limbs;
-use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::WORDS_CURVEPOINT;
-use crate::operations::field::params::WORDS_FIELD_ELEMENT;
-use crate::runtime::ExecutionRecord;
-use crate::runtime::Program;
-use crate::runtime::SyscallCode;
-use crate::stark::MachineRecord;
-use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::weierstrass::WeierstrassParameters;
-use crate::utils::ec::AffinePoint;
-use crate::utils::ec::BaseLimbWidth;
-use crate::utils::ec::CurveType;
-use crate::utils::ec::EllipticCurve;
-use crate::utils::ec::WithDoubling;
-use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
-use hybrid_array::typenum::Unsigned;
-use hybrid_array::Array;
-use num::BigUint;
-use num::Zero;
-use p3_air::AirBuilder;
-use p3_air::{Air, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
-use p3_maybe_rayon::prelude::ParallelIterator;
-use p3_maybe_rayon::prelude::ParallelSlice;
-use std::fmt::Debug;
-use std::marker::PhantomData;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+use std::{fmt::Debug, marker::PhantomData};
+
+use hybrid_array::{typenum::Unsigned, Array};
+use num::{BigUint, Zero};
+use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::{AbstractField, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
+
+use crate::{
+    air::{MachineAir, SP1AirBuilder},
+    memory::{MemoryCols, MemoryWriteCols},
+    operations::field::{
+        field_op::{FieldOpCols, FieldOperation},
+        params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT},
+    },
+    runtime::{ExecutionRecord, Program, SyscallCode},
+    stark::MachineRecord,
+    utils::{
+        ec::{
+            field::FieldParameters, weierstrass::WeierstrassParameters, AffinePoint, BaseLimbWidth,
+            CurveType, EllipticCurve, WithDoubling,
+        },
+        limbs_from_prev_access, pad_vec_rows,
+    },
+};
 
 /// A set of columns to double a point on a Weierstrass curve.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -376,7 +366,7 @@ where
             );
         }
 
-        builder.constraint_memory_access_slice(
+        builder.eval_memory_access_slice(
             row.shard,
             row.clk.into(),
             row.p_ptr,

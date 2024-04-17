@@ -1,29 +1,25 @@
-use crate::air::BinomialExtensionUtils;
-use crate::air::BlockBuilder;
-use crate::cpu::CpuChip;
-use crate::runtime::RecursionProgram;
 use core::mem::size_of;
-use p3_air::Air;
-use p3_air::AirBuilder;
-use p3_air::BaseAir;
-use p3_field::AbstractField;
-use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
-use std::borrow::Borrow;
-use std::borrow::BorrowMut;
-use std::mem::transmute;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    mem::transmute,
+};
+
+use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::{AbstractField, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
-use wp1_core::air::AirInteraction;
-use wp1_core::air::BinomialExtension;
-use wp1_core::air::MachineAir;
-use wp1_core::air::SP1AirBuilder;
-use wp1_core::lookup::InteractionKind;
-use wp1_core::utils::indices_arr;
-use wp1_core::utils::pad_rows;
+use wp1_core::{
+    air::{AirInteraction, BinomialExtension, MachineAir, SP1AirBuilder},
+    lookup::InteractionKind,
+    utils::{indices_arr, pad_rows},
+};
 
 use super::columns::CpuCols;
-use crate::runtime::ExecutionRecord;
+use crate::{
+    air::{BinomialExtensionUtils, BlockBuilder},
+    cpu::CpuChip,
+    runtime::{ExecutionRecord, RecursionProgram},
+};
 
 pub const NUM_CPU_COLS: usize = size_of::<CpuCols<u8>>();
 

@@ -5,12 +5,11 @@ use p3_field::{ExtensionField, Field, PrimeField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_util::log2_ceil_usize;
 
+use super::{eval_permutation_constraints, generate_permutation_trace};
 use crate::{
     air::{MachineAir, MultiTableAirBuilder, SP1AirBuilder},
     lookup::{Interaction, InteractionBuilder},
 };
-
-use super::{eval_permutation_constraints, generate_permutation_trace};
 
 /// An Air that encodes lookups based on interactions.
 pub struct Chip<F: Field, A> {

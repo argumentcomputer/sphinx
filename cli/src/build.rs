@@ -1,12 +1,13 @@
-use anyhow::{Context, Result};
-use cargo_metadata::camino::Utf8PathBuf;
-use clap::Parser;
 use std::{
     fs,
     io::{BufRead, BufReader},
     process::{exit, Command, Stdio},
     thread,
 };
+
+use anyhow::{Context, Result};
+use cargo_metadata::camino::Utf8PathBuf;
+use clap::Parser;
 
 fn get_docker_image() -> String {
     // Get the docker image name from the environment variable

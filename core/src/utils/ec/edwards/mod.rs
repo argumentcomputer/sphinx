@@ -4,10 +4,10 @@ use hybrid_array::Array;
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
-
 use super::CurveType;
+use crate::utils::ec::{
+    field::FieldParameters, AffinePoint, EllipticCurve, EllipticCurveParameters,
+};
 
 pub trait EdwardsParameters: EllipticCurveParameters {
     const D: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;

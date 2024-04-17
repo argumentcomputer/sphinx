@@ -1,21 +1,25 @@
-use p3_field::AbstractExtensionField;
-use p3_field::AbstractField;
-use wp1_recursion_compiler::config::InnerConfig;
+use p3_field::{AbstractExtensionField, AbstractField};
 use wp1_recursion_compiler::{
     asm::AsmConfig,
+    config::InnerConfig,
     ir::{Array, Builder, Config},
 };
-use wp1_recursion_core::stark::config::{
-    InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerFriProof,
-    InnerPcsProof, InnerQueryProof, InnerVal,
+use wp1_recursion_core::{
+    air::Block,
+    runtime::DIGEST_SIZE,
+    stark::config::{
+        InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerFriProof,
+        InnerPcsProof, InnerQueryProof, InnerVal,
+    },
 };
-use wp1_recursion_core::{air::Block, runtime::DIGEST_SIZE};
 
 use super::types::{BatchOpeningVariable, TwoAdicPcsProofVariable};
-use crate::fri::types::{
-    DigestVariable, FriCommitPhaseProofStepVariable, FriProofVariable, FriQueryProofVariable,
+use crate::{
+    fri::types::{
+        DigestVariable, FriCommitPhaseProofStepVariable, FriProofVariable, FriQueryProofVariable,
+    },
+    hints::Hintable,
 };
-use crate::hints::Hintable;
 
 type C = InnerConfig;
 

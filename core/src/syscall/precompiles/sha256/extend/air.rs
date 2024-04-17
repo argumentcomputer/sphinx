@@ -1,15 +1,18 @@
+use core::borrow::Borrow;
+
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
 
 use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
-use crate::air::{BaseAirBuilder, SP1AirBuilder};
-use crate::memory::MemoryCols;
-use crate::operations::{
-    Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, XorOperation,
+use crate::{
+    air::{BaseAirBuilder, SP1AirBuilder},
+    memory::MemoryCols,
+    operations::{
+        Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, XorOperation,
+    },
+    runtime::SyscallCode,
 };
-use crate::runtime::SyscallCode;
-use core::borrow::Borrow;
 
 impl<F> BaseAir<F> for ShaExtendChip {
     fn width(&self) -> usize {
@@ -48,7 +51,7 @@ where
             .assert_eq(local.w_ptr, next.w_ptr);
 
         // Read w[i-15].
-        builder.constraint_memory_access(
+        builder.eval_memory_access(
             local.shard,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(15)) * nb_bytes_in_word,
@@ -57,7 +60,7 @@ where
         );
 
         // Read w[i-2].
-        builder.constraint_memory_access(
+        builder.eval_memory_access(
             local.shard,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(2)) * nb_bytes_in_word,
@@ -66,7 +69,7 @@ where
         );
 
         // Read w[i-16].
-        builder.constraint_memory_access(
+        builder.eval_memory_access(
             local.shard,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(16)) * nb_bytes_in_word,
@@ -75,7 +78,7 @@ where
         );
 
         // Read w[i-7].
-        builder.constraint_memory_access(
+        builder.eval_memory_access(
             local.shard,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(7)) * nb_bytes_in_word,
@@ -190,7 +193,7 @@ where
         );
 
         // Write `s2` to `w[i]`.
-        builder.constraint_memory_access(
+        builder.eval_memory_access(
             local.shard,
             local.clk + (local.i - i_start),
             local.w_ptr + local.i * nb_bytes_in_word,

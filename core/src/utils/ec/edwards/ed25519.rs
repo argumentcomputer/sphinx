@@ -1,13 +1,18 @@
+use std::str::FromStr;
+
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use hybrid_array::Array;
 use num::{BigUint, Num, One};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
-use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::utils::ec::edwards::{EdwardsCurve, EdwardsParameters};
-use crate::utils::ec::field::{FieldParameters, FieldType};
-use crate::utils::ec::{AffinePoint, CurveType, EllipticCurveParameters, WithAddition};
+use crate::{
+    operations::field::params::DEFAULT_NUM_LIMBS_T,
+    utils::ec::{
+        edwards::{EdwardsCurve, EdwardsParameters},
+        field::{FieldParameters, FieldType},
+        AffinePoint, CurveType, EllipticCurveParameters, WithAddition,
+    },
+};
 
 pub type Ed25519 = EdwardsCurve<Ed25519Parameters>;
 
@@ -147,8 +152,9 @@ pub fn decompress(compressed_point: &CompressedEdwardsY) -> AffinePoint<Ed25519>
 #[cfg(test)]
 mod tests {
 
-    use super::*;
     use num::traits::ToBytes;
+
+    use super::*;
 
     const NUM_TEST_CASES: usize = 100;
 

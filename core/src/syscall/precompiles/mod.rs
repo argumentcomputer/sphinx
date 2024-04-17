@@ -11,10 +11,11 @@ pub mod weierstrass;
 use hybrid_array::{typenum::Unsigned, Array};
 use serde::{Deserialize, Serialize};
 
-use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
-use crate::runtime::SyscallContext;
-use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
-use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
+use crate::{
+    operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
+    runtime::{MemoryReadRecord, MemoryWriteRecord, SyscallContext},
+    utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve},
+};
 
 /// Elliptic curve add event.
 #[derive(Debug, Clone, Serialize, Deserialize)]

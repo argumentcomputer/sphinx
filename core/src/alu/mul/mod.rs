@@ -30,26 +30,27 @@
 
 mod utils;
 
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
-use p3_maybe_rayon::prelude::ParallelIterator;
-use p3_maybe_rayon::prelude::ParallelSlice;
+use p3_field::{AbstractField, PrimeField};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::alu::mul::utils::get_msb;
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
-use crate::disassembler::WORD_SIZE;
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::stark::MachineRecord;
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    alu::mul::utils::get_msb,
+    bytes::{ByteLookupEvent, ByteOpcode},
+    disassembler::WORD_SIZE,
+    runtime::{ExecutionRecord, Opcode, Program},
+    stark::MachineRecord,
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `MulChip`.
 pub const NUM_MUL_COLS: usize = size_of::<MulCols<u8>>();
@@ -287,7 +288,6 @@ where
 
         let zero: AB::Expr = AB::F::zero().into();
         let one: AB::Expr = AB::F::one().into();
-        // 0xff
         let byte_mask = AB::F::from_canonical_u8(BYTE_MASK);
 
         // Calculate the MSBs.
@@ -373,15 +373,15 @@ where
         // Check that the boolean values are indeed boolean values.
         {
             let booleans = [
-                local.is_real,
-                local.is_mul,
-                local.is_mulh,
-                local.is_mulhu,
-                local.is_mulhsu,
                 local.b_msb,
                 local.c_msb,
                 local.b_sign_extend,
                 local.c_sign_extend,
+                local.is_mul,
+                local.is_mulh,
+                local.is_mulhu,
+                local.is_mulhsu,
+                local.is_real,
             ];
             for boolean in booleans.iter() {
                 builder.assert_bool(*boolean);
@@ -452,21 +452,17 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        air::MachineAir,
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify},
-    };
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
+    use super::MulChip;
     use crate::{
+        air::MachineAir,
         alu::AluEvent,
         runtime::{ExecutionRecord, Opcode},
-        utils::BabyBearPoseidon2,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };
-
-    use super::MulChip;
 
     #[test]
     fn generate_trace_mul() {

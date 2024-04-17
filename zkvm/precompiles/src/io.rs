@@ -1,10 +1,9 @@
 #![allow(unused_unsafe)]
-use crate::syscall_write;
-use crate::{syscall_hint_len, syscall_hint_read};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::alloc::Layout;
-use std::io::Write;
+use std::{alloc::Layout, io::Write};
+
+use serde::{de::DeserializeOwned, Serialize};
+
+use crate::{syscall_hint_len, syscall_hint_read, syscall_write};
 
 const FD_HINT: u32 = 4;
 pub const FD_PUBLIC_VALUES: u32 = 3;

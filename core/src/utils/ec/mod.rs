@@ -4,22 +4,25 @@ pub mod scalar_mul;
 pub mod utils;
 pub mod weierstrass;
 
+use std::{
+    fmt::{self, Debug, Display, Formatter, Result},
+    ops::{Add, Neg},
+};
+
 use field::FieldParameters;
-use hybrid_array::typenum::Unsigned;
-use hybrid_array::Array;
+use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::{self, Debug, Display, Formatter, Result};
-use std::ops::{Add, Neg};
 
-use crate::air::WORD_SIZE;
-use crate::operations::field::params::{WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT};
-use crate::runtime::ExecutionRecord;
-use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
+use crate::{
+    air::WORD_SIZE,
+    operations::field::params::{WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT},
+    runtime::ExecutionRecord,
+    syscall::precompiles::{ECAddEvent, ECDoubleEvent},
+};
 
 pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
-
 pub const DEFAULT_COMPRESSED_POINT_BYTES: usize = 32;
 
 #[derive(Debug, PartialEq, Eq)]

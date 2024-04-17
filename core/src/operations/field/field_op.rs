@@ -1,18 +1,20 @@
-use super::params::LimbWidth;
-use super::params::Limbs;
-use super::params::DEFAULT_NUM_LIMBS_T;
-use super::params::WITNESS_LIMBS;
-use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
-use super::util_air::eval_field_operation;
-use crate::air::Polynomial;
-use crate::air::SP1AirBuilder;
-use crate::utils::ec::field::FieldParameters;
+use std::fmt::Debug;
+
 use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Integer, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
-use std::fmt::Debug;
 use wp1_derive::AlignedBorrow;
+
+use super::{
+    params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WITNESS_LIMBS},
+    util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
+    util_air::eval_field_operation,
+};
+use crate::{
+    air::{Polynomial, SP1AirBuilder},
+    utils::ec::field::FieldParameters,
+};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum FieldOperation {
@@ -23,6 +25,11 @@ pub enum FieldOperation {
 }
 
 /// A set of columns to compute `FieldOperation(a, b)` where a, b are field elements.
+/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
+/// or made generic in the future.
+///
+/// TODO: There is an issue here here some fields in these columns must be range checked. This is
+/// a known issue and will be fixed in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldOpCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
@@ -174,33 +181,35 @@ impl<V: Copy, U: LimbWidth> FieldOpCols<V, U> {
 
 #[cfg(test)]
 mod tests {
-    use num::BigUint;
-    use p3_air::BaseAir;
-    use p3_field::{Field, PrimeField32};
+    use core::{
+        borrow::{Borrow, BorrowMut},
+        mem::size_of,
+    };
 
-    use super::{FieldOpCols, FieldOperation, Limbs};
-
-    use crate::air::MachineAir;
-    use crate::operations::field::params::LimbWidth;
-
-    use crate::runtime::Program;
-    use crate::stark::StarkGenericConfig;
-    use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
-    use crate::utils::ec::field::FieldParameters;
-    use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
-    use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
-    use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
-    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
-    use core::borrow::{Borrow, BorrowMut};
-    use core::mem::size_of;
-    use num::bigint::RandBigInt;
-    use p3_air::Air;
+    use num::{bigint::RandBigInt, BigUint};
+    use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
-    use p3_matrix::dense::RowMajorMatrix;
-    use p3_matrix::Matrix;
+    use p3_field::{Field, PrimeField32};
+    use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
+
+    use super::{FieldOpCols, FieldOperation, Limbs};
+    use crate::{
+        air::{MachineAir, SP1AirBuilder},
+        operations::field::params::LimbWidth,
+        runtime::{ExecutionRecord, Program},
+        stark::StarkGenericConfig,
+        utils::{
+            ec::{
+                edwards::ed25519::Ed25519BaseField,
+                field::FieldParameters,
+                weierstrass::{bls12381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
+            },
+            pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
+            BabyBearPoseidon2,
+        },
+    };
 
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, U: LimbWidth> {
