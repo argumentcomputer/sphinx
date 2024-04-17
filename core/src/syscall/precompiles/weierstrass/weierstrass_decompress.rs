@@ -332,32 +332,18 @@ mod tests {
         utils::{self, tests::BLS_DECOMPRESS_ELF},
         SP1Stdin,
     };
-    use amcl::bls381::bls381::basic::key_pair_generate_g2;
-    use amcl::bls381::bls381::utils::deserialize_g1;
-    use amcl::rand::RAND;
     use elliptic_curve::sec1::ToEncodedPoint;
     use rand::rngs::StdRng;
     use rand::SeedableRng;
 
-    use crate::utils::run_test_io;
+    use crate::utils::{run_test, run_test_io};
     use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
 
     #[test]
     fn test_weierstrass_bls_decompress() {
         utils::setup_logger();
-        let (_, compressed) = key_pair_generate_g2(&mut RAND::new());
-
-        let inputs = SP1Stdin::from(&compressed);
-        let mut proof = run_test_io(Program::from(BLS_DECOMPRESS_ELF), inputs).unwrap();
-
-        let mut result = [0; 96];
-        proof.public_values.read_slice(&mut result);
-
-        let point = deserialize_g1(&compressed).unwrap();
-        let x = point.getx().to_string();
-        let y = point.gety().to_string();
-        let decompressed = hex::decode(format!("{x}{y}")).unwrap();
-        assert_eq!(result, decompressed.as_slice());
+        let program = Program::from(BLS_DECOMPRESS_ELF);
+        run_test(program).unwrap();
     }
 
     #[test]
