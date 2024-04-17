@@ -39,7 +39,7 @@ impl FieldParameters for Bls12381BaseField {
         27, 75, 154, 230, 127, 57, 234, 17, 1, 26,
     ]);
 
-    const WITNESS_OFFSET: usize = 1usize << 14;
+    const WITNESS_OFFSET: usize = 1usize << 15;
 
     fn modulus() -> BigUint {
         BigUint::from_str_radix(
@@ -48,8 +48,6 @@ impl FieldParameters for Bls12381BaseField {
         )
             .unwrap()
     }
-
-    // For now, we use the default WITNESS_OFFSET value of 1 << 13
 
     fn nb_bits() -> usize {
         381
