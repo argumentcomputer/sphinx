@@ -12,7 +12,6 @@ use crate::cpu::CpuEvent;
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
-use crate::syscall::precompiles::ECDecompressEvent;
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::field::add::FieldAddEvent;
@@ -23,6 +22,7 @@ use crate::syscall::precompiles::quad_field::add::QuadFieldAddEvent;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulEvent;
 use crate::syscall::precompiles::quad_field::sub::QuadFieldSubEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
+use crate::syscall::precompiles::ECDecompressEvent;
 use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::bls12381::Bls12381BaseField;
@@ -600,7 +600,7 @@ impl MachineRecord for ExecutionRecord {
         let first = shards.first_mut().unwrap();
 
         // Bls12-381 decompress events .
-        first.bls12381_decompress_events = std::mem::take(&mut self.bls12381_decompress_events);
+        first.bls12381_decompress_events = take(&mut self.bls12381_decompress_events);
 
         // SHA-256 extend events.
         first.sha_extend_events = take(&mut self.sha_extend_events);

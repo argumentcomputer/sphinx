@@ -12,10 +12,18 @@ use crate::runtime::Syscall;
 use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
 use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
 use crate::utils::ec::field::{
-    FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication, WithFieldSubtraction,
-    WithQuadFieldAddition, WithQuadFieldMultiplication, WithQuadFieldSubtraction, //NumLimbs
+    FieldParameters,
+    FieldType,
+    WithFieldAddition,
+    WithFieldMultiplication,
+    WithFieldSubtraction,
+    WithQuadFieldAddition,
+    WithQuadFieldMultiplication,
+    WithQuadFieldSubtraction, //NumLimbs
 };
-use crate::utils::ec::{AffinePoint, EllipticCurve, CurveType, EllipticCurveParameters, WithAddition, WithDoubling};
+use crate::utils::ec::{
+    AffinePoint, CurveType, EllipticCurve, EllipticCurveParameters, WithAddition, WithDoubling,
+};
 
 // Serialization flags
 const COMPRESION_FLAG: u8 = 0b_1000_0000;
@@ -231,9 +239,9 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
 
 #[cfg(test)]
 mod tests {
-    use amcl::bls381::bls381::proof_of_possession::G1_BYTES;
     use super::*;
     use crate::utils::ec::utils::biguint_from_limbs;
+    use amcl::bls381::bls381::proof_of_possession::G1_BYTES;
     use num::bigint::RandBigInt;
     use rand::thread_rng;
 

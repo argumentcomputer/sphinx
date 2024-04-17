@@ -12,9 +12,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
 use crate::runtime::SyscallContext;
-use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::weierstrass::bls12381::bls12381_decompress;
 use crate::utils::ec::weierstrass::secp256k1::secp256k1_decompress;
+use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::{AffinePoint, CurveType, EllipticCurve};
 use crate::utils::{bytes_to_words_le_vec, words_to_bytes_le_vec};
 
@@ -129,7 +129,7 @@ pub struct ECDecompressEvent {
 }
 
 pub fn create_ec_decompress_event<E: EllipticCurve>(
-    rt: &mut SyscallContext,
+    rt: &mut SyscallContext<'_>,
     slice_ptr: u32,
     is_odd: u32,
 ) -> ECDecompressEvent {
@@ -171,7 +171,7 @@ pub fn create_ec_decompress_event<E: EllipticCurve>(
         clk: start_clk,
         ptr: slice_ptr,
         is_odd: is_odd != 0,
-        x_bytes: x_bytes.to_vec(),
+        x_bytes: x_bytes.clone(),
         decompressed_y_bytes,
         x_memory_records,
         y_memory_records,

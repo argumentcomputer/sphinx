@@ -9,8 +9,10 @@ use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
 use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
-use crate::syscall::precompiles::weierstrass::{WeierstrassAddAssignChip, WeierstrassDecompressChip};
 use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
+use crate::syscall::precompiles::weierstrass::{
+    WeierstrassAddAssignChip, WeierstrassDecompressChip,
+};
 use crate::syscall::{
     SyscallCommit, SyscallEnterUnconstrained, SyscallExitUnconstrained, SyscallHalt,
     SyscallHintLen, SyscallHintRead, SyscallWrite,

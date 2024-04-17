@@ -69,7 +69,7 @@ pub struct WeierstrassDecompressChip<E> {
 }
 
 impl<E: EllipticCurve> Syscall for WeierstrassDecompressChip<E> {
-    fn execute(&self, rt: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_decompress_event::<E>(rt, arg1, arg2);
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => rt.record_mut().k256_decompress_events.push(event),
@@ -93,7 +93,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
 
     fn populate_field_ops<F: PrimeField32>(
         cols: &mut WeierstrassDecompressCols<F, E::BaseField>,
-        x: BigUint,
+        x: &BigUint,
     ) {
         // Y = sqrt(x^3 + b)
         let x_2 = cols
@@ -101,7 +101,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
             .populate::<E::BaseField>(&x.clone(), &x.clone(), FieldOperation::Mul);
         let x_3 = cols
             .x_3
-            .populate::<E::BaseField>(&x_2, &x, FieldOperation::Mul);
+            .populate::<E::BaseField>(&x_2, x, FieldOperation::Mul);
         let b = E::b_int();
         let x_3_plus_b = cols
             .x_3_plus_b
@@ -121,7 +121,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
         let y_bytes = y.to_bytes_le();
         let y_lsb = if y_bytes.is_empty() { 0 } else { y_bytes[0] };
         for i in 0..8 {
-            cols.y_least_bits[i] = F::from_canonical_u32(((y_lsb >> i) & 1) as u32);
+            cols.y_least_bits[i] = F::from_canonical_u32(u32::from((y_lsb >> i) & 1));
         }
     }
 }
@@ -167,10 +167,10 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             cols.shard = F::from_canonical_u32(event.shard);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.ptr = F::from_canonical_u32(event.ptr);
-            cols.is_odd = F::from_canonical_u32(event.is_odd as u32);
+            cols.is_odd = F::from_canonical_u32(u32::from(event.is_odd));
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
-            Self::populate_field_ops(cols, x);
+            Self::populate_field_ops(cols, &x);
 
             for i in 0..cols.x_access.len() {
                 cols.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
@@ -197,7 +197,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
                 cols.x_access[i].access.value = words[i].into();
             }
 
-            Self::populate_field_ops(cols, dummy_value);
+            Self::populate_field_ops(cols, &dummy_value);
             row
         });
 
@@ -327,36 +327,45 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
+    use crate::utils::{
+        self, bytes_to_words_be_vec, /*run_test,*/ run_test_io,
+        run_test_with_memory_inspection, words_to_bytes_le_vec,
+    };
     use crate::Program;
     use crate::{
         //utils::{self, tests::BLS_DECOMPRESS_ELF},
         SP1Stdin,
     };
+    use bls12_381::G1Affine;
     use elliptic_curve::sec1::ToEncodedPoint;
     use rand::rngs::StdRng;
     use rand::SeedableRng;
-    use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use bls12_381::G1Affine;
 
-
-    use crate::utils::{self, /*run_test,*/ run_test_io, run_test_with_memory_inspection, words_to_bytes_le_vec, bytes_to_words_be_vec};
-    use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
-
-    fn bls_decompress_risc_v_program(w_ptr: u32, compressed_in: Vec<u8>) -> Program {
+    fn bls_decompress_risc_v_program(w_ptr: u32, compressed_in: &[u8]) -> Program {
         assert_eq!(compressed_in.len(), 48);
 
         let sign = (compressed_in[0] & 0b_0010_0000) >> 5 == 0;
-        let mut compressed = compressed_in.clone();
+        let mut compressed = compressed_in.to_owned();
         compressed[0] &= 0b_0001_1111;
 
         let mut instructions = vec![];
 
-        let mut words = bytes_to_words_be_vec([compressed.as_slice(), &vec![0u8; 48]].concat().as_slice());
+        let mut words =
+            bytes_to_words_be_vec([compressed.as_slice(), &[0u8; 48]].concat().as_slice());
         words.reverse();
 
         for i in 0..words.len() {
             instructions.push(Instruction::new(Opcode::ADD, 29, 0, words[i], false, true));
-            instructions.push(Instruction::new(Opcode::ADD, 30, 0, w_ptr + (i as u32) * 4, false, true));
+            instructions.push(Instruction::new(
+                Opcode::ADD,
+                30,
+                0,
+                w_ptr + (i as u32) * 4,
+                false,
+                true,
+            ));
             instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
         }
 
@@ -370,7 +379,7 @@ mod tests {
                 true,
             ),
             Instruction::new(Opcode::ADD, 10, 0, w_ptr, false, true),
-            Instruction::new(Opcode::ADD, 11, 0, sign as u32, false, true),
+            Instruction::new(Opcode::ADD, 11, 0, u32::from(sign), false, true),
             Instruction::new(Opcode::ECALL, 5, 10, 11, false, false),
         ]);
         Program::new(instructions, 0, 0)
@@ -381,17 +390,31 @@ mod tests {
     fn test_weierstrass_bls_decompress_risc_v_program() {
         utils::setup_logger();
         // successful
-        // let compressed_g1: [u8; 48] = [128, 181, 135, 148, 52, 27, 78, 148, 13, 235, 10, 222, 148, 47, 2, 89, 248, 37, 76, 33, 223, 74, 74, 102, 121, 191, 228, 14, 144, 134, 65, 196, 196, 179, 29, 52, 188, 151, 130, 217, 19, 140, 56, 237, 23, 143, 187, 17];
+        /*let compressed_g1: [u8; 48] = [
+            128, 181, 135, 148, 52, 27, 78, 148, 13, 235, 10, 222, 148, 47, 2, 89, 248, 37, 76, 33,
+            223, 74, 74, 102, 121, 191, 228, 14, 144, 134, 65, 196, 196, 179, 29, 52, 188, 151,
+            130, 217, 19, 140, 56, 237, 23, 143, 187, 17,
+        ];*/
         // successful
-        let compressed_g1: [u8; 48] = [166, 149, 173, 50, 93, 252, 126, 17, 145, 251, 201, 241, 134, 245, 142, 255, 66, 166, 52, 2, 151, 49, 177, 131, 128, 255, 137, 191, 66, 196, 100, 164, 44, 184, 202, 85, 178, 0, 240, 81, 245, 127, 30, 24, 147, 198, 135, 89];
+        let compressed_g1: [u8; 48] = [
+            166, 149, 173, 50, 93, 252, 126, 17, 145, 251, 201, 241, 134, 245, 142, 255, 66, 166,
+            52, 2, 151, 49, 177, 131, 128, 255, 137, 191, 66, 196, 100, 164, 44, 184, 202, 85, 178,
+            0, 240, 81, 245, 127, 30, 24, 147, 198, 135, 89,
+        ];
         // failed - InvalidSegmentProof(OodEvaluationMismatch("Bls12381Decompress"))
-        //let compressed_g1: [u8; 48] = [128, 183, 213, 204, 76, 81, 8, 121, 165, 14, 143, 54, 218, 155, 196, 74, 62, 142, 33, 208, 87, 222, 166, 154, 164, 110, 63, 127, 138, 93, 182, 225, 19, 233, 159, 107, 33, 26, 109, 200, 54, 243, 158, 202, 205, 126, 190, 5];
+        /*let compressed_g1: [u8; 48] = [
+            128, 183, 213, 204, 76, 81, 8, 121, 165, 14, 143, 54, 218, 155, 196, 74, 62, 142, 33,
+            208, 87, 222, 166, 154, 164, 110, 63, 127, 138, 93, 182, 225, 19, 233, 159, 107, 33,
+            26, 109, 200, 54, 243, 158, 202, 205, 126, 190, 5,
+        ];*/
 
         // use bls12_381 crate to compute expected value
-        let expected = G1Affine::from_compressed(&compressed_g1).unwrap().to_uncompressed();
+        let expected = G1Affine::from_compressed(&compressed_g1)
+            .unwrap()
+            .to_uncompressed();
 
         let memory_pointer = 100u32;
-        let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.to_vec());
+        let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.as_ref());
         let (_, memory) = run_test_with_memory_inspection(program);
 
         let mut decompressed_g1 = vec![];

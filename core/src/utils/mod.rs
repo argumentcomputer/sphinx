@@ -130,7 +130,6 @@ pub fn words_to_bytes_be_vec(words: &[u32]) -> Vec<u8> {
         .collect::<Vec<_>>()
 }
 
-
 /// Converts a byte array in little endian to an array of words.
 pub fn bytes_to_words_le<W: ArraySize>(bytes: &[u8]) -> <W as ArraySize>::ArrayType<u32> {
     debug_assert_eq!(bytes.len(), W::USIZE * 4);

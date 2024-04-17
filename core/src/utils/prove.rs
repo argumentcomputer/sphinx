@@ -1,8 +1,8 @@
+use nohash_hasher::BuildNoHashHasher;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Seek, Write};
 use std::time::Instant;
-use nohash_hasher::BuildNoHashHasher;
 
 use crate::air::SP1_PROOF_NUM_PV_ELTS;
 use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
@@ -54,7 +54,10 @@ pub fn run_test_io(
 
 pub fn run_test_with_memory_inspection(
     program: Program,
-) -> (crate::stark::Proof<BabyBearBlake3>, HashMap<u32, MemoryRecord, BuildNoHashHasher<u32>>) {
+) -> (
+    crate::stark::Proof<BabyBearBlake3>,
+    HashMap<u32, MemoryRecord, BuildNoHashHasher<u32>>,
+) {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
         let mut runtime = Runtime::new(program);
         runtime.run();
