@@ -13,7 +13,12 @@ pub mod utils {
     };
 }
 
-use std::{env, fs, time::Duration};
+use io::proof_serde;
+pub use io::SP1PublicValues;
+pub use io::SP1Stdin;
+use sha2::Digest;
+use sha2::Sha256;
+pub use wp1_core::air::PublicValues;
 
 use anyhow::{Context, Ok, Result};
 use proto::network::{ProofStatus, TransactionStatus};
@@ -21,7 +26,6 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::{runtime, time::sleep};
 use util::StageProgressBar;
 use utils::*;
-pub use wp1_core::air::PublicValues;
 use wp1_core::{
     runtime::{Program, Runtime},
     stark::{
@@ -32,7 +36,11 @@ use wp1_core::{
 };
 
 use crate::client::NetworkClient;
-pub use crate::io::*;
+
+use std::env;
+use std::fs;
+use std::time::Duration;
+use wp1_core::stark::DeferredDigest;
 
 /// A proof of a RISCV ELF execution with given inputs and outputs.
 #[derive(Serialize, Deserialize)]
@@ -256,7 +264,7 @@ impl ProverClient {
         &self,
         elf: &[u8],
         proof: &SP1ProofWithIO<BabyBearPoseidon2>,
-    ) -> Result<(), ProgramVerificationError> {
+    ) -> Result<DeferredDigest, ProgramVerificationError> {
         self.verify_with_config(elf, proof, BabyBearPoseidon2::new())
     }
 
@@ -265,7 +273,7 @@ impl ProverClient {
         elf: &[u8],
         proof: &SP1ProofWithIO<SC>,
         config: SC,
-    ) -> Result<(), ProgramVerificationError>
+    ) -> Result<DeferredDigest, ProgramVerificationError>
     where
         SC: StarkGenericConfig,
         SC::Challenger: Clone,
@@ -279,7 +287,14 @@ impl ProverClient {
         let machine = RiscvAir::machine(config);
 
         let (_, vk) = machine.setup(&Program::from(elf));
-        machine.verify(&vk, &proof.proof, &mut challenger)
+        let (pv_digest, deferred_digest) = machine.verify(&vk, &proof.proof, &mut challenger)?;
+
+        let recomputed_hash = Sha256::digest(&proof.public_values.buffer.data);
+        if recomputed_hash.as_slice() != pv_digest.0.as_slice() {
+            return Err(ProgramVerificationError::InvalidPublicValuesDigest);
+        }
+
+        Result::Ok(deferred_digest)
     }
 }
 

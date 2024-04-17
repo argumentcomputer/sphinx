@@ -525,7 +525,7 @@ mod tests {
         // reduce program and used to verify sp1 proofs. It will also be reconstructed over all the
         // reduce steps to prove that the witnessed challenger was correct.
         let mut wp1_challenger = wp1_machine.config().challenger();
-        wp1_challenger.observe(vk.commit);
+        vk.observe_into(&mut wp1_challenger);
         for shard_proof in proof.shard_proofs.iter() {
             wp1_challenger.observe(shard_proof.commitment.main_commit);
             wp1_challenger.observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
@@ -600,7 +600,7 @@ mod tests {
             println!("verified fibonacci");
 
             let mut challenger = wp1_machine.config().challenger();
-            challenger.observe(fibonacci_vk.commit);
+            fibonacci_vk.observe_into(&mut challenger);
             for shard_proof in fibonacci_proof.shard_proofs.iter() {
                 challenger.observe(shard_proof.commitment.main_commit);
                 challenger.observe_slice(&shard_proof.public_values);
@@ -650,7 +650,7 @@ mod tests {
         println!("verified");
 
         let mut challenger = wp1_machine.config().challenger();
-        challenger.observe(verify_vk.commit);
+        verify_vk.observe_into(&mut challenger);
         for shard_proof in proof.shard_proofs.iter() {
             challenger.observe(shard_proof.commitment.main_commit);
             challenger.observe_slice(&shard_proof.public_values);

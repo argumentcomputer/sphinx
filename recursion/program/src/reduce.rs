@@ -192,6 +192,7 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
         let element = builder.get(&recursion_vk.commitment, j);
         recursion_challenger.observe(&mut builder, element);
     }
+    recursion_challenger.observe(&mut builder, recursion_vk.pc_start);
     builder.cycle_tracker("stage-b-setup-recursion-challenger");
 
     // Verify sp1 and recursive proofs
@@ -251,6 +252,7 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
                     let empty_challenger = DuplexChallengerVariable::new(builder);
                     builder.assign(&reconstruct_challenger, empty_challenger);
                     reconstruct_challenger.observe(builder, wp1_vk.commitment.clone());
+                    reconstruct_challenger.observe(builder, wp1_vk.pc_start);
                 });
 
                 // Observe current proof commit and public values into reconstruct challenger

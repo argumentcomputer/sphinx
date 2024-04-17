@@ -8,7 +8,6 @@ pub const POSEIDON_NUM_WORDS: usize = 8;
 
 cfg_if::cfg_if! {
     if #[cfg(target_os = "zkvm")] {
-        use crate::syscalls::VERIFY_SP1_PROOF;
         use crate::zkvm::DEFERRED_PROOFS_DIGEST;
         use p3_baby_bear::BabyBear;
         use p3_field::AbstractField;
