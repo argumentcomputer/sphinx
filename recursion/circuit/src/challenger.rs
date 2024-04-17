@@ -1,12 +1,7 @@
-use p3_field::AbstractField;
-use p3_field::Field;
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Ext;
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use p3_field::{AbstractField, Field};
+use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, Var};
 
-use crate::poseidon2::Poseidon2CircuitBuilder;
-use crate::DIGEST_SIZE;
-use crate::SPONGE_SIZE;
+use crate::{poseidon2::Poseidon2CircuitBuilder, DIGEST_SIZE, SPONGE_SIZE};
 
 #[derive(Clone)]
 pub struct MultiField32ChallengerVariable<C: Config> {
@@ -150,24 +145,22 @@ pub fn split_32<C: Config>(builder: &mut Builder<C>, val: Var<C::N>, n: usize) -
 mod tests {
     use p3_baby_bear::BabyBear;
     use p3_bn254_fr::Bn254Fr;
-    use p3_challenger::FieldChallenger;
-    use p3_challenger::{CanObserve, CanSample};
-    use p3_field::extension::BinomialExtensionField;
-    use p3_field::reduce_32 as reduce_32_gt;
-    use p3_field::split_32 as split_32_gt;
-    use p3_field::AbstractField;
+    use p3_challenger::{CanObserve, CanSample, FieldChallenger};
+    use p3_field::{
+        extension::BinomialExtensionField, reduce_32 as reduce_32_gt, split_32 as split_32_gt,
+        AbstractField,
+    };
     use p3_symmetric::Hash;
     use serial_test::serial;
-    use wp1_recursion_compiler::config::OuterConfig;
-    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
-    use wp1_recursion_compiler::ir::SymbolicExt;
-    use wp1_recursion_compiler::ir::{Builder, Witness};
+    use wp1_recursion_compiler::{
+        config::OuterConfig,
+        constraints::{groth16_ffi, ConstraintCompiler},
+        ir::{Builder, SymbolicExt, Witness},
+    };
     use wp1_recursion_core::stark::config::{outer_perm, OuterChallenger};
 
-    use super::reduce_32;
-    use super::split_32;
-    use crate::challenger::MultiField32ChallengerVariable;
-    use crate::DIGEST_SIZE;
+    use super::{reduce_32, split_32};
+    use crate::{challenger::MultiField32ChallengerVariable, DIGEST_SIZE};
 
     #[test]
     #[serial]

@@ -1,14 +1,12 @@
+use std::{
+    array::TryFromSliceError,
+    ops::{Index, IndexMut},
+};
+
 use p3_air::AirBuilder;
-use p3_field::AbstractField;
-use p3_field::ExtensionField;
-use p3_field::Field;
-use p3_field::PrimeField32;
+use p3_field::{AbstractField, ExtensionField, Field, PrimeField32};
 use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
-
-use std::array::TryFromSliceError;
-use std::ops::Index;
-use std::ops::IndexMut;
 
 use crate::runtime::D;
 

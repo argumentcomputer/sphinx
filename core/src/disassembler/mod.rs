@@ -1,11 +1,12 @@
 mod elf;
 mod instruction;
 
+use std::{collections::BTreeMap, fs::File, io::Read};
+
 pub use elf::*;
 pub use instruction::*;
 
 use crate::runtime::{Instruction, Program};
-use std::{collections::BTreeMap, fs::File, io::Read};
 
 impl Program {
     /// Create a new program.

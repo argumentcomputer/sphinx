@@ -6,9 +6,10 @@ use wp1_core::{
 };
 use wp1_recursion_compiler::prelude::*;
 
-use crate::fri::types::TwoAdicPcsProofVariable;
-use crate::fri::types::{DigestVariable, FriConfigVariable};
-use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::fri::{
+    types::{DigestVariable, FriConfigVariable, TwoAdicPcsProofVariable},
+    TwoAdicMultiplicativeCosetVariable,
+};
 
 /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/fri/src/proof.rs#L12
 #[derive(DslVariable, Clone)]

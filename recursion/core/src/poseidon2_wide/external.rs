@@ -1,12 +1,13 @@
-use core::borrow::Borrow;
-use core::mem::size_of;
+use core::{borrow::Borrow, mem::size_of};
+
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
-use wp1_core::air::{MachineAir, SP1AirBuilder};
-use wp1_core::utils::pad_to_power_of_two;
+use wp1_core::{
+    air::{MachineAir, SP1AirBuilder},
+    utils::pad_to_power_of_two,
+};
 use wp1_derive::AlignedBorrow;
 
 use crate::runtime::{ExecutionRecord, RecursionProgram};
@@ -250,14 +251,18 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::uni_stark_verify;
-    use wp1_core::{air::MachineAir, utils::uni_stark_prove};
+    use wp1_core::{
+        air::MachineAir,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove, uni_stark_verify},
+    };
 
-    use crate::poseidon2::Poseidon2Event;
-    use crate::poseidon2_wide::external::WIDTH;
-    use crate::stark::config::BabyBearPoseidon2Inner;
-    use crate::{poseidon2_wide::external::Poseidon2WideChip, runtime::ExecutionRecord};
+    use crate::{
+        poseidon2::Poseidon2Event,
+        poseidon2_wide::external::{Poseidon2WideChip, WIDTH},
+        runtime::ExecutionRecord,
+        stark::config::BabyBearPoseidon2Inner,
+    };
 
     #[test]
     fn generate_trace() {

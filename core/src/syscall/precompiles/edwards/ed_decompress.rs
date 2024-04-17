@@ -1,53 +1,46 @@
-use crate::air::BaseAirBuilder;
-use crate::air::MachineAir;
-use crate::air::SP1AirBuilder;
-use crate::memory::MemoryReadCols;
-use crate::memory::MemoryWriteCols;
-use crate::operations::field::field_op::FieldOpCols;
-use crate::operations::field::field_op::FieldOperation;
-use crate::operations::field::field_sqrt::FieldSqrtCols;
-use crate::operations::field::params::LimbWidth;
-use crate::operations::field::params::Limbs;
-use crate::operations::field::params::BYTES_COMPRESSED_CURVEPOINT;
-use crate::operations::field::params::BYTES_FIELD_ELEMENT;
-use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
-use crate::operations::field::params::WORDS_FIELD_ELEMENT;
-use crate::runtime::ExecutionRecord;
-use crate::runtime::MemoryReadRecord;
-use crate::runtime::MemoryWriteRecord;
-use crate::runtime::Program;
-use crate::runtime::Syscall;
-use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::SyscallContext;
-use crate::utils::bytes_to_words_le;
-use crate::utils::ec::edwards::ed25519::decompress;
-use crate::utils::ec::edwards::ed25519::ed25519_sqrt;
-use crate::utils::ec::edwards::EdwardsParameters;
-use crate::utils::ec::field::FieldParameters;
-use crate::utils::ec::BaseLimbWidth;
-use crate::utils::limbs_from_access;
-use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
-use crate::utils::words_to_bytes_le;
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
-use curve25519_dalek::edwards::CompressedEdwardsY;
-use hybrid_array::typenum::Unsigned;
-use hybrid_array::Array;
-use num::BigUint;
-use num::One;
-use num::Zero;
-use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField32;
-use p3_matrix::Matrix;
-use serde::Deserialize;
-use serde::Serialize;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
 use std::marker::PhantomData;
 
-use p3_matrix::dense::RowMajorMatrix;
-use std::fmt::Debug;
+use curve25519_dalek::edwards::CompressedEdwardsY;
+use hybrid_array::{typenum::Unsigned, Array};
+use num::{BigUint, One, Zero};
+use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::{AbstractField, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
+
+use crate::{
+    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
+    memory::{MemoryReadCols, MemoryWriteCols},
+    operations::field::{
+        field_op::{FieldOpCols, FieldOperation},
+        field_sqrt::FieldSqrtCols,
+        params::{
+            LimbWidth, Limbs, BYTES_COMPRESSED_CURVEPOINT, BYTES_FIELD_ELEMENT,
+            DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT,
+        },
+    },
+    runtime::{
+        ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
+    },
+    syscall::precompiles::SyscallContext,
+    utils::{
+        bytes_to_words_le,
+        ec::{
+            edwards::{
+                ed25519::{decompress, ed25519_sqrt},
+                EdwardsParameters,
+            },
+            field::FieldParameters,
+            BaseLimbWidth,
+        },
+        limbs_from_access, limbs_from_prev_access, pad_vec_rows, words_to_bytes_le,
+    },
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
@@ -180,7 +173,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
         );
 
         for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
-            builder.constraint_memory_access(
+            builder.eval_memory_access(
                 self.shard,
                 self.clk,
                 self.ptr.into() + AB::F::from_canonical_u32((i as u32) * 4),
@@ -189,7 +182,7 @@ impl<V: Copy, U: LimbWidth> EdDecompressCols<V, U> {
             );
         }
         for i in 0..WORDS_FIELD_ELEMENT::<U>::USIZE {
-            builder.constraint_memory_access(
+            builder.eval_memory_access(
                 self.shard,
                 self.clk,
                 self.ptr.into() + AB::F::from_canonical_u32((i as u32) * 4 + 32),
@@ -365,7 +358,10 @@ where
 pub mod tests {
     use crate::{
         runtime::Program,
-        utils::{self, tests::ED_DECOMPRESS_ELF},
+        utils::{
+            tests::ED_DECOMPRESS_ELF,
+            {self},
+        },
     };
 
     #[test]

@@ -1,17 +1,21 @@
-use hybrid_array::typenum::U48;
-use hybrid_array::Array;
+use hybrid_array::{typenum::U48, Array};
 use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::runtime::Syscall;
-use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
-use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
-use crate::utils::ec::field::{
-    FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication, WithFieldSubtraction,
-    WithQuadFieldAddition, WithQuadFieldMultiplication, WithQuadFieldSubtraction,
+use crate::{
+    runtime::Syscall,
+    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
+    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
+    utils::ec::{
+        field::{
+            FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication,
+            WithFieldSubtraction, WithQuadFieldAddition, WithQuadFieldMultiplication,
+            WithQuadFieldSubtraction,
+        },
+        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
+    },
 };
-use crate::utils::ec::{CurveType, EllipticCurveParameters, WithAddition, WithDoubling};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -186,9 +190,8 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::ec::utils::biguint_from_limbs;
-
     use super::*;
+    use crate::utils::ec::utils::biguint_from_limbs;
 
     #[test]
     fn test_weierstrass_biguint_scalar_mul() {

@@ -5,18 +5,20 @@ pub mod opcode;
 pub mod trace;
 pub mod utils;
 
-pub use opcode::*;
-
 use alloc::collections::BTreeMap;
 use core::borrow::BorrowMut;
-pub use event::ByteLookupEvent;
-use itertools::Itertools;
-use p3_field::Field;
-use p3_matrix::dense::RowMajorMatrix;
 use std::marker::PhantomData;
 
-use self::columns::{BytePreprocessedCols, NUM_BYTE_PREPROCESSED_COLS};
-use self::utils::shr_carry;
+pub use event::ByteLookupEvent;
+use itertools::Itertools;
+pub use opcode::*;
+use p3_field::Field;
+use p3_matrix::dense::RowMajorMatrix;
+
+use self::{
+    columns::{BytePreprocessedCols, NUM_BYTE_PREPROCESSED_COLS},
+    utils::shr_carry,
+};
 use crate::bytes::trace::NUM_ROWS;
 
 /// The number of different byte operations.

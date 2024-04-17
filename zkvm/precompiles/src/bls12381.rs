@@ -1,8 +1,6 @@
-use hybrid_array::sizes::U24;
-use hybrid_array::typenum::Unsigned;
+use hybrid_array::{sizes::U24, typenum::Unsigned};
 
-use crate::utils::CurveOperations;
-use crate::{syscall_bls12381_add, syscall_bls12381_double};
+use crate::{syscall_bls12381_add, syscall_bls12381_double, utils::CurveOperations};
 
 #[derive(Copy, Clone)]
 pub struct Bls12381;

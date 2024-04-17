@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 
 use p3_baby_bear::BabyBear;
-use p3_field::{AbstractField, PrimeField32};
-use p3_field::{Field, PrimeField64};
+use p3_field::{AbstractField, Field, PrimeField32, PrimeField64};
 use p3_matrix::Matrix;
 
-use crate::air::MachineAir;
-use crate::stark::{MachineChip, MachineStark, ProvingKey, StarkGenericConfig, Val};
-
 use super::InteractionKind;
+use crate::{
+    air::MachineAir,
+    stark::{MachineChip, MachineStark, ProvingKey, StarkGenericConfig, Val},
+};
 
 #[derive(Debug)]
 pub struct InteractionData<F: Field> {
@@ -206,14 +206,13 @@ where
 
 #[cfg(test)]
 mod test {
+    use super::debug_interactions_with_all_chips;
     use crate::{
         lookup::InteractionKind,
         runtime::{Program, Runtime, ShardingConfig},
         stark::RiscvAir,
         utils::{setup_logger, tests::FIBONACCI_ELF, BabyBearPoseidon2},
     };
-
-    use super::debug_interactions_with_all_chips;
 
     #[test]
     fn test_debug_interactions() {

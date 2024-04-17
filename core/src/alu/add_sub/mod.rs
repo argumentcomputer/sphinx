@@ -1,20 +1,22 @@
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
-use p3_maybe_rayon::prelude::ParallelIterator;
-use p3_maybe_rayon::prelude::ParallelSlice;
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::operations::AddOperation;
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::stark::MachineRecord;
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    operations::AddOperation,
+    runtime::{ExecutionRecord, Opcode, Program},
+    stark::MachineRecord,
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `AddSubChip`.
 pub const NUM_ADD_SUB_COLS: usize = size_of::<AddSubCols<u8>>();
@@ -35,11 +37,6 @@ pub struct AddSubCols<T> {
     /// The shard number, used for byte lookup table.
     pub shard: T,
 
-    /// Boolean to indicate whether the row is for an add operation.
-    pub is_add: T,
-    /// Boolean to indicate whether the row is for a sub operation.
-    pub is_sub: T,
-
     /// Instance of `AddOperation` to handle addition logic in `AddSubChip`'s ALU operations.
     /// It's result will be `a` for the add operation and `b` for the sub operation.
     pub add_operation: AddOperation<T>,
@@ -49,6 +46,12 @@ pub struct AddSubCols<T> {
 
     /// The second input operand.  This will be `c` for both operations.
     pub operand_2: Word<T>,
+
+    /// Boolean to indicate whether the row is for an add operation.
+    pub is_add: T,
+
+    /// Boolean to indicate whether the row is for a sub operation.
+    pub is_sub: T,
 }
 
 impl<F: PrimeField> MachineAir<F> for AddSubChip {
@@ -143,11 +146,6 @@ where
         let local = main.row_slice(0);
         let local: &AddSubCols<AB::Var> = (*local).borrow();
 
-        builder.assert_bool(local.is_add);
-        builder.assert_bool(local.is_sub);
-        let is_real = local.is_add + local.is_sub;
-        builder.assert_bool(is_real.clone());
-
         // Evaluate the addition operation.
         AddOperation::<AB::F>::eval(
             builder,
@@ -155,7 +153,7 @@ where
             local.operand_2,
             local.add_operation,
             local.shard,
-            is_real,
+            local.is_add + local.is_sub,
         );
 
         // Receive the arguments.  There are separate receives for ADD and SUB.
@@ -179,6 +177,11 @@ where
             local.is_sub,
         );
 
+        let is_real = local.is_add + local.is_sub;
+        builder.assert_bool(local.is_add);
+        builder.assert_bool(local.is_sub);
+        builder.assert_bool(is_real);
+
         // Degree 3 constraint to avoid "OodEvaluationMismatch".
         #[allow(clippy::eq_op)]
         builder.assert_zero(
@@ -192,19 +195,15 @@ where
 mod tests {
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
-
-    use crate::{
-        air::MachineAir,
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify},
-    };
     use rand::{thread_rng, Rng};
 
     use super::AddSubChip;
     use crate::{
+        air::MachineAir,
         alu::AluEvent,
         runtime::{ExecutionRecord, Opcode},
-        utils::BabyBearPoseidon2,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };
 
     #[test]

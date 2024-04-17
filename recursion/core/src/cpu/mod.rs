@@ -1,11 +1,11 @@
 pub mod air;
 pub mod columns;
 
-use crate::air::Block;
-pub use crate::{memory::MemoryRecord, runtime::Instruction};
-
 pub use air::*;
 pub use columns::*;
+
+use crate::air::Block;
+pub use crate::{memory::MemoryRecord, runtime::Instruction};
 
 #[derive(Debug, Clone)]
 pub struct CpuEvent<F> {

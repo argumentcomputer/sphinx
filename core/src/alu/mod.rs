@@ -11,10 +11,9 @@ pub use bitwise::*;
 pub use divrem::*;
 pub use lt::*;
 pub use mul::*;
+use serde::{Deserialize, Serialize};
 pub use sll::*;
 pub use sr::*;
-
-use serde::{Deserialize, Serialize};
 
 use crate::runtime::Opcode;
 

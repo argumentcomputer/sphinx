@@ -1,5 +1,6 @@
-use p3_field::{AbstractExtensionField, AbstractField};
 use std::ops::{Add, Mul, MulAssign};
+
+use p3_field::{AbstractExtensionField, AbstractField};
 
 use super::{Array, Builder, Config, DslIr, Ext, Felt, SymbolicExt, Usize, Var, Variable};
 
@@ -212,13 +213,11 @@ impl<C: Config> Builder<C> {
 
 #[cfg(test)]
 mod tests {
-    use p3_field::PrimeField32;
+    use p3_field::{AbstractField, PrimeField32};
     use p3_util::reverse_bits_len;
     use rand::{thread_rng, Rng};
     use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
     use wp1_recursion_core::runtime::{Runtime, NUM_BITS};
-
-    use p3_field::AbstractField;
 
     use crate::{
         asm::AsmBuilder,

@@ -1,16 +1,13 @@
 use p3_air::AirBuilder;
-use p3_field::Field;
+use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::SP1AirBuilder;
-use crate::air::Word;
-use crate::air::WORD_SIZE;
-use crate::runtime::ExecutionRecord;
-use p3_field::AbstractField;
+use crate::{
+    air::{SP1AirBuilder, Word, WORD_SIZE},
+    runtime::ExecutionRecord,
+};
 
 /// A set of columns needed to compute the sum of five words.
-///
-/// TODO: This is currently not in use, and thus not tested thoroughly yet.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]
 pub struct Add5Operation<T> {

@@ -4,11 +4,8 @@ use std::{
     process::{Command, Stdio},
 };
 
-use p3_field::AbstractExtensionField;
-use p3_field::AbstractField;
-use p3_field::PrimeField;
-use serde::Deserialize;
-use serde::Serialize;
+use p3_field::{AbstractExtensionField, AbstractField, PrimeField};
+use serde::{Deserialize, Serialize};
 
 use super::Constraint;
 use crate::prelude::{Config, Witness};

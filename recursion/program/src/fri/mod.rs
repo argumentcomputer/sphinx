@@ -4,36 +4,21 @@ pub mod two_adic_pcs;
 pub mod types;
 
 pub use domain::*;
+use p3_field::{AbstractField, Field, TwoAdicField};
 #[cfg(test)]
 pub(crate) use two_adic_pcs::tests::*;
 pub use two_adic_pcs::*;
+use wp1_recursion_compiler::ir::{
+    Array, Builder, Config, Ext, Felt, SymbolicExt, SymbolicFelt, SymbolicVar, Usize, Var,
+};
 
-use p3_field::AbstractField;
-use p3_field::Field;
-use p3_field::TwoAdicField;
-
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Builder;
-use wp1_recursion_compiler::ir::Config;
-use wp1_recursion_compiler::ir::Ext;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::ir::SymbolicExt;
-use wp1_recursion_compiler::ir::SymbolicFelt;
-use wp1_recursion_compiler::ir::SymbolicVar;
-use wp1_recursion_compiler::ir::Usize;
-use wp1_recursion_compiler::ir::Var;
-
-use crate::challenger::CanObserveVariable;
-use crate::challenger::CanSampleBitsVariable;
-use crate::challenger::DuplexChallengerVariable;
-use crate::challenger::FeltChallenger;
-
-use self::types::DigestVariable;
-use self::types::DimensionsVariable;
-use self::types::FriChallengesVariable;
-use self::types::FriConfigVariable;
-use self::types::FriProofVariable;
-use self::types::FriQueryProofVariable;
+use self::types::{
+    DigestVariable, DimensionsVariable, FriChallengesVariable, FriConfigVariable, FriProofVariable,
+    FriQueryProofVariable,
+};
+use crate::challenger::{
+    CanObserveVariable, CanSampleBitsVariable, DuplexChallengerVariable, FeltChallenger,
+};
 
 /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/fri/src/verifier.rs#L27
 pub fn verify_shape_and_sample_challenges<C: Config>(

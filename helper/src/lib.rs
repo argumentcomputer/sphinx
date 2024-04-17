@@ -1,9 +1,10 @@
-use chrono::Local;
 use std::{
     io::{BufRead, BufReader},
     process::{Command, Stdio},
     thread,
 };
+
+use chrono::Local;
 
 fn current_datetime() -> String {
     let now = Local::now();

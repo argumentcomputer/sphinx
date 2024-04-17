@@ -1,28 +1,31 @@
-use crate::runtime::{Register, Runtime};
-use crate::syscall::precompiles::edwards::EdAddAssignChip;
-use crate::syscall::precompiles::edwards::EdDecompressChip;
-use crate::syscall::precompiles::field::add::FieldAddChip;
-use crate::syscall::precompiles::field::mul::FieldMulChip;
-use crate::syscall::precompiles::field::sub::FieldSubChip;
-use crate::syscall::precompiles::k256::K256DecompressChip;
-use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
-use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
-use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
-use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
-use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
-use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
-use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
-use crate::syscall::{
-    SyscallCommit, SyscallEnterUnconstrained, SyscallExitUnconstrained, SyscallHalt,
-    SyscallHintLen, SyscallHintRead, SyscallWrite,
-};
-use crate::utils::ec::edwards::ed25519::{Ed25519, Ed25519Parameters};
-use crate::utils::ec::weierstrass::bls12381::{Bls12381, Bls12381BaseField};
-use crate::utils::ec::weierstrass::{bn254::Bn254, secp256k1::Secp256k1};
-use crate::{runtime::ExecutionRecord, runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
-use std::collections::HashMap;
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
+
 use strum_macros::EnumIter;
+
+use crate::{
+    runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Register, Runtime},
+    syscall::{
+        precompiles::{
+            edwards::{EdAddAssignChip, EdDecompressChip},
+            field::{add::FieldAddChip, mul::FieldMulChip, sub::FieldSubChip},
+            k256::K256DecompressChip,
+            keccak256::KeccakPermuteChip,
+            quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
+            sha256::{ShaCompressChip, ShaExtendChip},
+            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
+        },
+        SyscallCommit, SyscallEnterUnconstrained, SyscallExitUnconstrained, SyscallHalt,
+        SyscallHintLen, SyscallHintRead, SyscallWrite,
+    },
+    utils::ec::{
+        edwards::ed25519::{Ed25519, Ed25519Parameters},
+        weierstrass::{
+            bls12381::{Bls12381, Bls12381BaseField},
+            bn254::Bn254,
+            secp256k1::Secp256k1,
+        },
+    },
+};
 
 /// A system call is invoked by the the `ecall` instruction with a specific value in register t0.
 /// The syscall number is a 32-bit integer, with the following layout (in little-endian format)
@@ -348,8 +351,9 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{default_syscall_map, SyscallCode};
     use strum::IntoEnumIterator;
+
+    use super::{default_syscall_map, SyscallCode};
 
     #[test]
     fn test_syscalls_in_default_map() {

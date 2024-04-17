@@ -1,13 +1,13 @@
-use crate::{
-    air::{AirInteraction, MessageBuilder},
-    stark::PROOF_MAX_NUM_PVS,
-};
 use p3_air::{AirBuilder, AirBuilderWithPublicValues, PairBuilder, PairCol, VirtualPairCol};
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_uni_stark::{Entry, SymbolicExpression, SymbolicVariable};
 
 use super::Interaction;
+use crate::{
+    air::{AirInteraction, MessageBuilder},
+    stark::PROOF_MAX_NUM_PVS,
+};
 
 /// A builder for the lookup table interactions.
 pub struct InteractionBuilder<F: Field> {
@@ -193,11 +193,12 @@ fn eval_symbolic_to_virtual_pair<F: Field>(
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Borrow;
+
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
     use p3_field::AbstractField;
     use p3_matrix::Matrix;
-    use std::borrow::Borrow;
 
     use super::*;
     use crate::{air::SP1AirBuilder, lookup::InteractionKind};

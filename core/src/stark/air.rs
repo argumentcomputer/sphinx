@@ -1,47 +1,39 @@
-use crate::air::MachineAir;
-pub use crate::air::SP1AirBuilder;
-use crate::memory::MemoryChipKind;
-use crate::stark::Chip;
-use crate::utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters};
-use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
 
 use super::MachineStark;
+pub use crate::air::SP1AirBuilder;
+use crate::{
+    air::MachineAir,
+    memory::MemoryChipType,
+    stark::Chip,
+    utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters},
+    StarkGenericConfig,
+};
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
-    pub use crate::alu::AddSubChip;
-    pub use crate::alu::BitwiseChip;
-    pub use crate::alu::DivRemChip;
-    pub use crate::alu::LtChip;
-    pub use crate::alu::MulChip;
-    pub use crate::alu::ShiftLeft;
-    pub use crate::alu::ShiftRightChip;
-    pub use crate::bytes::ByteChip;
-    pub use crate::cpu::CpuChip;
-    pub use crate::memory::MemoryGlobalChip;
-    pub use crate::program::ProgramChip;
-    pub use crate::syscall::precompiles::blake3::Blake3CompressInnerChip;
-    pub use crate::syscall::precompiles::edwards::EdAddAssignChip;
-    pub use crate::syscall::precompiles::edwards::EdDecompressChip;
-    pub use crate::syscall::precompiles::field::add::FieldAddChip;
-    pub use crate::syscall::precompiles::field::mul::FieldMulChip;
-    pub use crate::syscall::precompiles::field::sub::FieldSubChip;
-    pub use crate::syscall::precompiles::k256::K256DecompressChip;
-    pub use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
-    pub use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
-    pub use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
-    pub use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
-    pub use crate::syscall::precompiles::sha256::ShaCompressChip;
-    pub use crate::syscall::precompiles::sha256::ShaExtendChip;
-    pub use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
-    pub use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
-    pub use crate::utils::ec::edwards::ed25519::Ed25519Parameters;
-    pub use crate::utils::ec::edwards::EdwardsCurve;
-    pub use crate::utils::ec::weierstrass::bn254::Bn254Parameters;
-    pub use crate::utils::ec::weierstrass::secp256k1::Secp256k1Parameters;
-    pub use crate::utils::ec::weierstrass::SwCurve;
+    pub use crate::{
+        alu::{AddSubChip, BitwiseChip, DivRemChip, LtChip, MulChip, ShiftLeft, ShiftRightChip},
+        bytes::ByteChip,
+        cpu::CpuChip,
+        memory::MemoryChip,
+        program::ProgramChip,
+        syscall::precompiles::{
+            blake3::Blake3CompressInnerChip,
+            edwards::{EdAddAssignChip, EdDecompressChip},
+            field::{add::FieldAddChip, mul::FieldMulChip, sub::FieldSubChip},
+            k256::K256DecompressChip,
+            keccak256::KeccakPermuteChip,
+            quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
+            sha256::{ShaCompressChip, ShaExtendChip},
+            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
+        },
+        utils::ec::{
+            edwards::{ed25519::Ed25519Parameters, EdwardsCurve},
+            weierstrass::{bn254::Bn254Parameters, secp256k1::Secp256k1Parameters, SwCurve},
+        },
+    };
 }
 
 /// An AIR for encoding RISC-V execution.
@@ -72,11 +64,11 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A lookup table for byte operations.
     ByteLookup(ByteChip<F>),
     /// A table for initializing the memory state.
-    MemoryInit(MemoryGlobalChip),
+    MemoryInit(MemoryChip),
     /// A table for finalizing the memory state.
-    MemoryFinal(MemoryGlobalChip),
+    MemoryFinal(MemoryChip),
     /// A table for initializing the program memory.
-    ProgramMemory(MemoryGlobalChip),
+    ProgramMemory(MemoryChip),
     /// A precompile for sha256 extend.
     Sha256Extend(ShaExtendChip),
     /// A precompile for sha256 compress.
@@ -186,11 +178,11 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ShiftLeft(shift_left));
         let lt = LtChip;
         chips.push(RiscvAir::Lt(lt));
-        let memory_init = MemoryGlobalChip::new(MemoryChipKind::Initialize);
+        let memory_init = MemoryChip::new(MemoryChipType::Initialize);
         chips.push(RiscvAir::MemoryInit(memory_init));
-        let memory_finalize = MemoryGlobalChip::new(MemoryChipKind::Finalize);
+        let memory_finalize = MemoryChip::new(MemoryChipType::Finalize);
         chips.push(RiscvAir::MemoryFinal(memory_finalize));
-        let program_memory_init = MemoryGlobalChip::new(MemoryChipKind::Program);
+        let program_memory_init = MemoryChip::new(MemoryChipType::Program);
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));

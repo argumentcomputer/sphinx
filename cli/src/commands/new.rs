@@ -1,6 +1,7 @@
+use std::{fs, path::Path};
+
 use anyhow::Result;
 use clap::Parser;
-use std::{fs, path::Path};
 use yansi::Paint;
 
 const PROGRAM_CARGO_TOML: &str = include_str!("../assets/program/Cargo.toml");

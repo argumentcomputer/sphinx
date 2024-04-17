@@ -1,14 +1,14 @@
-use std::array::IntoIter;
-use std::ops::{Index, IndexMut};
+use core::fmt::Debug;
+use std::{
+    array::IntoIter,
+    ops::{Index, IndexMut},
+};
 
 use itertools::Itertools;
 use p3_air::AirBuilder;
-use p3_field::AbstractField;
-use p3_field::Field;
+use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
-
-use core::fmt::Debug;
 
 use super::SP1AirBuilder;
 

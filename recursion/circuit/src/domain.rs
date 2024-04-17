@@ -1,10 +1,7 @@
 use p3_commit::{LagrangeSelectors, TwoAdicMultiplicativeCoset};
-use p3_field::AbstractExtensionField;
-use p3_field::Field;
-use p3_field::{AbstractField, TwoAdicField};
+use p3_field::{AbstractExtensionField, AbstractField, Field, TwoAdicField};
 use wp1_recursion_compiler::prelude::*;
-use wp1_recursion_program::commit::PolynomialSpaceVariable;
-use wp1_recursion_program::fri::types::FriConfigVariable;
+use wp1_recursion_program::{commit::PolynomialSpaceVariable, fri::types::FriConfigVariable};
 
 #[derive(Clone, Copy)]
 pub struct TwoAdicMultiplicativeCosetVariable<C: Config> {
@@ -94,7 +91,6 @@ where
         }
     }
 
-    // TODO: something is wrong with this function
     fn zp_at_point(
         &self,
         builder: &mut Builder<C>,

@@ -1,46 +1,34 @@
 use std::time::Instant;
 
-use crate::challenger::CanObserveVariable;
-use crate::challenger::DuplexChallengerVariable;
-use crate::fri::types::FriConfigVariable;
-use crate::fri::TwoAdicFriPcsVariable;
-use crate::fri::TwoAdicMultiplicativeCosetVariable;
-use crate::hints::Hintable;
-use crate::stark::StarkVerifier;
-use crate::types::ShardProofVariable;
-use crate::types::VerifyingKeyVariable;
-use p3_baby_bear::BabyBear;
-use p3_baby_bear::DiffusionMatrixBabyBear;
+use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
 use p3_challenger::DuplexChallenger;
-use p3_commit::ExtensionMmcs;
-use p3_commit::TwoAdicMultiplicativeCoset;
-use p3_field::extension::BinomialExtensionField;
-use p3_field::AbstractField;
-use p3_field::Field;
-use p3_field::TwoAdicField;
+use p3_commit::{ExtensionMmcs, TwoAdicMultiplicativeCoset};
+use p3_field::{extension::BinomialExtensionField, AbstractField, Field, TwoAdicField};
 use p3_fri::FriConfig;
 use p3_merkle_tree::FieldMerkleTreeMmcs;
-use p3_poseidon2::Poseidon2;
-use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
-use p3_symmetric::PaddingFreeSponge;
-use p3_symmetric::TruncatedPermutation;
-use wp1_core::stark::ShardProof;
-use wp1_core::stark::VerifyingKey;
-use wp1_core::stark::{RiscvAir, StarkGenericConfig};
-use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_compiler::asm::AsmConfig;
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Builder;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::ir::MemVariable;
-use wp1_recursion_compiler::ir::Var;
-use wp1_recursion_core::runtime::RecursionProgram;
-use wp1_recursion_core::runtime::DIGEST_SIZE;
-use wp1_recursion_core::stark::config::inner_fri_config;
-use wp1_recursion_core::stark::config::wp1_fri_config;
-use wp1_recursion_core::stark::config::BabyBearPoseidon2Inner;
-use wp1_recursion_core::stark::RecursionAir;
+use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
+use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
+use wp1_core::stark::{RiscvAir, ShardProof, StarkGenericConfig, VerifyingKey};
+use wp1_recursion_compiler::{
+    asm::{AsmBuilder, AsmConfig},
+    ir::{Array, Builder, Felt, MemVariable, Var},
+};
+use wp1_recursion_core::{
+    runtime::{RecursionProgram, DIGEST_SIZE},
+    stark::{
+        config::{inner_fri_config, wp1_fri_config, BabyBearPoseidon2Inner},
+        RecursionAir,
+    },
+};
 use wp1_sdk::utils::BabyBearPoseidon2;
+
+use crate::{
+    challenger::{CanObserveVariable, DuplexChallengerVariable},
+    fri::{types::FriConfigVariable, TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable},
+    hints::Hintable,
+    stark::StarkVerifier,
+    types::{ShardProofVariable, VerifyingKeyVariable},
+};
 
 type SC = BabyBearPoseidon2;
 type F = <SC as StarkGenericConfig>::Val;

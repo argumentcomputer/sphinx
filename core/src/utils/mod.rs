@@ -13,11 +13,10 @@ use std::borrow::Borrow;
 pub use buffer::*;
 use hybrid_array::{Array, ArraySize};
 pub use logger::*;
-pub use prove::*;
-pub use tracer::*;
-
 #[cfg(test)]
 pub use programs::*;
+pub use prove::*;
+pub use tracer::*;
 
 use crate::{
     memory::MemoryCols,

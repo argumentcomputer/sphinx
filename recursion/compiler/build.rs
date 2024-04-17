@@ -1,5 +1,4 @@
-use std::env;
-use std::process::Command;
+use std::{env, process::Command};
 
 fn main() {
     // Get the current directory of the build script.

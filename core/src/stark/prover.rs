@@ -1,37 +1,30 @@
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::cmp::Reverse;
-use std::marker::PhantomData;
-use std::sync::atomic::{AtomicU32, Ordering};
-use std::time::Instant;
+use std::{
+    cmp::Reverse,
+    marker::PhantomData,
+    sync::atomic::{AtomicU32, Ordering},
+    time::Instant,
+};
 
 use itertools::Itertools;
-
 use p3_air::Air;
 use p3_challenger::{CanObserve, FieldChallenger};
-use p3_commit::Pcs;
-use p3_commit::PolynomialSpace;
-use p3_field::AbstractField;
-use p3_field::ExtensionField;
-use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_commit::{Pcs, PolynomialSpace};
+use p3_field::{AbstractField, ExtensionField, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::*;
-use p3_util::log2_ceil_usize;
-use p3_util::log2_strict_usize;
+use p3_util::{log2_ceil_usize, log2_strict_usize};
+use serde::{de::DeserializeOwned, Serialize};
 
-use super::{quotient_values, MachineStark, PcsProverData, Val};
-use super::{types::*, StarkGenericConfig};
-use super::{Com, OpeningProof};
-use super::{ProvingKey, VerifierConstraintFolder};
-use crate::lookup::InteractionBuilder;
-use crate::stark::record::MachineRecord;
-use crate::stark::MachineChip;
-use crate::stark::PackedChallenge;
-use crate::stark::ProverConstraintFolder;
-
-use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
-use crate::utils::env;
+use super::{
+    quotient_values, types::*, Com, MachineStark, OpeningProof, PcsProverData, ProvingKey,
+    StarkGenericConfig, Val, VerifierConstraintFolder,
+};
+use crate::{
+    air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
+    lookup::InteractionBuilder,
+    stark::{record::MachineRecord, MachineChip, PackedChallenge, ProverConstraintFolder},
+    utils::env,
+};
 
 fn chunk_vec<T>(mut vec: Vec<T>, chunk_size: usize) -> Vec<Vec<T>> {
     let mut result = Vec::new();

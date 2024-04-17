@@ -30,21 +30,23 @@
 //! - Ideally, we would calculate b * pow(2, c), but pow(2, c) could overflow in F.
 //! - Shifting by a multiple of 8 bits is easy (=num_bytes_to_shift) since we just shift words.
 
-use core::borrow::{Borrow, BorrowMut};
-use core::mem::size_of;
+use core::{
+    borrow::{Borrow, BorrowMut},
+    mem::size_of,
+};
+
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_field::{AbstractField, PrimeField};
+use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
-use crate::disassembler::WORD_SIZE;
-use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{MachineAir, SP1AirBuilder, Word},
+    disassembler::WORD_SIZE,
+    runtime::{ExecutionRecord, Opcode, Program},
+    utils::pad_to_power_of_two,
+};
 
 /// The number of main trace columns for `ShiftLeft`.
 pub const NUM_SHIFT_LEFT_COLS: usize = size_of::<ShiftLeftCols<u8>>();
@@ -237,6 +239,7 @@ where
 
         // Check shift_by_n_bits[i] is 1 iff i = num_bits_to_shift.
         let mut num_bits_to_shift = zero.clone();
+
         // 3 is the maximum number of bits necessary to represent num_bits_to_shift as
         // num_bits_to_shift is in [0, 7].
         for i in 0..3 {
@@ -352,21 +355,17 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        air::MachineAir,
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify},
-    };
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
+    use super::ShiftLeft;
     use crate::{
+        air::MachineAir,
         alu::AluEvent,
         runtime::{ExecutionRecord, Opcode},
-        utils::BabyBearPoseidon2,
+        stark::StarkGenericConfig,
+        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };
-
-    use super::ShiftLeft;
 
     #[test]
     fn generate_trace() {

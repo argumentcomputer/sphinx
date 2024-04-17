@@ -10,8 +10,17 @@ mod syscall;
 #[macro_use]
 mod utils;
 
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fs::File,
+    io::{BufWriter, Write},
+    rc::Rc,
+    sync::Arc,
+};
+
 pub use instruction::*;
 pub use memory::*;
+use nohash_hasher::BuildNoHashHasher;
 pub use opcode::*;
 pub use program::*;
 pub use record::*;
@@ -20,18 +29,7 @@ pub(crate) use state::*;
 pub use syscall::*;
 pub use utils::*;
 
-use crate::memory::MemoryInitializeFinalizeEvent;
-use crate::utils::env;
-use crate::{alu::AluEvent, cpu::CpuEvent};
-
-use nohash_hasher::BuildNoHashHasher;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
-use std::rc::Rc;
-use std::sync::Arc;
+use crate::{alu::AluEvent, cpu::CpuEvent, memory::MemoryInitializeFinalizeEvent, utils::env};
 
 pub const MAX_SHARD_CLK: usize = (1 << 24) - 1;
 
@@ -1014,12 +1012,11 @@ impl Runtime {
 #[cfg(test)]
 pub mod tests {
 
+    use super::{Instruction, Opcode, Program, Runtime};
     use crate::{
         runtime::Register,
         utils::tests::{FIBONACCI_ELF, SSZ_WITHDRAWALS_ELF},
     };
-
-    use super::{Instruction, Opcode, Program, Runtime};
 
     pub fn simple_program() -> Program {
         let instructions = vec![

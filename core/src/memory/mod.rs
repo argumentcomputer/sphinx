@@ -4,7 +4,6 @@ mod trace;
 
 pub use columns::*;
 pub use global::*;
-
 use serde::{Deserialize, Serialize};
 
 use crate::runtime::MemoryRecord;

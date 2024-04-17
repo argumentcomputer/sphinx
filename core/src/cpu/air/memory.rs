@@ -1,11 +1,15 @@
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
-use crate::air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder};
-use crate::cpu::columns::{CpuCols, MemoryColumns, OpcodeSelectorCols};
-use crate::cpu::CpuChip;
-use crate::memory::MemoryCols;
-use crate::runtime::Opcode;
+use crate::{
+    air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder},
+    cpu::{
+        columns::{CpuCols, MemoryColumns, OpcodeSelectorCols},
+        CpuChip,
+    },
+    memory::MemoryCols,
+    runtime::Opcode,
+};
 
 impl CpuChip {
     /// Computes whether the opcode is a memory instruction.

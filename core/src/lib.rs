@@ -23,17 +23,14 @@ pub mod syscall;
 pub mod utils;
 
 pub use io::*;
-
 #[allow(unused_imports)]
 use runtime::{Program, Runtime};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use stark::Proof;
-use stark::StarkGenericConfig;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use stark::{Proof, StarkGenericConfig};
 
 /// A proof of a RISCV ELF execution with given inputs and outputs.
 #[derive(Serialize, Deserialize)]
-#[deprecated(note = "Import from sp1_sdk instead of sp1_core")]
+#[deprecated(note = "Import from wp1_sdk instead of wp1_core")]
 pub struct SP1ProofWithIO<SC: StarkGenericConfig + Serialize + DeserializeOwned> {
     #[serde(with = "proof_serde")]
     pub proof: Proof<SC>,

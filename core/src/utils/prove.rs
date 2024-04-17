@@ -1,27 +1,25 @@
-use std::fs::File;
-use std::io::{Seek, Write};
-use std::time::Instant;
-
-use crate::air::SP1_PROOF_NUM_PV_ELTS;
-use crate::runtime::{ExecutionRecord, ShardingConfig};
-use crate::stark::MachineRecord;
-use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};
-use crate::utils::env::shard_batch_size;
-use crate::utils::poseidon2_instance::RC_16_30;
-use crate::{
-    runtime::{Program, Runtime},
-    stark::StarkGenericConfig,
-    stark::{LocalProver, OpeningProof, ShardMainData},
+use std::{
+    fs::File,
+    io::{Seek, Write},
+    time::Instant,
 };
 
-use crate::{SP1ProofWithIO, SP1PublicValues, SP1Stdin};
 pub use baby_bear_blake3::BabyBearBlake3;
 use p3_challenger::CanObserve;
-
 use p3_field::PrimeField32;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 use size::Size;
+
+use crate::{
+    air::SP1_PROOF_NUM_PV_ELTS,
+    runtime::{ExecutionRecord, Program, Runtime, ShardingConfig},
+    stark::{
+        Com, LocalProver, MachineRecord, OpeningProof, PcsProverData, RiscvAir, ShardMainData,
+        ShardProof, StarkGenericConfig, UniConfig,
+    },
+    utils::{env::shard_batch_size, poseidon2_instance::RC_16_30},
+    SP1ProofWithIO, SP1PublicValues, SP1Stdin,
+};
 
 const LOG_DEGREE_BOUND: usize = 31;
 
@@ -434,7 +432,6 @@ use p3_uni_stark::Proof;
 
 pub mod baby_bear_poseidon2 {
 
-    use crate::utils::prove::RC_16_30;
     use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
     use p3_challenger::DuplexChallenger;
     use p3_commit::ExtensionMmcs;
@@ -442,12 +439,11 @@ pub mod baby_bear_poseidon2 {
     use p3_field::{extension::BinomialExtensionField, Field};
     use p3_fri::{FriConfig, TwoAdicFriPcs};
     use p3_merkle_tree::FieldMerkleTreeMmcs;
-    use p3_poseidon2::Poseidon2;
-    use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
+    use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
     use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
     use serde::{Deserialize, Serialize};
 
-    use crate::stark::StarkGenericConfig;
+    use crate::{stark::StarkGenericConfig, utils::prove::RC_16_30};
 
     pub type Val = BabyBear;
 
@@ -581,9 +577,8 @@ pub(super) mod baby_bear_keccak {
     use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
     use serde::{Deserialize, Serialize};
 
-    use crate::stark::StarkGenericConfig;
-
     use super::LOG_DEGREE_BOUND;
+    use crate::stark::StarkGenericConfig;
 
     pub(crate) type Val = BabyBear;
 
@@ -694,9 +689,8 @@ pub(super) mod baby_bear_blake3 {
     use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
     use serde::{Deserialize, Serialize};
 
-    use crate::stark::StarkGenericConfig;
-
     use super::LOG_DEGREE_BOUND;
+    use crate::stark::StarkGenericConfig;
 
     pub(crate) type Val = BabyBear;
 

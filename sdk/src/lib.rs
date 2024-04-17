@@ -13,28 +13,26 @@ pub mod utils {
     };
 }
 
-pub use wp1_core::air::PublicValues;
+use std::{env, fs, time::Duration};
 
-pub use crate::io::*;
+use anyhow::{Context, Ok, Result};
 use proto::network::{ProofStatus, TransactionStatus};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tokio::{runtime, time::sleep};
+use util::StageProgressBar;
 use utils::*;
+pub use wp1_core::air::PublicValues;
+use wp1_core::{
+    runtime::{Program, Runtime},
+    stark::{
+        Com, OpeningProof, PcsProverData, ProgramVerificationError, Proof, RiscvAir, ShardMainData,
+        StarkGenericConfig,
+    },
+    utils::run_and_prove,
+};
 
 use crate::client::NetworkClient;
-use anyhow::{Context, Ok, Result};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use std::env;
-use std::fs;
-use std::time::Duration;
-use tokio::runtime;
-use tokio::time::sleep;
-use util::StageProgressBar;
-use wp1_core::runtime::{Program, Runtime};
-use wp1_core::stark::{Com, PcsProverData, RiscvAir};
-use wp1_core::stark::{
-    OpeningProof, ProgramVerificationError, Proof, ShardMainData, StarkGenericConfig,
-};
-use wp1_core::utils::run_and_prove;
+pub use crate::io::*;
 
 /// A proof of a RISCV ELF execution with given inputs and outputs.
 #[derive(Serialize, Deserialize)]

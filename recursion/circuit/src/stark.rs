@@ -1,31 +1,37 @@
 use std::marker::PhantomData;
 
-use crate::types::OuterDigestVariable;
-use crate::witness::Witnessable;
 use p3_air::Air;
 use p3_bn254_fr::Bn254Fr;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::TwoAdicField;
-use wp1_core::stark::{Com, ShardProof};
 use wp1_core::{
     air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
-    stark::{MachineStark, ShardCommitment, StarkGenericConfig, VerifyingKey},
+    stark::{Com, MachineStark, ShardCommitment, ShardProof, StarkGenericConfig, VerifyingKey},
 };
-use wp1_recursion_compiler::config::OuterConfig;
-use wp1_recursion_compiler::constraints::{Constraint, ConstraintCompiler};
-use wp1_recursion_compiler::ir::{Builder, Config};
-use wp1_recursion_compiler::ir::{Usize, Witness};
-use wp1_recursion_compiler::prelude::SymbolicVar;
-use wp1_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
-use wp1_recursion_core::stark::RecursionAir;
-use wp1_recursion_program::commit::PolynomialSpaceVariable;
-use wp1_recursion_program::folder::RecursiveVerifierConstraintFolder;
+use wp1_recursion_compiler::{
+    config::OuterConfig,
+    constraints::{Constraint, ConstraintCompiler},
+    ir::{Builder, Config, Usize, Witness},
+    prelude::SymbolicVar,
+};
+use wp1_recursion_core::stark::{
+    config::{outer_fri_config, BabyBearPoseidon2Outer},
+    RecursionAir,
+};
+use wp1_recursion_program::{
+    commit::PolynomialSpaceVariable, folder::RecursiveVerifierConstraintFolder,
+};
 
-use crate::domain::{new_coset, TwoAdicMultiplicativeCosetVariable};
-use crate::fri::verify_two_adic_pcs;
-use crate::types::TwoAdicPcsMatsVariable;
-use crate::types::TwoAdicPcsRoundVariable;
-use crate::{challenger::MultiField32ChallengerVariable, types::RecursionShardProofVariable};
+use crate::{
+    challenger::MultiField32ChallengerVariable,
+    domain::{new_coset, TwoAdicMultiplicativeCosetVariable},
+    fri::verify_two_adic_pcs,
+    types::{
+        OuterDigestVariable, RecursionShardProofVariable, TwoAdicPcsMatsVariable,
+        TwoAdicPcsRoundVariable,
+    },
+    witness::Witnessable,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct StarkVerifierCircuit<C: Config, SC: StarkGenericConfig> {
@@ -294,19 +300,18 @@ pub fn build_wrap_circuit(
 #[cfg(test)]
 pub(crate) mod tests {
 
-    use crate::stark::build_wrap_circuit;
-    use crate::witness::Witnessable;
     use p3_baby_bear::DiffusionMatrixBabyBear;
     use p3_field::PrimeField32;
     use serial_test::serial;
     use wp1_core::stark::{LocalProver, StarkGenericConfig};
-    use wp1_recursion_compiler::ir::Witness;
-    use wp1_recursion_compiler::{config::OuterConfig, constraints::groth16_ffi};
+    use wp1_recursion_compiler::{config::OuterConfig, constraints::groth16_ffi, ir::Witness};
     use wp1_recursion_core::{
         cpu::Instruction,
         runtime::{Opcode, RecursionProgram, Runtime},
         stark::{config::BabyBearPoseidon2Outer, RecursionAir},
     };
+
+    use crate::{stark::build_wrap_circuit, witness::Witnessable};
 
     pub(crate) fn basic_program<F: PrimeField32>() -> RecursionProgram<F> {
         let zero = [F::zero(); 4];

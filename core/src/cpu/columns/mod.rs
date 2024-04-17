@@ -7,6 +7,8 @@ mod memory;
 mod opcode;
 mod opcode_specific;
 
+use std::mem::{size_of, transmute};
+
 pub use auipc::*;
 pub use branch::*;
 pub use ecall::*;
@@ -15,9 +17,7 @@ pub use jump::*;
 pub use memory::*;
 pub use opcode::*;
 pub use opcode_specific::*;
-
 use p3_util::indices_arr;
-use std::mem::{size_of, transmute};
 use wp1_derive::AlignedBorrow;
 
 use crate::{

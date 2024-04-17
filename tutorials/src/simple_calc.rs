@@ -1,9 +1,10 @@
 use core::mem::size_of;
+use std::borrow::{Borrow, BorrowMut};
+
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use std::borrow::{Borrow, BorrowMut};
 use wp1_core::stark::SP1AirBuilder;
 use wp1_derive::AlignedBorrow;
 

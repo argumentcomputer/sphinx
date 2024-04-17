@@ -1,11 +1,10 @@
-use rand::{thread_rng, Rng};
-
 use p3_field::AbstractField;
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_compiler::ir::{Ext, Felt};
-use wp1_recursion_compiler::ir::{ExtConst, SymbolicFelt};
+use rand::{thread_rng, Rng};
+use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+use wp1_recursion_compiler::{
+    asm::AsmBuilder,
+    ir::{Ext, ExtConst, Felt, SymbolicFelt},
+};
 use wp1_recursion_core::runtime::Runtime;
 
 #[test]

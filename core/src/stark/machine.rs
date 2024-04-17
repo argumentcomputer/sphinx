@@ -1,40 +1,25 @@
+use std::{cmp::Reverse, collections::HashMap};
+
 use itertools::Itertools;
-use p3_matrix::Dimensions;
-use std::cmp::Reverse;
-use std::collections::HashMap;
-
-use super::debug_constraints;
-use super::Dom;
-use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
-use crate::lookup::debug_interactions_with_all_chips;
-use crate::lookup::InteractionBuilder;
-use crate::lookup::InteractionKind;
-use crate::stark::record::MachineRecord;
-use crate::stark::DebugConstraintBuilder;
-use crate::stark::ProverConstraintFolder;
-use crate::stark::ShardProof;
-use crate::stark::VerifierConstraintFolder;
-
 use p3_air::Air;
-use p3_challenger::CanObserve;
-use p3_challenger::FieldChallenger;
+use p3_challenger::{CanObserve, FieldChallenger};
 use p3_commit::Pcs;
-use p3_field::AbstractField;
-use p3_field::Field;
-use p3_field::PrimeField32;
-use p3_matrix::dense::RowMajorMatrix;
-use p3_matrix::Matrix;
+use p3_field::{AbstractField, Field, PrimeField32};
+use p3_matrix::{dense::RowMajorMatrix, Dimensions, Matrix};
 use p3_maybe_rayon::prelude::*;
 
-use super::Chip;
-use super::Com;
-use super::PcsProverData;
-use super::Proof;
-use super::Prover;
-use super::StarkGenericConfig;
-use super::Val;
-use super::VerificationError;
-use super::Verifier;
+use super::{
+    debug_constraints, Chip, Com, Dom, PcsProverData, Proof, Prover, StarkGenericConfig, Val,
+    VerificationError, Verifier,
+};
+use crate::{
+    air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
+    lookup::{debug_interactions_with_all_chips, InteractionBuilder, InteractionKind},
+    stark::{
+        record::MachineRecord, DebugConstraintBuilder, ProverConstraintFolder, ShardProof,
+        VerifierConstraintFolder,
+    },
+};
 
 pub type MachineChip<SC, A> = Chip<Val<SC>, A>;
 
@@ -251,8 +236,6 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> MachineStark<SC, A> {
     {
         // Observe the preprocessed commitment.
         challenger.observe(vk.commit.clone());
-        // TODO: Observe the challenges in a tree-like structure for easily verifiable reconstruction
-        // in a map-reduce recursion setting.
         tracing::debug_span!("observe challenges for all shards").in_scope(|| {
             proof.shard_proofs.iter().for_each(|proof| {
                 challenger.observe(proof.commitment.main_commit.clone());
@@ -407,16 +390,15 @@ pub enum ProgramVerificationError {
 #[cfg(test)]
 pub mod tests {
 
-    use crate::runtime::tests::fibonacci_program;
-    use crate::runtime::tests::simple_memory_program;
-    use crate::runtime::tests::simple_program;
-    use crate::runtime::tests::ssz_withdrawals_program;
-    use crate::runtime::Instruction;
-    use crate::runtime::Opcode;
-    use crate::runtime::Program;
-
-    use crate::utils::run_test;
-    use crate::utils::setup_logger;
+    use crate::{
+        runtime::{
+            tests::{
+                fibonacci_program, simple_memory_program, simple_program, ssz_withdrawals_program,
+            },
+            Instruction, Opcode, Program,
+        },
+        utils::{run_test, setup_logger},
+    };
 
     #[test]
     fn test_simple_prove() {

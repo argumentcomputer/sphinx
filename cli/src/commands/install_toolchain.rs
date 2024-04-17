@@ -1,14 +1,16 @@
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::PermissionsExt;
+use std::{
+    fs::{self},
+    io::Read,
+    process::Command,
+};
+
 use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
 use rand::{distributions::Alphanumeric, Rng};
 use reqwest::Client;
-use std::fs::{self};
-use std::io::Read;
-use std::process::Command;
-
-#[cfg(target_family = "unix")]
-use std::os::unix::fs::PermissionsExt;
 
 use crate::{
     download_file, get_target, get_toolchain_download_url, url_exists, CommandExecutor,
