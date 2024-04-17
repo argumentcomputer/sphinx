@@ -28,7 +28,7 @@ pub trait FieldParameters:
     type NB_LIMBS: LimbWidth;
     const NB_BITS_PER_LIMB: usize = NB_BITS_PER_LIMB;
 
-    const WITNESS_OFFSET: usize = 1usize << 13;
+    const WITNESS_OFFSET: usize = 1usize << 14;
     const MODULUS: Array<u8, Self::NB_LIMBS>;
 
     const FIELD_TYPE: FieldType;
