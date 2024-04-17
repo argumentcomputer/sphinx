@@ -354,6 +354,7 @@ impl SP1ProverImpl {
 mod tests {
 
     use super::*;
+    use wp1_core::air::SP1_PROOF_NUM_PV_ELTS;
     use wp1_core::utils::setup_logger;
     use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
     use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
@@ -391,7 +392,8 @@ mod tests {
         wp1_challenger.observe(vk.commit);
         for shard_proof in proof.shard_proofs.iter() {
             wp1_challenger.observe(shard_proof.commitment.main_commit);
-            wp1_challenger.observe_slice(&shard_proof.public_values);
+            wp1_challenger
+                .observe_slice(&shard_proof.public_values.clone()[0..SP1_PROOF_NUM_PV_ELTS]);
         }
 
         let start = Instant::now();
