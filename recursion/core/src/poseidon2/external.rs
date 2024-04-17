@@ -321,7 +321,7 @@ mod tests {
     use std::time::Instant;
 
     use p3_baby_bear::BabyBear;
-    use p3_baby_bear::DiffusionMatrixBabybear;
+    use p3_baby_bear::DiffusionMatrixBabyBear;
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
     use p3_poseidon2::Poseidon2;
@@ -364,7 +364,7 @@ mod tests {
         let gt: Poseidon2<
             BabyBear,
             Poseidon2ExternalMatrixGeneral,
-            DiffusionMatrixBabybear,
+            DiffusionMatrixBabyBear,
             16,
             7,
         > = inner_perm();

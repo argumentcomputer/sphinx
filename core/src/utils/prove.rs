@@ -435,7 +435,7 @@ use p3_uni_stark::Proof;
 pub mod baby_bear_poseidon2 {
 
     use crate::utils::prove::RC_16_30;
-    use p3_baby_bear::{BabyBear, DiffusionMatrixBabybear};
+    use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
     use p3_challenger::DuplexChallenger;
     use p3_commit::ExtensionMmcs;
     use p3_dft::Radix2DitParallel;
@@ -453,7 +453,7 @@ pub mod baby_bear_poseidon2 {
 
     pub type Challenge = BinomialExtensionField<Val, 4>;
 
-    pub type Perm = Poseidon2<Val, Poseidon2ExternalMatrixGeneral, DiffusionMatrixBabybear, 16, 7>;
+    pub type Perm = Poseidon2<Val, Poseidon2ExternalMatrixGeneral, DiffusionMatrixBabyBear, 16, 7>;
     pub type MyHash = PaddingFreeSponge<Perm, 16, 8, 8>;
 
     pub type MyCompress = TruncatedPermutation<Perm, 2, 8, 16>;
@@ -520,7 +520,7 @@ pub mod baby_bear_poseidon2 {
                 Poseidon2ExternalMatrixGeneral,
                 ROUNDS_P,
                 internal_round_constants,
-                DiffusionMatrixBabybear,
+                DiffusionMatrixBabyBear,
             );
 
             let hash = MyHash::new(perm.clone());
