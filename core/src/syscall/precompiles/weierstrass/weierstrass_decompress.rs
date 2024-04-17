@@ -335,9 +335,76 @@ mod tests {
     use elliptic_curve::sec1::ToEncodedPoint;
     use rand::rngs::StdRng;
     use rand::SeedableRng;
+    use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use bls12_381::G1Affine;
 
-    use crate::utils::{run_test, run_test_io};
+
+    use crate::utils::{run_test, run_test_io, run_test_with_memory_inspection, words_to_bytes_le_vec, bytes_to_words_be_vec};
     use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
+
+    fn bls_decompress_risc_v_program(w_ptr: u32, compressed_in: Vec<u8>) -> Program {
+        assert_eq!(compressed_in.len(), 48);
+
+        let sign = (compressed_in[0] & 0b_0010_0000) >> 5 == 0;
+        let mut compressed = compressed_in.clone();
+        compressed[0] &= 0b_0001_1111;
+
+        let mut instructions = vec![];
+
+        let mut words = bytes_to_words_be_vec([compressed.as_slice(), &vec![0u8; 48]].concat().as_slice());
+        words.reverse();
+
+        for i in 0..words.len() {
+            instructions.push(Instruction::new(Opcode::ADD, 29, 0, words[i], false, true));
+            instructions.push(Instruction::new(Opcode::ADD, 30, 0, w_ptr + (i as u32) * 4, false, true));
+            instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
+        }
+
+        instructions.extend(vec![
+            Instruction::new(
+                Opcode::ADD,
+                5,
+                0,
+                SyscallCode::BLS12381_DECOMPRESS as u32,
+                false,
+                true,
+            ),
+            Instruction::new(Opcode::ADD, 10, 0, w_ptr, false, true),
+            Instruction::new(Opcode::ADD, 11, 0, sign as u32, false, true),
+            Instruction::new(Opcode::ECALL, 5, 10, 11, false, false),
+        ]);
+        Program::new(instructions, 0, 0)
+    }
+
+    // TODO: figure out why at some inputs this test fails
+    #[test]
+    fn test_weierstrass_bls_decompress_risc_v_program() {
+        utils::setup_logger();
+        // successful
+        // let compressed_g1: [u8; 48] = [128, 181, 135, 148, 52, 27, 78, 148, 13, 235, 10, 222, 148, 47, 2, 89, 248, 37, 76, 33, 223, 74, 74, 102, 121, 191, 228, 14, 144, 134, 65, 196, 196, 179, 29, 52, 188, 151, 130, 217, 19, 140, 56, 237, 23, 143, 187, 17];
+        // successful
+        let compressed_g1: [u8; 48] = [166, 149, 173, 50, 93, 252, 126, 17, 145, 251, 201, 241, 134, 245, 142, 255, 66, 166, 52, 2, 151, 49, 177, 131, 128, 255, 137, 191, 66, 196, 100, 164, 44, 184, 202, 85, 178, 0, 240, 81, 245, 127, 30, 24, 147, 198, 135, 89];
+        // failed - InvalidSegmentProof(OodEvaluationMismatch("Bls12381Decompress"))
+        //let compressed_g1: [u8; 48] = [128, 183, 213, 204, 76, 81, 8, 121, 165, 14, 143, 54, 218, 155, 196, 74, 62, 142, 33, 208, 87, 222, 166, 154, 164, 110, 63, 127, 138, 93, 182, 225, 19, 233, 159, 107, 33, 26, 109, 200, 54, 243, 158, 202, 205, 126, 190, 5];
+
+        // use bls12_381 crate to compute expected value
+        let expected = G1Affine::from_compressed(&compressed_g1).unwrap().to_uncompressed();
+
+        let memory_pointer = 100u32;
+        let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.to_vec());
+        let (_, memory) = run_test_with_memory_inspection(program);
+
+        let mut decompressed_g1 = vec![];
+        // decompressed G1 occupies 96 bytes or 24 words (8 bytes each): 96 / 8 = 24
+        for i in 0..24 {
+            decompressed_g1.push(memory.get(&(memory_pointer + i * 4)).unwrap().value);
+        }
+
+        let mut decompressed_g1 = words_to_bytes_le_vec(&decompressed_g1);
+        decompressed_g1.reverse();
+
+        assert_eq!(decompressed_g1, expected.to_vec());
+    }
 
     #[test]
     fn test_weierstrass_bls_decompress() {

@@ -1,9 +1,12 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Seek, Write};
 use std::time::Instant;
+use nohash_hasher::BuildNoHashHasher;
 
 use crate::air::SP1_PROOF_NUM_PV_ELTS;
-use crate::runtime::{ExecutionRecord, ShardingConfig};
+use crate::air::{PublicValues, Word};
+use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
 use crate::stark::MachineRecord;
 use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};
 use crate::utils::env::shard_batch_size;
@@ -48,6 +51,20 @@ pub fn run_test_io(
         stdin: inputs,
         public_values,
     })
+}
+
+pub fn run_test_with_memory_inspection(
+    program: Program,
+) -> (crate::stark::Proof<BabyBearBlake3>, HashMap<u32, MemoryRecord, BuildNoHashHasher<u32>>) {
+    let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
+        let mut runtime = Runtime::new(program);
+        runtime.run();
+        runtime
+    });
+
+    let memory = runtime.state.memory.clone();
+    let proof = run_test_core(runtime).unwrap();
+    (proof, memory)
 }
 
 pub fn run_test(

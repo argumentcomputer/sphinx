@@ -122,6 +122,14 @@ pub fn words_to_bytes_le_vec(words: &[u32]) -> Vec<u8> {
         .collect::<Vec<_>>()
 }
 
+/// Converts a slice of words to a byte vector in big endian.
+pub fn words_to_bytes_be_vec(words: &[u32]) -> Vec<u8> {
+    words
+        .iter()
+        .flat_map(|word| word.to_be_bytes().to_vec())
+        .collect::<Vec<_>>()
+}
+
 
 /// Converts a byte array in little endian to an array of words.
 pub fn bytes_to_words_le<W: ArraySize>(bytes: &[u8]) -> <W as ArraySize>::ArrayType<u32> {
@@ -134,6 +142,14 @@ pub fn bytes_to_words_le<W: ArraySize>(bytes: &[u8]) -> <W as ArraySize>::ArrayT
     )
     .unwrap()
     .into()
+}
+
+/// Converts a byte array in big endian to a slice of words.
+pub fn bytes_to_words_be_vec(bytes: &[u8]) -> Vec<u32> {
+    bytes
+        .chunks_exact(4)
+        .map(|chunk| u32::from_be_bytes(chunk.try_into().unwrap()))
+        .collect::<Vec<_>>()
 }
 
 /// Converts a byte array in little endian to a vector of words.
