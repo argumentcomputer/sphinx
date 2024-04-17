@@ -455,7 +455,7 @@ mod tests {
                 }
                 SyscallCode::COMMIT => assert_eq!(code as u32, wp1_zkvm::syscalls::COMMIT),
                 SyscallCode::BLS12381_DECOMPRESS => {
-                    assert_eq!(code as u32, sp1_zkvm::syscalls::BLS12381_DECOMPRESS)
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_DECOMPRESS)
                 }
             }
         }

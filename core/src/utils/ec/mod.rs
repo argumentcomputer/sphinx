@@ -9,7 +9,7 @@ use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
 use num::BigUint;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::{self, Debug, Display, Formatter, Result};
+use std::fmt::{Debug, Display, Formatter, Result};
 use std::ops::{Add, Neg};
 
 use crate::air::WORD_SIZE;
@@ -19,7 +19,6 @@ use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
 
 pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
-
 pub const DEFAULT_COMPRESSED_POINT_BYTES: usize = 32;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -38,7 +37,6 @@ impl Display for CurveType {
             CurveType::Bn254 => write!(f, "Bn254"),
             CurveType::Ed25519 => write!(f, "Ed25519"),
             CurveType::Bls12381 => write!(f, "Bls12381"),
-            _ => Err(fmt::Error),
         }
     }
 }

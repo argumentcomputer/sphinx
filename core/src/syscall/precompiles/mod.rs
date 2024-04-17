@@ -2,7 +2,6 @@ pub mod blake3;
 pub mod bls12381;
 pub mod edwards;
 pub mod field;
-//pub mod k256;
 pub mod keccak256;
 pub mod quad_field;
 pub mod sha256;
@@ -14,17 +13,12 @@ use serde::{Deserialize, Serialize};
 use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
 use crate::runtime::SyscallContext;
 use crate::utils::ec::BaseLimbWidth;
-
-//use crate::utils::ec::field::NumLimbs;
 use crate::utils::ec::weierstrass::bls12381::bls12381_decompress;
 use crate::utils::ec::weierstrass::secp256k1::secp256k1_decompress;
 use crate::utils::ec::{AffinePoint, CurveType, EllipticCurve};
 use crate::utils::{bytes_to_words_le_vec, words_to_bytes_le_vec};
 
 use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
-//use typenum::Unsigned;
-
-
 
 /// Elliptic curve add event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -142,8 +136,6 @@ pub fn create_ec_decompress_event<E: EllipticCurve>(
     let start_clk = rt.clk;
     assert!(slice_ptr % 4 == 0, "slice_ptr must be 4-byte aligned");
     assert!(is_odd <= 1, "is_odd must be 0 or 1");
-
-    WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE;
 
     let num_limbs = 48usize;
     let num_words_field_element = num_limbs / 4;

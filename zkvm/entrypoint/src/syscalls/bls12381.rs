@@ -140,9 +140,6 @@ pub extern "C" fn syscall_bls12381_fp2_mul(p: *mut u32, q: *const u32) {
     unreachable!()
 }
 
-#[cfg(target_os = "zkvm")]
-use core::arch::asm;
-
 /// Decompresses a compressed BLS12-381 point.
 ///
 /// The first half of the input array should contain the X coordinate.

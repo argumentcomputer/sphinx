@@ -238,20 +238,7 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::ec::utils::biguint_from_limbs;
-
-    use super::*;
-
-    #[test]
-    fn test_weierstrass_biguint_scalar_mul() {
-        assert_eq!(
-            biguint_from_limbs(&Bls12381BaseField::MODULUS),
-            Bls12381BaseField::modulus()
-        );
-    }
-
     use amcl::bls381::bls381::proof_of_possession::G1_BYTES;
-
     use super::*;
     use crate::utils::ec::utils::biguint_from_limbs;
     use num::bigint::RandBigInt;
