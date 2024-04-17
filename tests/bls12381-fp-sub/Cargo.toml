@@ -1,6 +1,6 @@
 [workspace]
 [package]
-name = "bls12381-fp-add-test"
+name = "bls12381-fp-sub-test"
 version = "0.1.0"
 edition = "2021"
 
