@@ -296,7 +296,7 @@ pub(crate) mod tests {
 
     use crate::stark::build_wrap_circuit;
     use crate::witness::Witnessable;
-    use p3_baby_bear::DiffusionMatrixBabybear;
+    use p3_baby_bear::DiffusionMatrixBabyBear;
     use p3_field::PrimeField32;
     use serial_test::serial;
     use wp1_core::stark::{LocalProver, StarkGenericConfig};
@@ -338,7 +338,7 @@ pub(crate) mod tests {
         wp1_core::utils::setup_logger();
         let program = basic_program::<F>();
         let config = SC::new();
-        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabybear>::new_no_perm(&program);
+        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);
         runtime.run();
         let machine = A::machine(config);
         let (pk, vk) = machine.setup(&program);
@@ -347,7 +347,7 @@ pub(crate) mod tests {
             .prove::<LocalProver<_, _>>(&pk, runtime.record, &mut challenger)
             .shard_proofs;
 
-        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabybear>::new_no_perm(&program);
+        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);
         runtime.run();
 
         let mut witness = Witness::default();
