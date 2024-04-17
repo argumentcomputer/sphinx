@@ -32,9 +32,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
-      - name: Run cargo test on wp1 except some recursion tests
+      - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
@@ -140,9 +140,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
-      - name: Run cargo test on wp1 except some recursion tests
+      - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
