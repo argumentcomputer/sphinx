@@ -22,7 +22,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
@@ -48,7 +48,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
       - name: check *everything* compiles
@@ -73,7 +73,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --path ./cli
@@ -109,7 +109,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'

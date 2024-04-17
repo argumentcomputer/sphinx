@@ -32,7 +32,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - run: |
           make
           for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
