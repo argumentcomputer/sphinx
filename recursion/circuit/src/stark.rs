@@ -4,23 +4,18 @@ use p3_air::Air;
 use p3_bn254_fr::Bn254Fr;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::TwoAdicField;
+use wp1_core::stark::{Com, ShardProof};
 use wp1_core::{
-    air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
-    stark::{Com, MachineStark, ShardCommitment, ShardProof, StarkGenericConfig, VerifyingKey},
+    air::MachineAir,
+    stark::{MachineStark, ShardCommitment, StarkGenericConfig, VerifyingKey},
 };
-use wp1_recursion_compiler::{
-    config::OuterConfig,
-    constraints::{Constraint, ConstraintCompiler},
-    ir::{Builder, Config, Usize, Witness},
-    prelude::SymbolicVar,
-};
-use wp1_recursion_core::stark::{
-    config::{outer_fri_config, BabyBearPoseidon2Outer},
-    RecursionAir,
-};
-use wp1_recursion_program::{
-    commit::PolynomialSpaceVariable, folder::RecursiveVerifierConstraintFolder,
-};
+use wp1_recursion_compiler::config::OuterConfig;
+use wp1_recursion_compiler::constraints::{Constraint, ConstraintCompiler};
+use wp1_recursion_compiler::ir::{Builder, Config, SymbolicVar, Usize, Witness};
+use wp1_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
+use wp1_recursion_core::stark::RecursionAir;
+use wp1_recursion_program::commit::PolynomialSpaceVariable;
+use wp1_recursion_program::folder::RecursiveVerifierConstraintFolder;
 
 use crate::{
     challenger::MultiField32ChallengerVariable,
@@ -276,12 +271,7 @@ pub fn build_wrap_circuit(
     let proof = dummy_proof.read(&mut builder);
     let ShardCommitment { main_commit, .. } = &proof.commitment;
     challenger.observe_commitment(&mut builder, *main_commit);
-    let pv_slice = proof.public_values.slice(
-        &mut builder,
-        Usize::Const(0),
-        Usize::Const(SP1_PROOF_NUM_PV_ELTS),
-    );
-    challenger.observe_slice(&mut builder, pv_slice);
+    challenger.observe_slice(&mut builder, proof.public_values.clone());
 
     StarkVerifierCircuit::<OuterC, OuterSC>::verify_shard(
         &mut builder,

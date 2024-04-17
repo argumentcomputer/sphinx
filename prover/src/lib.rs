@@ -345,7 +345,7 @@ impl SP1ProverImpl {
         proof.write(&mut witness);
         let constraints = build_wrap_circuit(&self.reduce_vk_outer, proof);
         let start = Instant::now();
-        groth16_ffi::prove(&constraints, witness);
+        groth16_ffi::prove(&constraints[..], witness);
         let duration = start.elapsed().as_secs();
         println!("wrap duration = {}", duration);
     }
@@ -353,16 +353,13 @@ impl SP1ProverImpl {
 
 #[cfg(test)]
 mod tests {
-
-    use wp1_core::{air::SP1_PROOF_NUM_PV_ELTS, utils::setup_logger};
+    use super::*;
+    use wp1_core::utils::setup_logger;
     use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
     use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
     use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
 
-    use super::*;
-
     #[test]
-    #[ignore]
     fn test_prove_sp1() {
         setup_logger();
         std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
@@ -393,8 +390,7 @@ mod tests {
         wp1_challenger.observe(vk.commit);
         for shard_proof in proof.shard_proofs.iter() {
             wp1_challenger.observe(shard_proof.commitment.main_commit);
-            wp1_challenger
-                .observe_slice(&shard_proof.public_values.clone()[0..SP1_PROOF_NUM_PV_ELTS]);
+            wp1_challenger.observe_slice(&shard_proof.public_values);
         }
 
         let start = Instant::now();
@@ -428,6 +424,6 @@ mod tests {
         let mut witness = Witness::default();
         reduce_proof.write(&mut witness);
 
-        groth16_ffi::prove(&constraints, witness);
+        groth16_ffi::prove(&constraints[..], witness);
     }
 }

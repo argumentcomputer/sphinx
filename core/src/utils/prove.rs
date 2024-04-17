@@ -10,14 +10,14 @@ use p3_field::PrimeField32;
 use serde::{de::DeserializeOwned, Serialize};
 use size::Size;
 
+use crate::runtime::{ExecutionRecord, ShardingConfig};
+use crate::stark::MachineRecord;
+use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};
+use crate::utils::env::shard_batch_size;
+use crate::utils::poseidon2_instance::RC_16_30;
 use crate::{
-    air::SP1_PROOF_NUM_PV_ELTS,
-    runtime::{ExecutionRecord, Program, Runtime, ShardingConfig},
-    stark::{
-        Com, LocalProver, MachineRecord, OpeningProof, PcsProverData, RiscvAir, ShardMainData,
-        ShardProof, StarkGenericConfig, UniConfig,
-    },
-    utils::{env::shard_batch_size, poseidon2_instance::RC_16_30},
+    runtime::{Program, Runtime},
+    stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
     SP1ProofWithIO, SP1PublicValues, SP1Stdin,
 };
 
@@ -193,7 +193,7 @@ where
 
         for (commitment, shard) in commitments.into_iter().zip(shards.iter()) {
             challenger.observe(commitment);
-            challenger.observe_slice(&shard.public_values::<SC::Val>()[0..SP1_PROOF_NUM_PV_ELTS]);
+            challenger.observe_slice(&shard.public_values::<SC::Val>());
         }
     }
 

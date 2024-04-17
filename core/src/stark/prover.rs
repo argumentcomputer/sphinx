@@ -15,16 +15,17 @@ use p3_maybe_rayon::prelude::*;
 use p3_util::{log2_ceil_usize, log2_strict_usize};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{
-    quotient_values, types::*, Com, MachineStark, OpeningProof, PcsProverData, ProvingKey,
-    StarkGenericConfig, Val, VerifierConstraintFolder,
-};
-use crate::{
-    air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
-    lookup::InteractionBuilder,
-    stark::{record::MachineRecord, MachineChip, PackedChallenge, ProverConstraintFolder},
-    utils::env,
-};
+use super::{quotient_values, MachineStark, PcsProverData, Val};
+use super::{types::*, StarkGenericConfig};
+use super::{Com, OpeningProof};
+use super::{ProvingKey, VerifierConstraintFolder};
+use crate::air::MachineAir;
+use crate::lookup::InteractionBuilder;
+use crate::stark::record::MachineRecord;
+use crate::stark::MachineChip;
+use crate::stark::PackedChallenge;
+use crate::stark::ProverConstraintFolder;
+use crate::utils::env;
 
 fn chunk_vec<T>(mut vec: Vec<T>, chunk_size: usize) -> Vec<Vec<T>> {
     let mut result = Vec::new();
@@ -83,8 +84,7 @@ where
                 .zip(shards.iter())
                 .for_each(|(commitment, shard)| {
                     challenger.observe(commitment);
-                    challenger
-                        .observe_slice(&shard.public_values::<SC::Val>()[0..SP1_PROOF_NUM_PV_ELTS]);
+                    challenger.observe_slice(&shard.public_values::<SC::Val>());
                 });
         });
 

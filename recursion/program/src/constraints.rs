@@ -165,7 +165,6 @@ mod tests {
     use p3_field::PrimeField32;
     use serde::{de::DeserializeOwned, Serialize};
     use wp1_core::{
-        air::SP1_PROOF_NUM_PV_ELTS,
         runtime::Program,
         stark::{
             Chip, Com, Dom, MachineStark, OpeningProof, PcsProverData, RiscvAir, ShardCommitment,
@@ -305,7 +304,7 @@ mod tests {
         challenger.observe(vk.commit);
         for proof in proof.shard_proofs.iter() {
             challenger.observe(proof.commitment.main_commit);
-            challenger.observe_slice(&proof.public_values[0..SP1_PROOF_NUM_PV_ELTS]);
+            challenger.observe_slice(&proof.public_values);
         }
 
         // Run the verify inside the DSL and compare it to the calculated value.
@@ -433,7 +432,7 @@ mod tests {
 
         for proof in proof.shard_proofs.iter() {
             challenger.observe(proof.commitment.main_commit);
-            challenger.observe_slice(&proof.public_values[0..SP1_PROOF_NUM_PV_ELTS]);
+            challenger.observe_slice(&proof.public_values);
         }
 
         // Run the verify inside the DSL and compare it to the calculated value.
