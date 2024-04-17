@@ -8,18 +8,27 @@ use p3_field::{AbstractField, Field, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Dimensions, Matrix};
 use p3_maybe_rayon::prelude::*;
 
-use super::{
-    debug_constraints, Chip, Com, Dom, PcsProverData, Proof, Prover, StarkGenericConfig, Val,
-    VerificationError, Verifier,
-};
-use crate::{
-    air::{MachineAir, SP1_PROOF_NUM_PV_ELTS},
-    lookup::{debug_interactions_with_all_chips, InteractionBuilder, InteractionKind},
-    stark::{
-        record::MachineRecord, DebugConstraintBuilder, ProverConstraintFolder, ShardProof,
-        VerifierConstraintFolder,
-    },
-};
+use super::debug_constraints;
+use super::Dom;
+use crate::air::MachineAir;
+use crate::lookup::debug_interactions_with_all_chips;
+use crate::lookup::InteractionBuilder;
+use crate::lookup::InteractionKind;
+use crate::stark::record::MachineRecord;
+use crate::stark::DebugConstraintBuilder;
+use crate::stark::ProverConstraintFolder;
+use crate::stark::ShardProof;
+use crate::stark::VerifierConstraintFolder;
+
+use super::Chip;
+use super::Com;
+use super::PcsProverData;
+use super::Proof;
+use super::Prover;
+use super::StarkGenericConfig;
+use super::Val;
+use super::VerificationError;
+use super::Verifier;
 
 pub type MachineChip<SC, A> = Chip<Val<SC>, A>;
 
@@ -239,7 +248,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> MachineStark<SC, A> {
         tracing::debug_span!("observe challenges for all shards").in_scope(|| {
             proof.shard_proofs.iter().for_each(|proof| {
                 challenger.observe(proof.commitment.main_commit.clone());
-                challenger.observe_slice(&proof.public_values[0..SP1_PROOF_NUM_PV_ELTS]);
+                challenger.observe_slice(&proof.public_values);
             });
         });
 

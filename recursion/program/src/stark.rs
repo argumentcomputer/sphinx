@@ -261,7 +261,6 @@ pub(crate) mod tests {
     use p3_field::AbstractField;
     use rand::Rng;
     use wp1_core::{
-        air::SP1_PROOF_NUM_PV_ELTS,
         runtime::Program,
         stark::{LocalProver, RiscvAir, ShardProof, StarkGenericConfig},
         utils::BabyBearPoseidon2,
@@ -270,7 +269,6 @@ pub(crate) mod tests {
         asm::AsmBuilder,
         config::InnerConfig,
         ir::{Array, Builder, ExtConst, Felt},
-        prelude::Usize,
     };
     use wp1_recursion_core::{
         runtime::{Runtime, DIGEST_SIZE},
@@ -316,7 +314,7 @@ pub(crate) mod tests {
 
         for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-            challenger_val.observe_slice(&proof.public_values[0..SP1_PROOF_NUM_PV_ELTS]);
+            challenger_val.observe_slice(&proof.public_values[..]);
         }
 
         let permutation_challenges = (0..2)
@@ -325,7 +323,6 @@ pub(crate) mod tests {
 
         // Observe all the commitments.
         let mut builder = Builder::<InnerConfig>::default();
-
         let mut challenger = DuplexChallengerVariable::new(&mut builder);
 
         let preprocessed_commit_val: [F; DIGEST_SIZE] = vk.commit.into();
@@ -338,12 +335,7 @@ pub(crate) mod tests {
             let proof = ShardProof::<BabyBearPoseidon2>::read(&mut builder);
             let ShardCommitmentVariable { main_commit, .. } = proof.commitment;
             challenger.observe(&mut builder, main_commit);
-            let pv_slice = proof.public_values.slice(
-                &mut builder,
-                Usize::Const(0),
-                Usize::Const(SP1_PROOF_NUM_PV_ELTS),
-            );
-            challenger.observe_slice(&mut builder, pv_slice);
+            challenger.observe_slice(&mut builder, proof.public_values);
         }
 
         // Sample the permutation challenges.
