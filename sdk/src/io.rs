@@ -111,11 +111,11 @@ impl SP1PublicValues {
     }
 }
 
-pub mod proof_serde {
+pub(crate) mod proof_serde {
     use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
     use wp1_core::stark::{Proof, StarkGenericConfig};
 
-    pub fn serialize<S, SC: StarkGenericConfig + Serialize>(
+    pub(crate) fn serialize<S, SC: StarkGenericConfig + Serialize>(
         proof: &Proof<SC>,
         serializer: S,
     ) -> Result<S::Ok, S::Error>
@@ -131,7 +131,7 @@ pub mod proof_serde {
         }
     }
 
-    pub fn deserialize<'de, D, SC: StarkGenericConfig + DeserializeOwned>(
+    pub(crate) fn deserialize<'de, D, SC: StarkGenericConfig + DeserializeOwned>(
         deserializer: D,
     ) -> Result<Proof<SC>, D::Error>
     where
