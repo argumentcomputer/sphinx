@@ -25,17 +25,36 @@ jobs:
           pull_token: ${{ secrets.REPO_TOKEN }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --exclude wp1-recursion-circuit -E 'all() - test(test_prove_sp1)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
         working-directory: ${{ github.workspace }}/examples
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
       - name: Run fibonacci-io example
-        uses: actions-rs/cargo@v1
+        run: |
+          cargo run --release --manifest-path examples/fibonacci-io/script/Cargo.toml
+
+  test-recursion-circuit:
+    name: Test recursion circuit
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
         with:
-          command: run
-          args: --release --manifest-path examples/fibonacci-io/script/Cargo.toml
-  
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
+      - name: Run cargo test on the recursion circuit
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci -p wp1-recursion-circuit
 
   clippy:
     runs-on: ubuntu-latest

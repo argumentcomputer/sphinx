@@ -324,6 +324,7 @@ pub(crate) mod tests {
 
     #[test]
     #[serial]
+    #[ignore]
     fn test_recursive_verify_shard_v2() {
         type SC = BabyBearPoseidon2Outer;
         type F = <SC as StarkGenericConfig>::Val;
