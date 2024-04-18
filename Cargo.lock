@@ -4971,7 +4971,6 @@ dependencies = [
  "tracing",
  "tracing-forest",
  "tracing-subscriber",
- "typenum",
  "web-time",
  "wp1-derive",
  "wp1-primitives",

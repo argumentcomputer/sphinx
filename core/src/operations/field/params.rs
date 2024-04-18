@@ -1,9 +1,7 @@
-use std::{
-    array::TryFromSliceError,
-    fmt::Debug,
-    ops::{Div, Mul, Shl, Shr, Sub},
-    slice::Iter,
-};
+use std::array::TryFromSliceError;
+use std::fmt::Debug;
+use std::ops::{Div, Mul, Shl, Shr, Sub};
+use std::slice::Iter;
 
 use hybrid_array::{
     sizes::{U32, U4},

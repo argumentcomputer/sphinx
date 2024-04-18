@@ -109,6 +109,25 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Install nightly toolchain
+        id: rustc-toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2024-04-17
+          profile: minimal
+          override: true
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+          cache-on-failure: true
+
+      - name: Set up git private repo access
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com/".insteadOf ssh://git@github.com
+          git config --global url."https://${{ secrets.PRIVATE_PULL_TOKEN }}@github.com".insteadOf https://github.com
+
       - name: Apple M1 setup
         if: matrix.target == 'aarch64-apple-darwin'
         run: |

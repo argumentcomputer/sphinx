@@ -114,7 +114,6 @@ tracing = "0.1.40"
 tracing-forest = "0.1.6"
 tracing-subscriber = "0.3.17"
 twirp = { git = "https://github.com/github/twirp-rs.git" }
-typenum = "1.17.0"
 vergen = { version = "8", default-features = false }
 web-time = "1.1.0"
 yansi = "1.0.1"

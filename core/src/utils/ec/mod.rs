@@ -4,10 +4,8 @@ pub mod scalar_mul;
 pub mod utils;
 pub mod weierstrass;
 
-use std::{
-    fmt::{Debug, Display, Formatter, Result},
-    ops::{Add, Neg},
-};
+use std::fmt::{Debug, Display, Formatter, Result};
+use std::ops::{Add, Neg};
 
 use field::FieldParameters;
 use hybrid_array::{typenum::Unsigned, Array};

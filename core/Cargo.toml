@@ -40,7 +40,6 @@ arrayref = { workspace = true }
 blake3 = { workspace = true }
 bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
-typenum = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
 hashbrown = { workspace = true }
