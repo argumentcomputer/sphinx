@@ -3499,7 +3499,6 @@ dependencies = [
 name = "tendermint-benchmark-script"
 version = "0.1.0"
 dependencies = [
- "wp1-core",
  "wp1-helper",
  "wp1-sdk",
 ]

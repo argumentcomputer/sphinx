@@ -3,10 +3,12 @@ use wp1_sdk::{utils, ProverClient, SP1Stdin};
 const ED25519_ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
 fn main() {
-    // Generate proof.
+    // Setup logger.
     utils::setup_logger();
-    let stdin = SP1Stdin::new();
+
+    // Generate proof.
     let client = ProverClient::new();
+    let stdin = SP1Stdin::new();
     let proof = client.prove(ED25519_ELF, stdin).expect("proving failed");
 
     // Verify proof.
