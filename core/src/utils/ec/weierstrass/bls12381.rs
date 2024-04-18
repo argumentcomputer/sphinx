@@ -235,10 +235,10 @@ impl Syscall for WeierstrassDecompressChip<Bls12381> {
 pub fn bls12381_decompress<E: EllipticCurve>(bytes_be: &[u8], is_odd: u32) -> AffinePoint<E> {
     let mut arr_be: [u8; 48] = bytes_be.try_into().expect("Invalid input length");
     // assume we're receiving an unmasked point in compressed form, re-do the masking for bls12_381
-    arr_be[0] |= 1 << 7; // activate the compression flag
     if arr_be == [0u8; 48] {
         arr_be[0] |= 1 << 6; // infinity case
     }
+    arr_be[0] |= 1 << 7; // activate the compression flag
     arr_be[0] |= (is_odd as u8 ^ 1) << 5; // sign bit
 
     let Some(point): Option<G1Affine> = G1Affine::from_compressed(&arr_be).into() else {
