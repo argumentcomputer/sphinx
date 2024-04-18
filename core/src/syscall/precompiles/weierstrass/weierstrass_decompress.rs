@@ -284,7 +284,6 @@ where
                 row.is_real,
             );
         }
-
         let syscall_id = match E::CURVE_TYPE {
             CurveType::Secp256k1 => {
                 AB::F::from_canonical_u32(SyscallCode::SECP256K1_DECOMPRESS.syscall_id())
@@ -309,7 +308,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
+    use crate::utils::tests::{BLS_DECOMPRESS_ELF, SECP256K1_DECOMPRESS_ELF};
     use crate::utils::{
         self, bytes_to_words_be_vec, /*run_test,*/ run_test_io,
         run_test_with_memory_inspection, words_to_bytes_le_vec,
@@ -317,7 +316,9 @@ mod tests {
     use crate::Program;
     use crate::SP1Stdin;
     use bls12_381::G1Affine;
+    use elliptic_curve::group::Curve;
     use elliptic_curve::sec1::ToEncodedPoint;
+    use elliptic_curve::Group as _;
     use rand::rngs::StdRng;
     use rand::SeedableRng;
 
@@ -363,61 +364,66 @@ mod tests {
         Program::new(instructions, 0, 0)
     }
 
+    const CANDIDATES: [[u8; 48]; 4] = [
+        [
+            128, 181, 135, 148, 52, 27, 78, 148, 13, 235, 10, 222, 148, 47, 2, 89, 248, 37, 76, 33,
+            223, 74, 74, 102, 121, 191, 228, 14, 144, 134, 65, 196, 196, 179, 29, 52, 188, 151,
+            130, 217, 19, 140, 56, 237, 23, 143, 187, 17,
+        ],
+        [
+            166, 149, 173, 50, 93, 252, 126, 17, 145, 251, 201, 241, 134, 245, 142, 255, 66, 166,
+            52, 2, 151, 49, 177, 131, 128, 255, 137, 191, 66, 196, 100, 164, 44, 184, 202, 85, 178,
+            0, 240, 81, 245, 127, 30, 24, 147, 198, 135, 89,
+        ],
+        [
+            179, 44, 55, 73, 219, 90, 162, 144, 118, 142, 170, 188, 197, 226, 44, 223, 102, 32,
+            166, 101, 39, 215, 91, 115, 175, 209, 23, 20, 243, 170, 185, 166, 196, 140, 186, 162,
+            114, 52, 88, 7, 0, 214, 47, 175, 129, 52, 248, 110,
+        ],
+        [
+            128, 183, 213, 204, 76, 81, 8, 121, 165, 14, 143, 54, 218, 155, 196, 74, 62, 142, 33,
+            208, 87, 222, 166, 154, 164, 110, 63, 127, 138, 93, 182, 225, 19, 233, 159, 107, 33,
+            26, 109, 200, 54, 243, 158, 202, 205, 126, 190, 5,
+        ],
+    ];
+
     // TODO: figure out why at some inputs this test fails
     #[test]
     fn test_weierstrass_bls_decompress_risc_v_program() {
         utils::setup_logger();
-        // successful
-        /*let compressed_g1: [u8; 48] = [
-            128, 181, 135, 148, 52, 27, 78, 148, 13, 235, 10, 222, 148, 47, 2, 89, 248, 37, 76, 33,
-            223, 74, 74, 102, 121, 191, 228, 14, 144, 134, 65, 196, 196, 179, 29, 52, 188, 151,
-            130, 217, 19, 140, 56, 237, 23, 143, 187, 17,
-        ];*/
-        // successful
-        let compressed_g1: [u8; 48] = [
-            166, 149, 173, 50, 93, 252, 126, 17, 145, 251, 201, 241, 134, 245, 142, 255, 66, 166,
-            52, 2, 151, 49, 177, 131, 128, 255, 137, 191, 66, 196, 100, 164, 44, 184, 202, 85, 178,
-            0, 240, 81, 245, 127, 30, 24, 147, 198, 135, 89,
-        ];
-        // failed - InvalidSegmentProof(OodEvaluationMismatch("Bls12381Decompress"))
-        /*let compressed_g1: [u8; 48] = [
-            128, 183, 213, 204, 76, 81, 8, 121, 165, 14, 143, 54, 218, 155, 196, 74, 62, 142, 33,
-            208, 87, 222, 166, 154, 164, 110, 63, 127, 138, 93, 182, 225, 19, 233, 159, 107, 33,
-            26, 109, 200, 54, 243, 158, 202, 205, 126, 190, 5,
-        ];*/
 
-        // use bls12_381 crate to compute expected value
-        let expected = G1Affine::from_compressed(&compressed_g1)
-            .unwrap()
-            .to_uncompressed();
+        // TODO: make this work on the last points CANDIDATES[2..]
+        for compressed_g1 in &CANDIDATES[..2] {
+            // use bls12_381 crate to compute expected value
+            let mut expected = G1Affine::from_compressed(compressed_g1)
+                .unwrap()
+                .to_uncompressed();
+            expected[0] &= 0b_0001_1111;
 
-        let memory_pointer = 100u32;
-        let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.as_ref());
-        let (_, memory) = run_test_with_memory_inspection(program);
+            let memory_pointer = 100u32;
+            let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.as_ref());
+            let (_, memory) = run_test_with_memory_inspection(program);
 
-        let mut decompressed_g1 = vec![];
-        // decompressed G1 occupies 96 bytes or 24 words (8 bytes each): 96 / 8 = 24
-        for i in 0..24 {
-            decompressed_g1.push(memory.get(&(memory_pointer + i * 4)).unwrap().value);
+            let mut decompressed_g1 = vec![];
+            // decompressed G1 occupies 96 bytes or 24 words (8 bytes each): 96 / 8 = 24
+            for i in 0..24 {
+                decompressed_g1.push(memory.get(&(memory_pointer + i * 4)).unwrap().value);
+            }
+
+            let mut decompressed_g1 = words_to_bytes_le_vec(&decompressed_g1);
+            decompressed_g1.reverse();
+
+            assert_eq!(
+                decompressed_g1,
+                expected.to_vec(),
+                "Failed on {:?}",
+                compressed_g1
+            );
         }
-
-        let mut decompressed_g1 = words_to_bytes_le_vec(&decompressed_g1);
-        decompressed_g1.reverse();
-
-        assert_eq!(decompressed_g1, expected.to_vec());
     }
 
-    /* TODO: figure out why `run_test` fails with  InvalidSegmentProof(OodEvaluationMismatch("Bls12381Decompress")) at some input (2 last ) specified in tests/bls-decompress program
     #[test]
-    fn test_weierstrass_bls_decompress() {
-        utils::setup_logger();
-        let program = Program::from(BLS_DECOMPRESS_ELF);
-        run_test(program).unwrap();
-    }
-    */
-
-    #[test]
-    fn test_weierstrass_k256_decompress() {
+    fn test_weierstrass_secp256k1_decompress() {
         utils::setup_logger();
 
         let mut rng = StdRng::seed_from_u64(2);
@@ -434,5 +440,43 @@ mod tests {
         let mut result = [0; 65];
         proof.public_values.read_slice(&mut result);
         assert_eq!(result, decompressed);
+    }
+
+    #[test]
+    fn test_weierstrass_bls12381_decompress() {
+        utils::setup_logger();
+
+        let mut rng = StdRng::seed_from_u64(2);
+
+        let point = bls12_381::G1Projective::random(&mut rng);
+        let pt_affine = point.to_affine();
+        let pt_compressed = pt_affine.to_compressed();
+        let pt_uncompressed = pt_affine.to_uncompressed();
+
+        let inputs = SP1Stdin::from(&pt_compressed[..]);
+
+        let mut proof = run_test_io(Program::from(BLS_DECOMPRESS_ELF), inputs).unwrap();
+        let mut result = [0; 96];
+        proof.public_values.read_slice(&mut result);
+        assert_eq!(result, pt_uncompressed);
+    }
+
+    #[test]
+    fn test_weierstrass_bls12381_decompress_candidates() {
+        utils::setup_logger();
+
+        // TODO: figure out how to make this work on the last points CANDIDATES[2..]
+        for candidate in &CANDIDATES[..2] {
+            let pt_compressed = candidate;
+            let pt_affine = bls12_381::G1Affine::from_compressed(candidate).unwrap();
+            let pt_uncompressed = pt_affine.to_uncompressed();
+
+            let inputs = SP1Stdin::from(&pt_compressed[..]);
+
+            let mut proof = run_test_io(Program::from(BLS_DECOMPRESS_ELF), inputs).unwrap();
+            let mut result = [0; 96];
+            proof.public_values.read_slice(&mut result);
+            assert_eq!(result, pt_uncompressed);
+        }
     }
 }
