@@ -365,8 +365,7 @@ impl SP1ProverImpl {
         wp1_vk.observe_into(&mut wp1_challenger);
         for shard_proof in shard_proofs.iter() {
             wp1_challenger.observe(shard_proof.commitment.main_commit);
-            wp1_challenger
-                .observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
+            wp1_challenger.observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
         }
         wp1_challenger
     }
