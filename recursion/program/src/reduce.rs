@@ -26,13 +26,15 @@ use wp1_recursion_compiler::ir::Felt;
 use wp1_recursion_compiler::ir::MemVariable;
 use wp1_recursion_compiler::ir::Var;
 use wp1_recursion_core::air::PublicValues as RecursionPublicValues;
+use wp1_recursion_core::cpu::Instruction;
 use wp1_recursion_core::runtime::RecursionProgram;
 use wp1_recursion_core::runtime::DIGEST_SIZE;
 use wp1_recursion_core::stark::RecursionAir;
 use wp1_sdk::utils::BabyBearPoseidon2;
 use wp1_sdk::PublicValues;
 
-use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
+use crate::challenger::CanObserveVariable;
+use crate::challenger::DuplexChallengerVariable;
 use crate::fri::types::FriConfigVariable;
 use crate::fri::TwoAdicFriPcsVariable;
 use crate::fri::TwoAdicMultiplicativeCosetVariable;
@@ -95,7 +97,26 @@ fn felt_to_var(builder: &mut RecursionBuilder, felt: Felt<BabyBear>) -> Var<Baby
     builder.bits2num_v(&bits)
 }
 
-pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
+/// Builds a reduce program. Returns a setup program and a reduce program, where the setup one is
+/// used to initialize witness variables without costing cycles.
+pub fn build_reduce_program() -> (RecursionProgram<Val>, RecursionProgram<Val>) {
+    let reduce_setup_program = build_reduce_program_setup(true);
+    let mut reduce_program = build_reduce_program_setup(false);
+    reduce_program.instructions[0] = Instruction::new(
+        wp1_recursion_core::runtime::Opcode::ADD,
+        BabyBear::zero(),
+        [BabyBear::zero(); 4],
+        [BabyBear::zero(); 4],
+        BabyBear::zero(),
+        BabyBear::zero(),
+        false,
+        false,
+        "".to_string(),
+    );
+    (reduce_setup_program, reduce_program)
+}
+
+fn build_reduce_program_setup(setup: bool) -> RecursionProgram<Val> {
     let wp1_machine = RiscvAir::machine(BabyBearPoseidon2::default());
     let recursion_machine = RecursionAir::machine(BabyBearPoseidon2Inner::default());
 

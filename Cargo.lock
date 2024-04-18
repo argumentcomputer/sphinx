@@ -5042,6 +5042,8 @@ dependencies = [
  "p3-field",
  "rayon",
  "serde",
+ "serde_json",
+ "tracing",
  "wp1-core",
  "wp1-recursion-circuit",
  "wp1-recursion-compiler",
@@ -5054,6 +5056,7 @@ dependencies = [
 name = "wp1-recursion-circuit"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "ff 0.13.0",
  "itertools 0.12.1",
  "p3-air",

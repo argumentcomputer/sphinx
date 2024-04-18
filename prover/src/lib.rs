@@ -21,7 +21,6 @@ use wp1_core::{
 use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
 use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
 use wp1_recursion_core::{
-    cpu::Instruction,
     runtime::{RecursionProgram, Runtime},
     stark::{config::BabyBearPoseidon2Outer, RecursionAir},
 };
@@ -54,6 +53,8 @@ impl From<ShardProof<SP1SC>> for ReduceProofType {
     }
 }
 
+// TODO: We should not need this, once reduce program public inputs are committed directly, we can
+// read these values from the proof public values.
 #[derive(Serialize, Deserialize)]
 #[serde(bound(serialize = "ShardProof<SC>: Serialize"))]
 #[serde(bound(deserialize = "ShardProof<SC>: Deserialize<'de>"))]
@@ -65,19 +66,19 @@ pub struct ReduceProof<SC: StarkGenericConfig> {
     pub next_shard: SC::Val,
 }
 
-impl<SC: StarkGenericConfig> From<ShardProof<SC>> for ReduceProof<SC> {
-    fn from(proof: ShardProof<SC>) -> Self {
-        let pv = PublicValues::<Word<SC::Val>, SC::Val>::from_vec(&proof.public_values);
+impl From<ShardProof<SP1SC>> for ReduceProof<SP1SC> {
+    fn from(proof: ShardProof<SP1SC>) -> Self {
+        let pv = PublicValues::<Word<BabyBear>, BabyBear>::from_vec(&proof.public_values);
 
         ReduceProof {
             proof,
             start_pc: pv.start_pc,
             next_pc: pv.next_pc,
             start_shard: pv.shard,
-            next_shard: if pv.next_pc == SC::Val::zero() {
-                SC::Val::zero()
+            next_shard: if pv.next_pc == BabyBear::zero() {
+                BabyBear::zero()
             } else {
-                pv.shard + SC::Val::one()
+                pv.shard + BabyBear::one()
             },
         }
     }
@@ -123,19 +124,7 @@ fn get_preprocessed_data<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
 impl SP1ProverImpl {
     pub fn new() -> Self {
         // TODO: load from serde
-        let reduce_setup_program = build_reduce_program(true);
-        let mut reduce_program = build_reduce_program(false);
-        reduce_program.instructions[0] = Instruction::new(
-            wp1_recursion_core::runtime::Opcode::ADD,
-            BabyBear::zero(),
-            [BabyBear::zero(); 4],
-            [BabyBear::zero(); 4],
-            BabyBear::zero(),
-            BabyBear::zero(),
-            false,
-            false,
-            "".to_string(),
-        );
+        let (reduce_setup_program, reduce_program) = build_reduce_program();
         let (_, reduce_vk_inner) = RecursionAir::machine(InnerSC::default()).setup(&reduce_program);
         let (_, reduce_vk_outer) = RecursionAir::machine(OuterSC::default()).setup(&reduce_program);
         Self {
@@ -364,14 +353,36 @@ impl SP1ProverImpl {
         }
     }
 
+    /// Initialize a challenger given a verifying key and a list of shard proofs.
+    pub fn initialize_challenger(
+        &self,
+        wp1_vk: &VerifyingKey<SP1SC>,
+        shard_proofs: &[ShardProof<SP1SC>],
+    ) -> Challenger<SP1SC> {
+        let wp1_config = SP1SC::default();
+        let wp1_machine = RiscvAir::machine(wp1_config);
+        let mut wp1_challenger = wp1_machine.config().challenger();
+        wp1_vk.observe_into(&mut wp1_challenger);
+        for shard_proof in shard_proofs.iter() {
+            wp1_challenger.observe(shard_proof.commitment.main_commit);
+            wp1_challenger
+                .observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
+        }
+        wp1_challenger
+    }
+
     /// Recursively reduce proofs into a single proof using an N-ary tree.
     pub fn reduce_tree<const N: usize>(
         &self,
         wp1_vk: &VerifyingKey<SP1SC>,
-        wp1_challenger: &Challenger<SP1SC>,
         proof: Proof<SP1SC>,
         // deferred_proofs: &[(ReduceProof, &VerifyingKey<SP1SC>)],
     ) -> ReduceProof<InnerSC> {
+        // Observe all commitments and public values. This challenger will be witnessed into
+        // reduce program and used to verify sp1 proofs. It will also be reconstructed over all the
+        // reduce steps to prove that the witnessed challenger was correct.
+        let wp1_challenger = self.initialize_challenger(wp1_vk, &proof.shard_proofs);
+
         let mut reduce_proofs = proof
             .shard_proofs
             .into_iter()
@@ -395,7 +406,7 @@ impl SP1ProverImpl {
         while reduce_proofs.len() > 1 {
             println!("layer = {}, num_proofs = {}", layer, reduce_proofs.len());
             let start = Instant::now();
-            reduce_proofs = self.reduce_layer::<N>(wp1_vk, wp1_challenger, reduce_proofs);
+            reduce_proofs = self.reduce_layer::<N>(wp1_vk, &wp1_challenger, reduce_proofs);
             let duration = start.elapsed().as_secs();
             println!("layer {}, reduce duration = {}", layer, duration);
             layer += 1;
@@ -405,7 +416,7 @@ impl SP1ProverImpl {
             ReduceProofType::Recursive(proof) => proof,
             ReduceProofType::SP1(_) => {
                 // If there's only one shard, we still want to wrap it into an inner proof.
-                self.reduce(wp1_vk, wp1_challenger, &[last_proof], &[])
+                self.reduce(wp1_vk, &wp1_challenger, &[last_proof], &[])
             }
             _ => unreachable!(),
         }
@@ -457,9 +468,8 @@ impl SP1ProverImpl {
         &self,
         wp1_vk: &VerifyingKey<SP1SC>, // TODO: we could read these from proof public values
         wp1_challenger: &Challenger<SP1SC>,
-        proof: ShardProof<InnerSC>,
+        reduce_proof: ReduceProof<InnerSC>,
     ) -> ShardProof<OuterSC> {
-        let reduce_proof = proof.into();
         self.reduce(
             wp1_vk,
             wp1_challenger,
@@ -516,23 +526,14 @@ mod tests {
             .unwrap()
             .proof;
         machine.verify(&vk, &proof, &mut challenger).unwrap();
-
         let prover = SP1ProverImpl::new();
+        let wp1_challenger = prover.initialize_challenger(&vk, &proof.shard_proofs);
+
         let wp1_machine = RiscvAir::machine(SP1SC::default());
         let (_, vk) = wp1_machine.setup(&Program::from(elf));
 
-        // Observe all commitments and public values. This challenger will be witnessed into
-        // reduce program and used to verify sp1 proofs. It will also be reconstructed over all the
-        // reduce steps to prove that the witnessed challenger was correct.
-        let mut wp1_challenger = wp1_machine.config().challenger();
-        vk.observe_into(&mut wp1_challenger);
-        for shard_proof in proof.shard_proofs.iter() {
-            wp1_challenger.observe(shard_proof.commitment.main_commit);
-            wp1_challenger.observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
-        }
-
         let start = Instant::now();
-        let final_proof = prover.reduce_tree::<2>(&vk, &wp1_challenger, proof);
+        let final_proof = prover.reduce_tree::<2>(&vk, proof);
         let duration = start.elapsed().as_secs();
         println!("full reduce duration = {}", duration);
 
@@ -541,7 +542,7 @@ mod tests {
         std::fs::write("final.bin", serialized).unwrap();
 
         // Wrap into outer proof
-        let outer_proof = prover.wrap_into_outer(&vk, &wp1_challenger, final_proof.proof);
+        let outer_proof = prover.wrap_into_outer(&vk, &wp1_challenger, final_proof);
 
         // Wrap the final proof into a groth16 proof
         prover.wrap_into_groth16(&outer_proof);
@@ -599,13 +600,7 @@ mod tests {
                 .unwrap();
             println!("verified fibonacci");
 
-            let mut challenger = wp1_machine.config().challenger();
-            fibonacci_vk.observe_into(&mut challenger);
-            for shard_proof in fibonacci_proof.shard_proofs.iter() {
-                challenger.observe(shard_proof.commitment.main_commit);
-                challenger.observe_slice(&shard_proof.public_values);
-            }
-            let final_proof = prover.reduce_tree::<2>(&fibonacci_vk, &challenger, fibonacci_proof);
+            let final_proof = prover.reduce_tree::<2>(&fibonacci_vk, fibonacci_proof);
 
             let proof = Proof {
                 shard_proofs: vec![final_proof.proof],
