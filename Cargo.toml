@@ -116,6 +116,7 @@ tracing-subscriber = "0.3.17"
 twirp = { git = "https://github.com/github/twirp-rs.git" }
 typenum = "1.17.0"
 vergen = { version = "8", default-features = false }
+web-time = "1.1.0"
 yansi = "1.0.1"
 zkhash = { git = "https://github.com/HorizenLabs/poseidon2" }
 bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git", branch = "zkvm" }
