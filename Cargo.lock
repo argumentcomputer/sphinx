@@ -4986,7 +4986,6 @@ dependencies = [
  "serde_json",
  "serde_with",
  "size",
- "snowbridge-amcl",
  "strum",
  "strum_macros",
  "tempfile",

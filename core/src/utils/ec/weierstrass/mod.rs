@@ -8,7 +8,7 @@ use crate::utils::ec::utils::biguint_to_bits_le;
 use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
 pub mod bls12381;
-use super::{CurveType, WithAddition, WithDoubling};
+use super::{CurveType, WithAddition, WithDecompression, WithDoubling};
 
 pub mod bn254;
 pub mod secp256k1;
@@ -93,6 +93,16 @@ impl<E: WithDoubling + WeierstrassParameters> WithDoubling for SwCurve<E> {
         <Self::BaseField as FieldParameters>::NB_LIMBS,
     >] {
         E::double_events(record)
+    }
+}
+
+impl<E: WithDecompression + WeierstrassParameters> WithDecompression for SwCurve<E> {
+    fn decompression_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        E::decompression_events(record)
     }
 }
 

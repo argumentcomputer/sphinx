@@ -15,8 +15,10 @@ use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
 use crate::runtime::Syscall;
 use crate::stark::WeierstrassAddAssignChip;
+use crate::stark::WeierstrassDecompressChip;
 use crate::stark::WeierstrassDoubleAssignChip;
 use crate::syscall::precompiles::create_ec_add_event;
+use crate::syscall::precompiles::create_ec_decompress_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::field::FieldType;
@@ -25,6 +27,7 @@ use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::ec::EllipticCurveParameters;
 use crate::utils::ec::WithAddition;
+use crate::utils::ec::WithDecompression;
 use crate::utils::ec::WithDoubling;
 use k256::FieldElement;
 use num::traits::FromBytes;
@@ -80,6 +83,16 @@ impl WithDoubling for Secp256k1Parameters {
         <Self::BaseField as FieldParameters>::NB_LIMBS,
     >] {
         &record.secp256k1_double_events
+    }
+}
+
+impl WithDecompression for Secp256k1Parameters {
+    fn decompression_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.secp256k1_decompress_events
     }
 }
 
@@ -157,6 +170,19 @@ impl Syscall for WeierstrassDoubleAssignChip<Secp256k1> {
     ) -> Option<u32> {
         let event = create_ec_double_event::<Secp256k1>(rt, arg1, arg2);
         rt.record_mut().secp256k1_double_events.push(event);
+        None
+    }
+}
+
+impl Syscall for WeierstrassDecompressChip<Secp256k1> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_decompress_event::<Secp256k1>(rt, arg1, arg2);
+        rt.record_mut().secp256k1_decompress_events.push(event);
         None
     }
 }

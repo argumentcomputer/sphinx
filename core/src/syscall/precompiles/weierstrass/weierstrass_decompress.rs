@@ -22,21 +22,18 @@ use crate::memory::MemoryReadWriteCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::field_sqrt::FieldSqrtCols;
-use crate::operations::field::params::Limbs;
 use crate::operations::field::params::WORDS_FIELD_ELEMENT;
+use crate::operations::field::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T};
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
-use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::create_ec_decompress_event;
-use crate::syscall::precompiles::SyscallContext;
 use crate::utils::bytes_to_words_le_vec;
 use crate::utils::ec::field::FieldParameters;
 use crate::utils::ec::weierstrass::bls12381::bls12381_sqrt;
 use crate::utils::ec::weierstrass::secp256k1::secp256k1_sqrt;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
-use crate::utils::ec::EllipticCurve;
 use crate::utils::ec::{BaseLimbWidth, CurveType};
+use crate::utils::ec::{EllipticCurve, WithDecompression};
 use crate::utils::limbs_from_access;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
@@ -47,41 +44,25 @@ use crate::utils::pad_vec_rows;
 /// made generic in the future.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct WeierstrassDecompressCols<T, P: FieldParameters> {
+pub struct WeierstrassDecompressCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub is_real: T,
     pub shard: T,
     pub clk: T,
     pub ptr: T,
     pub is_odd: T,
-    pub x_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
-    pub y_access: Array<MemoryReadWriteCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
-    pub(crate) x_2: FieldOpCols<T, P::NB_LIMBS>,
-    pub(crate) x_3: FieldOpCols<T, P::NB_LIMBS>,
-    pub(crate) x_3_plus_b: FieldOpCols<T, P::NB_LIMBS>,
-    pub(crate) y: FieldSqrtCols<T, P::NB_LIMBS>,
-    pub(crate) neg_y: FieldOpCols<T, P::NB_LIMBS>,
+    pub x_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<U>>,
+    pub y_access: Array<MemoryReadWriteCols<T>, WORDS_FIELD_ELEMENT<U>>,
+    pub(crate) x_2: FieldOpCols<T, U>,
+    pub(crate) x_3: FieldOpCols<T, U>,
+    pub(crate) x_3_plus_b: FieldOpCols<T, U>,
+    pub(crate) y: FieldSqrtCols<T, U>,
+    pub(crate) neg_y: FieldOpCols<T, U>,
     pub(crate) y_least_bits: [T; 8],
 }
 
 #[derive(Default)]
 pub struct WeierstrassDecompressChip<E> {
     _marker: PhantomData<E>,
-}
-
-impl<E: EllipticCurve> Syscall for WeierstrassDecompressChip<E> {
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_ec_decompress_event::<E>(rt, arg1, arg2);
-        match E::CURVE_TYPE {
-            CurveType::Secp256k1 => rt.record_mut().k256_decompress_events.push(event),
-            CurveType::Bls12381 => rt.record_mut().bls12381_decompress_events.push(event),
-            _ => panic!("Unsupported curve"),
-        }
-        None
-    }
-
-    fn num_extra_cycles(&self) -> u32 {
-        0
-    }
 }
 
 impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
@@ -92,7 +73,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
     }
 
     fn populate_field_ops<F: PrimeField32>(
-        cols: &mut WeierstrassDecompressCols<F, E::BaseField>,
+        cols: &mut WeierstrassDecompressCols<F, BaseLimbWidth<E>>,
         x: &BigUint,
     ) {
         // Y = sqrt(x^3 + b)
@@ -126,7 +107,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDecompressChip<E> {
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
+impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDecompression> MachineAir<F>
     for WeierstrassDecompressChip<E>
 {
     type Record = ExecutionRecord;
@@ -145,13 +126,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         input: &ExecutionRecord,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let num_cols = size_of::<WeierstrassDecompressCols<u8, E::BaseField>>();
-
-        let events = match E::CURVE_TYPE {
-            CurveType::Secp256k1 => &input.k256_decompress_events,
-            CurveType::Bls12381 => &input.bls12381_decompress_events,
-            _ => panic!("Unsupported curve"),
-        };
+        // collects the events based on the curve type.
+        let events = E::decompression_events(input);
 
         let mut rows = Vec::new();
 
@@ -159,8 +135,9 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
         for i in 0..events.len() {
             let event = events[i].clone();
-            let mut row = vec![F::zero(); num_cols];
-            let cols: &mut WeierstrassDecompressCols<F, E::BaseField> =
+            let mut row =
+                vec![F::zero(); size_of::<WeierstrassDecompressCols<u8, BaseLimbWidth<E>>>()];
+            let cols: &mut WeierstrassDecompressCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
 
             cols.is_real = F::from_bool(true);
@@ -185,8 +162,9 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         output.add_byte_lookup_events(new_byte_lookup_events);
 
         pad_vec_rows(&mut rows, || {
-            let mut row = vec![F::zero(); num_cols];
-            let cols: &mut WeierstrassDecompressCols<F, E::BaseField> =
+            let mut row =
+                vec![F::zero(); size_of::<WeierstrassDecompressCols<u8, BaseLimbWidth<E>>>()];
+            let cols: &mut WeierstrassDecompressCols<F, BaseLimbWidth<E>> =
                 row.as_mut_slice().borrow_mut();
 
             // take X of the generator as a dummy value to make sure Y^2 = X^3 + b holds
@@ -201,12 +179,15 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
             row
         });
 
-        RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols)
+        RowMajorMatrix::new(
+            rows.into_iter().flatten().collect::<Vec<_>>(),
+            size_of::<WeierstrassDecompressCols<u8, BaseLimbWidth<E>>>(),
+        )
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
         match E::CURVE_TYPE {
-            CurveType::Secp256k1 => !shard.k256_decompress_events.is_empty(),
+            CurveType::Secp256k1 => !shard.secp256k1_decompress_events.is_empty(),
             CurveType::Bls12381 => !shard.bls12381_decompress_events.is_empty(),
             _ => panic!("Unsupported curve"),
         }
@@ -215,7 +196,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
 impl<F, E: EllipticCurve> BaseAir<F> for WeierstrassDecompressChip<E> {
     fn width(&self) -> usize {
-        size_of::<WeierstrassDecompressCols<u8, E::BaseField>>()
+        size_of::<WeierstrassDecompressCols<u8, BaseLimbWidth<E>>>()
     }
 }
 
@@ -227,7 +208,7 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let row = main.row_slice(0);
-        let row: &WeierstrassDecompressCols<AB::Var, E::BaseField> = (*row).borrow();
+        let row: &WeierstrassDecompressCols<AB::Var, BaseLimbWidth<E>> = (*row).borrow();
 
         let num_limbs = BaseLimbWidth::<E>::USIZE;
         let num_words_field_element = num_limbs / 4;
@@ -334,10 +315,7 @@ mod tests {
         run_test_with_memory_inspection, words_to_bytes_le_vec,
     };
     use crate::Program;
-    use crate::{
-        //utils::{self, tests::BLS_DECOMPRESS_ELF},
-        SP1Stdin,
-    };
+    use crate::SP1Stdin;
     use bls12_381::G1Affine;
     use elliptic_curve::sec1::ToEncodedPoint;
     use rand::rngs::StdRng;

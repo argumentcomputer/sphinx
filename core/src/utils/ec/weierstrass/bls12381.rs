@@ -1,16 +1,18 @@
+use bls12_381::fp::Fp;
+use bls12_381::G1Affine;
 use hybrid_array::typenum::U48;
 use hybrid_array::Array;
-use num::{BigUint, Num, Zero};
+use num::{BigUint, Num, One as _, Zero};
 use serde::{Deserialize, Serialize};
-
-use amcl::bls381::big::Big;
-use amcl::bls381::bls381::utils::deserialize_g1;
-use amcl::bls381::fp::FP;
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::runtime::Syscall;
-use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
-use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
+use crate::stark::{
+    WeierstrassAddAssignChip, WeierstrassDecompressChip, WeierstrassDoubleAssignChip,
+};
+use crate::syscall::precompiles::{
+    create_ec_add_event, create_ec_decompress_event, create_ec_double_event,
+};
 use crate::utils::ec::field::{
     FieldParameters,
     FieldType,
@@ -22,12 +24,9 @@ use crate::utils::ec::field::{
     WithQuadFieldSubtraction, //NumLimbs
 };
 use crate::utils::ec::{
-    AffinePoint, CurveType, EllipticCurve, EllipticCurveParameters, WithAddition, WithDoubling,
+    AffinePoint, CurveType, EllipticCurve, EllipticCurveParameters, WithAddition,
+    WithDecompression, WithDoubling,
 };
-
-// Serialization flags
-const COMPRESION_FLAG: u8 = 0b_1000_0000;
-const Y_IS_ODD_FLAG: u8 = 0b_0010_0000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -139,6 +138,16 @@ impl WithDoubling for Bls12381Parameters {
     }
 }
 
+impl WithDecompression for Bls12381Parameters {
+    fn decompression_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.bls12381_decompress_events
+    }
+}
+
 /// The WeierstrassParameters for BLS12-381 G1
 impl WeierstrassParameters for Bls12381Parameters {
     const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
@@ -197,33 +206,6 @@ impl Syscall for WeierstrassAddAssignChip<Bls12381> {
     }
 }
 
-pub fn bls12381_decompress<E: EllipticCurve>(bytes_be: &[u8], is_odd: u32) -> AffinePoint<E> {
-    let mut g1_bytes_be: [u8; 48] = bytes_be.try_into().unwrap();
-    let mut flags = COMPRESION_FLAG;
-    if is_odd == 0 {
-        flags |= Y_IS_ODD_FLAG;
-    };
-
-    // set sign and compression flag
-    g1_bytes_be[0] |= flags;
-    let point = deserialize_g1(&g1_bytes_be).unwrap();
-
-    let x_str = point.getx().to_string();
-    let x = BigUint::from_str_radix(x_str.as_str(), 16).unwrap();
-    let y_str = point.gety().to_string();
-    let y = BigUint::from_str_radix(y_str.as_str(), 16).unwrap();
-
-    AffinePoint::new(x, y)
-}
-
-pub fn bls12381_sqrt(a: &BigUint) -> BigUint {
-    let a_big = Big::from_bytes(a.to_bytes_be().as_slice());
-
-    let a_sqrt = FP::new_big(a_big).sqrt();
-
-    BigUint::from_str_radix(a_sqrt.to_string().as_str(), 16).unwrap()
-}
-
 impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
     fn execute(
         &self,
@@ -237,15 +219,60 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
     }
 }
 
+impl Syscall for WeierstrassDecompressChip<Bls12381> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_decompress_event::<Bls12381>(rt, arg1, arg2);
+        rt.record_mut().bls12381_decompress_events.push(event);
+        None
+    }
+}
+
+pub fn bls12381_decompress<E: EllipticCurve>(bytes_be: &[u8], _is_odd: u32) -> AffinePoint<E> {
+    let arr_be: [u8; 48] = bytes_be.try_into().expect("Invalid input length");
+    let point = G1Affine::from_compressed(&arr_be).expect("Invalid G1 point");
+
+    if point.is_identity().into() {
+        // the conventional representation of the infinity point
+        return AffinePoint::new(BigUint::zero(), BigUint::one());
+    }
+    // For BLS12-381, the y-coordinate sign id deduced from a byte flag, so we ignore
+    // the explicit is_odd argument
+    let x = BigUint::from_bytes_be(&point.x.to_bytes()[..]);
+    let y = BigUint::from_bytes_be(&point.y.to_bytes()[..]);
+    AffinePoint::new(x, y)
+}
+
+pub fn bls12381_sqrt(a: &BigUint) -> BigUint {
+    let mut a_bytes = a.to_bytes_le();
+    // resize truncates larger inputs, so check the length
+    assert!(a_bytes.len() <= 48);
+    a_bytes.resize(48, 0);
+    // Fp takes BE input
+    a_bytes.reverse();
+    let sqrt = Fp::from_bytes(&a_bytes.try_into().unwrap())
+        .unwrap()
+        .sqrt()
+        .unwrap();
+    BigUint::from_bytes_be(&sqrt.to_bytes()[..])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::utils::ec::utils::biguint_from_limbs;
-    use amcl::bls381::bls381::proof_of_possession::G1_BYTES;
+    use hybrid_array::typenum::Unsigned;
     use num::bigint::RandBigInt;
     use rand::thread_rng;
 
     const NUM_TEST_CASES: usize = 10;
+    // Serialization flags
+    const COMPRESSION_FLAG: u8 = 0b_1000_0000;
+    const Y_IS_ODD_FLAG: u8 = 0b_0010_0000;
 
     #[test]
     fn test_weierstrass_biguint_scalar_mul() {
@@ -266,7 +293,7 @@ mod tests {
         };
         for _ in 0..NUM_TEST_CASES {
             let (compressed_point, is_odd) = {
-                let mut result = [0u8; G1_BYTES];
+                let mut result = [0u8; <Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE];
                 let x = point.x.to_bytes_le();
                 result[..x.len()].copy_from_slice(&x);
                 result.reverse();
@@ -281,7 +308,7 @@ mod tests {
                     result[0] += Y_IS_ODD_FLAG;
                     is_odd = 0;
                 }
-                result[0] += COMPRESION_FLAG;
+                result[0] += COMPRESSION_FLAG;
 
                 (result, is_odd)
             };
@@ -301,9 +328,6 @@ mod tests {
             let x = rng.gen_biguint(256) % Bls12381BaseField::modulus();
             let x_2 = (&x * &x) % Bls12381BaseField::modulus();
             let sqrt = bls12381_sqrt(&x_2);
-            if sqrt > x_2 {
-                println!("wtf");
-            }
 
             let sqrt_2 = (&sqrt * &sqrt) % Bls12381BaseField::modulus();
 

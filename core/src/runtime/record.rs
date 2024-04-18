@@ -95,7 +95,7 @@ pub struct ExecutionRecord {
     pub bls12381_double_events:
         Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
-    pub k256_decompress_events: Vec<ECDecompressEvent>,
+    pub secp256k1_decompress_events: Vec<ECDecompressEvent>,
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
 
@@ -105,7 +105,8 @@ pub struct ExecutionRecord {
     pub bls12381_fp2_add_events: Vec<QuadFieldAddEvent<Bls12381BaseField>>,
     pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
-    pub bls12381_decompress_events: Vec<ECDecompressEvent>,
+    pub bls12381_decompress_events:
+        Vec<ECDecompressEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -248,7 +249,7 @@ impl MachineRecord for ExecutionRecord {
         );
         stats.insert(
             "k256_decompress_events".to_string(),
-            self.k256_decompress_events.len(),
+            self.secp256k1_decompress_events.len(),
         );
         stats.insert(
             "blake3_compress_inner_events".to_string(),
@@ -315,8 +316,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_add_events);
         self.bls12381_double_events
             .append(&mut other.bls12381_double_events);
-        self.k256_decompress_events
-            .append(&mut other.k256_decompress_events);
+        self.secp256k1_decompress_events
+            .append(&mut other.secp256k1_decompress_events);
         self.blake3_compress_inner_events
             .append(&mut other.blake3_compress_inner_events);
         self.bls12381_fp_add_events
@@ -615,7 +616,7 @@ impl MachineRecord for ExecutionRecord {
         first.ed_decompress_events = take(&mut self.ed_decompress_events);
 
         // K256 curve decompress events.
-        first.k256_decompress_events = take(&mut self.k256_decompress_events);
+        first.secp256k1_decompress_events = take(&mut self.secp256k1_decompress_events);
 
         // Blake3 compress events .
         first.blake3_compress_inner_events = take(&mut self.blake3_compress_inner_events);

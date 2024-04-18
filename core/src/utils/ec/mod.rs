@@ -15,7 +15,7 @@ use std::ops::{Add, Neg};
 use crate::air::WORD_SIZE;
 use crate::operations::field::params::{WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT};
 use crate::runtime::ExecutionRecord;
-use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
+use crate::syscall::precompiles::{ECAddEvent, ECDecompressEvent, ECDoubleEvent};
 
 pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
 pub const DEFAULT_NUM_BYTES_FIELD_ELEMENT: usize = DEFAULT_NUM_WORDS_FIELD_ELEMENT * WORD_SIZE;
@@ -134,7 +134,11 @@ pub trait WithDoubling: EllipticCurveParameters {
     ) -> &[ECDoubleEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>];
 }
 
-// TODO(FG): generic decompression event
+pub trait WithDecompression: EllipticCurveParameters {
+    fn decompression_events(
+        record: &ExecutionRecord,
+    ) -> &[ECDecompressEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>];
+}
 
 /// An interface for elliptic curve groups.
 pub trait EllipticCurve: EllipticCurveParameters {
