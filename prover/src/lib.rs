@@ -359,29 +359,33 @@ mod tests {
     use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
     use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
     use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
+    use wp1_sdk::{ProverClient, SP1Stdin};
 
     #[test]
     #[ignore]
     fn test_prove_sp1() {
         setup_logger();
         std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
-        let prover = SP1ProverImpl::new();
 
+        // Generate SP1 proof
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
-        let proof = if let Ok(proof) = std::fs::read("sp1_proof.bin") {
-            bincode::deserialize::<Proof<SP1SC>>(&proof).unwrap()
-        } else {
-            let stdin = [bincode::serialize::<u32>(&6).unwrap()];
-            let proof = SP1ProverImpl::prove(elf, &stdin);
 
-            // save proof
-            let serialized = bincode::serialize(&proof).unwrap();
-            std::fs::write("sp1_proof.bin", serialized).unwrap();
+        type SC = BabyBearPoseidon2;
+        type F = <SC as StarkGenericConfig>::Val;
+        type A = RiscvAir<F>;
 
-            proof
-        };
+        let machine = A::machine(SC::default());
+        let (_, vk) = machine.setup(&Program::from(elf));
+        let mut challenger = machine.config().challenger();
+        let client = ProverClient::new();
+        let proof = client
+            .prove_local(elf, SP1Stdin::new(), machine.config().clone())
+            .unwrap()
+            .proof;
+        machine.verify(&vk, &proof, &mut challenger).unwrap();
 
+        let prover = SP1ProverImpl::new();
         let wp1_machine = RiscvAir::machine(SP1SC::default());
         let (_, vk) = wp1_machine.setup(&Program::from(elf));
 
@@ -392,7 +396,7 @@ mod tests {
         wp1_challenger.observe(vk.commit);
         for shard_proof in proof.shard_proofs.iter() {
             wp1_challenger.observe(shard_proof.commitment.main_commit);
-            wp1_challenger.observe_slice(&shard_proof.public_values);
+            wp1_challenger.observe_slice(&shard_proof.public_values[0..wp1_machine.num_pv_elts()]);
         }
 
         let start = Instant::now();

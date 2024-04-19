@@ -13,6 +13,7 @@ wp1-recursion-circuit = { path = "../recursion/circuit" }
 wp1-recursion-compiler = { path = "../recursion/compiler" }
 wp1-recursion-core = { path = "../recursion/core" }
 wp1-core = { path = "../core" }
+wp1-sdk = { path = "../sdk" }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
 p3-baby-bear = { workspace = true }
