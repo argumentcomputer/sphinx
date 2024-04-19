@@ -2,30 +2,28 @@ use std::{collections::HashMap, rc::Rc};
 
 use strum_macros::EnumIter;
 
-use crate::{
-    runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Register, Runtime},
-    syscall::{
-        precompiles::{
-            edwards::{EdAddAssignChip, EdDecompressChip},
-            field::{add::FieldAddChip, mul::FieldMulChip, sub::FieldSubChip},
-            k256::K256DecompressChip,
-            keccak256::KeccakPermuteChip,
-            quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
-            sha256::{ShaCompressChip, ShaExtendChip},
-            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-        },
-        SyscallCommit, SyscallEnterUnconstrained, SyscallExitUnconstrained, SyscallHalt,
-        SyscallHintLen, SyscallHintRead, SyscallWrite,
-    },
-    utils::ec::{
-        edwards::ed25519::{Ed25519, Ed25519Parameters},
-        weierstrass::{
-            bls12381::{Bls12381, Bls12381BaseField},
-            bn254::Bn254,
-            secp256k1::Secp256k1,
-        },
-    },
+use crate::runtime::{Register, Runtime};
+use crate::stark::{
+    Ed25519Parameters, FieldAddChip, FieldMulChip, FieldSubChip, QuadFieldAddChip,
+    QuadFieldMulChip, QuadFieldSubChip,
 };
+use crate::syscall::precompiles::edwards::EdAddAssignChip;
+use crate::syscall::precompiles::edwards::EdDecompressChip;
+use crate::syscall::precompiles::k256::K256DecompressChip;
+use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
+use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
+use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
+use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
+use crate::syscall::{
+    SyscallCommit, SyscallCommitDeferred, SyscallEnterUnconstrained, SyscallExitUnconstrained,
+    SyscallHalt, SyscallHintLen, SyscallHintRead, SyscallVerifySP1Proof, SyscallWrite,
+};
+use crate::utils::ec::edwards::ed25519::Ed25519;
+use crate::utils::ec::weierstrass::bls12381::{Bls12381, Bls12381BaseField};
+use crate::utils::ec::weierstrass::bn254::Bn254;
+use crate::utils::ec::weierstrass::secp256k1::Secp256k1;
+
+use super::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord};
 
 /// A system call is invoked by the the `ecall` instruction with a specific value in register t0.
 /// The syscall number is a 32-bit integer, with the following layout (in little-endian format)
@@ -98,6 +96,12 @@ pub enum SyscallCode {
     /// Executes the `COMMIT` precompile.
     COMMIT = 0x00_00_00_10,
 
+    /// Executes the `COMMIT_DEFERRED_PROOFS` precompile.
+    COMMIT_DEFERRED_PROOFS = 0x00_00_00_1A,
+
+    /// Executes the `VERIFY_SP1_PROOF` precompile.
+    VERIFY_SP1_PROOF = 0x00_00_00_1B,
+
     /// Executes the `HINT_LEN` precompile.
     HINT_LEN = 0x00_00_00_F0,
 
@@ -131,6 +135,8 @@ impl SyscallCode {
             0x00_01_01_78 => SyscallCode::BLS12381_FP2_SUB,
             0x00_01_01_79 => SyscallCode::BLS12381_FP2_MUL,
             0x00_00_00_10 => SyscallCode::COMMIT,
+            0x00_00_00_1A => SyscallCode::COMMIT_DEFERRED_PROOFS,
+            0x00_00_00_1B => SyscallCode::VERIFY_SP1_PROOF,
             0x00_00_00_F0 => SyscallCode::HINT_LEN,
             0x00_00_00_F1 => SyscallCode::HINT_READ,
             0x00_01_01_71 => SyscallCode::BLS12381_ADD,
@@ -343,6 +349,14 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
     );
     syscall_map.insert(SyscallCode::WRITE, Rc::new(SyscallWrite::new()));
     syscall_map.insert(SyscallCode::COMMIT, Rc::new(SyscallCommit::new()));
+    syscall_map.insert(
+        SyscallCode::COMMIT_DEFERRED_PROOFS,
+        Rc::new(SyscallCommitDeferred::new()),
+    );
+    syscall_map.insert(
+        SyscallCode::VERIFY_SP1_PROOF,
+        Rc::new(SyscallVerifySP1Proof::new()),
+    );
     syscall_map.insert(SyscallCode::HINT_LEN, Rc::new(SyscallHintLen::new()));
     syscall_map.insert(SyscallCode::HINT_READ, Rc::new(SyscallHintRead::new()));
 
@@ -440,8 +454,6 @@ mod tests {
                 SyscallCode::BLS12381_FP2_MUL => {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP2_MUL)
                 }
-                SyscallCode::HINT_LEN => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_LEN),
-                SyscallCode::HINT_READ => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_READ),
                 SyscallCode::BLS12381_ADD => {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_ADD)
                 }
@@ -449,6 +461,14 @@ mod tests {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_DOUBLE)
                 }
                 SyscallCode::COMMIT => assert_eq!(code as u32, wp1_zkvm::syscalls::COMMIT),
+                SyscallCode::COMMIT_DEFERRED_PROOFS => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::COMMIT_DEFERRED_PROOFS)
+                }
+                SyscallCode::VERIFY_SP1_PROOF => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::VERIFY_SP1_PROOF)
+                }
+                SyscallCode::HINT_LEN => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_LEN),
+                SyscallCode::HINT_READ => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_READ),
             }
         }
     }

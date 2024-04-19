@@ -267,17 +267,25 @@ pub(crate) mod tests {
     use p3_fri::FriConfig;
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
-    use wp1_recursion_compiler::{
-        config::InnerConfig,
-        ir::{Array, Builder, Usize, Var},
-    };
-    use wp1_recursion_core::{
-        runtime::{Runtime, DIGEST_SIZE},
-        stark::config::{
-            inner_fri_config, inner_perm, InnerChallenge, InnerChallengeMmcs, InnerChallenger,
-            InnerCompress, InnerDft, InnerHash, InnerPcs, InnerPcsProof, InnerVal, InnerValMmcs,
-        },
-    };
+    use wp1_core::utils::inner_fri_config;
+    use wp1_core::utils::inner_perm;
+    use wp1_core::utils::InnerChallenge;
+    use wp1_core::utils::InnerChallengeMmcs;
+    use wp1_core::utils::InnerChallenger;
+    use wp1_core::utils::InnerCompress;
+    use wp1_core::utils::InnerDft;
+    use wp1_core::utils::InnerHash;
+    use wp1_core::utils::InnerPcs;
+    use wp1_core::utils::InnerPcsProof;
+    use wp1_core::utils::InnerVal;
+    use wp1_core::utils::InnerValMmcs;
+    use wp1_recursion_compiler::config::InnerConfig;
+    use wp1_recursion_compiler::ir::Array;
+    use wp1_recursion_compiler::ir::Builder;
+    use wp1_recursion_compiler::ir::Usize;
+    use wp1_recursion_compiler::ir::Var;
+    use wp1_recursion_core::runtime::Runtime;
+    use wp1_recursion_core::runtime::DIGEST_SIZE;
 
     use crate::{
         challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger},

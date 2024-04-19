@@ -5,27 +5,23 @@ use wp1_core::stark::{
     AirOpenedValues, ChipOpenedValues, Com, ShardCommitment, ShardOpenedValues, ShardProof,
     StarkGenericConfig, VerifyingKey,
 };
+use wp1_core::utils::{
+    BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm,
+    InnerVal,
+};
 use wp1_recursion_compiler::{
     config::InnerConfig,
     ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var},
 };
-use wp1_recursion_core::{
-    air::Block,
-    runtime::PERMUTATION_WIDTH,
-    stark::config::{
-        BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof,
-        InnerPerm, InnerVal,
-    },
-};
+use wp1_recursion_core::air::Block;
+use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
 use wp1_sdk::utils::BabyBearPoseidon2;
 
-use crate::{
-    challenger::DuplexChallengerVariable,
-    fri::TwoAdicMultiplicativeCosetVariable,
-    types::{
-        AirOpenedValuesVariable, ChipOpenedValuesVariable, ShardCommitmentVariable,
-        ShardOpenedValuesVariable, ShardProofVariable, VerifyingKeyVariable,
-    },
+use crate::challenger::DuplexChallengerVariable;
+use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::types::{
+    AirOpenedValuesVariable, ChipOpenedValuesVariable, ShardCommitmentVariable,
+    ShardOpenedValuesVariable, ShardProofVariable, VerifyingKeyVariable,
 };
 
 pub trait Hintable<C: Config> {

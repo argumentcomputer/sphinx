@@ -1,15 +1,17 @@
-use core::{borrow::Borrow, mem::size_of};
+use core::borrow::Borrow;
+use core::mem::size_of;
+use p3_air::AirBuilder;
+use p3_air::{Air, BaseAir};
+use p3_field::AbstractField;
+use p3_field::PrimeField32;
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use std::borrow::BorrowMut;
-
-use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
-use wp1_core::{
-    air::{MachineAir, SP1AirBuilder},
-    utils::{pad_to_power_of_two, poseidon2_instance::RC_16_30_U32},
-};
+use wp1_core::air::{MachineAir, SP1AirBuilder};
+use wp1_core::utils::pad_to_power_of_two;
 use wp1_derive::AlignedBorrow;
+use wp1_primitives::RC_16_30_U32;
 
 use super::{apply_m_4, matmul_internal, MATRIX_DIAG_16_BABYBEAR_U32};
 use crate::runtime::{ExecutionRecord, RecursionProgram};
@@ -320,20 +322,20 @@ mod tests {
     use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
-    use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
-    use p3_symmetric::Permutation;
+    use p3_poseidon2::Poseidon2;
+    use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::utils::inner_perm;
     use wp1_core::{
         air::MachineAir,
-        stark::StarkGenericConfig,
         utils::{uni_stark_prove, BabyBearPoseidon2},
     };
 
+    use crate::poseidon2::external::WIDTH;
+    use crate::{poseidon2::external::Poseidon2Chip, runtime::ExecutionRecord};
+    use p3_symmetric::Permutation;
+
     use super::{Poseidon2Cols, NUM_POSEIDON2_COLS};
-    use crate::{
-        poseidon2::external::{Poseidon2Chip, WIDTH},
-        runtime::ExecutionRecord,
-        stark::config::inner_perm,
-    };
 
     #[test]
     fn generate_trace() {

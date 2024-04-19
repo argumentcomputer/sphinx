@@ -11,6 +11,7 @@ mod sha_compress;
 mod sha_extend;
 mod sys;
 mod unconstrained;
+mod verify;
 
 pub use bls12381::*;
 pub use bn254::*;
@@ -24,6 +25,7 @@ pub use sha_compress::*;
 pub use sha_extend::*;
 pub use sys::*;
 pub use unconstrained::*;
+pub use verify::*;
 
 /// These codes MUST match the codes in `core/src/runtime/syscall.rs`. There is a derived test
 /// that checks that the enum is consistent with the syscalls.
@@ -83,6 +85,12 @@ pub const BLS12381_FP2_MUL: u32 = 0x00_01_01_79;
 
 /// Executes the `COMMIT` precompile.
 pub const COMMIT: u32 = 0x00_00_00_10;
+
+/// Executes the `COMMIT_DEFERRED_PROOFS` precompile.
+pub const COMMIT_DEFERRED_PROOFS: u32 = 0x00_00_00_1A;
+
+/// Executes the `VERIFY_SP1_PROOF` precompile.
+pub const VERIFY_SP1_PROOF: u32 = 0x00_00_00_1B;
 
 /// Executes `HINT_LEN`.
 pub const HINT_LEN: u32 = 0x00_00_00_F0;

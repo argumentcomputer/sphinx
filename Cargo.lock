@@ -3231,7 +3231,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.60",
@@ -4939,6 +4939,7 @@ dependencies = [
  "tracing-forest",
  "tracing-subscriber",
  "wp1-derive",
+ "wp1-primitives",
  "wp1-zkvm",
 ]
 
@@ -4981,6 +4982,18 @@ dependencies = [
  "hybrid-array",
  "k256",
  "serde",
+]
+
+[[package]]
+name = "wp1-primitives"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.12.1",
+ "lazy_static",
+ "p3-baby-bear",
+ "p3-field",
+ "p3-poseidon2",
+ "p3-symmetric",
 ]
 
 [[package]]
@@ -5089,6 +5102,7 @@ dependencies = [
  "tracing",
  "wp1-core",
  "wp1-derive",
+ "wp1-primitives",
  "zkhash",
 ]
 
@@ -5163,10 +5177,13 @@ dependencies = [
  "k256",
  "libm",
  "once_cell",
+ "p3-baby-bear",
+ "p3-field",
  "rand",
  "serde",
  "sha2",
  "wp1-precompiles",
+ "wp1-primitives",
 ]
 
 [[package]]
