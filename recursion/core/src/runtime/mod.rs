@@ -765,11 +765,13 @@ where
 
                     self.memory.entry(ro_ptr + log_height).or_default().value = Block::try_from(
                         (ro_at_log_height + alpha_pow_at_log_height * quotient).as_base_slice(),
-                    ).unwrap();
+                    )
+                    .unwrap();
                     self.memory
                         .entry(alpha_pow_ptr + log_height)
                         .or_default()
-                        .value = Block::try_from((alpha_pow_at_log_height * alpha).as_base_slice()).unwrap();
+                        .value =
+                        Block::try_from((alpha_pow_at_log_height * alpha).as_base_slice()).unwrap();
 
                     (a, b, c) = (a_val, b_val, c_val);
                 }

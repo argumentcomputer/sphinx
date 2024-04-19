@@ -94,8 +94,6 @@ where
                     .enumerate()
                     .filter(|(j, _)| *j != i)
                     .map(|(_, other_domain)| {
-                        // Calculate: other_domain.zp_at_point(zeta)
-                        //     * other_domain.zp_at_point(domain.first_point()).inverse()
                         let first_point: Ext<_, _> = builder.eval(domain.first_point());
                         other_domain.zp_at_point(builder, zeta)
                             * other_domain.zp_at_point(builder, first_point).inverse()
@@ -123,7 +121,7 @@ where
         )
     }
 
-    /// Reference: `[wp1_core::stark::Verifier::verify_constraints]`
+    /// Reference: [sp1_core::stark::Verifier::verify_constraints]
     pub fn verify_constraints<A>(
         builder: &mut Builder<C>,
         chip: &MachineChip<SC, A>,

@@ -24,7 +24,7 @@ use wp1_recursion_core::{
     runtime::{RecursionProgram, Runtime},
     stark::{config::BabyBearPoseidon2Outer, RecursionAir},
 };
-use wp1_recursion_program::{hints::Hintable, reduce::build_reduce_program, stark::EMPTY};
+use wp1_recursion_program::{hints::Hintable, reduce::ReduceProgram, stark::EMPTY};
 
 type SP1SC = BabyBearPoseidon2;
 type SP1F = <SP1SC as StarkGenericConfig>::Val;
@@ -123,8 +123,8 @@ fn get_preprocessed_data<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
 
 impl SP1ProverImpl {
     pub fn new() -> Self {
-        // TODO: load from serde
-        let (reduce_setup_program, reduce_program) = build_reduce_program();
+        let reduce_setup_program = ReduceProgram::setup();
+        let reduce_program = ReduceProgram::build();
         let (_, reduce_vk_inner) = RecursionAir::machine(InnerSC::default()).setup(&reduce_program);
         let (_, reduce_vk_outer) = RecursionAir::machine(OuterSC::default()).setup(&reduce_program);
         Self {
@@ -406,8 +406,7 @@ impl SP1ProverImpl {
         while reduce_proofs.len() > 1 {
             println!("layer = {}, num_proofs = {}", layer, reduce_proofs.len());
             let start = Instant::now();
-            reduce_proofs =
-                self.reduce_layer(wp1_vk, &wp1_challenger, reduce_proofs, batch_size);
+            reduce_proofs = self.reduce_layer(wp1_vk, &wp1_challenger, reduce_proofs, batch_size);
             let duration = start.elapsed().as_secs();
             println!("layer {}, reduce duration = {}", layer, duration);
             layer += 1;
@@ -602,7 +601,7 @@ mod tests {
                 .unwrap();
             println!("verified fibonacci");
 
-                let final_proof = prover.reduce_tree(&fibonacci_vk, fibonacci_proof, 2);
+            let final_proof = prover.reduce_tree(&fibonacci_vk, fibonacci_proof, 2);
 
             let proof = Proof {
                 shard_proofs: vec![final_proof.proof],

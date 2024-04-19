@@ -1,18 +1,17 @@
 //! Sweeps end-to-end prover performance across a wide range of parameters for Fibonacci.
 
-
 use std::{fs::File, io::BufWriter, io::Write, time::Instant};
 
 use itertools::iproduct;
 use p3_challenger::CanObserve;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{fmt::format::FmtSpan, util::SubscriberInitExt};
 use wp1_core::{
     runtime::Program,
     stark::{Proof, RiscvAir, StarkGenericConfig},
     utils::BabyBearPoseidon2,
 };
 use wp1_prover::SP1ProverImpl;
-use tracing_subscriber::EnvFilter;
-use tracing_subscriber::{fmt::format::FmtSpan, util::SubscriberInitExt};
 
 fn main() {
     // Setup tracer.
