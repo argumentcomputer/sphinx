@@ -1,4 +1,4 @@
-use std::{fmt, fs, fs::OpenOptions, io, time::Instant};
+use std::{fmt, fs::{self, OpenOptions}, io, time::Instant};
 
 use clap::{command, Parser};
 use csv::WriterBuilder;

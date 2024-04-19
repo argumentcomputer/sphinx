@@ -22,7 +22,7 @@ pub fn main() {
     let wp1_challenger = prover.initialize_challenger(&wp1_vk, &core_proof.shard_proofs);
 
     let inner_reduce_proof = tracing::info_span!("inner reduce proof")
-        .in_scope(|| prover.reduce_tree::<2>(&wp1_vk, core_proof));
+        .in_scope(|| prover.reduce_tree(&wp1_vk, core_proof, 2));
 
     let outer_reduce_proof = tracing::info_span!("outer reduce proof")
         .in_scope(|| prover.wrap_into_outer(&wp1_vk, &wp1_challenger, inner_reduce_proof));

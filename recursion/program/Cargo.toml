@@ -24,12 +24,10 @@ wp1-recursion-core = { path = "../core" }
 wp1-recursion-compiler = { path = "../compiler" }
 wp1-core = { path = "../../core" }
 wp1-sdk = { path = "../../sdk" }
-itertools = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
+itertools = "0.12.1"
+serde = { version = "1.0.197", features = ["derive"] }
+rand = "0.8.4"
 
-[dev-dependencies]
-rand = { workspace = true }
-
-[features]
-default = ["avx512"]
-avx512 = ["p3-baby-bear/nightly-features"]
+[[bin]]
+name = "fri_sweep"
+path = "experiments/fri_sweep.rs"

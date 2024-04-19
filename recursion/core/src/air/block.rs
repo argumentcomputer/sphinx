@@ -1,17 +1,22 @@
-use std::{
-    array::TryFromSliceError,
-    ops::{Index, IndexMut},
-};
+use std::array::TryFromSliceError;
+use std::ops::Index;
+use std::ops::IndexMut;
 
 use p3_air::AirBuilder;
-use p3_field::{AbstractField, ExtensionField, Field, PrimeField32};
+use p3_field::AbstractField;
+use p3_field::ExtensionField;
+use p3_field::Field;
+use p3_field::PrimeField32;
+use serde::{Deserialize, Serialize};
 use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
 
 use crate::runtime::D;
 
 /// The smallest unit of memory that can be read and written to.
-#[derive(AlignedBorrow, Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(
+    AlignedBorrow, Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize,
+)]
 #[repr(C)]
 pub struct Block<T>(pub [T; D]);
 
