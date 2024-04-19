@@ -51,6 +51,7 @@ where
         C::EF: TwoAdicField,
         Com<SC>: Into<[SC::Val; DIGEST_SIZE]>,
     {
+        builder.cycle_tracker("stage-c-verify-shard-setup");
         let ShardProofVariable {
             commitment,
             opened_values,
@@ -216,11 +217,15 @@ where
         builder.set_value(&mut rounds, 1, &main_round);
         builder.set_value(&mut rounds, 2, &perm_round);
         builder.set_value(&mut rounds, 3, &quotient_round);
+        builder.cycle_tracker("stage-c-verify-shard-setup");
 
         // Verify the pcs proof
+        builder.cycle_tracker("stage-d-verify-pcs");
         pcs.verify(builder, &rounds, opening_proof, challenger);
+        builder.cycle_tracker("stage-d-verify-pcs");
 
         // TODO CONSTRAIN: that the preprocessed chips get called with verify_constraints.
+        builder.cycle_tracker("stage-e-verify-constraints");
         for (i, chip) in machine.chips().iter().enumerate() {
             let index = builder.get(chip_sorted_idxs, i);
 
@@ -250,6 +255,7 @@ where
                     );
                 });
         }
+        builder.cycle_tracker("stage-e-verify-constraints");
     }
 }
 
@@ -260,15 +266,18 @@ pub(crate) mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::AbstractField;
     use rand::Rng;
+    use wp1_core::runtime::Program;
+    use wp1_core::stark::LocalProver;
     use wp1_core::{
-        runtime::Program,
-        stark::{LocalProver, RiscvAir, ShardProof, StarkGenericConfig},
+        stark::{RiscvAir, ShardProof, StarkGenericConfig},
         utils::BabyBearPoseidon2,
     };
+    use wp1_recursion_compiler::config::InnerConfig;
+    use wp1_recursion_compiler::ir::Array;
+    use wp1_recursion_compiler::ir::Felt;
     use wp1_recursion_compiler::{
         asm::AsmBuilder,
-        config::InnerConfig,
-        ir::{Array, Builder, ExtConst, Felt},
+        ir::{Builder, ExtConst},
     };
     use wp1_recursion_core::{
         runtime::{Runtime, DIGEST_SIZE},
@@ -314,7 +323,7 @@ pub(crate) mod tests {
 
         for proof in proofs.iter() {
             challenger_val.observe(proof.commitment.main_commit);
-            challenger_val.observe_slice(&proof.public_values[..]);
+            challenger_val.observe_slice(&proof.public_values);
         }
 
         let permutation_challenges = (0..2)
