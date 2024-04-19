@@ -14,6 +14,8 @@ use crate::{
     program::ProgramChip,
 };
 
+use crate::runtime::DIGEST_SIZE;
+
 #[derive(MachineAir)]
 #[wp1_core_path = "wp1_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
@@ -33,7 +35,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>> RecursionAir<F> {
             .into_iter()
             .map(Chip::new)
             .collect::<Vec<_>>();
-        MachineStark::new(config, chips)
+        MachineStark::new(config, chips, DIGEST_SIZE)
     }
 
     pub fn get_all() -> Vec<Self> {

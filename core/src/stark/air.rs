@@ -3,13 +3,11 @@ pub use riscv_chips::*;
 
 use super::MachineStark;
 pub use crate::air::SP1AirBuilder;
-use crate::{
-    air::MachineAir,
-    memory::MemoryChipType,
-    stark::Chip,
-    utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters},
-    StarkGenericConfig,
-};
+use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
+use crate::memory::MemoryChipType;
+use crate::stark::Chip;
+use crate::utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters};
+use crate::StarkGenericConfig;
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
@@ -115,7 +113,7 @@ impl<F: PrimeField32> RiscvAir<F> {
             .into_iter()
             .map(Chip::new)
             .collect::<Vec<_>>();
-        MachineStark::new(config, chips)
+        MachineStark::new(config, chips, SP1_PROOF_NUM_PV_ELTS)
     }
 
     /// Get all the different RISC-V AIRs.
