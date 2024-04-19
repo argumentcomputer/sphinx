@@ -14,6 +14,7 @@ p3-maybe-rayon = { workspace = true, features = ["parallel"] }
 p3-poseidon2 = { workspace = true }
 p3-symmetric = { workspace = true }
 wp1-derive = { path = "../../derive" }
+wp1-primitives = { path = "../../primitives" }
 tracing = "0.1.40"
 wp1-core = { path = "../../core" }
 hashbrown = "0.14.3"

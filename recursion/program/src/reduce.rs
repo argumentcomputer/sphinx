@@ -15,6 +15,9 @@ use wp1_core::stark::ShardProof;
 use wp1_core::stark::VerifyingKey;
 use wp1_core::stark::PROOF_MAX_NUM_PVS;
 use wp1_core::stark::{RiscvAir, StarkGenericConfig};
+use wp1_core::utils::inner_fri_config;
+use wp1_core::utils::wp1_fri_config;
+use wp1_core::utils::BabyBearPoseidon2Inner;
 use wp1_recursion_compiler::asm::AsmBuilder;
 use wp1_recursion_compiler::asm::AsmConfig;
 use wp1_recursion_compiler::ir::Array;
@@ -25,9 +28,6 @@ use wp1_recursion_compiler::ir::Var;
 use wp1_recursion_core::air::PublicValues as RecursionPublicValues;
 use wp1_recursion_core::runtime::RecursionProgram;
 use wp1_recursion_core::runtime::DIGEST_SIZE;
-use wp1_recursion_core::stark::config::inner_fri_config;
-use wp1_recursion_core::stark::config::wp1_fri_config;
-use wp1_recursion_core::stark::config::BabyBearPoseidon2Inner;
 use wp1_recursion_core::stark::RecursionAir;
 use wp1_sdk::utils::BabyBearPoseidon2;
 use wp1_sdk::PublicValues;
@@ -126,7 +126,11 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
     let start_shards: Array<_, Felt<_>> = builder.uninit();
     let next_shards: Array<_, Felt<_>> = builder.uninit();
     let proofs: Array<_, ShardProofVariable<_>> = builder.uninit();
-
+    let deferred_proof_digest: Array<_, Felt<_>> = builder.uninit();
+    let deferred_sorted_indices: Array<_, Array<_, Var<_>>> = builder.uninit();
+    let num_deferred_proofs: Var<_> = builder.uninit();
+    let deferred_proofs: Array<_, ShardProofVariable<_>> = builder.uninit();
+    let deferred_vks: Array<_, VerifyingKeyVariable<_>> = builder.uninit();
     // 2) Witness the inputs.
     if setup {
         Vec::<usize>::witness(&is_recursive_flags, &mut builder);
@@ -139,6 +143,7 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
         Vec::<TwoAdicMultiplicativeCoset<BabyBear>>::witness(&recursion_prep_domains, &mut builder);
         VerifyingKey::<SC>::witness(&wp1_vk, &mut builder);
         VerifyingKey::<SC>::witness(&recursion_vk, &mut builder);
+        // Read proofs
         Vec::<Val>::witness(&start_pcs, &mut builder);
         Vec::<Val>::witness(&next_pcs, &mut builder);
         Vec::<Val>::witness(&start_shards, &mut builder);
@@ -150,6 +155,23 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
             builder.set(&mut proofs_target, i, proof);
         });
         builder.assign(&proofs, proofs_target);
+        // Read deferred proof digest
+        Vec::<BabyBear>::witness(&deferred_proof_digest, &mut builder);
+        // Read deferred sorted indices
+        Vec::<Vec<usize>>::witness(&deferred_sorted_indices, &mut builder);
+        // Read deferred proofs
+        Vec::<ShardProof<SC>>::witness(&deferred_proofs, &mut builder);
+        // Read deferred vks
+        let num_deferred_proofs_var = deferred_proofs.len();
+        builder.assign(&num_deferred_proofs, num_deferred_proofs_var);
+        let mut deferred_vks_target = builder.dyn_array(num_proofs);
+        builder
+            .range(0, num_deferred_proofs)
+            .for_each(|i, builder| {
+                let vk = VerifyingKey::<SC>::read(builder);
+                builder.set(&mut deferred_vks_target, i, vk);
+            });
+        builder.assign(&deferred_vks, deferred_vks_target);
 
         // Compile the program up to this point.
         return builder.compile_program();
@@ -172,6 +194,7 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
     }
     builder.cycle_tracker("stage-b-setup-recursion-challenger");
 
+    // Verify sp1 and recursive proofs
     let expected_start_pc = builder.get(&start_pcs, zero);
     let expected_start_shard = builder.get(&start_shards, zero);
 
@@ -303,6 +326,66 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
         );
     });
 
+    // Verify deferred proofs and acculumate to deferred proofs digest
+    let _pre_deferred_proof_digest = clone(&mut builder, &deferred_proof_digest);
+    for j in 0..DIGEST_SIZE {
+        let val = builder.get(&deferred_proof_digest, j);
+        builder.print_f(val);
+    }
+    builder
+        .range(0, num_deferred_proofs)
+        .for_each(|i, builder| {
+            let proof = builder.get(&deferred_proofs, i);
+            let vk = builder.get(&deferred_vks, i);
+            let sorted_indices = builder.get(&deferred_sorted_indices, i);
+            let mut challenger = recursion_challenger.as_clone(builder);
+            for j in 0..DIGEST_SIZE {
+                let element = builder.get(&proof.commitment.main_commit, j);
+                challenger.observe(builder, element);
+            }
+            builder.range(0, DIGEST_SIZE).for_each(|j, builder| {
+                let element = builder.get(&proof.public_values, j);
+                challenger.observe(builder, element);
+            });
+            StarkVerifier::<C, BabyBearPoseidon2Inner>::verify_shard(
+                builder,
+                &recursion_vk.clone(),
+                &recursion_pcs,
+                &recursion_machine,
+                &mut challenger,
+                &proof,
+                &sorted_indices,
+                &recursion_prep_sorted_indices,
+                &recursion_prep_domains,
+            );
+
+            // TODO: verify inner proof's public values (it must be complete)
+
+            // Update deferred proof digest
+            // poseidon2( prev_digest || vk.commit || proof.pv_digest )
+            let mut poseidon_inputs = builder.array(24);
+            builder.range(0, 8).for_each(|j, builder| {
+                let element = builder.get(&deferred_proof_digest, j);
+                builder.set(&mut poseidon_inputs, j, element);
+            });
+            builder.range(0, 8).for_each(|j, builder| {
+                let input_index: Var<_> = builder.eval(j + F::from_canonical_u32(8));
+                let element = builder.get(&vk.commitment, j);
+                builder.set(&mut poseidon_inputs, input_index, element);
+            });
+            builder.range(0, 8).for_each(|j, builder| {
+                let input_index: Var<_> = builder.eval(j + F::from_canonical_u32(16));
+                let element = builder.get(&proof.public_values, j);
+                builder.set(&mut poseidon_inputs, input_index, element);
+            });
+            let new_digest = builder.poseidon2_hash(&poseidon_inputs);
+            builder.assign(&deferred_proof_digest, new_digest);
+            for j in 0..DIGEST_SIZE {
+                let val = builder.get(&deferred_proof_digest, j);
+                builder.print_f(val);
+            }
+        });
+
     // Public values:
     // (
     //     committed_values_digest,
@@ -313,6 +396,8 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
     //     pre_reconstruct_challenger,
     //     verify_start_challenger,
     //     recursion_vk,
+    //     start_deferred_proof_digest,
+    //     end_deferred_proof_digest,
     // )
     // Note we still need to check that verify_start_challenger matches final reconstruct_challenger
     // after observing pv_digest at the end.

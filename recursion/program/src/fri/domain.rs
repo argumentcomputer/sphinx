@@ -139,17 +139,19 @@ where
 pub(crate) mod tests {
 
     use itertools::Itertools;
+    use wp1_core::utils::inner_fri_config;
+    use wp1_recursion_compiler::asm::AsmBuilder;
+
+    use crate::fri::const_fri_config;
+
+    use super::*;
     use p3_commit::{Pcs, PolynomialSpace};
     use rand::{thread_rng, Rng};
     use wp1_core::{
         stark::{Dom, StarkGenericConfig},
         utils::BabyBearPoseidon2,
     };
-    use wp1_recursion_compiler::asm::AsmBuilder;
-    use wp1_recursion_core::{runtime::Runtime, stark::config::inner_fri_config};
-
-    use super::*;
-    use crate::fri::const_fri_config;
+    use wp1_recursion_core::runtime::Runtime;
 
     pub(crate) fn domain_assertions<F: TwoAdicField, C: Config<N = F, F = F>>(
         builder: &mut Builder<C>,

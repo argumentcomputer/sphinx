@@ -1093,7 +1093,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn 2.0.58",
+ "syn 2.0.55",
 ]
 
 [[package]]
@@ -1245,7 +1245,6 @@ dependencies = [
  "rand_core",
  "sec1",
  "subtle",
- "tap",
  "zeroize",
 ]
 
@@ -1303,7 +1302,6 @@ version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ded41244b729663b1e574f1b4fb731469f69f79c17667b5d776b16cda0479449"
 dependencies = [
- "bitvec",
  "rand_core",
  "subtle",
 ]
@@ -2719,7 +2717,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.55",
@@ -3260,7 +3258,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn 2.0.58",
+ "syn 2.0.55",
 ]
 
 [[package]]
@@ -4211,6 +4209,7 @@ name = "wp1-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arrayref",
  "bincode",
  "blake3",
  "cfg-if",
@@ -4239,7 +4238,6 @@ dependencies = [
  "p3-keccak-air",
  "p3-matrix",
  "p3-maybe-rayon",
- "p3-mds",
  "p3-merkle-tree",
  "p3-poseidon2",
  "p3-symmetric",
@@ -4255,13 +4253,11 @@ dependencies = [
  "strum_macros",
  "tempfile",
  "thiserror",
- "tiny-keccak",
  "tracing",
  "tracing-forest",
- "tracing-log",
  "tracing-subscriber",
  "wp1-derive",
- "wp1-zkvm",
+ "wp1-primitives",
 ]
 
 [[package]]
@@ -4282,16 +4278,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp1-precompiles"
+name = "wp1-primitives"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "hybrid-array",
- "k256",
- "serde",
+ "itertools 0.12.1",
+ "lazy_static",
+ "p3-baby-bear",
+ "p3-field",
+ "p3-poseidon2",
+ "p3-symmetric",
 ]
 
 [[package]]
@@ -4319,22 +4314,6 @@ dependencies = [
  "tracing",
  "twirp",
  "wp1-core",
-]
-
-[[package]]
-name = "wp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "once_cell",
- "rand",
- "serde",
- "sha2",
- "wp1-precompiles",
 ]
 
 [[package]]

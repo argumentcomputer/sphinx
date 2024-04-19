@@ -33,7 +33,7 @@ p3-uni-stark = { workspace = true }
 p3-util = { workspace = true }
 rrs-lib = { git = "https://github.com/GregAC/rrs.git" }
 wp1-derive = { path = "../derive" }
-wp1-zkvm = { path = "../zkvm/entrypoint" }
+wp1-primitives = { path = "../primitives" }
 
 anyhow = "1.0.79"
 arrayref = "0.3.6"
@@ -65,6 +65,7 @@ tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 criterion = "0.5.1"
 num = { version = "0.4.2", features = ["rand"] }
 rand = "0.8.5"
+wp1-zkvm = { path = "../zkvm/entrypoint" }
 
 [features]
 debug = []

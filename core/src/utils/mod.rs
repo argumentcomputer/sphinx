@@ -1,9 +1,9 @@
 pub mod array_serde;
 mod buffer;
+mod config;
 pub mod ec;
 pub mod env;
 mod logger;
-pub mod poseidon2_instance;
 mod programs;
 mod prove;
 mod tracer;
@@ -11,6 +11,7 @@ mod tracer;
 use std::borrow::Borrow;
 
 pub use buffer::*;
+pub use config::*;
 use hybrid_array::{Array, ArraySize};
 pub use logger::*;
 #[cfg(test)]

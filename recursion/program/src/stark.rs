@@ -268,12 +268,15 @@ pub(crate) mod tests {
     use rand::Rng;
     use wp1_core::runtime::Program;
     use wp1_core::stark::LocalProver;
+    use wp1_core::utils::InnerChallenge;
+    use wp1_core::utils::InnerVal;
     use wp1_core::{
         stark::{RiscvAir, ShardProof, StarkGenericConfig},
         utils::BabyBearPoseidon2,
     };
     use wp1_recursion_compiler::config::InnerConfig;
     use wp1_recursion_compiler::ir::Array;
+    use wp1_recursion_compiler::ir::Ext;
     use wp1_recursion_compiler::ir::Felt;
     use wp1_recursion_compiler::prelude::Usize;
     use wp1_recursion_compiler::{
@@ -282,19 +285,14 @@ pub(crate) mod tests {
     };
     use wp1_recursion_core::{
         runtime::{Runtime, DIGEST_SIZE},
-        stark::{
-            config::{InnerChallenge, InnerVal},
-            RecursionAir,
-        },
+        stark::RecursionAir,
     };
     use wp1_sdk::{utils::setup_logger, ProverClient, SP1Stdin};
 
-    use crate::{
-        challenger::{CanObserveVariable, FeltChallenger},
-        hints::Hintable,
-        stark::{DuplexChallengerVariable, Ext},
-        types::ShardCommitmentVariable,
-    };
+    use crate::challenger::CanObserveVariable as _;
+    use crate::challenger::{DuplexChallengerVariable, FeltChallenger};
+    use crate::hints::Hintable as _;
+    use crate::types::ShardCommitmentVariable;
 
     type SC = BabyBearPoseidon2;
     type F = InnerVal;
