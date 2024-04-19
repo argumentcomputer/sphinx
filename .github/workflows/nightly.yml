@@ -20,9 +20,9 @@ jobs:
   typos:
     uses: lurk-lab/ci-workflows/.github/workflows/typos.yml@main
 
-  prove:
-    name: Prove integration tests and examples
-    runs-on: buildjet-16vcpu-ubuntu-2204
+  linux-exhaustive:
+    name: Run all tests including ignored
+    runs-on: warp-ubuntu-latest-x64-32x
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +33,35 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
-      - run: |
+      - name: Run exhaustive tests
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --run-ignored all
+      - name: Open an issue on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_COMMIT: ${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          filename: .github/NIGHTLY_FAILURE.md
+          update_existing: true
+
+  prove:
+    name: Prove integration tests and examples
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Prove example scripts
+        run: |
           make
           for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
             cd "$i/script"

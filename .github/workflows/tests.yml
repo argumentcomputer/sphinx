@@ -93,6 +93,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+          perf: false
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --path ./cli
