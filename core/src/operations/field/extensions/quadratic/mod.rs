@@ -1,3 +1,5 @@
+pub mod sqrt;
+
 use std::fmt::Debug;
 
 use hybrid_array::{typenum::Unsigned, Array};

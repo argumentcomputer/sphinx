@@ -1,3 +1,4 @@
+use bls12_381::{fp::Fp, fp2::Fp2};
 use hybrid_array::{typenum::U48, Array};
 use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
@@ -43,6 +44,31 @@ impl FieldParameters for Bls12381BaseField {
     fn nb_bits() -> usize {
         381
     }
+}
+
+fn fp_to_biguint(val: &Fp) -> BigUint {
+    let bytes: [u8; 48] = val.to_bytes();
+    BigUint::from_bytes_be(&bytes)
+}
+
+fn biguint_to_fp(val: &BigUint) -> Fp {
+    assert!(val < &Bls12381BaseField::modulus());
+    let be_bytes = BigUint::to_bytes_le(val);
+    let mut bytes: Vec<u8> = be_bytes;
+    assert!(bytes.len() <= 48);
+    bytes.resize(48, 0);
+    bytes.reverse();
+    let bytes: [u8; 48] = bytes.try_into().unwrap();
+    Fp::from_bytes(&bytes).unwrap()
+}
+
+pub fn bls12381_fp2_sqrt(a: &[BigUint; 2]) -> [BigUint; 2] {
+    let a = Fp2 {
+        c0: biguint_to_fp(&a[0]),
+        c1: biguint_to_fp(&a[1]),
+    };
+    let a_sqrt = a.sqrt().unwrap();
+    [fp_to_biguint(&a_sqrt.c0), fp_to_biguint(&a_sqrt.c1)]
 }
 
 impl WithFieldAddition for Bls12381BaseField {
