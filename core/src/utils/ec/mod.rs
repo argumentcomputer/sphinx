@@ -5,7 +5,7 @@ pub mod utils;
 pub mod weierstrass;
 
 use std::{
-    fmt::{self, Debug, Display, Formatter, Result},
+    fmt::{Debug, Display, Formatter, Result},
     ops::{Add, Neg},
 };
 
@@ -18,7 +18,7 @@ use crate::{
     air::WORD_SIZE,
     operations::field::params::{WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT},
     runtime::ExecutionRecord,
-    syscall::precompiles::{ECAddEvent, ECDoubleEvent},
+    syscall::precompiles::{ECAddEvent, ECDecompressEvent, ECDoubleEvent},
 };
 
 pub const DEFAULT_NUM_WORDS_FIELD_ELEMENT: usize = 8;
@@ -40,7 +40,7 @@ impl Display for CurveType {
             CurveType::Secp256k1 => write!(f, "Secp256k1"),
             CurveType::Bn254 => write!(f, "Bn254"),
             CurveType::Ed25519 => write!(f, "Ed25519"),
-            _ => Err(fmt::Error),
+            CurveType::Bls12381 => write!(f, "Bls12381"),
         }
     }
 }
@@ -138,7 +138,11 @@ pub trait WithDoubling: EllipticCurveParameters {
     ) -> &[ECDoubleEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>];
 }
 
-// TODO(FG): generic decompression event
+pub trait WithDecompression: EllipticCurveParameters {
+    fn decompression_events(
+        record: &ExecutionRecord,
+    ) -> &[ECDecompressEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>];
+}
 
 /// An interface for elliptic curve groups.
 pub trait EllipticCurve: EllipticCurveParameters {

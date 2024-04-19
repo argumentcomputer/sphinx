@@ -40,6 +40,7 @@ arrayref = "0.3.6"
 blake3 = "1.5"
 bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git" }
 cfg-if = "1.0.0"
+typenum = "1.17.0"
 curve25519-dalek = { version = "4.1.2" }
 elliptic-curve = "0.13.8"
 hashbrown = "0.14.3"
@@ -86,3 +87,4 @@ name = "main"
 
 [lib]
 bench = false
+doctest = false

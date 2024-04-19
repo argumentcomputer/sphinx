@@ -1,8 +1,11 @@
 //! Modulo defining the Secp256k1 curve and its base field. The constants are all taken from
 //! https://en.bitcoin.it/wiki/Secp256k1.
 
+use elliptic_curve::point::DecompressPoint;
 use std::str::FromStr;
 
+use elliptic_curve::sec1::ToEncodedPoint;
+use elliptic_curve::subtle::Choice;
 use hybrid_array::Array;
 use k256::FieldElement;
 use num::{
@@ -15,11 +18,14 @@ use super::{SwCurve, WeierstrassParameters};
 use crate::{
     operations::field::params::DEFAULT_NUM_LIMBS_T,
     runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
+    stark::{WeierstrassAddAssignChip, WeierstrassDecompressChip, WeierstrassDoubleAssignChip},
+    syscall::precompiles::{
+        create_ec_add_event, create_ec_decompress_event, create_ec_double_event,
+    },
     utils::ec::{
         field::{FieldParameters, FieldType},
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
+        AffinePoint, CurveType, EllipticCurve, EllipticCurveParameters, WithAddition,
+        WithDecompression, WithDoubling,
     },
 };
 
@@ -76,6 +82,16 @@ impl WithDoubling for Secp256k1Parameters {
     }
 }
 
+impl WithDecompression for Secp256k1Parameters {
+    fn decompression_events(
+        record: &crate::runtime::ExecutionRecord,
+    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
+        <Self::BaseField as FieldParameters>::NB_LIMBS,
+    >] {
+        &record.secp256k1_decompress_events
+    }
+}
+
 impl WeierstrassParameters for Secp256k1Parameters {
     const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -114,6 +130,16 @@ impl WeierstrassParameters for Secp256k1Parameters {
     }
 }
 
+pub fn secp256k1_decompress<E: EllipticCurve>(bytes_be: &[u8], sign: u32) -> AffinePoint<E> {
+    let computed_point =
+        k256::AffinePoint::decompress(bytes_be.into(), Choice::from(sign as u8)).unwrap();
+    let point = computed_point.to_encoded_point(false);
+
+    let x = BigUint::from_bytes_be(point.x().unwrap());
+    let y = BigUint::from_bytes_be(point.y().unwrap());
+    AffinePoint::<E>::new(x, y)
+}
+
 impl Syscall for WeierstrassAddAssignChip<Secp256k1> {
     fn execute(
         &self,
@@ -140,6 +166,19 @@ impl Syscall for WeierstrassDoubleAssignChip<Secp256k1> {
     ) -> Option<u32> {
         let event = create_ec_double_event::<Secp256k1>(rt, arg1, arg2);
         rt.record_mut().secp256k1_double_events.push(event);
+        None
+    }
+}
+
+impl Syscall for WeierstrassDecompressChip<Secp256k1> {
+    fn execute(
+        &self,
+        rt: &mut crate::runtime::SyscallContext<'_>,
+        arg1: u32,
+        arg2: u32,
+    ) -> Option<u32> {
+        let event = create_ec_decompress_event::<Secp256k1>(rt, arg1, arg2);
+        rt.record_mut().secp256k1_decompress_events.push(event);
         None
     }
 }
