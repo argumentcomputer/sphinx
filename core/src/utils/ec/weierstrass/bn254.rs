@@ -3,16 +3,18 @@ use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::{
-    operations::field::params::DEFAULT_NUM_LIMBS_T,
-    runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{
-        field::{FieldParameters, FieldType},
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
-    },
-};
+use crate::operations::field::params::FieldParameters;
+use crate::operations::field::params::FieldType;
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::runtime::Syscall;
+use crate::stark::WeierstrassAddAssignChip;
+use crate::stark::WeierstrassDoubleAssignChip;
+use crate::syscall::precompiles::create_ec_add_event;
+use crate::syscall::precompiles::create_ec_double_event;
+use crate::utils::ec::CurveType;
+use crate::utils::ec::EllipticCurveParameters;
+use crate::utils::ec::WithAddition;
+use crate::utils::ec::WithDoubling;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 curve parameter

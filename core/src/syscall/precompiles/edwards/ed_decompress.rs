@@ -13,34 +13,40 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
-    memory::{MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        field_sqrt::FieldSqrtCols,
-        params::{
-            LimbWidth, Limbs, BYTES_COMPRESSED_CURVEPOINT, BYTES_FIELD_ELEMENT,
-            DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT,
-        },
-    },
-    runtime::{
-        ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
-    },
-    syscall::precompiles::SyscallContext,
-    utils::{
-        bytes_to_words_le,
-        ec::{
-            edwards::{
-                ed25519::{decompress, ed25519_sqrt},
-                EdwardsParameters,
-            },
-            field::FieldParameters,
-            BaseLimbWidth,
-        },
-        limbs_from_access, limbs_from_prev_access, pad_vec_rows, words_to_bytes_le,
-    },
-};
+use crate::air::BaseAirBuilder;
+use crate::air::MachineAir;
+use crate::air::SP1AirBuilder;
+use crate::bytes::event::ByteRecord;
+use crate::bytes::ByteLookupEvent;
+use crate::memory::MemoryReadCols;
+use crate::memory::MemoryWriteCols;
+use crate::operations::field::field_op::FieldOpCols;
+use crate::operations::field::field_op::FieldOperation;
+use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::FieldParameters;
+use crate::operations::field::params::Limbs;
+use crate::operations::field::params::BYTES_COMPRESSED_CURVEPOINT;
+use crate::operations::field::params::BYTES_FIELD_ELEMENT;
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
+use crate::operations::field::range::FieldRangeCols;
+use crate::runtime::ExecutionRecord;
+use crate::runtime::MemoryReadRecord;
+use crate::runtime::MemoryWriteRecord;
+use crate::runtime::Program;
+use crate::runtime::Syscall;
+use crate::runtime::SyscallCode;
+use crate::syscall::precompiles::LimbWidth;
+use crate::syscall::precompiles::SyscallContext;
+use crate::syscall::precompiles::DEFAULT_NUM_LIMBS_T;
+use crate::utils::bytes_to_words_le;
+use crate::utils::ec::edwards::ed25519::decompress;
+use crate::utils::ec::edwards::ed25519::ed25519_sqrt;
+use crate::utils::ec::edwards::EdwardsParameters;
+use crate::utils::ec::BaseLimbWidth;
+use crate::utils::limbs_from_access;
+use crate::utils::limbs_from_prev_access;
+use crate::utils::pad_vec_rows;
+use crate::utils::words_to_bytes_le;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
@@ -75,6 +81,7 @@ pub struct EdDecompressCols<T, P: FieldParameters> {
     pub sign: T,
     pub x_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
     pub y_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
+    pub(crate) y_range: FieldRangeCols<T, P>,
     pub(crate) yy: FieldOpCols<T, P>,
     pub(crate) u: FieldOpCols<T, P>,
     pub(crate) dyy: FieldOpCols<T, P>,
@@ -103,21 +110,37 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
         }
 
         let y = &BigUint::from_bytes_le(&event.y_bytes);
-        self.populate_field_ops::<E>(y);
+        self.populate_field_ops::<E>(&mut new_byte_lookup_events, event.shard, y);
 
         record.add_byte_lookup_events(new_byte_lookup_events);
     }
 
-    fn populate_field_ops<E: EdwardsParameters<BaseField = P>>(&mut self, y: &BigUint) {
+    fn populate_field_ops<E: EdwardsParameters>(
+        &mut self,
+        blu_events: &mut Vec<ByteLookupEvent>,
+        shard: u32,
+        y: &BigUint,
+    ) {
         let one = BigUint::one();
-        let yy = self.yy.populate(y, y, FieldOperation::Mul);
-        let u = self.u.populate(&yy, &one, FieldOperation::Sub);
-        let dyy = self.dyy.populate(&E::d_biguint(), &yy, FieldOperation::Mul);
-        let v = self.v.populate(&one, &dyy, FieldOperation::Add);
-        let u_div_v = self.u_div_v.populate(&u, &v, FieldOperation::Div);
-        let x = self.x.populate(&u_div_v, ed25519_sqrt);
+        self.y_range.populate(blu_events, shard, y);
+        let yy = self
+            .yy
+            .populate(blu_events, shard, y, y, FieldOperation::Mul);
+        let u = self
+            .u
+            .populate(blu_events, shard, &yy, &one, FieldOperation::Sub);
+        let dyy = self
+            .dyy
+            .populate(blu_events, shard, &E::d_biguint(), &yy, FieldOperation::Mul);
+        let v = self
+            .v
+            .populate(blu_events, shard, &one, &dyy, FieldOperation::Add);
+        let u_div_v = self
+            .u_div_v
+            .populate(blu_events, shard, &u, &v, FieldOperation::Div);
+        let x = self.x.populate(blu_events, shard, &u_div_v, ed25519_sqrt);
         self.neg_x
-            .populate(&BigUint::zero(), &x, FieldOperation::Sub);
+            .populate(blu_events, shard, &BigUint::zero(), &x, FieldOperation::Sub);
     }
 }
 
@@ -130,32 +153,64 @@ impl<V: Copy, P: FieldParameters> EdDecompressCols<V, P> {
     {
         builder.assert_bool(self.sign);
 
-        let y: Limbs<_, P::NB_LIMBS> = limbs_from_prev_access(&self.y_access);
-        self.yy.eval(builder, &y, &y, FieldOperation::Mul);
+        let y: Limbs<V, P::NB_LIMBS> = limbs_from_prev_access(&self.y_access);
+        self.y_range.eval(builder, &y, self.shard, self.is_real);
+        self.yy.eval(
+            builder,
+            &y,
+            &y,
+            FieldOperation::Mul,
+            self.shard,
+            self.is_real,
+        );
         self.u.eval(
             builder,
             &self.yy.result,
             &[AB::Expr::one()].iter(),
             FieldOperation::Sub,
+            self.shard,
+            self.is_real,
         );
         let d_biguint = E::d_biguint();
         let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
-        self.dyy
-            .eval(builder, &d_const, &self.yy.result, FieldOperation::Mul);
+        self.dyy.eval(
+            builder,
+            &d_const,
+            &self.yy.result,
+            FieldOperation::Mul,
+            self.shard,
+            self.is_real,
+        );
         self.v.eval(
             builder,
             &[AB::Expr::one()].iter(),
             &self.dyy.result,
             FieldOperation::Add,
+            self.shard,
+            self.is_real,
         );
-        self.u_div_v
-            .eval(builder, &self.u.result, &self.v.result, FieldOperation::Div);
-        self.x.eval(builder, &self.u_div_v.result);
+        self.u_div_v.eval(
+            builder,
+            &self.u.result,
+            &self.v.result,
+            FieldOperation::Div,
+            self.shard,
+            self.is_real,
+        );
+        self.x.eval(
+            builder,
+            &self.u_div_v.result,
+            AB::F::zero(),
+            self.shard,
+            self.is_real,
+        );
         self.neg_x.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &self.x.multiplication.result,
             FieldOperation::Sub,
+            self.shard,
+            self.is_real,
         );
 
         for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
@@ -307,7 +362,7 @@ impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E
             let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, E::BaseField>>()];
             let cols: &mut EdDecompressCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            cols.populate_field_ops::<E>(&zero);
+            cols.populate_field_ops::<E>(&mut vec![], 0, &zero);
             row
         });
 

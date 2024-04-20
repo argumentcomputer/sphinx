@@ -7,14 +7,16 @@ pub mod quad_field;
 pub mod secp256k1;
 pub mod sha256;
 pub mod weierstrass;
+use crate::runtime::SyscallContext;
+use crate::utils::ec::{AffinePoint, EllipticCurve};
+use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
 
 use hybrid_array::{typenum::Unsigned, Array};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
-    runtime::{MemoryReadRecord, MemoryWriteRecord, SyscallContext},
-    utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve},
+    utils::ec::BaseLimbWidth,
 };
 
 /// Elliptic curve add event.

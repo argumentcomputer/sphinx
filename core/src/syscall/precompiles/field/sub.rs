@@ -16,19 +16,17 @@ use wp1_derive::AlignedBorrow;
 
 use crate::{
     air::{MachineAir, SP1AirBuilder},
+    bytes::event::ByteRecord,
     bytes::ByteLookupEvent,
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
+        params::{FieldParameters, FieldType, WithFieldSubtraction},
         params::{Limbs, WORDS_FIELD_ELEMENT},
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
-    utils::{
-        bytes_to_words_le,
-        ec::field::{FieldParameters, FieldType, WithFieldSubtraction},
-        limbs_from_prev_access, pad_vec_rows,
-    },
+    utils::{bytes_to_words_le, limbs_from_prev_access, pad_vec_rows},
 };
 
 /// A set of columns to compute field element subtraction where p, q are in some prime field `Fp`.
@@ -158,10 +156,16 @@ impl<F: PrimeField32, FP: FieldParameters + WithFieldSubtraction> MachineAir<F>
                 let q = &event.q;
                 let p_int = BigUint::from_slice(p);
                 let q_int = BigUint::from_slice(q);
-                cols.p_sub_q.populate(&p_int, &q_int, FieldOperation::Sub);
+                let mut new_byte_lookup_events = Vec::new();
+                cols.p_sub_q.populate(
+                    &mut new_byte_lookup_events,
+                    event.shard,
+                    &p_int,
+                    &q_int,
+                    FieldOperation::Sub,
+                );
 
                 // Populate the memory access columns.
-                let mut new_byte_lookup_events = Vec::new();
                 for i in 0..words_len {
                     cols.q_access[i]
                         .populate(event.q_memory_records[i], &mut new_byte_lookup_events);
@@ -183,7 +187,8 @@ impl<F: PrimeField32, FP: FieldParameters + WithFieldSubtraction> MachineAir<F>
             let mut row = vec![F::zero(); size_of::<FieldSubCols<u8, FP>>()];
             let cols: &mut FieldSubCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            cols.p_sub_q.populate(&zero, &zero, FieldOperation::Sub);
+            cols.p_sub_q
+                .populate(&mut vec![], 0, &zero, &zero, FieldOperation::Sub);
             row
         });
 
@@ -221,7 +226,8 @@ where
         let p: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[0..words_len]);
         let q: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[0..words_len]);
 
-        row.p_sub_q.eval(builder, &p, &q, FieldOperation::Sub);
+        row.p_sub_q
+            .eval(builder, &p, &q, FieldOperation::Sub, row.shard, row.is_real);
 
         // Constraint self.p_access.value = [self.p_sub_q.result]
         // This is to ensure that p_access is updated with the new value.

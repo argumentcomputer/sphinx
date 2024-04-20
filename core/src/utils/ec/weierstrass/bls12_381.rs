@@ -4,19 +4,23 @@ use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::{
-    runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{
-        field::{
-            FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication,
-            WithFieldSubtraction, WithQuadFieldAddition, WithQuadFieldMultiplication,
-            WithQuadFieldSubtraction,
-        },
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
-    },
-};
+use crate::operations::field::params::FieldParameters;
+use crate::operations::field::params::FieldType;
+use crate::operations::field::params::WithFieldAddition;
+use crate::operations::field::params::WithFieldMultiplication;
+use crate::operations::field::params::WithFieldSubtraction;
+use crate::operations::field::params::WithQuadFieldAddition;
+use crate::operations::field::params::WithQuadFieldMultiplication;
+use crate::operations::field::params::WithQuadFieldSubtraction;
+use crate::runtime::Syscall;
+use crate::stark::WeierstrassAddAssignChip;
+use crate::stark::WeierstrassDoubleAssignChip;
+use crate::syscall::precompiles::create_ec_add_event;
+use crate::syscall::precompiles::create_ec_double_event;
+use crate::utils::ec::CurveType;
+use crate::utils::ec::EllipticCurveParameters;
+use crate::utils::ec::WithAddition;
+use crate::utils::ec::WithDoubling;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -39,6 +43,7 @@ impl FieldParameters for Bls12381BaseField {
         27, 75, 154, 230, 127, 57, 234, 17, 1, 26,
     ]);
 
+    // A rough witness-offset estimate given the size of the limbs and the size of the field.
     const WITNESS_OFFSET: usize = 1usize << 15;
 
     fn modulus() -> BigUint {

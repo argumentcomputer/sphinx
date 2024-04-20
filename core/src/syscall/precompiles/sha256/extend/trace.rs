@@ -6,6 +6,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
 use crate::{
     air::MachineAir,
+    bytes::event::ByteRecord,
     runtime::{ExecutionRecord, Program},
 };
 

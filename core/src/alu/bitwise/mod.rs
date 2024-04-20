@@ -9,12 +9,12 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder, Word},
-    bytes::{ByteLookupEvent, ByteOpcode},
-    runtime::{ExecutionRecord, Opcode, Program},
-    utils::pad_to_power_of_two,
-};
+use crate::air::MachineAir;
+use crate::air::{SP1AirBuilder, Word};
+use crate::bytes::event::ByteRecord;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
+use crate::runtime::{ExecutionRecord, Opcode, Program};
+use crate::utils::pad_to_power_of_two;
 
 /// The number of main trace columns for `BitwiseChip`.
 pub const NUM_BITWISE_COLS: usize = size_of::<BitwiseCols<u8>>();

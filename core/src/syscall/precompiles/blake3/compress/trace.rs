@@ -7,6 +7,7 @@ use super::{
     columns::Blake3CompressInnerCols, G_INDEX, G_INPUT_SIZE, MSG_SCHEDULE, NUM_MSG_WORDS_PER_CALL,
     NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT,
 };
+use crate::bytes::event::ByteRecord;
 use crate::{
     air::MachineAir,
     runtime::{ExecutionRecord, MemoryRecordEnum, Program},

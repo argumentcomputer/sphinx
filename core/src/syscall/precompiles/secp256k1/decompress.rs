@@ -11,13 +11,16 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
+use crate::bytes::event::ByteRecord;
+use crate::bytes::ByteLookupEvent;
+use crate::operations::field::range::FieldRangeCols;
 use crate::{
     air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
     memory::{MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
         field_sqrt::FieldSqrtCols,
-        params::{Limbs, DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT},
+        params::{FieldParameters, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT},
     },
     runtime::{
         ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
@@ -27,7 +30,6 @@ use crate::{
     utils::{
         bytes_to_words_le_vec,
         ec::{
-            field::FieldParameters,
             weierstrass::{
                 secp256k1::{secp256k1_sqrt, Secp256k1BaseField},
                 WeierstrassParameters,
@@ -139,12 +141,12 @@ pub struct Secp256k1DecompressCols<T> {
         MemoryWriteCols<T>,
         WORDS_FIELD_ELEMENT<<Secp256k1BaseField as FieldParameters>::NB_LIMBS>,
     >,
+    pub(crate) range_x: FieldRangeCols<T, Secp256k1BaseField>,
     pub(crate) x_2: FieldOpCols<T, Secp256k1BaseField>,
     pub(crate) x_3: FieldOpCols<T, Secp256k1BaseField>,
     pub(crate) x_3_plus_b: FieldOpCols<T, Secp256k1BaseField>,
     pub(crate) y: FieldSqrtCols<T, Secp256k1BaseField>,
     pub(crate) neg_y: FieldOpCols<T, Secp256k1BaseField>,
-    pub(crate) y_least_bits: [T; 8],
 }
 
 /// A chip implementing Secp256k1 elliptic curve point decompression.
@@ -163,26 +165,36 @@ impl Secp256k1DecompressChip {
         Self
     }
 
-    fn populate_field_ops<F: PrimeField32>(cols: &mut Secp256k1DecompressCols<F>, x: &BigUint) {
+    fn populate_field_ops<F: PrimeField32>(
+        blu_events: &mut Vec<ByteLookupEvent>,
+        shard: u32,
+        cols: &mut Secp256k1DecompressCols<F>,
+        x: &BigUint,
+    ) {
         // Y = sqrt(x^3 + b)
-        let x_2 = cols
-            .x_2
-            .populate(&x.clone(), &x.clone(), FieldOperation::Mul);
-        let x_3 = cols.x_3.populate(&x_2, x, FieldOperation::Mul);
+        cols.range_x.populate(blu_events, shard, x);
+        let x_2 = cols.x_2.populate(
+            blu_events,
+            shard,
+            &x.clone(),
+            &x.clone(),
+            FieldOperation::Mul,
+        );
+        let x_3 = cols
+            .x_3
+            .populate(blu_events, shard, &x_2, x, FieldOperation::Mul);
         let b = Secp256k1Parameters::b_int();
-        let x_3_plus_b = cols.x_3_plus_b.populate(&x_3, &b, FieldOperation::Add);
+        let x_3_plus_b = cols
+            .x_3_plus_b
+            .populate(blu_events, shard, &x_3, &b, FieldOperation::Add);
 
-        let y = cols.y.populate(&x_3_plus_b, secp256k1_sqrt);
+        let y = cols
+            .y
+            .populate(blu_events, shard, &x_3_plus_b, secp256k1_sqrt);
 
         let zero = BigUint::zero();
-        cols.neg_y.populate(&zero, &y, FieldOperation::Sub);
-        // Decompose bits of least significant Y byte
-        let y_bytes = y.to_bytes_le();
-
-        let y_lsb = if y_bytes.is_empty() { 0 } else { y_bytes[0] };
-        for i in 0..8 {
-            cols.y_least_bits[i] = F::from_canonical_u32(u32::from((y_lsb >> i) & 1));
-        }
+        cols.neg_y
+            .populate(blu_events, shard, &zero, &y, FieldOperation::Sub);
     }
 }
 
@@ -214,7 +226,7 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
             cols.is_odd = F::from_canonical_u32(u32::from(event.is_odd));
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
-            Self::populate_field_ops(cols, &x);
+            Self::populate_field_ops(&mut new_byte_lookup_events, event.shard, cols, &x);
 
             for i in 0..cols.x_access.len() {
                 cols.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
@@ -239,7 +251,7 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
                 cols.x_access[i].access.value = words[i].into();
             }
 
-            Self::populate_field_ops(cols, &dummy_value);
+            Self::populate_field_ops(&mut vec![], 0, cols, &dummy_value);
             row
         });
 
@@ -276,39 +288,46 @@ where
         builder.assert_bool(row.is_odd);
 
         let x: Limbs<AB::Var> = limbs_from_prev_access(&row.x_access);
-        row.x_2.eval(builder, &x, &x, FieldOperation::Mul);
-        row.x_3
-            .eval(builder, &row.x_2.result, &x, FieldOperation::Mul);
+        row.range_x.eval(builder, &x, row.shard, row.is_real);
+        row.x_2
+            .eval(builder, &x, &x, FieldOperation::Mul, row.shard, row.is_real);
+        row.x_3.eval(
+            builder,
+            &row.x_2.result,
+            &x,
+            FieldOperation::Mul,
+            row.shard,
+            row.is_real,
+        );
         let b = Secp256k1Parameters::b_int();
         let b_const = Secp256k1BaseField::to_limbs_field::<AB::F>(&b);
-        row.x_3_plus_b
-            .eval(builder, &row.x_3.result, &b_const, FieldOperation::Add);
-        row.y.eval(builder, &row.x_3_plus_b.result);
+        row.x_3_plus_b.eval(
+            builder,
+            &row.x_3.result,
+            &b_const,
+            FieldOperation::Add,
+            row.shard,
+            row.is_real,
+        );
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &row.y.multiplication.result,
             FieldOperation::Sub,
+            row.shard,
+            row.is_real,
         );
 
-        // Constrain decomposition of least significant byte of Y into `y_least_bits`
-        for i in 0..8 {
-            builder.when(row.is_real).assert_bool(row.y_least_bits[i]);
-        }
-        let y_least_byte = row.y.multiplication.result[0];
-        let powers_of_two = [1, 2, 4, 8, 16, 32, 64, 128].map(AB::F::from_canonical_u32);
-        let recomputed_byte: AB::Expr = row
-            .y_least_bits
-            .iter()
-            .zip(powers_of_two)
-            .map(|(p, b)| (*p).into() * b)
-            .sum();
-        builder
-            .when(row.is_real)
-            .assert_eq(recomputed_byte, y_least_byte);
-
         // Interpret the lowest bit of Y as whether it is odd or not.
-        let y_is_odd = row.y_least_bits[0];
+        let y_is_odd = row.y.lsb;
+
+        row.y.eval(
+            builder,
+            &row.x_3_plus_b.result,
+            row.y.lsb,
+            row.shard,
+            row.is_real,
+        );
 
         let y_limbs: Limbs<AB::Var> = limbs_from_access(&row.y_access);
         builder

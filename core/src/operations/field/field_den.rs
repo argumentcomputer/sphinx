@@ -5,26 +5,20 @@ use num::BigUint;
 use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
-use super::{
-    params::{Limbs, WITNESS_LIMBS},
-    util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
-    util_air::eval_field_operation,
-};
-use crate::{
-    air::{Polynomial, SP1AirBuilder},
-    utils::ec::field::FieldParameters,
-};
+use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
+use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
+use super::util_air::eval_field_operation;
+use crate::air::Polynomial;
+use crate::air::SP1AirBuilder;
+use crate::bytes::event::ByteRecord;
 
 /// A set of columns to compute `FieldDen(a, b)` where `a`, `b` are field elements.
 ///
 /// `a / (1 + b)` if `sign`
-/// `a / -b` if `!sign`
+/// `a / (1 - b) ` if `!sign`
 ///
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
-/// or made generic in the future.
-///
-/// TODO: There is an issue here here some fields in these columns must be range checked. This is
-/// a known issue and will be fixed in the future.
+/// *Safety*: the operation assumes that the denominators are never zero. It is the responsibility
+/// of the caller to ensure that condition.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldDenCols<T, P: FieldParameters> {
@@ -36,7 +30,14 @@ pub struct FieldDenCols<T, P: FieldParameters> {
 }
 
 impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
-    pub fn populate(&mut self, a: &BigUint, b: &BigUint, sign: bool) -> BigUint {
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        a: &BigUint,
+        b: &BigUint,
+        sign: bool,
+    ) -> BigUint {
         let p = P::modulus();
         let minus_b_int = &p - b;
         let b_signed = if sign { b.clone() } else { minus_b_int };
@@ -82,17 +83,29 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
         self.witness_low = (&p_witness_low[..]).try_into().unwrap();
         self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
+        // Range checks
+        record.add_u8_range_checks_field(shard, &self.result);
+        record.add_u8_range_checks_field(shard, &self.carry);
+        record.add_u8_range_checks_field(shard, &self.witness_low);
+        record.add_u8_range_checks_field(shard, &self.witness_high);
+
         result
     }
 }
 
 impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
-    pub fn eval<AB: SP1AirBuilder<Var = V>>(
+    pub fn eval<
+        AB: SP1AirBuilder<Var = V>,
+        EShard: Into<AB::Expr> + Clone,
+        ER: Into<AB::Expr> + Clone,
+    >(
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
         b: &Limbs<AB::Var, P::NB_LIMBS>,
         sign: bool,
+        shard: EShard,
+        is_real: ER,
     ) where
         V: Into<AB::Expr>,
     {
@@ -123,6 +136,12 @@ impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
         let p_witness_high = self.witness_high.iter().into();
 
         eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(&self.result, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.carry, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.witness_low, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.witness_high, shard, is_real);
     }
 }
 
@@ -142,20 +161,21 @@ mod tests {
     use wp1_derive::AlignedBorrow;
 
     use super::{FieldDenCols, Limbs};
+
     use crate::{
-        air::{MachineAir, SP1AirBuilder},
-        runtime::{ExecutionRecord, Program},
-        stark::StarkGenericConfig,
-        utils::{
-            ec::{
-                edwards::ed25519::Ed25519BaseField,
-                field::FieldParameters,
-                weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
-            },
-            uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
-        },
+        air::MachineAir,
+        utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
-    #[derive(AlignedBorrow, Debug, Clone)]
+
+    use crate::operations::field::params::FieldParameters;
+    use crate::runtime::Program;
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
+    use crate::utils::BabyBearPoseidon2;
+    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
+    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
+    use p3_field::AbstractField;
+    #[derive(Debug, Clone, AlignedBorrow)]
     pub struct TestCols<T, P: FieldParameters> {
         pub a: Limbs<T, P::NB_LIMBS>,
         pub b: Limbs<T, P::NB_LIMBS>,
@@ -188,7 +208,7 @@ mod tests {
         fn generate_trace(
             &self,
             _: &ExecutionRecord,
-            _: &mut ExecutionRecord,
+            output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -219,7 +239,7 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
-                    cols.a_den_b.populate(a, b, self.sign);
+                    cols.a_den_b.populate(output, 1, a, b, self.sign);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -252,7 +272,14 @@ mod tests {
             let main = builder.main();
             let local = main.row_slice(0);
             let local: &TestCols<AB::Var, P> = (*local).borrow();
-            local.a_den_b.eval(builder, &local.a, &local.b, self.sign);
+            local.a_den_b.eval(
+                builder,
+                &local.a,
+                &local.b,
+                self.sign,
+                AB::F::one(),
+                AB::F::one(),
+            );
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]
