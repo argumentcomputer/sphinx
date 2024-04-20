@@ -11,8 +11,11 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
+use crate::operations::field::params::FieldParameters;
+use crate::operations::field::range::FieldRangeCols;
 use crate::{
     air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
+    bytes::event::ByteRecord,
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
@@ -26,7 +29,6 @@ use crate::{
     utils::{
         bytes_to_words_le_vec,
         ec::{
-            field::FieldParameters,
             weierstrass::{
                 bls12_381::{bls12381_sqrt, Bls12381BaseField, Bls12381Parameters},
                 SwCurve, WeierstrassParameters,
@@ -146,6 +148,7 @@ pub struct Bls12381G1DecompressCols<T> {
     pub x_access: Array<MemoryReadCols<T>, BLS12_381_NUM_WORDS_FOR_FIELD>,
     pub x_msb_access: MemoryWriteCols<T>,
     pub y_access: Array<MemoryWriteCols<T>, BLS12_381_NUM_WORDS_FOR_FIELD>,
+    pub(crate) unmasked_range_x: FieldRangeCols<T, Bls12381BaseField>,
     pub(crate) x_msbits: [T; 8],
     pub(crate) x_2: FieldOpCols<T, Bls12381BaseField>,
     pub(crate) x_3: FieldOpCols<T, Bls12381BaseField>,
@@ -181,21 +184,32 @@ impl Bls12381G1DecompressChip {
         Self
     }
 
-    fn populate_field_ops<F: PrimeField32>(cols: &mut Bls12381G1DecompressCols<F>, x: &BigUint) {
+    fn populate_field_ops<F: PrimeField32>(
+        record: &mut impl ByteRecord,
+        shard: u32,
+        cols: &mut Bls12381G1DecompressCols<F>,
+        x: &BigUint,
+    ) {
         // Y = sqrt(x^3 + b)
-        let x_2 = cols
-            .x_2
-            .populate(&x.clone(), &x.clone(), FieldOperation::Mul);
-        let x_3 = cols.x_3.populate(&x_2, x, FieldOperation::Mul);
+        cols.unmasked_range_x.populate(record, shard, x);
+        let x_2 = cols.x_2.populate(record, shard, x, x, FieldOperation::Mul);
+        let x_3 = cols
+            .x_3
+            .populate(record, shard, &x_2, x, FieldOperation::Mul);
         let b = Bls12381Parameters::b_int();
-        let x_3_plus_b = cols.x_3_plus_b.populate(&x_3, &b, FieldOperation::Add);
+        let x_3_plus_b = cols
+            .x_3_plus_b
+            .populate(record, shard, &x_3, &b, FieldOperation::Add);
 
-        let y = cols.y.populate(&x_3_plus_b, bls12381_sqrt);
+        let y = cols.y.populate(record, shard, &x_3_plus_b, bls12381_sqrt);
 
-        let two_y = cols.two_y.populate(&y, &y, FieldOperation::Add);
+        let two_y = cols
+            .two_y
+            .populate(record, shard, &y, &y, FieldOperation::Add);
 
         let zero = BigUint::zero();
-        cols.neg_y.populate(&zero, &y, FieldOperation::Sub);
+        cols.neg_y
+            .populate(record, shard, &zero, &y, FieldOperation::Sub);
 
         // Decompose bits of least significant 2*Y byte
         let two_y_bytes = two_y.to_bytes_le();
@@ -238,7 +252,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             cols.ptr = F::from_canonical_u32(event.ptr);
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
-            Self::populate_field_ops(cols, &x);
+            Self::populate_field_ops(&mut new_byte_lookup_events, event.shard, cols, &x);
 
             // Get the previous value that still has the flags for the bit decomposition
             let x_msb = event.x_msb_memory_record.prev_value;
@@ -274,7 +288,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             }
             cols.x_msb_access.access.value = words[11].into();
 
-            Self::populate_field_ops(cols, &dummy_value);
+            Self::populate_field_ops(&mut vec![], 0, cols, &dummy_value);
             row
         });
 
@@ -328,9 +342,9 @@ where
         // The compression flag must always be set
         builder.when(row.is_real).assert_one(compression_flag);
 
-        // TODO: Handle the case where the infinity flag is set in-circuit properly by following the serialization specification
-        let infinity_flag = row.x_msbits[6];
         // We handle the infinity case out-of-circuit for now, so assert infinity flag is never set
+        // TODO: Handle the case where the infinity flag is set *in-circuit*, following the serialization specification
+        let infinity_flag = row.x_msbits[6];
         builder.when(row.is_real).assert_zero(infinity_flag);
 
         let y_sign_flag = row.x_msbits[5];
@@ -338,20 +352,45 @@ where
         let mut x: Limbs<AB::Var, BLS12_381_NUM_LIMBS> = limbs_from_prev_access(&row.x_access);
         // Overwrite the MSByte with the overwritten value (with flags cleared)
         x[num_limbs - 1] = row.x_msb_access.value()[3];
+        // Check the unmodified bytes pass a range check
+        row.unmasked_range_x
+            .eval(builder, &x, row.shard, row.is_real);
 
-        row.x_2.eval(builder, &x, &x, FieldOperation::Mul);
-        row.x_3
-            .eval(builder, &row.x_2.result, &x, FieldOperation::Mul);
+        row.x_2
+            .eval(builder, &x, &x, FieldOperation::Mul, row.shard, row.is_real);
+        row.x_3.eval(
+            builder,
+            &row.x_2.result,
+            &x,
+            FieldOperation::Mul,
+            row.shard,
+            row.is_real,
+        );
         let b = Bls12381Parameters::b_int();
         let b_const = Bls12381BaseField::to_limbs_field::<AB::F>(&b);
-        row.x_3_plus_b
-            .eval(builder, &row.x_3.result, &b_const, FieldOperation::Add);
-        row.y.eval(builder, &row.x_3_plus_b.result);
+        row.x_3_plus_b.eval(
+            builder,
+            &row.x_3.result,
+            &b_const,
+            FieldOperation::Add,
+            row.shard,
+            row.is_real,
+        );
+        // We can grab the even sqrt: the negation, if any, will come later
+        row.y.eval(
+            builder,
+            &row.x_3_plus_b.result,
+            AB::Expr::zero(),
+            row.shard,
+            row.is_real,
+        );
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &row.y.multiplication.result,
             FieldOperation::Sub,
+            row.shard,
+            row.is_real,
         );
 
         // Constrain decomposition of least significant byte of Y into `y_least_bits`
@@ -431,13 +470,13 @@ where
 mod tests {
     use super::bls12_381_g1_decompress;
     use crate::{
+        operations::field::params::FieldParameters,
         runtime::{Instruction, Opcode, SyscallCode},
         stark::SwCurve,
         syscall::precompiles::bls12_381::BLS12_381_NUM_LIMBS,
         utils::{
             self, bytes_to_words_be_vec,
             ec::{
-                field::FieldParameters,
                 weierstrass::{
                     bls12_381::{Bls12381BaseField, Bls12381Parameters},
                     WeierstrassParameters,

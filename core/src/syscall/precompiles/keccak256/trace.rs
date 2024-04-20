@@ -6,14 +6,14 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 use tracing::instrument;
 
+use crate::bytes::event::ByteRecord;
+use crate::{runtime::Program, stark::MachineRecord};
+
+use crate::{air::MachineAir, runtime::ExecutionRecord};
+
 use super::{
     columns::{KeccakMemCols, NUM_KECCAK_MEM_COLS},
     KeccakPermuteChip, STATE_SIZE,
-};
-use crate::{
-    air::MachineAir,
-    runtime::{ExecutionRecord, Program},
-    stark::MachineRecord,
 };
 
 impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {

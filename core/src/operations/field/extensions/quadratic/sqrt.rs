@@ -1,7 +1,6 @@
 use crate::air::SP1AirBuilder;
 use crate::operations::field::extensions::quadratic::QuadFieldOperation;
-use crate::operations::field::params::Limbs;
-use crate::utils::ec::field::FieldParameters;
+use crate::operations::field::params::{FieldParameters, Limbs};
 use num::BigUint;
 use p3_field::PrimeField32;
 use std::fmt::Debug;
@@ -83,10 +82,9 @@ mod tests {
 
     use crate::air::MachineAir;
 
-    use crate::operations::field::params::Limbs;
+    use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
-    use crate::utils::ec::field::FieldParameters;
     use crate::utils::ec::weierstrass::bls12_381::{bls12381_fp2_sqrt, Bls12381BaseField};
     use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};

@@ -11,11 +11,10 @@ use wp1_derive::AlignedBorrow;
 use crate::{
     air::{Polynomial, SP1AirBuilder},
     operations::field::{
-        params::{Limbs, WITNESS_LIMBS},
+        params::{FieldParameters, Limbs, WITNESS_LIMBS},
         util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
         util_air::eval_field_operation,
     },
-    utils::ec::field::FieldParameters,
 };
 
 /// Quadratic field operation for a field extension where `\beta = -1`, i.e. over
@@ -320,13 +319,12 @@ mod tests {
     use super::{QuadFieldOpCols, QuadFieldOperation};
     use crate::{
         air::{MachineAir, SP1AirBuilder},
-        operations::field::params::Limbs,
+        operations::field::params::{FieldParameters, Limbs},
         runtime::{ExecutionRecord, Program},
         stark::StarkGenericConfig,
         utils::{
-            ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
-            pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
-            BabyBearPoseidon2,
+            ec::weierstrass::bls12_381::Bls12381BaseField, pad_to_power_of_two_nongeneric,
+            uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
         },
     };
 

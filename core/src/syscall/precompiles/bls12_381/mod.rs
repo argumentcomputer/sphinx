@@ -13,9 +13,9 @@ use super::{
     },
 };
 use crate::{
-    operations::field::params::WORDS_FIELD_ELEMENT,
+    operations::field::params::{FieldParameters, WORDS_FIELD_ELEMENT},
     runtime::{Syscall, SyscallContext},
-    utils::ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
+    utils::ec::weierstrass::bls12_381::Bls12381BaseField,
 };
 
 // Convenience short-hand types for usage in chips and syscalls.

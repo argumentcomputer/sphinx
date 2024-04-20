@@ -16,19 +16,17 @@ use wp1_derive::AlignedBorrow;
 
 use crate::{
     air::{MachineAir, SP1AirBuilder},
+    bytes::event::ByteRecord,
     bytes::ByteLookupEvent,
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation},
+        params::{FieldParameters, FieldType, WithQuadFieldAddition},
         params::{Limbs, WORDS_FIELD_ELEMENT, WORDS_QUAD_EXT_FIELD_ELEMENT},
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
-    utils::{
-        bytes_to_words_le,
-        ec::field::{FieldParameters, FieldType, WithQuadFieldAddition},
-        limbs_from_prev_access, pad_vec_rows,
-    },
+    utils::{bytes_to_words_le, limbs_from_prev_access, pad_vec_rows},
 };
 
 /// A set of columns to compute field element addition where p, q are in the quadratic field extension of some prime field `Fp`.

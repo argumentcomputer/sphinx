@@ -6,22 +6,19 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_maybe_rayon::prelude::*;
 use wp1_derive::AlignedBorrow;
 
-use super::{
-    params::{Limbs, WITNESS_LIMBS},
-    util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
-    util_air::eval_field_operation,
-};
-use crate::{
-    air::{Polynomial, SP1AirBuilder},
-    utils::ec::field::FieldParameters,
-};
+use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
+use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
+use super::util_air::eval_field_operation;
+use crate::air::Polynomial;
+use crate::air::SP1AirBuilder;
+use crate::bytes::event::ByteRecord;
 
-/// A set of columns to compute `FieldInnerProduct(Vec<a>, Vec<b>)` where a, b are field elements.
-/// Right now the number of limbs is assumed to be a constant, although this could be macro-ed
-/// or made generic in the future.
+/// A set of columns to compute `InnerProduct([a], [b])` where a, b are emulated elements.
 ///
-/// TODO: There is an issue here here some fields in these columns must be range checked. This is
-/// a known issue and will be fixed in the future.
+/// *Safety*: The `FieldInnerProductCols` asserts that `result = sum_i a_i * b_i mod M` where
+/// `M` is the modulus `P::modulus()` under the assumption that the length of `a` and `b` is small
+/// enough so that the vanishing polynomial has limbs bounded by the witness shift. It is the
+/// responsibility of the caller to ensure that the length of `a` and `b` is small enough.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldInnerProductCols<T, P: FieldParameters> {
@@ -33,7 +30,13 @@ pub struct FieldInnerProductCols<T, P: FieldParameters> {
 }
 
 impl<F: PrimeField32, P: FieldParameters> FieldInnerProductCols<F, P> {
-    pub fn populate(&mut self, a: &[BigUint], b: &[BigUint]) -> BigUint {
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        a: &[BigUint],
+        b: &[BigUint],
+    ) -> BigUint {
         let modulus = &P::modulus();
         let inner_product = a
             .par_iter()
@@ -77,16 +80,28 @@ impl<F: PrimeField32, P: FieldParameters> FieldInnerProductCols<F, P> {
         self.witness_low = (&p_witness_low[..]).try_into().unwrap();
         self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
-        result
+        // Range checks
+        record.add_u8_range_checks_field(shard, &self.result);
+        record.add_u8_range_checks_field(shard, &self.carry);
+        record.add_u8_range_checks_field(shard, &self.witness_low);
+        record.add_u8_range_checks_field(shard, &self.witness_high);
+
+        result.clone()
     }
 }
 
 impl<V: Copy, P: FieldParameters> FieldInnerProductCols<V, P> {
-    pub fn eval<AB: SP1AirBuilder<Var = V>, I: IntoIterator<Item = Limbs<AB::Var, P::NB_LIMBS>>>(
+    pub fn eval<
+        AB: SP1AirBuilder<Var = V>,
+        EShard: Into<AB::Expr> + Clone,
+        ER: Into<AB::Expr> + Clone,
+    >(
         &self,
         builder: &mut AB,
-        a: I,
-        b: I,
+        a: &[Limbs<AB::Var, P::NB_LIMBS>],
+        b: &[Limbs<AB::Var, P::NB_LIMBS>],
+        shard: EShard,
+        is_real: ER,
     ) where
         V: Into<AB::Expr>,
     {
@@ -96,22 +111,25 @@ impl<V: Copy, P: FieldParameters> FieldInnerProductCols<V, P> {
         let p_zero = Polynomial::<AB::Expr>::new(vec![AB::Expr::zero()]);
 
         let p_inner_product = a
-            .into_iter()
-            .zip(b)
-            .map(|(a, b)| Polynomial::from(a) * Polynomial::from(b))
+            .iter()
+            .zip(b.iter())
+            .map(|(a, b)| Polynomial::from(a.clone()) * Polynomial::from(b.clone()))
             .fold(p_zero, |acc, partial| acc + partial);
 
         let p_inner_product_minus_result = &p_inner_product - &p_result;
-        let p_limbs = P::modulus_field_iter::<AB::F>()
-            .map(AB::Expr::from)
-            .collect();
-        // let p_carry_mul_modulus = &p_carry * &p_limbs;
+        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
         let p_vanishing = &p_inner_product_minus_result - &(&p_carry * &p_limbs);
 
         let p_witness_low = self.witness_low.iter().into();
         let p_witness_high = self.witness_high.iter().into();
 
         eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(&self.result, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.carry, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.witness_low, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.witness_high, shard, is_real);
     }
 }
 
@@ -131,21 +149,20 @@ mod tests {
     use wp1_derive::AlignedBorrow;
 
     use super::{FieldInnerProductCols, Limbs};
+
     use crate::{
-        air::{MachineAir, SP1AirBuilder},
-        runtime::{ExecutionRecord, Program},
-        stark::StarkGenericConfig,
-        utils::{
-            ec::{
-                edwards::ed25519::Ed25519BaseField,
-                field::FieldParameters,
-                weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
-            },
-            pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
-            BabyBearPoseidon2,
-        },
+        air::MachineAir,
+        utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
 
+    use crate::operations::field::params::FieldParameters;
+    use crate::runtime::Program;
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
+    use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
+    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
+    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
+    use p3_field::AbstractField;
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, P: FieldParameters> {
         pub a: [Limbs<T, P::NB_LIMBS>; 1],
@@ -177,7 +194,7 @@ mod tests {
         fn generate_trace(
             &self,
             _: &ExecutionRecord,
-            _: &mut ExecutionRecord,
+            output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -203,7 +220,7 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a[0] = P::to_limbs_field::<F>(&a[0]);
                     cols.b[0] = P::to_limbs_field::<F>(&b[0]);
-                    cols.a_ip_b.populate(a, b);
+                    cols.a_ip_b.populate(output, 1, a, b);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -238,7 +255,9 @@ mod tests {
             let main = builder.main();
             let local = main.row_slice(0);
             let local: &TestCols<AB::Var, P> = (*local).borrow();
-            local.a_ip_b.eval(builder, local.a.clone(), local.b.clone());
+            local
+                .a_ip_b
+                .eval(builder, &local.a, &local.b, AB::F::one(), AB::F::one());
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]

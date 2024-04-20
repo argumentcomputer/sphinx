@@ -5,22 +5,18 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator, ParallelSlice};
 use tracing::instrument;
 
-use super::{
-    columns::{CPU_COL_MAP, NUM_CPU_COLS},
-    CpuChip, CpuEvent,
-};
-use crate::{
-    air::MachineAir,
-    alu::AluEvent,
-    bytes::{ByteLookupEvent, ByteOpcode},
-    cpu::{
-        columns::CpuCols,
-        trace::ByteOpcode::{U16Range, U8Range},
-    },
-    disassembler::WORD_SIZE,
-    memory::MemoryCols,
-    runtime::{ExecutionRecord, MemoryRecordEnum, Opcode, Program, SyscallCode},
-};
+use super::columns::{CPU_COL_MAP, NUM_CPU_COLS};
+use super::{CpuChip, CpuEvent};
+use crate::air::MachineAir;
+use crate::alu::AluEvent;
+use crate::bytes::event::ByteRecord;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
+use crate::cpu::columns::CpuCols;
+use crate::cpu::trace::ByteOpcode::{U16Range, U8Range};
+use crate::disassembler::WORD_SIZE;
+use crate::memory::MemoryCols;
+use crate::runtime::{ExecutionRecord, Opcode, Program};
+use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
     type Record = ExecutionRecord;

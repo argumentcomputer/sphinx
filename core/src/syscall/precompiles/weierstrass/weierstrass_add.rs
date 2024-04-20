@@ -4,29 +4,44 @@ use core::{
 };
 use std::{fmt::Debug, marker::PhantomData};
 
-use hybrid_array::{typenum::Unsigned, Array};
-use num::{BigUint, Zero};
-use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
+use num::BigUint;
+use num::Zero;
+use p3_air::AirBuilder;
+use p3_air::{Air, BaseAir};
+use p3_field::AbstractField;
+use p3_field::PrimeField32;
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        params::{Limbs, WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT},
-    },
-    runtime::{ExecutionRecord, Program, SyscallCode},
-    utils::{
-        ec::{
-            field::FieldParameters, weierstrass::WeierstrassParameters, AffinePoint, BaseLimbWidth,
-            CurveType, EllipticCurve, WithAddition,
-        },
-        limbs_from_prev_access, pad_vec_rows,
-    },
-};
+use crate::air::MachineAir;
+use crate::air::SP1AirBuilder;
+use crate::bytes::event::ByteRecord;
+use crate::bytes::ByteLookupEvent;
+use crate::memory::MemoryCols;
+use crate::memory::MemoryReadCols;
+use crate::memory::MemoryWriteCols;
+use crate::operations::field::field_op::FieldOpCols;
+use crate::operations::field::field_op::FieldOperation;
+use crate::operations::field::params::{FieldParameters, Limbs, WORDS_FIELD_ELEMENT};
+use crate::runtime::ExecutionRecord;
+use crate::runtime::Program;
+use crate::runtime::SyscallCode;
+use crate::syscall::precompiles::WORDS_CURVEPOINT;
+use crate::utils::ec::weierstrass::WeierstrassParameters;
+use crate::utils::ec::AffinePoint;
+use crate::utils::ec::BaseLimbWidth;
+use crate::utils::ec::CurveType;
+use crate::utils::ec::EllipticCurve;
+use crate::utils::ec::WithAddition;
+use crate::utils::limbs_from_prev_access;
+use crate::utils::pad_vec_rows;
+
+pub const fn num_weierstrass_add_cols<P: FieldParameters>() -> usize {
+    size_of::<WeierstrassAddAssignCols<u8, P>>()
+}
 
 /// A set of columns to compute `WeierstrassAdd` that add two points on a Weierstrass curve.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -63,6 +78,8 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
     }
 
     fn populate_field_ops<F: PrimeField32>(
+        blu_events: &mut Vec<ByteLookupEvent>,
+        shard: u32,
         cols: &mut WeierstrassAddAssignCols<F, E::BaseField>,
         p_x: &BigUint,
         p_y: &BigUint,
@@ -74,34 +91,59 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {
-            let slope_numerator = cols.slope_numerator.populate(q_y, p_y, FieldOperation::Sub);
+            let slope_numerator =
+                cols.slope_numerator
+                    .populate(blu_events, shard, q_y, p_y, FieldOperation::Sub);
 
-            let slope_denominator = cols
-                .slope_denominator
-                .populate(q_x, p_x, FieldOperation::Sub);
+            let slope_denominator =
+                cols.slope_denominator
+                    .populate(blu_events, shard, q_x, p_x, FieldOperation::Sub);
 
-            cols.slope
-                .populate(&slope_numerator, &slope_denominator, FieldOperation::Div)
+            cols.slope.populate(
+                blu_events,
+                shard,
+                &slope_numerator,
+                &slope_denominator,
+                FieldOperation::Div,
+            )
         };
 
         // x = slope * slope - (p.x + q.x).
         let x = {
-            let slope_squared = cols
-                .slope_squared
-                .populate(&slope, &slope, FieldOperation::Mul);
-            let p_x_plus_q_x = cols.p_x_plus_q_x.populate(p_x, q_x, FieldOperation::Add);
-            cols.x3_ins
-                .populate(&slope_squared, &p_x_plus_q_x, FieldOperation::Sub)
+            let slope_squared =
+                cols.slope_squared
+                    .populate(blu_events, shard, &slope, &slope, FieldOperation::Mul);
+            let p_x_plus_q_x =
+                cols.p_x_plus_q_x
+                    .populate(blu_events, shard, p_x, q_x, FieldOperation::Add);
+            cols.x3_ins.populate(
+                blu_events,
+                shard,
+                &slope_squared,
+                &p_x_plus_q_x,
+                FieldOperation::Sub,
+            )
         };
 
         // y = slope * (p.x - x_3n) - p.y.
         {
-            let p_x_minus_x = cols.p_x_minus_x.populate(p_x, &x, FieldOperation::Sub);
-            let slope_times_p_x_minus_x =
-                cols.slope_times_p_x_minus_x
-                    .populate(&slope, &p_x_minus_x, FieldOperation::Mul);
-            cols.y3_ins
-                .populate(&slope_times_p_x_minus_x, p_y, FieldOperation::Sub);
+            let p_x_minus_x =
+                cols.p_x_minus_x
+                    .populate(blu_events, shard, p_x, &x, FieldOperation::Sub);
+            let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate(
+                blu_events,
+                shard,
+                &slope,
+                &p_x_minus_x,
+                FieldOperation::Mul,
+            );
+            cols.y3_ins.populate(
+                blu_events,
+                shard,
+                &slope_times_p_x_minus_x,
+                p_y,
+                FieldOperation::Sub,
+            );
         }
     }
 }
@@ -155,7 +197,15 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithAddition> M
             cols.p_ptr = F::from_canonical_u32(event.p_ptr);
             cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
-            Self::populate_field_ops(cols, &p_x, &p_y, &q_x, &q_y);
+            Self::populate_field_ops(
+                &mut new_byte_lookup_events,
+                event.shard,
+                cols,
+                &p_x,
+                &p_y,
+                &q_x,
+                &q_y,
+            );
 
             // Populate the memory access columns.
             for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
@@ -173,8 +223,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithAddition> M
             let mut row = vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, E::BaseField>>()];
             let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
-            let zero = &BigUint::zero();
-            Self::populate_field_ops(cols, zero, zero, zero, zero);
+            let zero = BigUint::zero();
+            Self::populate_field_ops(&mut vec![], 0, cols, &zero, &zero, &zero, &zero);
             row
         });
 
@@ -221,17 +271,31 @@ where
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {
-            row.slope_numerator
-                .eval(builder, &q_y, &p_y, FieldOperation::Sub);
+            row.slope_numerator.eval(
+                builder,
+                &q_y,
+                &p_y,
+                FieldOperation::Sub,
+                row.shard,
+                row.is_real,
+            );
 
-            row.slope_denominator
-                .eval(builder, &q_x, &p_x, FieldOperation::Sub);
+            row.slope_denominator.eval(
+                builder,
+                &q_x,
+                &p_x,
+                FieldOperation::Sub,
+                row.shard,
+                row.is_real,
+            );
 
             row.slope.eval(
                 builder,
                 &row.slope_numerator.result,
                 &row.slope_denominator.result,
                 FieldOperation::Div,
+                row.shard,
+                row.is_real,
             );
 
             row.slope.result.clone()
@@ -239,17 +303,31 @@ where
 
         // x = slope * slope - self.x - other.x.
         let x = {
-            row.slope_squared
-                .eval(builder, &slope, &slope, FieldOperation::Mul);
+            row.slope_squared.eval(
+                builder,
+                &slope,
+                &slope,
+                FieldOperation::Mul,
+                row.shard,
+                row.is_real,
+            );
 
-            row.p_x_plus_q_x
-                .eval(builder, &p_x, &q_x, FieldOperation::Add);
+            row.p_x_plus_q_x.eval(
+                builder,
+                &p_x,
+                &q_x,
+                FieldOperation::Add,
+                row.shard,
+                row.is_real,
+            );
 
             row.x3_ins.eval(
                 builder,
                 &row.slope_squared.result,
                 &row.p_x_plus_q_x.result,
                 FieldOperation::Sub,
+                row.shard,
+                row.is_real,
             );
 
             row.x3_ins.result.clone()
@@ -257,13 +335,22 @@ where
 
         // y = slope * (p.x - x_3n) - q.y.
         {
-            row.p_x_minus_x.eval(builder, &p_x, &x, FieldOperation::Sub);
+            row.p_x_minus_x.eval(
+                builder,
+                &p_x,
+                &x,
+                FieldOperation::Sub,
+                row.shard,
+                row.is_real,
+            );
 
             row.slope_times_p_x_minus_x.eval(
                 builder,
                 &slope,
                 &row.p_x_minus_x.result,
                 FieldOperation::Mul,
+                row.shard,
+                row.is_real,
             );
 
             row.y3_ins.eval(
@@ -271,6 +358,8 @@ where
                 &row.slope_times_p_x_minus_x.result,
                 &p_y,
                 FieldOperation::Sub,
+                row.shard,
+                row.is_real,
             );
         }
 

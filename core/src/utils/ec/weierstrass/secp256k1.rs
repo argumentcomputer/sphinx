@@ -12,15 +12,14 @@ use num::{
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
+use crate::utils::ec::CurveType;
+use crate::utils::ec::EllipticCurveParameters;
 use crate::{
-    operations::field::params::DEFAULT_NUM_LIMBS_T,
+    operations::field::params::{FieldParameters, FieldType, DEFAULT_NUM_LIMBS_T},
     runtime::Syscall,
     stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
     syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{
-        field::{FieldParameters, FieldType},
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
-    },
+    utils::ec::{WithAddition, WithDoubling},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -149,8 +148,8 @@ pub fn secp256k1_sqrt(n: &BigUint) -> BigUint {
     let mut bytes = [0_u8; 32];
     bytes[32 - be_bytes.len()..].copy_from_slice(&be_bytes);
     let fe = FieldElement::from_bytes(&bytes.into()).unwrap();
-    let result_bytes = fe.sqrt().unwrap().to_bytes();
-    BigUint::from_be_bytes(&result_bytes)
+    let result_bytes = fe.sqrt().unwrap().normalize().to_bytes();
+    BigUint::from_be_bytes(&result_bytes as &[u8])
 }
 
 #[cfg(test)]
@@ -180,9 +179,8 @@ mod tests {
                 % Secp256k1BaseField::modulus();
             let x_2 = (&x * &x) % Secp256k1BaseField::modulus();
             let sqrt = secp256k1_sqrt(&x_2);
-            if sqrt > x_2 {
-                println!("wtf");
-            }
+
+            println!("sqrt: {}", sqrt);
 
             let sqrt_2 = (&sqrt * &sqrt) % Secp256k1BaseField::modulus();
 

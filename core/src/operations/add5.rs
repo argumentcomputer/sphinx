@@ -2,10 +2,11 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{SP1AirBuilder, Word, WORD_SIZE},
-    runtime::ExecutionRecord,
-};
+use crate::air::SP1AirBuilder;
+use crate::air::Word;
+use crate::air::WORD_SIZE;
+use crate::bytes::event::ByteRecord;
+use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the sum of five words.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
