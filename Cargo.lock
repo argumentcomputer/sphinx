@@ -3253,7 +3253,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.60",
@@ -4408,7 +4408,7 @@ dependencies = [
 [[package]]
 name = "twirp"
 version = "0.3.0"
-source = "git+https://github.com/github/twirp-rs.git#aacdd3971e52735b64476ec1dcc56fb3d7f2771e"
+source = "git+https://github.com/github/twirp-rs.git#93d4e4b4a48f9112c943d2925e8dbb1106bd6a18"
 dependencies = [
  "async-trait",
  "axum",
