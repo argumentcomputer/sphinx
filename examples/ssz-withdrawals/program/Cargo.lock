@@ -281,6 +281,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bls12_381"
+version = "0.8.0"
+source = "git+https://github.com/lurk-lab/bls12_381.git?branch=zkvm#a8aa34185c3f12ccddbff4abd87b55bb650ef2ca"
+dependencies = [
+ "cfg-if",
+ "ff",
+ "group",
+ "pairing",
+ "rand_core",
+ "subtle",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -998,6 +1011,15 @@ version = "0.1.0"
 source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "pairing"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
+dependencies = [
+ "group",
 ]
 
 [[package]]
@@ -1869,10 +1891,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "bls12_381",
  "cfg-if",
  "getrandom",
+ "hex",
  "hybrid-array",
  "k256",
+ "rand",
  "serde",
 ]
 

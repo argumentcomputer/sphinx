@@ -13,4 +13,4 @@ p3-matrix = { workspace = true }
 p3-maybe-rayon = { workspace = true }
 wp1-derive = { path = "../derive" }
 wp1-core = { path = "../core" }
-itertools = "0.12.1"
+itertools = { workspace = true }

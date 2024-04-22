@@ -17,21 +17,21 @@ p3-symmetric = { workspace = true }
 p3-util = { workspace = true }
 wp1-recursion-core = { path = "../core" }
 wp1-core = { path = "../../core" }
-itertools = "0.12.1"
-serde = { version = "1.0.197", features = ["derive"] }
+itertools = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 wp1-recursion-derive = { path = "../derive" }
-serde_json = "1.0.116"
+serde_json = { workspace = true }
 p3-bn254-fr = { workspace = true }
 p3-baby-bear = { workspace = true }
 p3-poseidon2 = { workspace = true }
-backtrace = "0.3.71"
+backtrace = { workspace = true }
 
 [dev-dependencies]
 p3-challenger = { workspace = true }
 p3-dft = { workspace = true }
 p3-merkle-tree = { workspace = true }
-rand = "0.8.4"
-serial_test = "3.0.0"
+rand = { workspace = true }
+serial_test = { workspace = true }
 
 [features]
 default = ["avx512"]

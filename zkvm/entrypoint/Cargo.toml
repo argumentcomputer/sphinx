@@ -10,14 +10,14 @@ wp1-precompiles = { path = "../precompiles" }
 wp1-primitives = { path = "../../primitives" }
 p3-baby-bear = { workspace = true }
 p3-field = { workspace = true }
-bincode = "1.3.3"
-cfg-if = "1.0.0"
-getrandom = { version = "0.2.14", features = ["custom"] }
-k256 = { version = "0.13.3", features = ["ecdsa", "std", "bits"] }
-once_cell = "1.8.0"
-serde = { version = "1.0.196", features = ["derive"] }
-libm = { version = "0.2.8", optional = true }
-sha2 = { version = "0.10.8" }
+bincode = { workspace = true }
+cfg-if = { workspace = true }
+getrandom = { workspace = true, features = ["custom"] }
+k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
+once_cell = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+libm = { workspace = true, optional = true }
+sha2 = { workspace = true }
 
 [target.'cfg(target_os = "zkvm")'.dependencies]
 rand = "0.8.5"
