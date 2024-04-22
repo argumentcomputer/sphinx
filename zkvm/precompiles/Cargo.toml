@@ -6,13 +6,13 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-anyhow = "1.0.75"
-bincode = "1.3.3"
-bls12_381 = { git = "https://github.com/lurk-lab/bls12_381", branch = "zkvm" }
-cfg-if = "1.0.0"
-getrandom = { version = "0.2.14", features = ["custom"] }
-k256 = { version = "0.13.3", features = ["ecdsa", "std", "bits"] }
-serde = { version = "1.0.196", features = ["derive"] }
-hybrid-array = "0.2.0-rc"
-hex = "0.4.3"
-rand = "0.8.5"
+anyhow = { workspace = true }
+bincode = { workspace = true }
+bls12_381 = { workspace = true }
+cfg-if = { workspace = true }
+getrandom = { workspace = true, features = ["custom"] }
+k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
+serde = { workspace = true, features = ["derive"] }
+hybrid-array = { workspace = true }
+hex = { workspace = true }
+rand = { workspace = true }
