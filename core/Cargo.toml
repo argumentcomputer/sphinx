@@ -38,7 +38,7 @@ wp1-primitives = { path = "../primitives" }
 anyhow = "1.0.79"
 arrayref = "0.3.6"
 blake3 = "1.5"
-bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git" }
+bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git", branch = "zkvm" }
 cfg-if = "1.0.0"
 typenum = "1.17.0"
 curve25519-dalek = { version = "4.1.2" }

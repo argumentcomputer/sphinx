@@ -30,8 +30,7 @@ impl CurveOperations<U24> for Bls12381 {
     }
 }
 
-use crate::syscall_bls12381_decompress;
-use amcl::bls381::bls381::utils::deserialize_g1;
+use crate::{bls12381, syscall_bls12381_decompress};
 use anyhow::Result;
 
 /// Decompresses a compressed public key using bls12381_decompress precompile.
@@ -48,13 +47,8 @@ pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
 
             Ok(decompressed_key)
         } else {
-            let point = deserialize_g1(compressed_key.as_slice()).unwrap();
-            let x = point.getx().to_string();
-            let y = point.gety().to_string();
-
-            let decompressed_key = hex::decode(format!("{x}{y}")).unwrap();
-            let mut result = [0u8; 96];
-            result.copy_from_slice(&decompressed_key);
+            let point = bls12_381::G1Affine::from_compressed(compressed_key).unwrap();
+            let result = point.to_uncompressed();
 
             Ok(result)
         }
