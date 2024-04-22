@@ -48,8 +48,14 @@ pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
             Ok(decompressed_key)
         } else {
             let point = bls12_381::G1Affine::from_compressed(compressed_key).unwrap();
-            let result = point.to_uncompressed();
-
+            let mut result = point.to_uncompressed();
+            // Note: bls12_381 here produces the uncompressed serialization format
+            // which will light the infinity bit on the point at infinity:
+            // compressed_key[0] >> 6 |= 1.
+            //
+            // Our above precompile, however, being derived from a generic Weierstrass curve,
+            // precompile, will not set any mask and leave the MSB untouched.
+            result[0] &= 0b_0001_1111;
             Ok(result)
         }
     }
