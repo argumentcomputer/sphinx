@@ -7,8 +7,8 @@ license.workspace = true
 
 [dependencies]
 anyhow = "1.0.75"
-amcl = { package = "snowbridge-amcl", version="1.0.2", default-features = false, features = ["bls381"]}
 bincode = "1.3.3"
+bls12_381 = { git = "https://github.com/lurk-lab/bls12_381", branch = "zkvm" }
 cfg-if = "1.0.0"
 getrandom = { version = "0.2.14", features = ["custom"] }
 k256 = { version = "0.13.3", features = ["ecdsa", "std", "bits"] }
