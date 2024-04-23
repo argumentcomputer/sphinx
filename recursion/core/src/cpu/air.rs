@@ -15,7 +15,6 @@ use wp1_core::air::AirInteraction;
 use wp1_core::air::BinomialExtension;
 use wp1_core::air::MachineAir;
 use wp1_core::lookup::InteractionKind;
-use wp1_core::stark::SP1AirBuilder;
 use wp1_core::utils::indices_arr;
 use wp1_core::utils::pad_rows;
 
@@ -23,6 +22,7 @@ use super::columns::CpuCols;
 use super::CpuChip;
 use crate::air::BinomialExtensionUtils;
 use crate::air::BlockBuilder;
+use crate::air::SP1RecursionAirBuilder;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::RecursionProgram;
 use crate::runtime::D;
@@ -142,7 +142,7 @@ impl<F: Send + Sync> BaseAir<F> for CpuChip<F> {
 
 impl<AB> Air<AB> for CpuChip<AB::F>
 where
-    AB: SP1AirBuilder,
+    AB: SP1RecursionAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         // Constraints for the CPU chip.
