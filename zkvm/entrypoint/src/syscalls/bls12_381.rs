@@ -140,38 +140,41 @@ pub extern "C" fn syscall_bls12381_fp2_mul(p: *mut u32, q: *const u32) {
     unreachable!()
 }
 
-/// Decompresses a compressed BLS12-381 point.
+/// Decompresses a compressed BLS12-381 G1 point.
 ///
 /// The first half of the input array should contain the X coordinate.
 /// The second half of the input array will be overwritten with the Y coordinate.
+/// The most-significant byte of X will be overwritten to clear any compression flags.
 #[allow(unused_variables)]
 #[no_mangle]
-pub extern "C" fn syscall_bls12381_decompress(point: &mut [u8; 96], is_odd: bool) {
+pub extern "C" fn syscall_bls12381_g1_decompress(point: &mut [u8; 96]) {
     #[cfg(target_os = "zkvm")]
     {
-        // Handle infinity point case specifically for bls12-381 crate.
-        // It is expected that service bits are already masked by the caller,
-        // so infinite point is just 96 zeroes
+        let compressed_flag = (point[0] >> 7) & 1;
+        assert_eq!(compressed_flag, 1);
+        let infinity_flag = (point[0] >> 6) & 1;
+        // The y_sign_flag is handled in-circuit
 
-        let (prefix, aligned, suffix) = unsafe { point.align_to::<u128>() };
-        let only_zeroes = prefix.iter().all(|&x| x == 0)
-            && suffix.iter().all(|&x| x == 0)
-            && aligned.iter().all(|&x| x == 0);
-
-        if only_zeroes {
-            // our point is infinite point, so skipping the precompile invocation and return expected value
-            // of uncompressed infinite point, which is array of zeroes with zero element set to 64.
-            point[0] = 64;
+        // Handle infinity point case out of circuit for constraint simplicity.
+        if infinity_flag != 0 {
+            // Check that all other values are zero
+            assert_eq!(point[0], (1 << 6) | (1 << 7)); // MSByte has compression and infinity flags set
+            for i in 1..96 {
+                assert_eq!(point[i], 0);
+            }
+            // Our point is infinite point, so skipping the precompile invocation and return expected value
+            // of uncompressed infinite point, which is array of zeroes with zero element set to 1 << 6.
+            point[0] = 1 << 6;
         } else {
             // Memory system/FpOps are little endian so we'll just flip the whole array before/after
             point.reverse();
             let p = point.as_mut_ptr();
             unsafe {
                 asm!(
-                "ecall",
-                in("t0") crate::syscalls::BLS12381_DECOMPRESS,
-                in("a0") p,
-                in("a1") is_odd as u8,
+                    "ecall",
+                    in("t0") crate::syscalls::BLS12381_G1_DECOMPRESS,
+                    in("a0") p,
+                    in("a1") 0,
                 );
             }
             point.reverse();

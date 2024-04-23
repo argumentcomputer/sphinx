@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 use super::CurveType;
 use crate::utils::ec::{
     field::FieldParameters, utils::biguint_to_bits_le, AffinePoint, EllipticCurve,
-    EllipticCurveParameters, WithAddition, WithDecompression, WithDoubling,
+    EllipticCurveParameters, WithAddition, WithDoubling,
 };
 
-pub mod bls12381;
+pub mod bls12_381;
 pub mod bn254;
 pub mod secp256k1;
 
@@ -92,16 +92,6 @@ impl<E: WithDoubling + WeierstrassParameters> WithDoubling for SwCurve<E> {
         <Self::BaseField as FieldParameters>::NB_LIMBS,
     >] {
         E::double_events(record)
-    }
-}
-
-impl<E: WithDecompression + WeierstrassParameters> WithDecompression for SwCurve<E> {
-    fn decompression_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
-        <Self::BaseField as FieldParameters>::NB_LIMBS,
-    >] {
-        E::decompression_events(record)
     }
 }
 

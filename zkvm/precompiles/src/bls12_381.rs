@@ -30,19 +30,17 @@ impl CurveOperations<U24> for Bls12381 {
     }
 }
 
-use crate::{bls12381, syscall_bls12381_decompress};
+use crate::syscall_bls12381_g1_decompress;
 use anyhow::Result;
 
-/// Decompresses a compressed public key using bls12381_decompress precompile.
+/// Decompresses a compressed public key using bls12381_g1_decompress precompile.
 pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
     cfg_if::cfg_if! {
         if #[cfg(all(target_os = "zkvm", target_vendor = "succinct"))] {
             let mut decompressed_key = [0u8; 96];
             decompressed_key[..48].copy_from_slice(compressed_key);
-            let is_odd = (decompressed_key[0] & 0b_0010_0000) >> 5 == 0;
-            decompressed_key[0] &= 0b_0001_1111;
             unsafe {
-                syscall_bls12381_decompress(&mut decompressed_key, is_odd);
+                syscall_bls12381_g1_decompress(&mut decompressed_key);
             }
 
             Ok(decompressed_key)
@@ -52,10 +50,11 @@ pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
             // Note: bls12_381 here produces the uncompressed serialization format
             // which will light the infinity bit on the point at infinity:
             // compressed_key[0] >> 6 |= 1.
-            //
-            // Our above precompile, however, being derived from a generic Weierstrass curve,
-            // precompile, will not set any mask and leave the MSB untouched.
-            result[0] &= 0b_0001_1111;
+            // This is handled out-of-circuit in the zkvm case, inside the `syscall_bls12381_g1_decompress`
+            // function, which sets the corresponding bit flag in the return value.
+            // In-circuit, for non-infinity points, the output is a simple X, Y point array with none of the
+            // bits set.
+            // Thus we can just return the bls12_381 return value as-is since it is equivalent.
             Ok(result)
         }
     }

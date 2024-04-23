@@ -1,3 +1,5 @@
+pub mod g1_decompress;
+
 use super::{
     field::{
         add::{create_fp_add_event, FieldAddChip},
@@ -11,9 +13,16 @@ use super::{
     },
 };
 use crate::{
+    operations::field::params::WORDS_FIELD_ELEMENT,
     runtime::{Syscall, SyscallContext},
-    utils::ec::weierstrass::bls12381::Bls12381BaseField,
+    utils::ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
 };
+
+// Convenience short-hand types for usage in chips and syscalls.
+#[allow(non_camel_case_types)]
+pub type BLS12_381_NUM_LIMBS = <Bls12381BaseField as FieldParameters>::NB_LIMBS;
+#[allow(non_camel_case_types)]
+pub type BLS12_381_NUM_WORDS_FOR_FIELD = WORDS_FIELD_ELEMENT<BLS12_381_NUM_LIMBS>;
 
 impl Syscall for FieldAddChip<Bls12381BaseField> {
     fn num_extra_cycles(&self) -> u32 {

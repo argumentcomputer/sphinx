@@ -1,23 +1,20 @@
-use bls12_381::{fp::Fp, fp2::Fp2, G1Affine};
+use bls12_381::{fp::Fp, fp2::Fp2};
 use hybrid_array::{typenum::U48, Array};
-use num::{BigUint, Num, One as _, Zero};
+use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::{
     runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDecompressChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{
-        create_ec_add_event, create_ec_decompress_event, create_ec_double_event,
-    },
+    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
+    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
     utils::ec::{
         field::{
             FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication,
             WithFieldSubtraction, WithQuadFieldAddition, WithQuadFieldMultiplication,
             WithQuadFieldSubtraction,
         },
-        AffinePoint, CurveType, EllipticCurve, EllipticCurveParameters, WithAddition,
-        WithDecompression, WithDoubling,
+        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
     },
 };
 
@@ -156,16 +153,6 @@ impl WithDoubling for Bls12381Parameters {
     }
 }
 
-impl WithDecompression for Bls12381Parameters {
-    fn decompression_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECDecompressEvent<
-        <Self::BaseField as FieldParameters>::NB_LIMBS,
-    >] {
-        &record.bls12381_decompress_events
-    }
-}
-
 /// The WeierstrassParameters for BLS12-381 G1
 impl WeierstrassParameters for Bls12381Parameters {
     const A: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS> = Array([
@@ -237,43 +224,6 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
     }
 }
 
-impl Syscall for WeierstrassDecompressChip<Bls12381> {
-    fn execute(
-        &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
-        arg1: u32,
-        arg2: u32,
-    ) -> Option<u32> {
-        let event = create_ec_decompress_event::<Bls12381>(rt, arg1, arg2);
-        rt.record_mut().bls12381_decompress_events.push(event);
-        None
-    }
-}
-
-pub fn bls12381_decompress<E: EllipticCurve>(bytes_be: &[u8], is_odd: u32) -> AffinePoint<E> {
-    let mut arr_be: [u8; 48] = bytes_be.try_into().expect("Invalid input length");
-    // assume we're receiving an unmasked point in compressed form, re-do the masking for bls12_381
-    if arr_be == [0u8; 48] {
-        arr_be[0] |= 1 << 6; // infinity case
-    }
-    arr_be[0] |= 1 << 7; // activate the compression flag
-    arr_be[0] |= (is_odd as u8 ^ 1) << 5; // sign bit
-
-    let Some(point): Option<G1Affine> = G1Affine::from_compressed(&arr_be).into() else {
-        panic!("Invalid coordinate for G1 point: {:?}", arr_be);
-    };
-
-    if point.is_identity().into() {
-        // the conventional representation of the infinity point
-        return AffinePoint::new(BigUint::zero(), BigUint::one());
-    }
-    // For BLS12-381, the y-coordinate sign id deduced from a byte flag, so we ignore
-    // the explicit is_odd argument
-    let x = BigUint::from_bytes_be(&point.x.to_bytes()[..]);
-    let y = BigUint::from_bytes_be(&point.y.to_bytes()[..]);
-    AffinePoint::new(x, y)
-}
-
 pub fn bls12381_sqrt(a: &BigUint) -> BigUint {
     let mut a_bytes = a.to_bytes_le();
     // resize truncates larger inputs, so check the length
@@ -292,14 +242,10 @@ pub fn bls12381_sqrt(a: &BigUint) -> BigUint {
 mod tests {
     use super::*;
     use crate::utils::ec::utils::biguint_from_limbs;
-    use hybrid_array::typenum::Unsigned;
     use num::bigint::RandBigInt;
     use rand::thread_rng;
 
     const NUM_TEST_CASES: usize = 10;
-    // Serialization flags
-    const COMPRESSION_FLAG: u8 = 0b_1000_0000;
-    const Y_IS_ODD_FLAG: u8 = 0b_0010_0000;
 
     #[test]
     fn test_weierstrass_biguint_scalar_mul() {
@@ -307,43 +253,6 @@ mod tests {
             biguint_from_limbs(&Bls12381BaseField::MODULUS),
             Bls12381BaseField::modulus()
         );
-    }
-
-    #[test]
-    fn test_bls12381_decompress() {
-        // This test checks that decompression of generator, 2x generator, 4x generator, etc. works.
-
-        // Get the generator point.
-        let mut point = {
-            let (x, y) = Bls12381Parameters::generator();
-            AffinePoint::<SwCurve<Bls12381Parameters>>::new(x, y)
-        };
-        for _ in 0..NUM_TEST_CASES {
-            let (compressed_point, is_odd) = {
-                let mut result = [0u8; <Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE];
-                let x = point.x.to_bytes_le();
-                result[..x.len()].copy_from_slice(&x);
-                result.reverse();
-
-                // Evaluate if y > -y
-                let y = point.y.clone();
-                let y_neg = Bls12381BaseField::modulus() - y.clone();
-
-                // Set flags
-                let mut is_odd = 1;
-                if y > y_neg {
-                    result[0] += Y_IS_ODD_FLAG;
-                    is_odd = 0;
-                }
-                result[0] += COMPRESSION_FLAG;
-
-                (result, is_odd)
-            };
-            assert_eq!(point, bls12381_decompress(&compressed_point, is_odd));
-
-            // Double the point to create a "random" point for the next iteration.
-            point = point.clone().sw_double();
-        }
     }
 
     #[test]

@@ -1,5 +1,5 @@
 mod blake3_compress;
-mod bls12381;
+mod bls12_381;
 mod bn254;
 mod ed25519;
 mod halt;
@@ -13,7 +13,7 @@ mod sys;
 mod unconstrained;
 mod verify;
 
-pub use bls12381::*;
+pub use bls12_381::*;
 pub use bn254::*;
 pub use ed25519::*;
 pub use halt::*;
@@ -104,5 +104,5 @@ pub const BLS12381_ADD: u32 = 0x00_01_01_71;
 /// Executes `BLS12381_DOUBLE`
 pub const BLS12381_DOUBLE: u32 = 0x00_00_01_72;
 
-/// Executes `BLS12381_DECOMPRESS`.
-pub const BLS12381_DECOMPRESS: u32 = 0x00_00_01_F2;
+/// Executes `BLS12381_G1_DECOMPRESS`.
+pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;

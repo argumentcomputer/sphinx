@@ -87,7 +87,7 @@ mod tests {
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::field::FieldParameters;
-    use crate::utils::ec::weierstrass::bls12381::{bls12381_fp2_sqrt, Bls12381BaseField};
+    use crate::utils::ec::weierstrass::bls12_381::{bls12381_fp2_sqrt, Bls12381BaseField};
     use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
     use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};

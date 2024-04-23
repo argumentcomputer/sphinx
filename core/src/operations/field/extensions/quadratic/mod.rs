@@ -313,7 +313,7 @@ mod tests {
         runtime::{ExecutionRecord, Program},
         stark::StarkGenericConfig,
         utils::{
-            ec::{field::FieldParameters, weierstrass::bls12381::Bls12381BaseField},
+            ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
             pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
             BabyBearPoseidon2,
         },

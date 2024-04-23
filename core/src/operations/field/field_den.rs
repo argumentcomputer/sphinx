@@ -156,7 +156,7 @@ mod tests {
             ec::{
                 edwards::ed25519::Ed25519BaseField,
                 field::FieldParameters,
-                weierstrass::{bls12381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
+                weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
             },
             uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
         },

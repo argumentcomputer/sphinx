@@ -2,7 +2,7 @@
 wp1_zkvm::entrypoint!(main);
 
 use hybrid_array::typenum::U24;
-use wp1_zkvm::precompiles::bls12381::Bls12381;
+use wp1_zkvm::precompiles::bls12_381::Bls12381;
 use wp1_zkvm::precompiles::utils::AffinePoint;
 
 #[wp1_derive::cycle_tracker]

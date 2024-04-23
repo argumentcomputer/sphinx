@@ -18,15 +18,17 @@ use crate::{
     stark::MachineRecord,
     syscall::precompiles::{
         blake3::Blake3CompressInnerEvent,
+        bls12_381::g1_decompress::Bls12381G1DecompressEvent,
         edwards::EdDecompressEvent,
         field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
         keccak256::KeccakPermuteEvent,
         quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
+        secp256k1::decompress::Secp256k1DecompressEvent,
         sha256::{ShaCompressEvent, ShaExtendEvent},
-        ECAddEvent, ECDecompressEvent, ECDoubleEvent,
+        ECAddEvent, ECDoubleEvent,
     },
     utils::{
-        ec::{field::FieldParameters, weierstrass::bls12381::Bls12381BaseField},
+        ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
         env,
     },
 };
@@ -95,7 +97,7 @@ pub struct ExecutionRecord {
     pub bls12381_double_events:
         Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
-    pub secp256k1_decompress_events: Vec<ECDecompressEvent>,
+    pub secp256k1_decompress_events: Vec<Secp256k1DecompressEvent>,
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
 
@@ -105,8 +107,7 @@ pub struct ExecutionRecord {
     pub bls12381_fp2_add_events: Vec<QuadFieldAddEvent<Bls12381BaseField>>,
     pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
-    pub bls12381_decompress_events:
-        Vec<ECDecompressEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
+    pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -254,8 +255,8 @@ impl MachineRecord for ExecutionRecord {
             self.blake3_compress_inner_events.len(),
         );
         stats.insert(
-            "bls12381_decompress_events".to_string(),
-            self.bls12381_decompress_events.len(),
+            "bls12381_g1_decompress_events".to_string(),
+            self.bls12381_g1_decompress_events.len(),
         );
         stats.insert(
             "bls12381_fp_add_events".to_string(),
@@ -330,8 +331,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_fp2_sub_events);
         self.bls12381_fp2_mul_events
             .append(&mut other.bls12381_fp2_mul_events);
-        self.bls12381_decompress_events
-            .append(&mut other.bls12381_decompress_events);
+        self.bls12381_g1_decompress_events
+            .append(&mut other.bls12381_g1_decompress_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -599,7 +600,7 @@ impl MachineRecord for ExecutionRecord {
         let first = shards.first_mut().unwrap();
 
         // Bls12-381 decompress events .
-        first.bls12381_decompress_events = take(&mut self.bls12381_decompress_events);
+        first.bls12381_g1_decompress_events = take(&mut self.bls12381_g1_decompress_events);
 
         // SHA-256 extend events.
         first.sha_extend_events = take(&mut self.sha_extend_events);

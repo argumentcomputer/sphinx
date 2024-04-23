@@ -2,7 +2,7 @@
 wp1_zkvm::entrypoint!(main);
 
 extern "C" {
-    fn syscall_bls12381_decompress(p: &mut [u8; 96], is_odd: bool);
+    fn syscall_bls12381_g1_decompress(p: &mut [u8; 96]);
 }
 
 pub fn main() {
@@ -12,15 +12,8 @@ pub fn main() {
     decompressed_key[..48].copy_from_slice(&compressed_key);
 
     println!("before: {:?}", decompressed_key);
-
-    // the sign key should be unused!
-    let is_odd = (decompressed_key[0] & 0b_0010_0000) >> 5 == 0;
-    // nullifies the top bits of the input, so that we're technically not
-    // operating on a canonical form input
-    decompressed_key[0] &= 0b_0001_1111;
-
     unsafe {
-        syscall_bls12381_decompress(&mut decompressed_key, is_odd);
+        syscall_bls12381_g1_decompress(&mut decompressed_key);
     }
     println!("after: {:?}", decompressed_key);
 

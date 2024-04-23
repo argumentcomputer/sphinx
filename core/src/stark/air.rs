@@ -3,7 +3,9 @@ pub use crate::air::SP1AirBuilder;
 use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
-use crate::utils::ec::weierstrass::bls12381::{Bls12381BaseField, Bls12381Parameters};
+use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
+use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
+use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parameters};
 use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
@@ -23,9 +25,7 @@ pub(crate) mod riscv_chips {
             keccak256::KeccakPermuteChip,
             quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
             sha256::{ShaCompressChip, ShaExtendChip},
-            weierstrass::{
-                WeierstrassAddAssignChip, WeierstrassDecompressChip, WeierstrassDoubleAssignChip,
-            },
+            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
         },
         utils::ec::{
             edwards::{ed25519::Ed25519Parameters, EdwardsCurve},
@@ -76,7 +76,7 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A precompile for decompressing a point on the Edwards curve ed25519.
     Ed25519Decompress(EdDecompressChip<Ed25519Parameters>),
     /// A precompile for decompressing a point on the K256 curve.
-    Secp256k1Decompress(WeierstrassDecompressChip<SwCurve<Secp256k1Parameters>>),
+    Secp256k1Decompress(Secp256k1DecompressChip),
     /// A precompile for addition on the Elliptic curve secp256k1.
     Secp256k1Add(WeierstrassAddAssignChip<SwCurve<Secp256k1Parameters>>),
     /// A precompile for doubling a point on the Elliptic curve secp256k1.
@@ -106,7 +106,7 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A precompile for multiplication of BLS12-381 quadratic field elements.
     Bls12381Fp2Mul(QuadFieldMulChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
-    Bls12381Decompress(WeierstrassDecompressChip<SwCurve<Bls12381Parameters>>),
+    Bls12381G1Decompress(Bls12381G1DecompressChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -135,7 +135,7 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Ed25519Add(ed_add_assign));
         let ed_decompress = EdDecompressChip::<Ed25519Parameters>::default();
         chips.push(RiscvAir::Ed25519Decompress(ed_decompress));
-        let k256_decompress = WeierstrassDecompressChip::<SwCurve<Secp256k1Parameters>>::new();
+        let k256_decompress = Secp256k1DecompressChip::new();
         chips.push(RiscvAir::Secp256k1Decompress(k256_decompress));
         let secp256k1_add_assign = WeierstrassAddAssignChip::<SwCurve<Secp256k1Parameters>>::new();
         chips.push(RiscvAir::Secp256k1Add(secp256k1_add_assign));
@@ -164,6 +164,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Fp2Sub(bls12381_fp2_sub));
         let bls12381_fp2_mul = QuadFieldMulChip::<Bls12381BaseField>::new();
         chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
+        let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
+        chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
         let add = AddSubChip;
         chips.push(RiscvAir::Add(add));
         let bitwise = BitwiseChip;
@@ -186,9 +188,6 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));
-
-        let bls12381_decompress = WeierstrassDecompressChip::<SwCurve<Bls12381Parameters>>::new();
-        chips.push(RiscvAir::Bls12381Decompress(bls12381_decompress));
 
         chips
     }
