@@ -215,7 +215,6 @@ mod test {
     };
 
     #[test]
-    #[ignore]
     fn test_debug_interactions() {
         setup_logger();
         let program = Program::from(FIBONACCI_ELF);
