@@ -8,7 +8,6 @@ const PROGRAM_CARGO_TOML: &str = include_str!("../assets/program/Cargo.toml");
 const PROGRAM_MAIN_RS: &str = include_str!("../assets/program/main.rs");
 const SCRIPT_CARGO_TOML: &str = include_str!("../assets/script/Cargo.toml");
 const SCRIPT_MAIN_RS: &str = include_str!("../assets/script/main.rs");
-const SCRIPT_RUST_TOOLCHAIN: &str = include_str!("../assets/script/rust-toolchain");
 const SCRIPT_BUILD_RS: &str = include_str!("../assets/script/build.rs");
 const GIT_IGNORE: &str = include_str!("../assets/.gitignore");
 const VS_CODE_SETTINGS_JSON: &str = include_str!("../assets/.vscode/settings.json");
@@ -46,7 +45,6 @@ impl NewCmd {
             SCRIPT_CARGO_TOML.replace("unnamed", &self.name),
         )?;
         fs::write(script_root.join("src").join("main.rs"), SCRIPT_MAIN_RS)?;
-        fs::write(script_root.join("rust-toolchain"), SCRIPT_RUST_TOOLCHAIN)?;
         fs::write(script_root.join("build.rs"), SCRIPT_BUILD_RS)?;
 
         // Add .gitignore file to root.
