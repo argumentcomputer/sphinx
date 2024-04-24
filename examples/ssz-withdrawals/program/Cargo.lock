@@ -1894,10 +1894,8 @@ dependencies = [
  "bls12_381",
  "cfg-if",
  "getrandom",
- "hex",
  "hybrid-array",
  "k256",
- "rand",
  "serde",
 ]
 

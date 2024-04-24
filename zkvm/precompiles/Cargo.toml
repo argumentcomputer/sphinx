@@ -14,5 +14,3 @@ getrandom = { workspace = true, features = ["custom"] }
 k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
 serde = { workspace = true, features = ["derive"] }
 hybrid-array = { workspace = true }
-hex = { workspace = true }
-rand = { workspace = true }
