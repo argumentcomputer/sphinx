@@ -328,7 +328,7 @@ pub fn build_reduce_program(setup: bool) -> RecursionProgram<Val> {
         );
     });
 
-    // Verify deferred proofs and acculumate to deferred proofs digest
+    // Verify deferred proofs and accumulate to deferred proofs digest
     let _pre_deferred_proof_digest = clone(&mut builder, &deferred_proof_digest);
     for j in 0..DIGEST_SIZE {
         let val = builder.get(&deferred_proof_digest, j);

@@ -102,7 +102,7 @@ impl<C: Config> Builder<C> {
         result
     }
 
-    /// Exponetiates a varibale to a list of reversed bits with a given length.
+    /// Exponetiates a variable to a list of reversed bits with a given length.
     ///
     /// Reference: [p3_util::reverse_bits_len]
     pub fn exp_reverse_bits_len<V: Variable<C>>(
@@ -155,7 +155,7 @@ impl<C: Config> Builder<C> {
         result
     }
 
-    /// Exponentiates a variable to a list of bits in little endian insid a circuit.
+    /// Exponentiates a variable to a list of bits in little endian inside a circuit.
     pub fn exp_power_of_2_v_circuit<V: Variable<C>>(
         &mut self,
         base: impl Into<V::Expression>,

@@ -53,6 +53,6 @@ pub struct ByteMultCols<T> {
     /// Shard number is tracked so that the multiplicities do not overflow.
     pub shard: T,
 
-    /// The multiplicites of each byte operation.
+    /// The multiplicities of each byte operation.
     pub multiplicities: [T; NUM_BYTE_OPS],
 }

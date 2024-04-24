@@ -2,8 +2,11 @@
 # don't fix jargon
 TwoAdicCase = "TwoAdicCase"
 GROTH16 = "GROTH16"
+Groth16Witness = "Groth16Witness"
 # ot Groth16, even when mincased
 groth16 = "groth16"
+groth16_ffi = "groth16_ffi"
+wrap_into_groth16 = "wrap_into_groth16"
 
 [default.extend-words]
 # Don't correct the surname "Wich"

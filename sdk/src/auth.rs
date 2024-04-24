@@ -61,11 +61,11 @@ impl NetworkAuth {
 
     /// Signs a message to to request ot create a proof.
     pub async fn sign_create_proof_message(&self, nonce: u64, deadline: u64) -> Result<Vec<u8>> {
-        let domain_seperator = Self::get_domain_separator();
+        let domain_separator = Self::get_domain_separator();
 
         let type_struct = CreateProof { nonce, deadline };
 
-        let message_hash = type_struct.eip712_signing_hash(&domain_seperator);
+        let message_hash = type_struct.eip712_signing_hash(&domain_separator);
         let signature = self.wallet.sign_hash(&message_hash).await?;
 
         Ok(signature.as_bytes().to_vec())
@@ -73,14 +73,14 @@ impl NetworkAuth {
 
     /// Signs a message to mark a proof as ready for proof generation.
     pub async fn sign_submit_proof_message(&self, nonce: u64, proof_id: &str) -> Result<Vec<u8>> {
-        let domain_seperator = Self::get_domain_separator();
+        let domain_separator = Self::get_domain_separator();
 
         let type_struct = SubmitProof {
             nonce,
             proof_id: proof_id.to_string(),
         };
 
-        let message_hash = type_struct.eip712_signing_hash(&domain_seperator);
+        let message_hash = type_struct.eip712_signing_hash(&domain_separator);
         let signature = self.wallet.sign_hash(&message_hash).await?;
 
         Ok(signature.as_bytes().to_vec())
@@ -97,7 +97,7 @@ impl NetworkAuth {
         callback: [u8; 20],
         callback_data: &[u8],
     ) -> Result<Vec<u8>> {
-        let domain_seperator = Self::get_domain_separator();
+        let domain_separator = Self::get_domain_separator();
 
         let type_struct = RelayProof {
             nonce,
@@ -108,7 +108,7 @@ impl NetworkAuth {
             callback_data: callback_data.to_vec().into(),
         };
 
-        let message_hash = type_struct.eip712_signing_hash(&domain_seperator);
+        let message_hash = type_struct.eip712_signing_hash(&domain_separator);
         let signature = self.wallet.sign_hash(&message_hash).await?;
 
         Ok(signature.as_bytes().to_vec())
