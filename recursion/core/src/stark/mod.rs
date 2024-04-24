@@ -11,8 +11,7 @@ use crate::{
     memory::{MemoryChipKind, MemoryGlobalChip},
     program::ProgramChip,
 };
-
-use crate::runtime::DIGEST_SIZE;
+use wp1_core::stark::PROOF_MAX_NUM_PVS;
 
 #[derive(MachineAir)]
 #[wp1_core_path = "wp1_core"]
@@ -34,7 +33,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>> RecursionAir<F> {
             .into_iter()
             .map(Chip::new)
             .collect::<Vec<_>>();
-        StarkMachine::new(config, chips, DIGEST_SIZE)
+        StarkMachine::new(config, chips, PROOF_MAX_NUM_PVS)
     }
 
     pub fn get_all() -> Vec<Self> {
