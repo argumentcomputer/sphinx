@@ -32,7 +32,7 @@ extern "C" {
     pub fn syscall_bls12381_fp2_mul(p: *mut u32, q: *const u32);
     pub fn syscall_enter_unconstrained() -> bool;
     pub fn syscall_exit_unconstrained();
-    pub fn syscall_verify_wp1_proof(vkey: &[u32; 8], pv_digest: &[u32; 8]);
+    pub fn syscall_verify_wp1_proof(vkey: &[u32; 8], pv_digest: &[u8; 32]);
     pub fn syscall_hint_len() -> usize;
     pub fn syscall_hint_read(ptr: *mut u8, len: usize);
     pub fn sys_alloc_aligned(bytes: usize, align: usize) -> *mut u8;

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use wp1_core::{
+    io::SP1Stdin,
     runtime::{Program, Runtime},
     stark::RiscvAir,
     utils::{prove_core, run_and_prove, BabyBearPoseidon2},
@@ -95,8 +96,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     run_and_prove(
                         black_box(&program),
-                        #[allow(deprecated)]
-                        &[],
+                        &SP1Stdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })

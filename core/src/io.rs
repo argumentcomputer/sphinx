@@ -1,4 +1,7 @@
-use crate::utils::Buffer;
+use crate::{
+    stark::{ShardProof, StarkVerifyingKey},
+    utils::{BabyBearPoseidon2, Buffer},
+};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Standard input for the prover.
@@ -8,10 +11,14 @@ pub struct SP1Stdin {
     /// a vec of bytes at a time.
     pub buffer: Vec<Vec<u8>>,
     pub ptr: usize,
+    pub proofs: Vec<(
+        ShardProof<BabyBearPoseidon2>,
+        StarkVerifyingKey<BabyBearPoseidon2>,
+    )>,
 }
 
 /// Public values for the prover.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SP1PublicValues {
     // TODO: fix
     pub buffer: Buffer,
@@ -29,6 +36,7 @@ impl SP1Stdin {
         Self {
             buffer: Vec::new(),
             ptr: 0,
+            proofs: Vec::new(),
         }
     }
 
@@ -37,6 +45,7 @@ impl SP1Stdin {
         Self {
             buffer: vec![data.to_vec()],
             ptr: 0,
+            proofs: Vec::new(),
         }
     }
 
@@ -68,6 +77,14 @@ impl SP1Stdin {
 
     pub fn write_vec(&mut self, vec: Vec<u8>) {
         self.buffer.push(vec);
+    }
+
+    pub fn write_proof(
+        &mut self,
+        proof: ShardProof<BabyBearPoseidon2>,
+        vk: StarkVerifyingKey<BabyBearPoseidon2>,
+    ) {
+        self.proofs.push((proof, vk));
     }
 }
 

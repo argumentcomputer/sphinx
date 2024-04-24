@@ -1,4 +1,4 @@
-//! sp1-primitives contains types and functions that are used in both sp1-core and sp1-zkvm.
+//! wp1-primitives contains types and functions that are used in both sp1-core and sp1-zkvm.
 //! Because it is imported in the zkvm entrypoint, it should be kept minimal.
 
 use lazy_static::lazy_static;
@@ -1149,4 +1149,16 @@ lazy_static! {
         8,
         8,
     > = poseidon2_hasher();
+}
+
+pub fn hash_deferred_proofs(
+    prev_digest: &[BabyBear; 8],
+    vk_digest: &[BabyBear; 8],
+    pv_digest: &[BabyBear; 32],
+) -> [BabyBear; 8] {
+    let mut inputs = Vec::with_capacity(48);
+    inputs.extend_from_slice(prev_digest);
+    inputs.extend_from_slice(vk_digest);
+    inputs.extend_from_slice(pv_digest);
+    poseidon2_hash(inputs.clone())
 }

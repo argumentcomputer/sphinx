@@ -14,6 +14,7 @@ wp1-recursion-compiler = { path = "../recursion/compiler" }
 wp1-recursion-core = { path = "../recursion/core" }
 wp1-recursion-groth16-ffi = { path = "../recursion/groth16-ffi" }
 wp1-core = { path = "../core" }
+wp1-primitives = { path = "../primitives" }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
 p3-baby-bear = { workspace = true }

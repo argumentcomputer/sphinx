@@ -29,5 +29,6 @@ zkhash = { workspace = true }
 ff = { workspace = true, features = ["derive", "derive_bits"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_with = { workspace = true }
-backtrace = { workspace = true }
+backtrace = { workspace = true, features = ["serde"] }
 arrayref = { workspace = true }
+static_assertions = { workspace = true }

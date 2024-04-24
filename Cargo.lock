@@ -784,6 +784,7 @@ dependencies = [
  "miniz_oxide",
  "object",
  "rustc-demangle",
+ "serde",
 ]
 
 [[package]]
@@ -4976,6 +4977,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "wp1-core",
+ "wp1-primitives",
  "wp1-recursion-circuit",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
@@ -5065,6 +5067,7 @@ dependencies = [
  "p3-symmetric",
  "serde",
  "serde_with",
+ "static_assertions",
  "tracing",
  "wp1-core",
  "wp1-derive",

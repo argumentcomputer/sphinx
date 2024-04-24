@@ -121,6 +121,7 @@ yansi = "1.0.1"
 zkhash = { git = "https://github.com/HorizenLabs/poseidon2" }
 bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git", branch = "zkvm" }
 tracing-appender = "0.2.3"
+static_assertions = "1.1.0"
 
 [profile.dev-ci]
 inherits = "dev"
@@ -137,4 +138,3 @@ codegen-units = 16
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/wormhole-foundation/wp1"
-

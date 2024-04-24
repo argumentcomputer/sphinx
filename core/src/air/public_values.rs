@@ -1,6 +1,5 @@
 use core::fmt::Debug;
 use core::mem::size_of;
-use std::array;
 use std::iter::once;
 
 use itertools::Itertools;
@@ -27,10 +26,7 @@ pub struct PublicValues<W, T> {
     /// The hash of all deferred proofs that have been witnessed in the VM. It will be rebuilt in
     /// recursive verification as the proofs get verified. The hash itself is a rolling poseidon2
     /// hash of each proof+vkey hash and the previous hash which is initially zero.
-    pub deferred_proofs_digest: [W; POSEIDON_NUM_WORDS],
-
-    /// The shard number.
-    pub shard: T,
+    pub deferred_proofs_digest: [T; POSEIDON_NUM_WORDS],
 
     /// The shard's start program counter.
     pub start_pc: T,
@@ -40,6 +36,9 @@ pub struct PublicValues<W, T> {
 
     /// The exit code of the program.  Only valid if halt has been executed.
     pub exit_code: T,
+
+    /// The shard number.
+    pub shard: T,
 }
 
 impl PublicValues<u32, u32> {
@@ -53,12 +52,13 @@ impl PublicValues<u32, u32> {
             .chain(
                 self.deferred_proofs_digest
                     .iter()
-                    .flat_map(|w| Word::<F>::from(*w).into_iter()),
+                    .cloned()
+                    .map(F::from_canonical_u32),
             )
-            .chain(once(F::from_canonical_u32(self.shard)))
             .chain(once(F::from_canonical_u32(self.start_pc)))
             .chain(once(F::from_canonical_u32(self.next_pc)))
             .chain(once(F::from_canonical_u32(self.exit_code)))
+            .chain(once(F::from_canonical_u32(self.shard)))
             .collect_vec();
 
         assert!(
@@ -73,7 +73,7 @@ impl PublicValues<u32, u32> {
     }
 }
 
-impl<T: Clone> PublicValues<Word<T>, T> {
+impl<T: Clone + Debug> PublicValues<Word<T>, T> {
     /// Convert a vector of field elements into a PublicValues struct.
     pub fn from_vec(data: &[T]) -> Self {
         data.iter().cloned().collect::<Self>()
@@ -82,28 +82,44 @@ impl<T: Clone> PublicValues<Word<T>, T> {
 
 impl<T, IT> FromIterator<IT> for PublicValues<Word<T>, T>
 where
+    T: Debug + Clone,
     IT: Into<T>,
 {
     /// Construct a PublicValues struct by reading the first elements from an iterator
     fn from_iter<I: IntoIterator<Item = IT>>(iter: I) -> Self {
         let mut iter = iter.into_iter().map(IT::into);
+        let mut committed_value_digest = Vec::new();
+        for _ in 0..PV_DIGEST_NUM_WORDS {
+            committed_value_digest.push((&mut iter).collect());
+        }
 
-        let committed_value_digest = array::from_fn(|_| (&mut iter).collect());
-        let deferred_proofs_digest = array::from_fn(|_| (&mut iter).collect());
+        let deferred_proofs_digest = iter
+            .by_ref()
+            .take(POSEIDON_NUM_WORDS)
+            .collect_vec()
+            .try_into()
+            .unwrap();
+
         // Collecting the remaining items into a tuple.  Note that it is only getting the first
         // four items, as the rest would be padded values.
-        let shard = iter.next().unwrap();
-        let start_pc = iter.next().unwrap();
-        let next_pc = iter.next().unwrap();
-        let exit_code = iter.next().unwrap();
+        let remaining_items = iter.collect_vec();
+        assert!(
+            remaining_items.len() >= 4,
+            "Invalid number of items in the serialized vector."
+        );
+
+        let [start_pc, next_pc, exit_code, shard] = match &remaining_items.as_slice()[0..4] {
+            [start_pc, next_pc, exit_code, shard] => [start_pc, next_pc, exit_code, shard],
+            _ => unreachable!(),
+        };
 
         Self {
-            committed_value_digest,
+            committed_value_digest: committed_value_digest.try_into().unwrap(),
             deferred_proofs_digest,
-            shard,
-            start_pc,
-            next_pc,
-            exit_code,
+            start_pc: start_pc.to_owned(),
+            next_pc: next_pc.to_owned(),
+            exit_code: exit_code.to_owned(),
+            shard: shard.to_owned(),
         }
     }
 }
