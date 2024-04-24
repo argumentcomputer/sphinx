@@ -91,7 +91,7 @@ impl<C: Config> Builder<C> {
         x: Ext<C::F, C::EF>,
         power_bits: &[Var<C::N>],
     ) -> Ext<C::F, C::EF> {
-        let mut result = self.eval(SymbolicExt::Const(C::EF::one()));
+        let mut result = self.eval(SymbolicExt::from_f(C::EF::one()));
         let mut power_f: Ext<_, _> = self.eval(x);
         for i in 0..power_bits.len() {
             let bit = power_bits[i];
@@ -185,9 +185,9 @@ impl<C: Config> Builder<C> {
     /// Creates an ext from a slice of felts.
     pub fn ext_from_base_slice(&mut self, arr: &[Felt<C::F>]) -> Ext<C::F, C::EF> {
         assert!(arr.len() <= <C::EF as AbstractExtensionField::<C::F>>::D);
-        let mut res = SymbolicExt::Const(C::EF::zero());
+        let mut res = SymbolicExt::from_f(C::EF::zero());
         for i in 0..arr.len() {
-            res += arr[i] * SymbolicExt::Const(C::EF::monomial(i));
+            res += arr[i] * SymbolicExt::from_f(C::EF::monomial(i));
         }
         self.eval(res)
     }

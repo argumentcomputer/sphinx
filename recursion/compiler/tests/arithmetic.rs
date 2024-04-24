@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use wp1_core::stark::StarkGenericConfig;
 use wp1_core::utils::BabyBearPoseidon2;
 use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_compiler::ir::{Ext, Felt};
+use wp1_recursion_compiler::ir::{Ext, Felt, SymbolicExt};
 use wp1_recursion_compiler::ir::{ExtConst, Var};
 use wp1_recursion_core::runtime::Runtime;
 
@@ -57,6 +57,17 @@ fn test_compiler_arithmetic() {
         let a_ext: Ext<_, _> = builder.eval(a_ext_val.cons());
         let b_ext: Ext<_, _> = builder.eval(b_ext_val.cons());
         builder.assert_ext_eq(a_ext + b_ext, (a_ext_val + b_ext_val).cons());
+        builder.assert_ext_eq(
+            -a_ext / b_ext + (a_ext * b_ext) * (a_ext * b_ext),
+            (-a_ext_val / b_ext_val + (a_ext_val * b_ext_val) * (a_ext_val * b_ext_val)).cons(),
+        );
+        let mut a_expr = SymbolicExt::from(a_ext);
+        let mut a_val = a_ext_val;
+        for _ in 0..10 {
+            a_expr += b_ext * a_val + EF::one();
+            a_val += b_ext_val * a_val + EF::one();
+            builder.assert_ext_eq(a_expr.clone(), a_val.cons())
+        }
         builder.assert_ext_eq(a_ext * b_ext, (a_ext_val * b_ext_val).cons());
         builder.assert_ext_eq(a_ext - b_ext, (a_ext_val - b_ext_val).cons());
         builder.assert_ext_eq(a_ext / b_ext, (a_ext_val / b_ext_val).cons());

@@ -1,17 +1,19 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
-use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
-};
-use wp1_recursion_compiler::{
-    ir::{Array, Builder, Config, Ext, Felt, SymbolicFelt},
-    prelude::SymbolicExt,
-};
-use wp1_recursion_program::{
-    commit::PolynomialSpaceVariable, folder::RecursiveVerifierConstraintFolder,
-};
+use p3_field::AbstractExtensionField;
+use p3_field::AbstractField;
+use p3_field::TwoAdicField;
+use wp1_core::air::MachineAir;
+use wp1_core::stark::AirOpenedValues;
+use wp1_core::stark::PROOF_MAX_NUM_PVS;
+use wp1_core::stark::{MachineChip, StarkGenericConfig};
+use wp1_recursion_compiler::ir::Array;
+use wp1_recursion_compiler::ir::ExtensionOperand;
+use wp1_recursion_compiler::ir::Felt;
+use wp1_recursion_compiler::ir::{Builder, Config, Ext};
+use wp1_recursion_compiler::prelude::SymbolicExt;
+use wp1_recursion_program::commit::PolynomialSpaceVariable;
+use wp1_recursion_program::folder::RecursiveVerifierConstraintFolder;
 
 use crate::{
     domain::TwoAdicMultiplicativeCosetVariable,
@@ -44,7 +46,7 @@ where
                             .iter()
                             .enumerate()
                             .map(|(e_i, &x)| {
-                                x * SymbolicExt::<C::F, C::EF>::Const(C::EF::monomial(e_i))
+                                x * SymbolicExt::<C::F, C::EF>::from_f(C::EF::monomial(e_i))
                             })
                             .sum::<SymbolicExt<_, _>>(),
                     )
@@ -100,8 +102,8 @@ where
                         // Calculate: other_domain.zp_at_point(zeta)
                         //     * other_domain.zp_at_point(domain.first_point()).inverse()
                         let first_point = domain.first_point(builder);
-                        let first_point: Ext<_, _> =
-                            builder.eval(SymbolicExt::Base(SymbolicFelt::Val(first_point).into()));
+                        let first_point_ext = first_point.to_operand().symbolic();
+                        let first_point: Ext<_, _> = builder.eval(first_point_ext);
                         let z = other_domain.zp_at_point(builder, first_point);
                         other_domain.zp_at_point(builder, zeta) * z.inverse()
                     })
