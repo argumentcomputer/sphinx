@@ -35,7 +35,6 @@ rrs-lib = { workspace = true }
 wp1-derive = { path = "../derive" }
 wp1-primitives = { path = "../primitives" }
 
-anyhow = { workspace = true }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
 bls12_381 = { workspace = true }
@@ -48,7 +47,6 @@ hybrid-array = { workspace = true }
 k256 = { workspace = true, features = ["expose-field"] }
 num_cpus = { workspace = true }
 serde_with = { workspace = true }
-serde_json = { workspace = true, features = ["alloc"] }
 size = { workspace = true }
 tempfile = { workspace = true }
 tracing = { workspace = true }

@@ -4919,7 +4919,6 @@ dependencies = [
 name = "wp1-core"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "arrayref",
  "bincode",
  "blake3",
@@ -4960,7 +4959,6 @@ dependencies = [
  "rayon-scan",
  "rrs-lib",
  "serde",
- "serde_json",
  "serde_with",
  "size",
  "strum",

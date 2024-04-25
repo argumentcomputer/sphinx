@@ -27,4 +27,4 @@ default = ["libm"]
 libm = ["dep:libm"]
 
 [package.metadata.cargo-udeps.ignore]
-normal = ["libm"]
+normal = ["libm", "p3-baby-bear", "p3-field", "wp1-primitives"]
