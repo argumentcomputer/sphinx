@@ -366,7 +366,7 @@ mod tests {
         utils::{
             run_test, setup_logger,
             tests::{
-                BLS12381_G1_ADD_ELF, BLS12381_MUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
+                BLS12381_G1_ADD_ELF, BLS12381_G1_SCALARMUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
                 SECP256K1_ADD_ELF, SECP256K1_MUL_ELF,
             },
         },
@@ -410,7 +410,7 @@ mod tests {
     #[test]
     fn test_bls12381_mul_simple() {
         setup_logger();
-        let program = Program::from(BLS12381_MUL_ELF);
+        let program = Program::from(BLS12381_G1_SCALARMUL_ELF);
         run_test(program).unwrap();
     }
 }

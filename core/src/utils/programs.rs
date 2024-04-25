@@ -83,13 +83,13 @@ pub mod tests {
         include_bytes!("../../../tests/bn254-mul/elf/riscv32im-succinct-zkvm-elf");
 
     pub const BLS12381_G1_ADD_ELF: &[u8] =
-        include_bytes!("../../../tests/bls12381-add/elf/riscv32im-succinct-zkvm-elf");
+        include_bytes!("../../../tests/bls12381-g1-add/elf/riscv32im-succinct-zkvm-elf");
 
     pub const BLS12381_G1_DOUBLE_ELF: &[u8] =
-        include_bytes!("../../../tests/bls12381-double/elf/riscv32im-succinct-zkvm-elf");
+        include_bytes!("../../../tests/bls12381-g1-double/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLS12381_MUL_ELF: &[u8] =
-        include_bytes!("../../../tests/bls12381-mul/elf/riscv32im-succinct-zkvm-elf");
+    pub const BLS12381_G1_SCALARMUL_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-g1-scalarmul/elf/riscv32im-succinct-zkvm-elf");
 
     pub const BLS12381_FP_ADD_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-fp-add/elf/riscv32im-succinct-zkvm-elf");
@@ -109,8 +109,8 @@ pub mod tests {
     pub const BLS12381_FP2_MUL_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-fp2-mul/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLS_DECOMPRESS_ELF: &[u8] =
-        include_bytes!("../../../tests/bls-decompress/elf/riscv32im-succinct-zkvm-elf");
+    pub const BLS12381_G1_DECOMPRESS_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-g1-decompress/elf/riscv32im-succinct-zkvm-elf");
 
     pub const SECP256K1_MUL_ELF: &[u8] =
         include_bytes!("../../../tests/secp256k1-mul/elf/riscv32im-succinct-zkvm-elf");

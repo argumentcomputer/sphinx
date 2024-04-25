@@ -464,7 +464,7 @@ mod tests {
                 AffinePoint,
             },
             run_test_io, run_test_with_memory_inspection,
-            tests::BLS_DECOMPRESS_ELF,
+            tests::BLS12381_G1_DECOMPRESS_ELF,
             words_to_bytes_le_vec,
         },
         Program, SP1Stdin,
@@ -622,7 +622,7 @@ mod tests {
 
         let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-        let mut proof = run_test_io(Program::from(BLS_DECOMPRESS_ELF), inputs).unwrap();
+        let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), inputs).unwrap();
         let mut result = [0; 96];
         proof.public_values.read_slice(&mut result);
         assert_eq!(result, pt_uncompressed);
@@ -639,7 +639,7 @@ mod tests {
 
             let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-            let mut proof = run_test_io(Program::from(BLS_DECOMPRESS_ELF), inputs).unwrap();
+            let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), inputs).unwrap();
             let mut result = [0; 96];
             proof.public_values.read_slice(&mut result);
             assert_eq!(result, pt_uncompressed);
@@ -656,7 +656,7 @@ mod tests {
             .to_uncompressed();
 
         let mut proof = run_test_io(
-            Program::from(BLS_DECOMPRESS_ELF),
+            Program::from(BLS12381_G1_DECOMPRESS_ELF),
             SP1Stdin::from(&compressed),
         )
         .unwrap();
