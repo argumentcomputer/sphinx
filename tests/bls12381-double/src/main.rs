@@ -2,7 +2,7 @@
 wp1_zkvm::entrypoint!(main);
 
 extern "C" {
-    fn syscall_bls12381_double(p: *mut u32);
+    fn syscall_bls12381_g1_double(p: *mut u32);
 }
 
 pub fn main() {
@@ -20,7 +20,7 @@ pub fn main() {
         ];
 
         unsafe {
-            syscall_bls12381_double(a.as_mut_ptr() as *mut u32);
+            syscall_bls12381_g1_double(a.as_mut_ptr() as *mut u32);
         }
 
         // 2 * generator.

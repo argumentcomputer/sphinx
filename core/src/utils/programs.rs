@@ -82,10 +82,10 @@ pub mod tests {
     pub const BN254_MUL_ELF: &[u8] =
         include_bytes!("../../../tests/bn254-mul/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLS12381_ADD_ELF: &[u8] =
+    pub const BLS12381_G1_ADD_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-add/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLS12381_DOUBLE_ELF: &[u8] =
+    pub const BLS12381_G1_DOUBLE_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-double/elf/riscv32im-succinct-zkvm-elf");
 
     pub const BLS12381_MUL_ELF: &[u8] =

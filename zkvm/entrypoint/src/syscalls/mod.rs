@@ -99,10 +99,10 @@ pub const HINT_LEN: u32 = 0x00_00_00_F0;
 pub const HINT_READ: u32 = 0x00_00_00_F1;
 
 /// Executes `BLS12381_ADD`
-pub const BLS12381_ADD: u32 = 0x00_01_01_71;
+pub const BLS12381_G1_ADD: u32 = 0x00_01_01_71;
 
 /// Executes `BLS12381_DOUBLE`
-pub const BLS12381_DOUBLE: u32 = 0x00_00_01_72;
+pub const BLS12381_G1_DOUBLE: u32 = 0x00_00_01_72;
 
 /// Executes `BLS12381_G1_DECOMPRESS`.
 pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;
