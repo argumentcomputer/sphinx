@@ -10,13 +10,12 @@ use wp1_recursion_compiler::{
     prelude::{Builder, Config, Ext, ExtConst, SymbolicExt},
 };
 
-use crate::{
-    commit::PolynomialSpaceVariable,
-    folder::RecursiveVerifierConstraintFolder,
-    fri::TwoAdicMultiplicativeCosetVariable,
-    stark::StarkVerifier,
-    types::{ChipOpenedValuesVariable, ChipOpening},
-};
+use crate::commit::PolynomialSpaceVariable;
+use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::stark::RecursiveVerifierConstraintFolder;
+use crate::stark::StarkVerifier;
+use crate::types::ChipOpenedValuesVariable;
+use crate::types::ChipOpening;
 
 impl<C: Config, SC> StarkVerifier<C, SC>
 where
@@ -53,15 +52,14 @@ where
             next: unflatten(&opening.permutation.next),
         };
 
-        let zero: Ext<SC::Val, SC::Challenge> = builder.eval(SC::Val::zero());
+        // let zero: Ext<SC::Val, SC::Challenge> = builder.eval(SC::Val::zero());
 
         let mut folder_pv = Vec::new();
         for i in 0..PROOF_MAX_NUM_PVS {
             folder_pv.push(builder.get(public_values, i));
         }
 
-        let mut folder = RecursiveVerifierConstraintFolder {
-            builder,
+        let mut folder = RecursiveVerifierConstraintFolder::<C> {
             preprocessed: opening.preprocessed.view(),
             main: opening.main.view(),
             perm: perm_opening.view(),
@@ -72,11 +70,12 @@ where
             is_last_row: selectors.is_last_row,
             is_transition: selectors.is_transition,
             alpha,
-            accumulator: zero,
+            accumulator: SymbolicExt::zero(),
+            _marker: std::marker::PhantomData,
         };
 
         chip.eval(&mut folder);
-        folder.accumulator
+        builder.eval(folder.accumulator)
     }
 
     fn recompute_quotient(

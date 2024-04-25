@@ -4,24 +4,29 @@ use p3_field::AbstractField;
 use p3_field::TwoAdicField;
 use wp1_core::air::MachineAir;
 use wp1_core::stark::Com;
+use wp1_core::stark::GenericVerifierConstraintFolder;
 use wp1_core::stark::StarkGenericConfig;
 use wp1_core::stark::StarkMachine;
+
 use wp1_recursion_compiler::ir::Array;
 use wp1_recursion_compiler::ir::Ext;
+use wp1_recursion_compiler::ir::SymbolicExt;
 use wp1_recursion_compiler::ir::Var;
 use wp1_recursion_compiler::ir::{Builder, Config, Usize};
+use wp1_recursion_compiler::prelude::Felt;
+
 use wp1_recursion_core::runtime::DIGEST_SIZE;
 
-use crate::{
-    challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger},
-    commit::{PcsVariable, PolynomialSpaceVariable},
-    folder::RecursiveVerifierConstraintFolder,
-    fri::{
-        types::{TwoAdicPcsMatsVariable, TwoAdicPcsRoundVariable},
-        TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable,
-    },
-    types::{ShardCommitmentVariable, ShardProofVariable, VerifyingKeyVariable},
-};
+use crate::challenger::CanObserveVariable;
+use crate::challenger::DuplexChallengerVariable;
+use crate::challenger::FeltChallenger;
+use crate::commit::PolynomialSpaceVariable;
+use crate::fri::types::TwoAdicPcsMatsVariable;
+use crate::fri::types::TwoAdicPcsRoundVariable;
+use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::types::ShardCommitmentVariable;
+use crate::types::VerifyingKeyVariable;
+use crate::{commit::PcsVariable, fri::TwoAdicFriPcsVariable, types::ShardProofVariable};
 
 pub const EMPTY: usize = 0x_1111_1111;
 
@@ -29,6 +34,15 @@ pub const EMPTY: usize = 0x_1111_1111;
 pub struct StarkVerifier<C: Config, SC: StarkGenericConfig> {
     _phantom: std::marker::PhantomData<(C, SC)>,
 }
+
+pub type RecursiveVerifierConstraintFolder<'a, C> = GenericVerifierConstraintFolder<
+    'a,
+    <C as Config>::F,
+    <C as Config>::EF,
+    Felt<<C as Config>::F>,
+    Ext<<C as Config>::F, <C as Config>::EF>,
+    SymbolicExt<<C as Config>::F, <C as Config>::EF>,
+>;
 
 impl<C: Config, SC> StarkVerifier<C, SC>
 where

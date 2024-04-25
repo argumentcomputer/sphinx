@@ -124,11 +124,17 @@ impl<'a, SC: StarkGenericConfig> AirBuilderWithPublicValues for ProverConstraint
     }
 }
 
-pub type VerifierConstraintFolder<'a, SC> =
-    GenericVerifierConstraintFolder<'a, Val<SC>, Challenge<SC>, Challenge<SC>, Challenge<SC>>;
+pub type VerifierConstraintFolder<'a, SC> = GenericVerifierConstraintFolder<
+    'a,
+    Val<SC>,
+    Challenge<SC>,
+    Val<SC>,
+    Challenge<SC>,
+    Challenge<SC>,
+>;
 
 /// A folder for verifier constraints.
-pub struct GenericVerifierConstraintFolder<'a, F, EF, Var, Expr> {
+pub struct GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr> {
     pub preprocessed: VerticalPair<RowMajorMatrixView<'a, Var>, RowMajorMatrixView<'a, Var>>,
     pub main: VerticalPair<RowMajorMatrixView<'a, Var>, RowMajorMatrixView<'a, Var>>,
     pub perm: VerticalPair<RowMajorMatrixView<'a, Var>, RowMajorMatrixView<'a, Var>>,
@@ -139,11 +145,12 @@ pub struct GenericVerifierConstraintFolder<'a, F, EF, Var, Expr> {
     pub is_transition: Var,
     pub alpha: Var,
     pub accumulator: Expr,
-    pub public_values: &'a [F],
+    pub public_values: &'a [PubVar],
     pub _marker: PhantomData<(F, EF)>,
 }
 
-impl<'a, F, EF, Var, Expr> AirBuilder for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> AirBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -169,6 +176,7 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
     type F = F;
     type Expr = Expr;
@@ -202,8 +210,8 @@ where
     }
 }
 
-impl<'a, F, EF, Var, Expr> ExtensionBuilder
-    for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> ExtensionBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -229,6 +237,7 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
     type EF = EF;
     type ExprEF = Expr;
@@ -242,8 +251,8 @@ where
     }
 }
 
-impl<'a, F, EF, Var, Expr> PermutationAirBuilder
-    for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> PermutationAirBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -269,6 +278,7 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
     type MP = VerticalPair<RowMajorMatrixView<'a, Var>, RowMajorMatrixView<'a, Var>>;
     type RandomVar = Var;
@@ -282,8 +292,8 @@ where
     }
 }
 
-impl<'a, F, EF, Var, Expr> MultiTableAirBuilder
-    for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> MultiTableAirBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -309,6 +319,7 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
     type Sum = Var;
 
@@ -317,7 +328,8 @@ where
     }
 }
 
-impl<'a, F, EF, Var, Expr> PairBuilder for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> PairBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -343,14 +355,15 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
     fn preprocessed(&self) -> Self::M {
         self.preprocessed
     }
 }
 
-impl<'a, F, EF, Var, Expr> EmptyMessageBuilder
-    for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> EmptyMessageBuilder
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -376,11 +389,12 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
 }
 
-impl<'a, F, EF, Var, Expr> AirBuilderWithPublicValues
-    for GenericVerifierConstraintFolder<'a, F, EF, Var, Expr>
+impl<'a, F, EF, PubVar, Var, Expr> AirBuilderWithPublicValues
+    for GenericVerifierConstraintFolder<'a, F, EF, PubVar, Var, Expr>
 where
     F: Field,
     EF: ExtensionField<F>,
@@ -406,8 +420,9 @@ where
         + Mul<Expr, Output = Expr>
         + Send
         + Sync,
+    PubVar: Into<Expr> + Copy,
 {
-    type PublicVar = Self::F;
+    type PublicVar = PubVar;
 
     fn public_values(&self) -> &[Self::PublicVar] {
         self.public_values
