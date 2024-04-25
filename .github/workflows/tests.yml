@@ -115,6 +115,13 @@ jobs:
             cd ../
           done
         working-directory: ${{ github.workspace }}/tests
+      - name: Run cargo prove new
+        run: |
+          cargo prove new cargo-prove-test
+          cd cargo-prove-test
+          cd script
+          cargo run --release
+
 
   mac-m1:
     name: CI Tests on OSX ARM
