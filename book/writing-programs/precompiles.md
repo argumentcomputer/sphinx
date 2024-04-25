@@ -110,7 +110,7 @@ pub extern "C" fn syscall_bn254_double(p: *mut u32)
 Adds two Bls12-381 points in place.
 
 ```rust,noplayground
-pub extern "C" fn syscall_bls12381_add(p: *mut u32, q: *mut u32)
+pub extern "C" fn syscall_bls12381_g1_add(p: *mut u32, q: *mut u32)
 ```
 
 #### Bls12-381 Double
@@ -118,5 +118,5 @@ pub extern "C" fn syscall_bls12381_add(p: *mut u32, q: *mut u32)
 Doubles a Bls12-381 point in place.
 
 ```rust,noplayground
-pub extern "C" fn syscall_bls12381_double(p: *mut u32)
+pub extern "C" fn syscall_bls12381_g1_double(p: *mut u32)
 ```

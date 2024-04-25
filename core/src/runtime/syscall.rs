@@ -82,10 +82,10 @@ pub enum SyscallCode {
     BN254_DOUBLE = 0x00_00_01_0F,
 
     /// Executes the `BLS12381_ADD` precompile.
-    BLS12381_ADD = 0x00_01_01_71,
+    BLS12381_G1_ADD = 0x00_01_01_71,
 
     /// Executes the `BLS12381_DOUBLE` precompile.
-    BLS12381_DOUBLE = 0x00_00_01_72,
+    BLS12381_G1_DOUBLE = 0x00_00_01_72,
 
     /// Executes the `BLS12381_G1_DECOMPRESS` precompile.
     BLS12381_G1_DECOMPRESS = 0x00_01_01_F2,
@@ -144,8 +144,8 @@ impl SyscallCode {
             0x00_00_00_1B => SyscallCode::VERIFY_SP1_PROOF,
             0x00_00_00_F0 => SyscallCode::HINT_LEN,
             0x00_00_00_F1 => SyscallCode::HINT_READ,
-            0x00_01_01_71 => SyscallCode::BLS12381_ADD,
-            0x00_00_01_72 => SyscallCode::BLS12381_DOUBLE,
+            0x00_01_01_71 => SyscallCode::BLS12381_G1_ADD,
+            0x00_00_01_72 => SyscallCode::BLS12381_G1_DOUBLE,
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
             _ => panic!("invalid syscall number: {}", value),
         }
@@ -310,11 +310,11 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
         Rc::new(WeierstrassDoubleAssignChip::<Bn254>::new()),
     );
     syscall_map.insert(
-        SyscallCode::BLS12381_ADD,
+        SyscallCode::BLS12381_G1_ADD,
         Rc::new(WeierstrassAddAssignChip::<Bls12381>::new()),
     );
     syscall_map.insert(
-        SyscallCode::BLS12381_DOUBLE,
+        SyscallCode::BLS12381_G1_DOUBLE,
         Rc::new(WeierstrassDoubleAssignChip::<Bls12381>::new()),
     );
     syscall_map.insert(
@@ -460,11 +460,11 @@ mod tests {
                 SyscallCode::BLS12381_FP2_MUL => {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_FP2_MUL)
                 }
-                SyscallCode::BLS12381_ADD => {
-                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_ADD)
+                SyscallCode::BLS12381_G1_ADD => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_G1_ADD)
                 }
-                SyscallCode::BLS12381_DOUBLE => {
-                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_DOUBLE)
+                SyscallCode::BLS12381_G1_DOUBLE => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_G1_DOUBLE)
                 }
                 SyscallCode::COMMIT => assert_eq!(code as u32, wp1_zkvm::syscalls::COMMIT),
                 SyscallCode::BLS12381_G1_DECOMPRESS => {

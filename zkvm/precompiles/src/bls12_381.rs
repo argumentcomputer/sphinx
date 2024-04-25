@@ -2,7 +2,7 @@
 
 use hybrid_array::{sizes::U24, typenum::Unsigned};
 
-use crate::{syscall_bls12381_add, syscall_bls12381_double, utils::CurveOperations};
+use crate::{syscall_bls12381_g1_add, syscall_bls12381_g1_double, utils::CurveOperations};
 
 #[derive(Copy, Clone)]
 pub struct Bls12381;
@@ -19,13 +19,13 @@ impl CurveOperations<U24> for Bls12381 {
 
     fn add_assign(limbs: &mut [u32; U24::USIZE], other: &[u32; U24::USIZE]) {
         unsafe {
-            syscall_bls12381_add(limbs.as_mut_ptr(), other.as_ptr());
+            syscall_bls12381_g1_add(limbs.as_mut_ptr(), other.as_ptr());
         }
     }
 
     fn double(limbs: &mut [u32; U24::USIZE]) {
         unsafe {
-            syscall_bls12381_double(limbs.as_mut_ptr());
+            syscall_bls12381_g1_double(limbs.as_mut_ptr());
         }
     }
 }

@@ -139,7 +139,7 @@ impl WithAddition for Bls12381Parameters {
         record: &crate::runtime::ExecutionRecord,
     ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
     {
-        &record.bls12381_add_events
+        &record.bls12381_g1_add_events
     }
 }
 
@@ -149,7 +149,7 @@ impl WithDoubling for Bls12381Parameters {
     ) -> &[crate::syscall::precompiles::ECDoubleEvent<
         <Self::BaseField as FieldParameters>::NB_LIMBS,
     >] {
-        &record.bls12381_double_events
+        &record.bls12381_g1_double_events
     }
 }
 
@@ -203,7 +203,7 @@ impl Syscall for WeierstrassAddAssignChip<Bls12381> {
         arg2: u32,
     ) -> Option<u32> {
         let event = create_ec_add_event::<Bls12381>(rt, arg1, arg2);
-        rt.record_mut().bls12381_add_events.push(event);
+        rt.record_mut().bls12381_g1_add_events.push(event);
         None
     }
     fn num_extra_cycles(&self) -> u32 {
@@ -219,7 +219,7 @@ impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
         arg2: u32,
     ) -> Option<u32> {
         let event = create_ec_double_event::<Bls12381>(rt, arg1, arg2);
-        rt.record_mut().bls12381_double_events.push(event);
+        rt.record_mut().bls12381_g1_double_events.push(event);
         None
     }
 }

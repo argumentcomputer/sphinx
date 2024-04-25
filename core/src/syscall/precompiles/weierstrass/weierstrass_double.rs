@@ -240,7 +240,7 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDoubling> M
         match E::CURVE_TYPE {
             CurveType::Secp256k1 => !shard.secp256k1_double_events.is_empty(),
             CurveType::Bn254 => !shard.bn254_double_events.is_empty(),
-            CurveType::Bls12381 => !shard.bls12381_double_events.is_empty(),
+            CurveType::Bls12381 => !shard.bls12381_g1_double_events.is_empty(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -381,7 +381,7 @@ where
             }
             CurveType::Bn254 => AB::F::from_canonical_u32(SyscallCode::BN254_DOUBLE.syscall_id()),
             CurveType::Bls12381 => {
-                AB::F::from_canonical_u32(SyscallCode::BLS12381_DOUBLE.syscall_id())
+                AB::F::from_canonical_u32(SyscallCode::BLS12381_G1_DOUBLE.syscall_id())
             }
             _ => panic!("Unsupported curve"),
         };
@@ -404,7 +404,7 @@ pub mod tests {
         runtime::Program,
         utils::{
             run_test, setup_logger,
-            tests::{BLS12381_DOUBLE_ELF, BN254_DOUBLE_ELF, SECP256K1_DOUBLE_ELF},
+            tests::{BLS12381_G1_DOUBLE_ELF, BN254_DOUBLE_ELF, SECP256K1_DOUBLE_ELF},
         },
     };
 
@@ -423,9 +423,9 @@ pub mod tests {
     }
 
     #[test]
-    fn test_bls12381_double_simple() {
+    fn test_bls12381_g1_double_simple() {
         setup_logger();
-        let program = Program::from(BLS12381_DOUBLE_ELF);
+        let program = Program::from(BLS12381_G1_DOUBLE_ELF);
         run_test(program).unwrap();
     }
 }

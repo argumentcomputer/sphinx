@@ -92,9 +92,9 @@ pub struct ExecutionRecord {
 
     pub bn254_double_events: Vec<ECDoubleEvent>,
 
-    pub bls12381_add_events: Vec<ECAddEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
+    pub bls12381_g1_add_events: Vec<ECAddEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
-    pub bls12381_double_events:
+    pub bls12381_g1_double_events:
         Vec<ECDoubleEvent<<Bls12381BaseField as FieldParameters>::NB_LIMBS>>,
 
     pub secp256k1_decompress_events: Vec<Secp256k1DecompressEvent>,
@@ -133,8 +133,8 @@ pub struct ShardingConfig {
     pub secp256k1_double_len: usize,
     pub bn254_add_len: usize,
     pub bn254_double_len: usize,
-    pub bls12381_add_len: usize,
-    pub bls12381_double_len: usize,
+    pub bls12381_g1_add_len: usize,
+    pub bls12381_g1_double_len: usize,
     pub bls12381_fp_add_len: usize,
     pub bls12381_fp_sub_len: usize,
     pub bls12381_fp_mul_len: usize,
@@ -168,8 +168,8 @@ impl Default for ShardingConfig {
             secp256k1_double_len: shard_size,
             bn254_add_len: shard_size,
             bn254_double_len: shard_size,
-            bls12381_add_len: shard_size,
-            bls12381_double_len: shard_size,
+            bls12381_g1_add_len: shard_size,
+            bls12381_g1_double_len: shard_size,
             bls12381_fp_add_len: shard_size,
             bls12381_fp_sub_len: shard_size,
             bls12381_fp_mul_len: shard_size,
@@ -239,12 +239,12 @@ impl MachineRecord for ExecutionRecord {
             self.bn254_double_events.len(),
         );
         stats.insert(
-            "bls12381_add_events".to_string(),
-            self.bls12381_add_events.len(),
+            "bls12381_g1_add_events".to_string(),
+            self.bls12381_g1_add_events.len(),
         );
         stats.insert(
-            "bls12381_double_events".to_string(),
-            self.bls12381_double_events.len(),
+            "bls12381_g1_double_events".to_string(),
+            self.bls12381_g1_double_events.len(),
         );
         stats.insert(
             "k256_decompress_events".to_string(),
@@ -311,10 +311,10 @@ impl MachineRecord for ExecutionRecord {
         self.bn254_add_events.append(&mut other.bn254_add_events);
         self.bn254_double_events
             .append(&mut other.bn254_double_events);
-        self.bls12381_add_events
-            .append(&mut other.bls12381_add_events);
-        self.bls12381_double_events
-            .append(&mut other.bls12381_double_events);
+        self.bls12381_g1_add_events
+            .append(&mut other.bls12381_g1_add_events);
+        self.bls12381_g1_double_events
+            .append(&mut other.bls12381_g1_double_events);
         self.secp256k1_decompress_events
             .append(&mut other.secp256k1_decompress_events);
         self.blake3_compress_inner_events
@@ -527,23 +527,23 @@ impl MachineRecord for ExecutionRecord {
         }
 
         // BLS12-381 curve add events.
-        for (bls12381_add_chunk, shard) in take(&mut self.bls12381_add_events)
-            .chunks_mut(config.bls12381_add_len)
+        for (bls12381_g1_add_chunk, shard) in take(&mut self.bls12381_g1_add_events)
+            .chunks_mut(config.bls12381_g1_add_len)
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_add_events
-                .extend_from_slice(bls12381_add_chunk);
+                .bls12381_g1_add_events
+                .extend_from_slice(bls12381_g1_add_chunk);
         }
 
         // BLS12-381 curve double events.
-        for (bls12381_double_chunk, shard) in take(&mut self.bls12381_double_events)
-            .chunks_mut(config.bls12381_double_len)
+        for (bls12381_g1_double_chunk, shard) in take(&mut self.bls12381_g1_double_events)
+            .chunks_mut(config.bls12381_g1_double_len)
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_double_events
-                .extend_from_slice(bls12381_double_chunk);
+                .bls12381_g1_double_events
+                .extend_from_slice(bls12381_g1_double_chunk);
         }
 
         // BLS12-381 Fp and Fp2 events
