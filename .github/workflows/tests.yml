@@ -82,7 +82,7 @@ jobs:
 
   integration-tests-examples:
     name: Build integration tests and examples
-    runs-on: buildjet-16vcpu-ubuntu-2204
+    runs-on: warp-ubuntu-latest-x64-32x
     steps:
       - uses: actions/checkout@v4
         with:
