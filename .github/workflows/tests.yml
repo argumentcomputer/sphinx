@@ -230,5 +230,5 @@ jobs:
             echo "$crate = { path = \"$crate_path\" }" | tee -a Cargo.toml
           done
       - name: Check downstream types don't break spectacularly
-        working-directory: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
+        working-directory: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}/aptos
         run: cargo check --workspace --tests --benches --examples
