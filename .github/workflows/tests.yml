@@ -172,8 +172,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: lurk-lab/ci-workflows
-      - uses: ./.github/actions/ci-env
-      - uses: ./.github/actions/install-deps
+          path: ci-workflows
+      - uses: ./ci-workflows/.github/actions/ci-env
+      - uses: ./ci-workflows/.github/actions/install-deps
         with:
           packages: "pkg-config libudev-dev"
       - name: Set env
@@ -191,44 +192,12 @@ jobs:
           perf: false
       - uses: actions/checkout@v4
         with:
-          repository: "wormhole-foundation/example-zk-light-clients-internal"
+          repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO}}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
           token: ${{ secrets.REPO_TOKEN }}
           submodules: recursive
-      - name: Patch Cargo.toml
-        working-directory: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}/aptos
-        run: |
-          # Get each workspace package and relative path of the upstream crate, storing them in a map of former to latter
-          URL=ssh://git@github.com/${{ github.repository }}
-
-          # Assumes at least one dependency in the current workspace is used by the downstream crate
-          printf "\n[patch.'$URL']\n" | tee -a Cargo.toml
-
-          # Get a list of all upstream dependencies used by the downstream crate workspace
-          # This is done by checking for each instance of `git = <upstream_url>` in any of the downstream `Cargo.toml` files
-          DEPENDENCIES=$(grep -rsh "git = \"$URL\"" --include="Cargo.toml" .)
-
-          # Extract the dependency names and check for package renames, removing duplicates
-          DEP_NAMES=$(echo "$DEPENDENCIES" | awk '/package =/{for (i=1; i<=NF; i++) if ($i == "package") {name=$(i+2); print substr(name, 2, length(name)-2);} found=1} !/package =/{print $1}' | sort -u)
-
-          shopt -s nullglob
-          # Collect the `(package, path)` pairs for most subcrates in the upstream directory, regardless of whether it's a workspace member
-          SUBCRATES=$(find ../../${{ env.UPSTREAM_REPO }} \( -type d \( -name target -o -name examples -o -name tests -o -name cli \) -prune \) -o -name Cargo.toml -exec grep -A1 --no-group-separator -e  "\[package\]" {} +)
-          SUBCRATES=$(echo "$SUBCRATES" | sed -n 'n;p' | awk -F '-name = "|"' '{split($1, parts, "/"); path=""; for(i=1; i<=length(parts)-1; i++) {path = path parts[i] "/"}; print $2, path}')
-          shopt -u nullglob
-
-          # Store the subcrates in associative array for retrieval when patching `Cargo.toml`
-          declare -A subcrates
-          while IFS= read -r line; do
-              pair=($line)
-              subcrates[${pair[0]}]=${pair[1]}
-          done <<< "$SUBCRATES"
-
-          # Write Git patches for each dependency used downstream
-          for crate in $DEP_NAMES; do
-            crate_path="${subcrates[$crate]}"
-            echo "$crate = { path = \"$crate_path\" }" | tee -a Cargo.toml
-          done
-      - name: Check downstream types don't break spectacularly
-        working-directory: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}/aptos
-        run: cargo check --workspace --tests --benches --examples
+      - uses: ./ci-workflows/.github/actions/check-downstream-compiles
+        with:
+          upstream-path: "${{ env.UPSTREAM_REPO }}"
+          downstream-path: "${{ env.DOWNSTREAM_REPO }}/aptos"
+          patch-ssh: true
