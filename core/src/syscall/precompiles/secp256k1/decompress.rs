@@ -131,13 +131,19 @@ pub struct Secp256k1DecompressCols<T> {
     pub clk: T,
     pub ptr: T,
     pub is_odd: T,
-    pub x_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<DEFAULT_NUM_LIMBS_T>>,
-    pub y_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<DEFAULT_NUM_LIMBS_T>>,
-    pub(crate) x_2: FieldOpCols<T, DEFAULT_NUM_LIMBS_T>,
-    pub(crate) x_3: FieldOpCols<T, DEFAULT_NUM_LIMBS_T>,
-    pub(crate) x_3_plus_b: FieldOpCols<T, DEFAULT_NUM_LIMBS_T>,
-    pub(crate) y: FieldSqrtCols<T, DEFAULT_NUM_LIMBS_T>,
-    pub(crate) neg_y: FieldOpCols<T, DEFAULT_NUM_LIMBS_T>,
+    pub x_access: Array<
+        MemoryReadCols<T>,
+        WORDS_FIELD_ELEMENT<<Secp256k1BaseField as FieldParameters>::NB_LIMBS>,
+    >,
+    pub y_access: Array<
+        MemoryWriteCols<T>,
+        WORDS_FIELD_ELEMENT<<Secp256k1BaseField as FieldParameters>::NB_LIMBS>,
+    >,
+    pub(crate) x_2: FieldOpCols<T, Secp256k1BaseField>,
+    pub(crate) x_3: FieldOpCols<T, Secp256k1BaseField>,
+    pub(crate) x_3_plus_b: FieldOpCols<T, Secp256k1BaseField>,
+    pub(crate) y: FieldSqrtCols<T, Secp256k1BaseField>,
+    pub(crate) neg_y: FieldOpCols<T, Secp256k1BaseField>,
     pub(crate) y_least_bits: [T; 8],
 }
 
@@ -159,24 +165,17 @@ impl Secp256k1DecompressChip {
 
     fn populate_field_ops<F: PrimeField32>(cols: &mut Secp256k1DecompressCols<F>, x: &BigUint) {
         // Y = sqrt(x^3 + b)
-        let x_2 =
-            cols.x_2
-                .populate::<Secp256k1BaseField>(&x.clone(), &x.clone(), FieldOperation::Mul);
-        let x_3 = cols
-            .x_3
-            .populate::<Secp256k1BaseField>(&x_2, x, FieldOperation::Mul);
+        let x_2 = cols
+            .x_2
+            .populate(&x.clone(), &x.clone(), FieldOperation::Mul);
+        let x_3 = cols.x_3.populate(&x_2, x, FieldOperation::Mul);
         let b = Secp256k1Parameters::b_int();
-        let x_3_plus_b =
-            cols.x_3_plus_b
-                .populate::<Secp256k1BaseField>(&x_3, &b, FieldOperation::Add);
+        let x_3_plus_b = cols.x_3_plus_b.populate(&x_3, &b, FieldOperation::Add);
 
-        let y = cols
-            .y
-            .populate::<Secp256k1BaseField>(&x_3_plus_b, secp256k1_sqrt);
+        let y = cols.y.populate(&x_3_plus_b, secp256k1_sqrt);
 
         let zero = BigUint::zero();
-        cols.neg_y
-            .populate::<Secp256k1BaseField>(&zero, &y, FieldOperation::Sub);
+        cols.neg_y.populate(&zero, &y, FieldOperation::Sub);
         // Decompose bits of least significant Y byte
         let y_bytes = y.to_bytes_le();
 
@@ -277,25 +276,15 @@ where
         builder.assert_bool(row.is_odd);
 
         let x: Limbs<AB::Var> = limbs_from_prev_access(&row.x_access);
-        row.x_2
-            .eval::<AB, Secp256k1BaseField, _, _>(builder, &x, &x, FieldOperation::Mul);
-        row.x_3.eval::<AB, Secp256k1BaseField, _, _>(
-            builder,
-            &row.x_2.result,
-            &x,
-            FieldOperation::Mul,
-        );
+        row.x_2.eval(builder, &x, &x, FieldOperation::Mul);
+        row.x_3
+            .eval(builder, &row.x_2.result, &x, FieldOperation::Mul);
         let b = Secp256k1Parameters::b_int();
         let b_const = Secp256k1BaseField::to_limbs_field::<AB::F>(&b);
-        row.x_3_plus_b.eval::<AB, Secp256k1BaseField, _, _>(
-            builder,
-            &row.x_3.result,
-            &b_const,
-            FieldOperation::Add,
-        );
-        row.y
-            .eval::<AB, Secp256k1BaseField>(builder, &row.x_3_plus_b.result);
-        row.neg_y.eval::<AB, Secp256k1BaseField, _, _>(
+        row.x_3_plus_b
+            .eval(builder, &row.x_3.result, &b_const, FieldOperation::Add);
+        row.y.eval(builder, &row.x_3_plus_b.result);
+        row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &row.y.multiplication.result,

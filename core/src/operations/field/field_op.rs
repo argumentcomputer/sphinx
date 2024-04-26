@@ -7,7 +7,7 @@ use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
 use super::{
-    params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WITNESS_LIMBS},
+    params::{Limbs, WITNESS_LIMBS},
     util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
     util_air::eval_field_operation,
 };
@@ -30,23 +30,29 @@ pub enum FieldOperation {
 ///
 /// TODO: There is an issue here here some fields in these columns must be range checked. This is
 /// a known issue and will be fixed in the future.
-#[derive(Debug, Clone, AlignedBorrow)]
+#[derive(Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct FieldOpCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct FieldOpCols<T, P: FieldParameters> {
     /// The result of `a op b`, where a, b are field elements
-    pub result: Limbs<T, U>,
-    pub(crate) carry: Limbs<T, U>,
-    pub(crate) witness_low: Array<T, WITNESS_LIMBS<U>>,
-    pub(crate) witness_high: Array<T, WITNESS_LIMBS<U>>,
+    pub result: Limbs<T, P::NB_LIMBS>,
+    pub(crate) carry: Limbs<T, P::NB_LIMBS>,
+    pub(crate) witness_low: Array<T, WITNESS_LIMBS<P::NB_LIMBS>>,
+    pub(crate) witness_high: Array<T, WITNESS_LIMBS<P::NB_LIMBS>>,
 }
 
-impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
-    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
-        &mut self,
-        a: &BigUint,
-        b: &BigUint,
-        op: FieldOperation,
-    ) -> BigUint {
+impl<T: Debug, P: FieldParameters> Debug for FieldOpCols<T, P> {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fmt.debug_struct("FieldOpCols")
+            .field("result", &self.result)
+            .field("carry", &self.carry)
+            .field("witness_low", &self.witness_low)
+            .field("witness_high", &self.witness_high)
+            .finish()
+    }
+}
+
+impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
+    pub fn populate(&mut self, a: &BigUint, b: &BigUint, op: FieldOperation) -> BigUint {
         if b == &BigUint::zero() && op == FieldOperation::Div {
             // Division by 0 is allowed only when dividing 0 so that padded rows can be all 0.
             assert_eq!(
@@ -66,7 +72,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
             // to contain the result by the user.
             // Note that this reversal means we have to flip result, a correspondingly in
             // the `eval` function.
-            self.populate::<P>(&result, b, FieldOperation::Add);
+            self.populate(&result, b, FieldOperation::Add);
             self.result = P::to_limbs_field::<F>(&result);
             return result;
         }
@@ -82,7 +88,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
             // multiplication because those columns are expected to contain the result by the user.
             // Note that this reversal means we have to flip result, a correspondingly in the `eval`
             // function.
-            self.populate::<P>(&result, b, FieldOperation::Mul);
+            self.populate(&result, b, FieldOperation::Mul);
             self.result = P::to_limbs_field::<F>(&result);
             return result;
         }
@@ -123,7 +129,7 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
             FieldOperation::Sub | FieldOperation::Div => unreachable!(),
         };
         let p_vanishing: Polynomial<F> = &p_op - &p_result - &p_carry * &p_modulus;
-        debug_assert_eq!(p_vanishing.degree(), WITNESS_LIMBS::<U>::USIZE);
+        debug_assert_eq!(p_vanishing.degree(), WITNESS_LIMBS::<P::NB_LIMBS>::USIZE);
 
         let p_witness = compute_root_quotient_and_shift(
             &p_vanishing,
@@ -141,10 +147,9 @@ impl<F: PrimeField32, U: LimbWidth> FieldOpCols<F, U> {
     }
 }
 
-impl<V: Copy, U: LimbWidth> FieldOpCols<V, U> {
+impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
-        P: FieldParameters<NB_LIMBS = U>,
         A: Into<Polynomial<AB::Expr>> + Clone,
         B: Into<Polynomial<AB::Expr>> + Clone,
     >(
@@ -197,7 +202,6 @@ mod tests {
     use super::{FieldOpCols, FieldOperation, Limbs};
     use crate::{
         air::{MachineAir, SP1AirBuilder},
-        operations::field::params::LimbWidth,
         runtime::{ExecutionRecord, Program},
         stark::StarkGenericConfig,
         utils::{
@@ -212,10 +216,10 @@ mod tests {
     };
 
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T, U: LimbWidth> {
-        pub a: Limbs<T, U>,
-        pub b: Limbs<T, U>,
-        pub a_op_b: FieldOpCols<T, U>,
+    pub struct TestCols<T, P: FieldParameters> {
+        pub a: Limbs<T, P::NB_LIMBS>,
+        pub b: Limbs<T, P::NB_LIMBS>,
+        pub a_op_b: FieldOpCols<T, P>,
     }
 
     struct FieldOpChip<P: FieldParameters> {
@@ -272,10 +276,10 @@ mod tests {
                 .iter()
                 .map(|(a, b)| {
                     let mut row = vec![F::zero(); num_test_cols];
-                    let cols: &mut TestCols<F, P::NB_LIMBS> = row.as_mut_slice().borrow_mut();
+                    let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
-                    cols.a_op_b.populate::<P>(a, b, self.operation);
+                    cols.a_op_b.populate(a, b, self.operation);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -298,7 +302,7 @@ mod tests {
 
     impl<F: Field, P: FieldParameters> BaseAir<F> for FieldOpChip<P> {
         fn width(&self) -> usize {
-            size_of::<TestCols<u8, P::NB_LIMBS>>()
+            size_of::<TestCols<u8, P>>()
         }
     }
 
@@ -309,10 +313,10 @@ mod tests {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
             let local = main.row_slice(0);
-            let local: &TestCols<AB::Var, P::NB_LIMBS> = (*local).borrow();
+            let local: &TestCols<AB::Var, P> = (*local).borrow();
             local
                 .a_op_b
-                .eval::<AB, P, _, _>(builder, &local.a, &local.b, self.operation);
+                .eval(builder, &local.a, &local.b, self.operation);
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]

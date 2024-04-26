@@ -38,8 +38,8 @@ where
         let log_d_val = value.log_n as u32;
         let g_val = C::F::two_adic_generator(value.log_n);
         TwoAdicMultiplicativeCosetVariable::<C> {
-            log_n: builder.eval::<Var<_>, _>(C::N::from_canonical_u32(log_d_val)),
-            size: builder.eval::<Var<_>, _>(C::N::from_canonical_u32(1 << (log_d_val))),
+            log_n: builder.eval(C::N::from_canonical_u32(log_d_val)),
+            size: builder.eval(C::N::from_canonical_u32(1 << (log_d_val))),
             shift: builder.eval(value.shift),
             g: builder.eval(g_val),
         }

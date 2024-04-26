@@ -43,7 +43,7 @@ pub struct QuadFieldSubCols<T, FP: FieldParameters> {
     pub q_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_QUAD_EXT_FIELD_ELEMENT<FP::NB_LIMBS>>,
     pub q_access: Array<MemoryReadCols<T>, WORDS_QUAD_EXT_FIELD_ELEMENT<FP::NB_LIMBS>>,
-    pub(crate) p_sub_q: QuadFieldOpCols<T, FP::NB_LIMBS>,
+    pub(crate) p_sub_q: QuadFieldOpCols<T, FP>,
 }
 
 #[derive(Default)]
@@ -187,7 +187,7 @@ impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldSubtraction> MachineAir
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
-                cols.p_sub_q.populate::<FP>(
+                cols.p_sub_q.populate(
                     &[p0_int, p1_int],
                     &[q0_int, q1_int],
                     QuadFieldOperation::Sub,
@@ -216,8 +216,7 @@ impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldSubtraction> MachineAir
             let mut row = vec![F::zero(); size_of::<QuadFieldSubCols<u8, FP>>()];
             let cols: &mut QuadFieldSubCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = [BigUint::zero(), BigUint::zero()];
-            cols.p_sub_q
-                .populate::<FP>(&zero, &zero, QuadFieldOperation::Sub);
+            cols.p_sub_q.populate(&zero, &zero, QuadFieldOperation::Sub);
             row
         });
 
@@ -258,7 +257,7 @@ where
         let q1: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[words_len..]);
 
         row.p_sub_q
-            .eval::<AB, FP, _, _>(builder, &[p0, p1], &[q0, q1], QuadFieldOperation::Sub);
+            .eval(builder, &[p0, p1], &[q0, q1], QuadFieldOperation::Sub);
 
         // Constraint self.p_access.value = [self.p_sub_q.result]
         // This is to ensure that p_access is updated with the new value.
