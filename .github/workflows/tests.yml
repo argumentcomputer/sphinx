@@ -122,11 +122,11 @@ jobs:
           cd script
           cargo run --release
 
-
   mac-m1:
     name: CI Tests on OSX ARM
     runs-on: macos-latest-xlarge
-    if: github.event_name != 'pull_request'
+    # TEMPORARY: Uncomment before merge
+    #if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -137,6 +137,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
