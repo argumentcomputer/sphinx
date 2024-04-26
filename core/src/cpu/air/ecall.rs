@@ -50,7 +50,7 @@ impl CpuChip {
 
         // Compute whether this ecall is ENTER_UNCONSTRAINED.
         let is_enter_unconstrained = {
-            IsZeroOperation::<AB::F>::eval(
+            IsZeroOperation::eval(
                 builder,
                 syscall_id
                     - AB::Expr::from_canonical_u32(SyscallCode::ENTER_UNCONSTRAINED.syscall_id()),
@@ -62,7 +62,7 @@ impl CpuChip {
 
         // Compute whether this ecall is HINT_LEN.
         let is_hint_len = {
-            IsZeroOperation::<AB::F>::eval(
+            IsZeroOperation::eval(
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HINT_LEN.syscall_id()),
                 ecall_cols.is_hint_len,
@@ -152,14 +152,14 @@ impl CpuChip {
         // Verify the public_values_digest_word.
         builder
             .when(local.selectors.is_ecall * is_commit)
-            .assert_word_eq(expected_pv_digest_word, *digest_word);
+            .assert_word_eq(expected_pv_digest_word, digest_word);
 
         let expected_deferred_proofs_digest_word =
             builder.index_word_array(deferred_proofs_digest, &ecall_columns.index_bitmap);
 
         builder
             .when(local.selectors.is_ecall * is_commit_deferred_proofs)
-            .assert_word_eq(expected_deferred_proofs_digest_word, *digest_word);
+            .assert_word_eq(expected_deferred_proofs_digest_word, digest_word);
     }
 
     /// Constraint related to the halt and unimpl instruction.
@@ -196,7 +196,7 @@ impl CpuChip {
 
         // Compute whether this ecall is HALT.
         let is_halt = {
-            IsZeroOperation::<AB::F>::eval(
+            IsZeroOperation::eval(
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HALT.syscall_id()),
                 ecall_cols.is_halt,
@@ -225,7 +225,7 @@ impl CpuChip {
 
         // Compute whether this ecall is COMMIT.
         let is_commit = {
-            IsZeroOperation::<AB::F>::eval(
+            IsZeroOperation::eval(
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::COMMIT.syscall_id()),
                 ecall_cols.is_commit,
@@ -236,7 +236,7 @@ impl CpuChip {
 
         // Compute whether this ecall is COMMIT_DEFERRED_PROOFS.
         let is_commit_deferred_proofs = {
-            IsZeroOperation::<AB::F>::eval(
+            IsZeroOperation::eval(
                 builder,
                 syscall_id
                     - AB::Expr::from_canonical_u32(

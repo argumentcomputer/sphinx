@@ -1,3 +1,4 @@
+use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
@@ -108,7 +109,9 @@ impl<F: Field> FixedShiftRightOperation<F> {
         cols: FixedShiftRightOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         // Compute some constants with respect to the rotation needed for the rotation.
         let nb_bytes_to_shift = Self::nb_bytes_to_shift(rotation);
         let nb_bits_to_shift = Self::nb_bits_to_shift(rotation);

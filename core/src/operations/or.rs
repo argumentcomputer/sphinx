@@ -1,4 +1,5 @@
-use p3_field::{AbstractField, Field};
+use p3_air::AirBuilder;
+use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
@@ -37,7 +38,9 @@ impl<F: Field> OrOperation<F> {
         cols: OrOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         for i in 0..WORD_SIZE {
             builder.send_byte(
                 AB::F::from_canonical_u32(ByteOpcode::OR as u32),

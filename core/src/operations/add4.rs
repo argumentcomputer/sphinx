@@ -88,7 +88,9 @@ impl<F: Field> Add4Operation<F> {
         shard: AB::Var,
         is_real: AB::Var,
         cols: Add4Operation<AB::Var>,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         // Range check each byte.
         {
             builder.slice_range_check_u8(&a.0, shard, is_real);

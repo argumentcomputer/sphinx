@@ -44,8 +44,8 @@ where
             builder
                 .when(local.keccak.step_flags[0] * local.is_real)
                 .assert_word_eq(
-                    *local.state_mem[i as usize].value(),
-                    *local.state_mem[i as usize].prev_value(),
+                    local.state_mem[i as usize].value(),
+                    local.state_mem[i as usize].prev_value(),
                 );
 
             builder.eval_memory_access(

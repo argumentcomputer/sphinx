@@ -1,4 +1,5 @@
-use std::{iter::once, vec::IntoIter};
+use itertools::Itertools;
+use std::iter::once;
 
 use p3_field::PrimeField;
 use wp1_derive::AlignedBorrow;
@@ -29,14 +30,17 @@ impl<F: PrimeField> InstructionCols<F> {
 
 impl<T> IntoIterator for InstructionCols<T> {
     type Item = T;
-    type IntoIter = IntoIter<T>;
+    type IntoIter = std::vec::IntoIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         once(self.opcode)
             .chain(once(self.op_a))
             .chain(self.op_b)
             .chain(self.op_c)
-            .collect::<Vec<_>>()
+            .collect_vec()
             .into_iter()
+        // TODO: Is it okay to not include imm_b and imm_c
+        // .chain(once(self.imm_b))
+        // .chain(once(self.imm_c))
     }
 }

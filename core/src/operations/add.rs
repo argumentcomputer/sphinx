@@ -68,7 +68,9 @@ impl<F: Field> AddOperation<F> {
         cols: AddOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Expr,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         let one = AB::Expr::one();
         let base = AB::F::from_canonical_u32(256);
 

@@ -44,9 +44,11 @@ impl<F: Field> IsZeroOperation<F> {
         a: AB::Expr,
         cols: IsZeroOperation<AB::Var>,
         is_real: AB::Expr,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         builder.assert_bool(is_real.clone());
-        let one: AB::Expr = AB::F::one().into();
+        let mut builder_is_real = builder.when(is_real);
 
         // 1. Input == 0 => is_zero = 1 regardless of the inverse.
         // 2. Input != 0
@@ -58,13 +60,11 @@ impl<F: Field> IsZeroOperation<F> {
 
         // If the input is 0, then any product involving it is 0. If it is nonzero and its inverse
         // is correctly set, then the product is 1.
-        let is_zero = one - cols.inverse * a.clone();
-        builder
-            .when(is_real.clone())
-            .assert_eq(is_zero, cols.result);
-        builder.when(is_real.clone()).assert_bool(cols.result);
+        let is_zero = AB::Expr::one() - cols.inverse * a.clone();
+        builder_is_real.assert_eq(is_zero, cols.result);
+        builder_is_real.assert_bool(cols.result);
 
         // If the result is 1, then the input is 0.
-        builder.when(is_real).when(cols.result).assert_zero(a);
+        builder_is_real.when(cols.result).assert_zero(a);
     }
 }

@@ -211,7 +211,7 @@ impl Blake3CompressInnerChip {
             ];
 
             // Call the g function.
-            GOperation::<AB::F>::eval(builder, input, local.g, local.shard, local.is_real);
+            GOperation::eval(builder, input, local.g, local.shard, local.is_real);
 
             // Finally, the results of the g function should be written to the memory.
             for i in 0..NUM_STATE_WORDS_PER_CALL {

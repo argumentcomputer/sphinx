@@ -53,15 +53,12 @@ impl<F: Field> IsZeroWordOperation<F> {
         a: &Word<AB::Expr>,
         cols: IsZeroWordOperation<AB::Var>,
         is_real: AB::Expr,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         // Calculate whether each byte is 0.
         for i in 0..WORD_SIZE {
-            IsZeroOperation::<AB::F>::eval(
-                builder,
-                a[i].clone(),
-                cols.is_zero_byte[i],
-                is_real.clone(),
-            );
+            IsZeroOperation::eval(builder, a[i].clone(), cols.is_zero_byte[i], is_real.clone());
         }
 
         // From here, we only assert when is_real is true.

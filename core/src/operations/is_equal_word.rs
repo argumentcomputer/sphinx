@@ -1,3 +1,4 @@
+use p3_air::AirBuilder;
 use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
@@ -34,9 +35,9 @@ impl<F: Field> IsEqualWordOperation<F> {
         b: &Word<AB::Expr>,
         cols: IsEqualWordOperation<AB::Var>,
         is_real: AB::Expr,
-    ) {
-        builder.assert_bool(is_real.clone());
-
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         // Calculate differences in limbs.
         let diff = Word([
             a[0].clone() - b.0[0].clone(),
@@ -46,7 +47,7 @@ impl<F: Field> IsEqualWordOperation<F> {
         ]);
 
         // Check if the difference is 0.
-        IsZeroWordOperation::<AB::F>::eval(builder, &diff, cols.is_diff_zero, is_real.clone());
+        IsZeroWordOperation::eval(builder, &diff, cols.is_diff_zero, is_real.clone());
 
         // Degree 3 constraint to avoid "OodEvaluationMismatch".
         builder.assert_zero(

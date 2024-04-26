@@ -4,7 +4,6 @@ pub mod memory;
 pub mod register;
 
 use core::borrow::Borrow;
-use itertools::Itertools as _;
 use p3_air::Air;
 use p3_air::AirBuilder as _;
 use p3_air::BaseAir;
@@ -33,13 +32,9 @@ where
         let (local, next) = (main.row_slice(0), main.row_slice(1));
         let local: &CpuCols<AB::Var> = (*local).borrow();
         let next: &CpuCols<AB::Var> = (*next).borrow();
-        let public_values = PublicValues::<Word<AB::Expr>, AB::Expr>::from_vec(
-            &builder
-                .public_values()
-                .iter()
-                .map(|elm| (*elm).into())
-                .collect_vec(),
-        );
+
+        let public_values: PublicValues<_, AB::Expr> =
+            builder.public_values().iter().cloned().collect();
 
         // Program constraints.
         builder.send_program(

@@ -34,7 +34,9 @@ impl<F: Field> NotOperation<F> {
         cols: NotOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         for i in (0..WORD_SIZE).step_by(2) {
             builder.send_byte_pair(
                 AB::F::from_canonical_u32(ByteOpcode::U8Range as u32),
@@ -51,7 +53,7 @@ impl<F: Field> NotOperation<F> {
         for i in 0..WORD_SIZE {
             builder
                 .when(is_real)
-                .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));
+                .assert_eq(cols.value[i] + a[i], AB::Expr::from_canonical_u8(u8::MAX));
         }
 
         // A dummy constraint to keep the degree 3.

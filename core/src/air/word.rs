@@ -1,11 +1,10 @@
 use core::fmt::Debug;
+use hybrid_array::typenum::U;
 use std::{
     array::IntoIter,
     ops::{Index, IndexMut},
 };
 
-use arrayref::array_ref;
-use itertools::Itertools;
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
@@ -114,10 +113,11 @@ impl<T> IntoIterator for Word<T> {
     }
 }
 
-impl<T: Clone> FromIterator<T> for Word<T> {
+impl<T> FromIterator<T> for Word<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let elements = iter.into_iter().take(WORD_SIZE).collect_vec();
-
-        Word(array_ref![elements, 0, WORD_SIZE].clone())
+        let mut iter = iter.into_iter();
+        let elements = std::array::from_fn(|_| iter.next().unwrap());
+        assert!(iter.next().is_none());
+        Word(elements)
     }
 }

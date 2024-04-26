@@ -99,7 +99,9 @@ impl<F: Field> Add5Operation<F> {
         shard: AB::Var,
         is_real: AB::Var,
         cols: Add5Operation<AB::Var>,
-    ) {
+    ) where
+        AB: AirBuilder<F = F>,
+    {
         builder.assert_bool(is_real);
         // Range check each byte.
         {
