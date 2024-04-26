@@ -1,20 +1,17 @@
 use std::fmt::Debug;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Integer, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
-use super::{
-    params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WITNESS_LIMBS},
-    util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
-    util_air::eval_field_operation,
-};
-use crate::{
-    air::{Polynomial, SP1AirBuilder},
-    utils::ec::field::FieldParameters,
-};
+use super::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WITNESS_LIMBS};
+use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
+use super::util_air::eval_field_operation;
+use crate::air::{Polynomial, SP1AirBuilder};
+use crate::utils::ec::field::FieldParameters;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum FieldOperation {
@@ -181,34 +178,31 @@ impl<V: Copy, U: LimbWidth> FieldOpCols<V, U> {
 
 #[cfg(test)]
 mod tests {
-    use core::{
-        borrow::{Borrow, BorrowMut},
-        mem::size_of,
-    };
+    use core::borrow::{Borrow, BorrowMut};
+    use core::mem::size_of;
 
-    use num::{bigint::RandBigInt, BigUint};
+    use num::bigint::RandBigInt;
+    use num::BigUint;
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
     use p3_field::{Field, PrimeField32};
-    use p3_matrix::{dense::RowMajorMatrix, Matrix};
+    use p3_matrix::dense::RowMajorMatrix;
+    use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
 
     use super::{FieldOpCols, FieldOperation, Limbs};
-    use crate::{
-        air::{MachineAir, SP1AirBuilder},
-        operations::field::params::LimbWidth,
-        runtime::{ExecutionRecord, Program},
-        stark::StarkGenericConfig,
-        utils::{
-            ec::{
-                edwards::ed25519::Ed25519BaseField,
-                field::FieldParameters,
-                weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
-            },
-            pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
-            BabyBearPoseidon2,
-        },
+    use crate::air::{MachineAir, SP1AirBuilder};
+    use crate::operations::field::params::LimbWidth;
+    use crate::runtime::{ExecutionRecord, Program};
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
+    use crate::utils::ec::field::FieldParameters;
+    use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
+    use crate::utils::ec::weierstrass::secp256k1::Secp256k1BaseField;
+    use crate::utils::{
+        pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
+        BabyBearPoseidon2,
     };
 
     #[derive(AlignedBorrow, Debug, Clone)]

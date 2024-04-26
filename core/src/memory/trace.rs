@@ -1,13 +1,9 @@
 use p3_field::PrimeField32;
 
 use super::{MemoryAccessCols, MemoryReadCols, MemoryReadWriteCols, MemoryWriteCols};
-use crate::{
-    bytes::{
-        ByteLookupEvent,
-        ByteOpcode::{U16Range, U8Range},
-    },
-    runtime::{MemoryReadRecord, MemoryRecord, MemoryRecordEnum, MemoryWriteRecord},
-};
+use crate::bytes::ByteLookupEvent;
+use crate::bytes::ByteOpcode::{U16Range, U8Range};
+use crate::runtime::{MemoryReadRecord, MemoryRecord, MemoryRecordEnum, MemoryWriteRecord};
 
 impl<F: PrimeField32> MemoryWriteCols<F> {
     pub fn populate(

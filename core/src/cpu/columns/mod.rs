@@ -20,10 +20,8 @@ pub use opcode_specific::*;
 use p3_util::indices_arr;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::Word,
-    memory::{MemoryCols, MemoryReadCols, MemoryReadWriteCols},
-};
+use crate::air::Word;
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryReadWriteCols};
 
 pub const NUM_CPU_COLS: usize = size_of::<CpuCols<u8>>();
 

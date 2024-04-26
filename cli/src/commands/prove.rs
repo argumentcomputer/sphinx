@@ -1,14 +1,17 @@
-use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr, time::Instant};
+use std::env;
+use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
+use std::str::FromStr;
+use std::time::Instant;
 
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
 use wp1_sdk::{utils, ProverClient, SP1Stdin};
 
-use crate::{
-    build::{build_program, BuildArgs},
-    util::{elapsed, write_status},
-};
+use crate::build::{build_program, BuildArgs};
+use crate::util::{elapsed, write_status};
 
 #[derive(Debug, Clone)]
 enum Input {

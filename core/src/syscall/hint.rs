@@ -86,11 +86,9 @@ impl Syscall for SyscallHintRead {
 mod tests {
     use rand::RngCore;
 
-    use crate::{
-        runtime::Program,
-        utils::{run_and_prove, setup_logger, BabyBearPoseidon2},
-        SP1Stdin,
-    };
+    use crate::runtime::Program;
+    use crate::utils::{run_and_prove, setup_logger, BabyBearPoseidon2};
+    use crate::SP1Stdin;
 
     const HINT_IO_ELF: &[u8] =
         include_bytes!("../../../tests/hint-io/elf/riscv32im-succinct-zkvm-elf");

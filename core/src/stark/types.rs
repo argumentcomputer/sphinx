@@ -1,22 +1,18 @@
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    fs::File,
-    io::{BufReader, BufWriter, Seek},
-};
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Seek};
 
 use bincode::{deserialize_from, Error};
-use p3_matrix::{
-    dense::{RowMajorMatrix, RowMajorMatrixView},
-    stack::VerticalPair,
-};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use p3_matrix::dense::{RowMajorMatrix, RowMajorMatrixView};
+use p3_matrix::stack::VerticalPair;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use size::Size;
 use tracing::trace;
 
-use crate::air::SP1_PROOF_NUM_PV_ELTS;
-
 use super::{Challenge, Com, OpeningProof, PcsProverData, StarkGenericConfig, Val};
+use crate::air::SP1_PROOF_NUM_PV_ELTS;
 
 pub type QuotientOpenedValues<T> = Vec<T>;
 

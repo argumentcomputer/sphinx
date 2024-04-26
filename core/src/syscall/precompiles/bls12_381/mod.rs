@@ -1,22 +1,15 @@
 pub mod g1_decompress;
 
-use super::{
-    field::{
-        add::{create_fp_add_event, FieldAddChip},
-        mul::{create_fp_mul_event, FieldMulChip},
-        sub::{create_fp_sub_event, FieldSubChip},
-    },
-    quad_field::{
-        add::{create_fp2_add_event, QuadFieldAddChip},
-        mul::{create_fp2_mul_event, QuadFieldMulChip},
-        sub::{create_fp2_sub_event, QuadFieldSubChip},
-    },
-};
-use crate::{
-    operations::field::params::WORDS_FIELD_ELEMENT,
-    runtime::{Syscall, SyscallContext},
-    utils::ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
-};
+use super::field::add::{create_fp_add_event, FieldAddChip};
+use super::field::mul::{create_fp_mul_event, FieldMulChip};
+use super::field::sub::{create_fp_sub_event, FieldSubChip};
+use super::quad_field::add::{create_fp2_add_event, QuadFieldAddChip};
+use super::quad_field::mul::{create_fp2_mul_event, QuadFieldMulChip};
+use super::quad_field::sub::{create_fp2_sub_event, QuadFieldSubChip};
+use crate::operations::field::params::WORDS_FIELD_ELEMENT;
+use crate::runtime::{Syscall, SyscallContext};
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
 
 // Convenience short-hand types for usage in chips and syscalls.
 #[allow(non_camel_case_types)]

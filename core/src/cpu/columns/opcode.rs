@@ -1,4 +1,5 @@
-use std::{mem::size_of, vec::IntoIter};
+use std::mem::size_of;
+use std::vec::IntoIter;
 
 use p3_field::PrimeField;
 use wp1_derive::AlignedBorrow;

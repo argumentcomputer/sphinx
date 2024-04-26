@@ -5,7 +5,8 @@ pub use air::*;
 pub use columns::*;
 
 use crate::air::Block;
-pub use crate::{memory::MemoryRecord, runtime::Instruction};
+pub use crate::memory::MemoryRecord;
+pub use crate::runtime::Instruction;
 
 #[derive(Debug, Clone)]
 pub struct CpuEvent<F> {

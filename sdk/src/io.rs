@@ -1,4 +1,5 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use wp1_core::utils::Buffer;
 
 /// Standard input for the prover.
@@ -112,7 +113,8 @@ impl SP1PublicValues {
 }
 
 pub(crate) mod proof_serde {
-    use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
+    use serde::de::DeserializeOwned;
+    use serde::{Deserialize, Deserializer, Serialize};
     use wp1_core::stark::{Proof, StarkGenericConfig};
 
     pub(crate) fn serialize<S, SC: StarkGenericConfig + Serialize>(
@@ -150,10 +152,8 @@ pub(crate) mod proof_serde {
     #[cfg(test)]
     mod tests {
 
-        use crate::{
-            utils::{setup_logger, BabyBearPoseidon2},
-            ProverClient, SP1ProofWithIO, SP1Stdin,
-        };
+        use crate::utils::{setup_logger, BabyBearPoseidon2};
+        use crate::{ProverClient, SP1ProofWithIO, SP1Stdin};
 
         pub(crate) const FIBONACCI_IO_ELF: &[u8] =
             include_bytes!("../../examples/fibonacci-io/program/elf/riscv32im-succinct-zkvm-elf");

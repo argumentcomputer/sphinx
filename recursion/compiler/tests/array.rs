@@ -1,9 +1,10 @@
 use p3_field::AbstractField;
 use rand::{thread_rng, Rng};
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::{
-    asm::AsmBuilder,
-    ir::{Array, Builder, Config, Ext, ExtConst, Felt, MemIndex, MemVariable, Ptr, Var, Variable},
+use wp1_core::stark::StarkGenericConfig;
+use wp1_core::utils::BabyBearPoseidon2;
+use wp1_recursion_compiler::asm::AsmBuilder;
+use wp1_recursion_compiler::ir::{
+    Array, Builder, Config, Ext, ExtConst, Felt, MemIndex, MemVariable, Ptr, Var, Variable,
 };
 use wp1_recursion_core::runtime::Runtime;
 use wp1_recursion_derive::DslVariable;

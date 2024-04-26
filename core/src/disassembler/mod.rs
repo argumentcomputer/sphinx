@@ -1,7 +1,9 @@
 mod elf;
 mod instruction;
 
-use std::{collections::BTreeMap, fs::File, io::Read};
+use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::Read;
 
 pub use elf::*;
 pub use instruction::*;

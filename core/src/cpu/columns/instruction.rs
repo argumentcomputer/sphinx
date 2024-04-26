@@ -1,12 +1,12 @@
-use std::{iter::once, mem::size_of, vec::IntoIter};
+use std::iter::once;
+use std::mem::size_of;
+use std::vec::IntoIter;
 
 use p3_field::PrimeField;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::Word,
-    runtime::{Instruction, Register},
-};
+use crate::air::Word;
+use crate::runtime::{Instruction, Register};
 
 pub const NUM_INSTRUCTION_COLS: usize = size_of::<InstructionCols<u8>>();
 

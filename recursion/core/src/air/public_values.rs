@@ -1,8 +1,9 @@
-use crate::runtime::DIGEST_SIZE;
+use core::fmt::Debug;
 
 use arrayref::array_ref;
-use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
+
+use crate::runtime::DIGEST_SIZE;
 
 pub const PV_DIGEST_NUM_WORDS: usize = 8;
 

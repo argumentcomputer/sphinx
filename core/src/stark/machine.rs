@@ -7,34 +7,20 @@ use p3_air::Air;
 use p3_challenger::{CanObserve, FieldChallenger};
 use p3_commit::Pcs;
 use p3_field::{AbstractField, Field, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Dimensions, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::{Dimensions, Matrix};
 use p3_maybe_rayon::prelude::*;
 
-use super::debug_constraints;
-use super::DeferredDigest;
-use super::Dom;
-use super::PublicValuesDigest;
-use crate::air::MachineAir;
-use crate::air::MachineProgram;
-use crate::air::PublicValues;
-use crate::lookup::debug_interactions_with_all_chips;
-use crate::lookup::InteractionBuilder;
-use crate::lookup::InteractionKind;
+use super::{
+    debug_constraints, Chip, Com, DeferredDigest, Dom, PcsProverData, Proof, Prover,
+    PublicValuesDigest, StarkGenericConfig, Val, VerificationError, Verifier,
+};
+use crate::air::{MachineAir, MachineProgram, PublicValues};
+use crate::lookup::{debug_interactions_with_all_chips, InteractionBuilder, InteractionKind};
 use crate::stark::record::MachineRecord;
-use crate::stark::DebugConstraintBuilder;
-use crate::stark::ProverConstraintFolder;
-use crate::stark::ShardProof;
-use crate::stark::VerifierConstraintFolder;
-
-use super::Chip;
-use super::Com;
-use super::PcsProverData;
-use super::Proof;
-use super::Prover;
-use super::StarkGenericConfig;
-use super::Val;
-use super::VerificationError;
-use super::Verifier;
+use crate::stark::{
+    DebugConstraintBuilder, ProverConstraintFolder, ShardProof, VerifierConstraintFolder,
+};
 
 pub type MachineChip<SC, A> = Chip<Val<SC>, A>;
 
@@ -530,15 +516,11 @@ pub enum ProgramVerificationError {
 #[cfg(test)]
 pub mod tests {
 
-    use crate::{
-        runtime::{
-            tests::{
-                fibonacci_program, simple_memory_program, simple_program, ssz_withdrawals_program,
-            },
-            Instruction, Opcode, Program,
-        },
-        utils::{run_test, setup_logger},
+    use crate::runtime::tests::{
+        fibonacci_program, simple_memory_program, simple_program, ssz_withdrawals_program,
     };
+    use crate::runtime::{Instruction, Opcode, Program};
+    use crate::utils::{run_test, setup_logger};
 
     #[test]
     fn test_simple_prove() {

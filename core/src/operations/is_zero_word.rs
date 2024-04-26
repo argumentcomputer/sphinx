@@ -7,10 +7,8 @@ use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
 use super::IsZeroOperation;
-use crate::{
-    air::{SP1AirBuilder, Word},
-    disassembler::WORD_SIZE,
-};
+use crate::air::{SP1AirBuilder, Word};
+use crate::disassembler::WORD_SIZE;
 
 /// A set of columns needed to compute whether the given word is 0.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]

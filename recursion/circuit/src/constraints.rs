@@ -1,23 +1,16 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
 use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
-};
-use wp1_recursion_compiler::{
-    ir::{Array, Builder, Config, Ext, Felt, SymbolicFelt},
-    prelude::SymbolicExt,
-};
-use wp1_recursion_program::{
-    commit::PolynomialSpaceVariable, folder::RecursiveVerifierConstraintFolder,
-};
+use wp1_core::air::MachineAir;
+use wp1_core::stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS};
+use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, SymbolicFelt};
+use wp1_recursion_compiler::prelude::SymbolicExt;
+use wp1_recursion_program::commit::PolynomialSpaceVariable;
+use wp1_recursion_program::folder::RecursiveVerifierConstraintFolder;
 
-use crate::{
-    domain::TwoAdicMultiplicativeCosetVariable,
-    stark::StarkVerifierCircuit,
-    types::{ChipOpenedValuesVariable, ChipOpening},
-};
+use crate::domain::TwoAdicMultiplicativeCosetVariable;
+use crate::stark::StarkVerifierCircuit;
+use crate::types::{ChipOpenedValuesVariable, ChipOpening};
 
 impl<C: Config, SC> StarkVerifierCircuit<C, SC>
 where
@@ -167,24 +160,23 @@ mod tests {
     use p3_baby_bear::DiffusionMatrixBabybear;
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, PolynomialSpace};
-    use serde::{de::DeserializeOwned, Serialize};
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
     use serial_test::serial;
     use wp1_core::stark::{
         Chip, Com, Dom, LocalProver, MachineStark, OpeningProof, PcsProverData, ShardCommitment,
         ShardMainData, ShardProof, StarkGenericConfig,
     };
-    use wp1_recursion_compiler::{
-        config::OuterConfig,
-        constraints::{groth16_ffi, ConstraintCompiler},
-        ir::{Builder, Witness},
-        prelude::ExtConst,
-    };
-    use wp1_recursion_core::{
-        runtime::Runtime,
-        stark::{config::BabyBearPoseidon2Outer, RecursionAir},
-    };
+    use wp1_recursion_compiler::config::OuterConfig;
+    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
+    use wp1_recursion_compiler::ir::{Builder, Witness};
+    use wp1_recursion_compiler::prelude::ExtConst;
+    use wp1_recursion_core::runtime::Runtime;
+    use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
+    use wp1_recursion_core::stark::RecursionAir;
 
-    use crate::stark::{tests::basic_program, StarkVerifierCircuit};
+    use crate::stark::tests::basic_program;
+    use crate::stark::StarkVerifierCircuit;
 
     #[allow(clippy::type_complexity)]
     fn get_shard_data<'a, SC>(

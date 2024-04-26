@@ -1,15 +1,11 @@
 use p3_air::BaseAir;
 use p3_field::{AbstractExtensionField, AbstractField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{AirOpenedValues, Chip, ChipOpenedValues},
-};
+use wp1_core::air::MachineAir;
+use wp1_core::stark::{AirOpenedValues, Chip, ChipOpenedValues};
 use wp1_recursion_compiler::prelude::*;
 
-use crate::fri::{
-    types::{DigestVariable, FriConfigVariable, TwoAdicPcsProofVariable},
-    TwoAdicMultiplicativeCosetVariable,
-};
+use crate::fri::types::{DigestVariable, FriConfigVariable, TwoAdicPcsProofVariable};
+use crate::fri::TwoAdicMultiplicativeCosetVariable;
 
 /// Reference: [sp1_core::stark::ShardProof]
 #[derive(DslVariable, Clone)]

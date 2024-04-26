@@ -1,9 +1,7 @@
 use p3_field::AbstractField;
 
-use crate::{
-    air::{Polynomial, SP1AirBuilder},
-    utils::ec::field::FieldParameters,
-};
+use crate::air::{Polynomial, SP1AirBuilder};
+use crate::utils::ec::field::FieldParameters;
 
 pub fn eval_field_operation<AB: SP1AirBuilder, P: FieldParameters>(
     builder: &mut AB,

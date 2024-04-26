@@ -24,8 +24,11 @@ pub mod utils;
 
 pub use io::*;
 #[allow(unused_imports)]
-use runtime::{Program, Runtime};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use runtime::Program;
+#[allow(unused_imports)]
+use runtime::Runtime;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use stark::{Proof, StarkGenericConfig};
 
 /// A proof of a RISCV ELF execution with given inputs and outputs.

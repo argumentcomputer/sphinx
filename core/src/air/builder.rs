@@ -7,13 +7,13 @@ use p3_uni_stark::{
     ProverConstraintFolder, StarkGenericConfig, SymbolicAirBuilder, VerifierConstraintFolder,
 };
 
-use super::{interaction::AirInteraction, word::Word, BinomialExtension, WORD_SIZE};
-use crate::{
-    bytes::ByteOpcode,
-    cpu::columns::{InstructionCols, OpcodeSelectorCols},
-    lookup::InteractionKind,
-    memory::{MemoryAccessCols, MemoryCols},
-};
+use super::interaction::AirInteraction;
+use super::word::Word;
+use super::{BinomialExtension, WORD_SIZE};
+use crate::bytes::ByteOpcode;
+use crate::cpu::columns::{InstructionCols, OpcodeSelectorCols};
+use crate::lookup::InteractionKind;
+use crate::memory::{MemoryAccessCols, MemoryCols};
 
 /// A Builder with the ability to encode the existence of interactions with other AIRs by sending
 /// and receiving messages.

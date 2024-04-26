@@ -1,7 +1,9 @@
 use p3_baby_bear::BabyBear;
-use p3_field::{extension::BinomialExtensionField, AbstractField};
+use p3_field::extension::BinomialExtensionField;
+use p3_field::AbstractField;
 use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::{asm::AsmBuilder, ir::Var};
+use wp1_recursion_compiler::asm::AsmBuilder;
+use wp1_recursion_compiler::ir::Var;
 use wp1_recursion_core::runtime::Runtime;
 
 #[test]

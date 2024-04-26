@@ -1,8 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use wp1_core::{
-    runtime::{Program, Runtime},
-    utils::{run_and_prove, BabyBearPoseidon2},
-};
+use wp1_core::runtime::{Program, Runtime};
+use wp1_core::utils::{run_and_prove, BabyBearPoseidon2};
 
 #[allow(unreachable_code)]
 pub fn criterion_benchmark(c: &mut Criterion) {

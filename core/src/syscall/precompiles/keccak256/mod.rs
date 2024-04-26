@@ -44,9 +44,10 @@ impl Default for KeccakPermuteChip {
 
 #[cfg(test)]
 pub mod permute_tests {
-    use crate::{
-        runtime::{Instruction, Opcode, Program, Runtime, SyscallCode},
-        utils::{self, run_test, tests::KECCAK_PERMUTE_ELF},
+    use crate::runtime::{Instruction, Opcode, Program, Runtime, SyscallCode};
+    use crate::utils::tests::KECCAK_PERMUTE_ELF;
+    use crate::utils::{
+        run_test, {self},
     };
 
     pub fn keccak_permute_program() -> Program {

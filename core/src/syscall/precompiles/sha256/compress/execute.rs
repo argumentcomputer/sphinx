@@ -1,11 +1,7 @@
 use super::ShaCompressChip;
-use crate::{
-    runtime::Syscall,
-    syscall::precompiles::{
-        sha256::{ShaCompressEvent, SHA_COMPRESS_K},
-        SyscallContext,
-    },
-};
+use crate::runtime::Syscall;
+use crate::syscall::precompiles::sha256::{ShaCompressEvent, SHA_COMPRESS_K};
+use crate::syscall::precompiles::SyscallContext;
 
 impl Syscall for ShaCompressChip {
     fn num_extra_cycles(&self) -> u32 {

@@ -3,8 +3,7 @@ use rand::{thread_rng, Rng as _};
 use wp1_core::stark::StarkGenericConfig;
 use wp1_core::utils::BabyBearPoseidon2;
 use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_compiler::ir::ExtConst;
-use wp1_recursion_compiler::ir::{Ext, Felt};
+use wp1_recursion_compiler::ir::{Ext, ExtConst, Felt};
 use wp1_recursion_core::runtime::Runtime;
 
 #[test]

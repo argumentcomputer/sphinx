@@ -1,15 +1,16 @@
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
+use std::rc::Rc;
 
 use strum_macros::EnumIter;
 
+use super::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord};
 use crate::runtime::{Register, Runtime};
 use crate::stark::{
     Ed25519Parameters, FieldAddChip, FieldMulChip, FieldSubChip, QuadFieldAddChip,
     QuadFieldMulChip, QuadFieldSubChip,
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
-use crate::syscall::precompiles::edwards::EdAddAssignChip;
-use crate::syscall::precompiles::edwards::EdDecompressChip;
+use crate::syscall::precompiles::edwards::{EdAddAssignChip, EdDecompressChip};
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
@@ -24,8 +25,6 @@ use crate::utils::ec::edwards::ed25519::Ed25519;
 use crate::utils::ec::weierstrass::bls12_381::{Bls12381, Bls12381BaseField};
 use crate::utils::ec::weierstrass::bn254::Bn254;
 use crate::utils::ec::weierstrass::secp256k1::Secp256k1;
-
-use super::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord};
 
 /// A system call is invoked by the the `ecall` instruction with a specific value in register t0.
 /// The syscall number is a 32-bit integer, with the following layout (in little-endian format)

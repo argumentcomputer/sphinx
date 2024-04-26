@@ -4,22 +4,17 @@ pub mod memory;
 pub mod register;
 
 use core::borrow::Borrow;
+
 use itertools::Itertools as _;
-use p3_air::Air;
-use p3_air::AirBuilder as _;
-use p3_air::BaseAir;
+use p3_air::{Air, AirBuilder as _, BaseAir};
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
 
-use crate::air::BaseAirBuilder;
-use crate::air::PublicValues;
-use crate::air::SP1AirBuilder;
-use crate::air::Word;
-use crate::air::POSEIDON_NUM_WORDS;
-use crate::air::PV_DIGEST_NUM_WORDS;
+use crate::air::{
+    BaseAirBuilder, PublicValues, SP1AirBuilder, Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS,
+};
 use crate::bytes::ByteOpcode;
-use crate::cpu::columns::OpcodeSelectorCols;
-use crate::cpu::columns::{CpuCols, NUM_CPU_COLS};
+use crate::cpu::columns::{CpuCols, OpcodeSelectorCols, NUM_CPU_COLS};
 use crate::cpu::CpuChip;
 use crate::runtime::Opcode;
 

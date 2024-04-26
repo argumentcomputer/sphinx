@@ -1,13 +1,14 @@
+use std::fmt::Debug;
+
+use num::BigUint;
+use p3_field::PrimeField32;
+use wp1_derive::AlignedBorrow;
+
+use super::QuadFieldOpCols;
 use crate::air::SP1AirBuilder;
 use crate::operations::field::extensions::quadratic::QuadFieldOperation;
 use crate::operations::field::params::{LimbWidth, Limbs};
 use crate::utils::ec::field::FieldParameters;
-use num::BigUint;
-use p3_field::PrimeField32;
-use std::fmt::Debug;
-use wp1_derive::AlignedBorrow;
-
-use super::QuadFieldOpCols;
 
 /// A set of columns to compute the square root in some quadratic extension field. `T` is the field in which each
 /// limb lives, while `U` is how many limbs are necessary to represent a quadratic extension field element.
@@ -75,31 +76,30 @@ impl<V: Copy, U: LimbWidth> QuadFieldSqrtCols<V, U> {
 
 #[cfg(test)]
 mod tests {
-    use num::{BigUint, One, Zero};
-    use p3_air::BaseAir;
-    use p3_field::{Field, PrimeField32};
-
-    use super::QuadFieldSqrtCols;
-
-    use crate::air::MachineAir;
-
-    use crate::operations::field::params::{LimbWidth, Limbs};
-    use crate::runtime::Program;
-    use crate::stark::StarkGenericConfig;
-    use crate::utils::ec::field::FieldParameters;
-    use crate::utils::ec::weierstrass::bls12_381::{bls12381_fp2_sqrt, Bls12381BaseField};
-    use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
-    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use core::borrow::{Borrow, BorrowMut};
     use core::mem::size_of;
+
     use num::bigint::RandBigInt;
-    use p3_air::Air;
+    use num::{BigUint, One, Zero};
+    use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
+    use p3_field::{Field, PrimeField32};
     use p3_matrix::dense::RowMajorMatrix;
     use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
+
+    use super::QuadFieldSqrtCols;
+    use crate::air::{MachineAir, SP1AirBuilder};
+    use crate::operations::field::params::{LimbWidth, Limbs};
+    use crate::runtime::{ExecutionRecord, Program};
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::field::FieldParameters;
+    use crate::utils::ec::weierstrass::bls12_381::{bls12381_fp2_sqrt, Bls12381BaseField};
+    use crate::utils::{
+        pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
+        BabyBearPoseidon2,
+    };
 
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, U: LimbWidth> {

@@ -4,18 +4,16 @@ use p3_symmetric::Hash;
 use wp1_recursion_compiler::prelude::*;
 use wp1_recursion_core::runtime::DIGEST_SIZE;
 
+use super::types::{
+    DigestVariable, DimensionsVariable, FriConfigVariable, TwoAdicPcsMatsVariable,
+    TwoAdicPcsProofVariable, TwoAdicPcsRoundVariable,
+};
 use super::{
-    types::{
-        DigestVariable, DimensionsVariable, FriConfigVariable, TwoAdicPcsMatsVariable,
-        TwoAdicPcsProofVariable, TwoAdicPcsRoundVariable,
-    },
     verify_batch, verify_challenges, verify_shape_and_sample_challenges,
     TwoAdicMultiplicativeCosetVariable,
 };
-use crate::{
-    challenger::{DuplexChallengerVariable, FeltChallenger},
-    commit::PcsVariable,
-};
+use crate::challenger::{DuplexChallengerVariable, FeltChallenger};
+use crate::commit::PcsVariable;
 
 pub fn verify_two_adic_pcs<C: Config>(
     builder: &mut Builder<C>,
@@ -261,45 +259,26 @@ pub mod tests {
 
     use itertools::Itertools;
     use p3_baby_bear::BabyBear;
-    use p3_challenger::CanObserve;
-    use p3_challenger::FieldChallenger;
-    use p3_commit::Pcs;
-    use p3_commit::TwoAdicMultiplicativeCoset;
-    use p3_field::AbstractField;
-    use p3_field::TwoAdicField;
+    use p3_challenger::{CanObserve, FieldChallenger};
+    use p3_commit::{Pcs, TwoAdicMultiplicativeCoset};
+    use p3_field::{AbstractField, TwoAdicField};
     use p3_fri::FriConfig;
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
-    use wp1_core::utils::inner_fri_config;
-    use wp1_core::utils::inner_perm;
-    use wp1_core::utils::InnerChallenge;
-    use wp1_core::utils::InnerChallengeMmcs;
-    use wp1_core::utils::InnerChallenger;
-    use wp1_core::utils::InnerCompress;
-    use wp1_core::utils::InnerDft;
-    use wp1_core::utils::InnerHash;
-    use wp1_core::utils::InnerPcs;
-    use wp1_core::utils::InnerPcsProof;
-    use wp1_core::utils::InnerVal;
-    use wp1_core::utils::InnerValMmcs;
-    use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_compiler::ir::Array;
-    use wp1_recursion_compiler::ir::Builder;
-    use wp1_recursion_compiler::ir::Usize;
-    use wp1_recursion_compiler::ir::Var;
-    use wp1_recursion_core::air::Block;
-    use wp1_recursion_core::runtime::RecursionProgram;
-    use wp1_recursion_core::runtime::DIGEST_SIZE;
-
-    use crate::{
-        challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger},
-        commit::PcsVariable,
-        fri::{
-            types::{FriConfigVariable, TwoAdicPcsRoundVariable},
-            TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable,
-        },
-        hints::Hintable,
+    use wp1_core::utils::{
+        inner_fri_config, inner_perm, InnerChallenge, InnerChallengeMmcs, InnerChallenger,
+        InnerCompress, InnerDft, InnerHash, InnerPcs, InnerPcsProof, InnerVal, InnerValMmcs,
     };
+    use wp1_recursion_compiler::config::InnerConfig;
+    use wp1_recursion_compiler::ir::{Array, Builder, Usize, Var};
+    use wp1_recursion_core::air::Block;
+    use wp1_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
+
+    use crate::challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger};
+    use crate::commit::PcsVariable;
+    use crate::fri::types::{FriConfigVariable, TwoAdicPcsRoundVariable};
+    use crate::fri::{TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable};
+    use crate::hints::Hintable;
 
     pub(crate) fn const_fri_config(
         builder: &mut Builder<InnerConfig>,

@@ -1,8 +1,7 @@
 use super::ShaExtendChip;
-use crate::{
-    runtime::Syscall,
-    syscall::precompiles::{sha256::ShaExtendEvent, SyscallContext},
-};
+use crate::runtime::Syscall;
+use crate::syscall::precompiles::sha256::ShaExtendEvent;
+use crate::syscall::precompiles::SyscallContext;
 
 impl Syscall for ShaExtendChip {
     fn num_extra_cycles(&self) -> u32 {

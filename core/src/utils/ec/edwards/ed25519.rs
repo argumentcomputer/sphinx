@@ -5,14 +5,10 @@ use hybrid_array::Array;
 use num::{BigUint, Num, One};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    operations::field::params::DEFAULT_NUM_LIMBS_T,
-    utils::ec::{
-        edwards::{EdwardsCurve, EdwardsParameters},
-        field::{FieldParameters, FieldType},
-        AffinePoint, CurveType, EllipticCurveParameters, WithAddition,
-    },
-};
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::utils::ec::edwards::{EdwardsCurve, EdwardsParameters};
+use crate::utils::ec::field::{FieldParameters, FieldType};
+use crate::utils::ec::{AffinePoint, CurveType, EllipticCurveParameters, WithAddition};
 
 pub type Ed25519 = EdwardsCurve<Ed25519Parameters>;
 

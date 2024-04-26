@@ -1,4 +1,5 @@
-use std::{iter::Zip, vec::IntoIter};
+use std::iter::Zip;
+use std::vec::IntoIter;
 
 use backtrace::Backtrace;
 use p3_field::AbstractField;

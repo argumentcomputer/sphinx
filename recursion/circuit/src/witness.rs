@@ -2,10 +2,8 @@ use p3_bn254_fr::Bn254Fr;
 use wp1_core::stark::{
     AirOpenedValues, ChipOpenedValues, ShardCommitment, ShardOpenedValues, ShardProof,
 };
-use wp1_recursion_compiler::{
-    config::OuterConfig,
-    ir::{Builder, Config, Ext, Felt, Var, Witness},
-};
+use wp1_recursion_compiler::config::OuterConfig;
+use wp1_recursion_compiler::ir::{Builder, Config, Ext, Felt, Var, Witness};
 use wp1_recursion_core::stark::config::{
     BabyBearPoseidon2Outer, OuterBatchOpening, OuterChallenge, OuterCommitPhaseStep, OuterDigest,
     OuterFriProof, OuterPcsProof, OuterQueryProof, OuterVal,
@@ -332,11 +330,9 @@ mod tests {
     use p3_bn254_fr::Bn254Fr;
     use p3_field::AbstractField;
     use serial_test::serial;
-    use wp1_recursion_compiler::{
-        config::OuterConfig,
-        constraints::{groth16_ffi, ConstraintCompiler},
-        ir::{Builder, ExtConst, Witness},
-    };
+    use wp1_recursion_compiler::config::OuterConfig;
+    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
+    use wp1_recursion_compiler::ir::{Builder, ExtConst, Witness};
     use wp1_recursion_core::stark::config::OuterChallenge;
 
     #[test]

@@ -30,27 +30,24 @@
 
 mod utils;
 
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
 
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder, Word},
-    alu::mul::utils::get_msb,
-    bytes::{ByteLookupEvent, ByteOpcode},
-    disassembler::WORD_SIZE,
-    runtime::{ExecutionRecord, Opcode, Program},
-    stark::MachineRecord,
-    utils::pad_to_power_of_two,
-};
+use crate::air::{MachineAir, SP1AirBuilder, Word};
+use crate::alu::mul::utils::get_msb;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
+use crate::disassembler::WORD_SIZE;
+use crate::runtime::{ExecutionRecord, Opcode, Program};
+use crate::stark::MachineRecord;
+use crate::utils::pad_to_power_of_two;
 
 /// The number of main trace columns for `MulChip`.
 pub const NUM_MUL_COLS: usize = size_of::<MulCols<u8>>();
@@ -456,13 +453,11 @@ mod tests {
     use p3_matrix::dense::RowMajorMatrix;
 
     use super::MulChip;
-    use crate::{
-        air::MachineAir,
-        alu::AluEvent,
-        runtime::{ExecutionRecord, Opcode},
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
-    };
+    use crate::air::MachineAir;
+    use crate::alu::AluEvent;
+    use crate::runtime::{ExecutionRecord, Opcode};
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2};
 
     #[test]
     fn generate_trace_mul() {

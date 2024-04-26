@@ -4,7 +4,8 @@ use itertools::Itertools;
 use p3_matrix::Dimensions;
 use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
 
-use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigestVariable};
+use crate::poseidon2::Poseidon2CircuitBuilder;
+use crate::types::OuterDigestVariable;
 
 pub fn verify_batch<C: Config, const D: usize>(
     builder: &mut Builder<C>,

@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use wp1_core::{
-    runtime::{Program, Runtime},
-    stark::RiscvAir,
-    utils::{prove_core, run_and_prove, BabyBearPoseidon2},
-};
+use wp1_core::runtime::{Program, Runtime};
+use wp1_core::stark::RiscvAir;
+use wp1_core::utils::{prove_core, run_and_prove, BabyBearPoseidon2};
 
 fn elf_path(p: &str) -> String {
     format!("examples/{}/program/elf/riscv32im-succinct-zkvm-elf", p)

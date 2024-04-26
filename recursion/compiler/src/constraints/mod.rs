@@ -8,10 +8,8 @@ use p3_field::{AbstractExtensionField, Field, PrimeField};
 use serde::{Deserialize, Serialize};
 
 use self::opcodes::ConstraintOpcode;
-use crate::{
-    ir::{Config, DslIr},
-    prelude::TracedVec,
-};
+use crate::ir::{Config, DslIr};
+use crate::prelude::TracedVec;
 
 /// A constraint is an operation and a list of nested arguments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -346,15 +344,14 @@ mod tests {
 
     use p3_baby_bear::BabyBear;
     use p3_bn254_fr::Bn254Fr;
-    use p3_field::{extension::BinomialExtensionField, AbstractField};
+    use p3_field::extension::BinomialExtensionField;
+    use p3_field::AbstractField;
     use serial_test::serial;
 
     use super::*;
-    use crate::{
-        config::OuterConfig,
-        ir::{Builder, Ext, Felt, Var},
-        prelude::Witness,
-    };
+    use crate::config::OuterConfig;
+    use crate::ir::{Builder, Ext, Felt, Var};
+    use crate::prelude::Witness;
 
     #[test]
     #[serial]

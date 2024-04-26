@@ -13,34 +13,29 @@ pub mod utils {
     };
 }
 
-use io::proof_serde;
-pub use io::SP1PublicValues;
-pub use io::SP1Stdin;
-use sha2::Digest;
-use sha2::Sha256;
-pub use wp1_core::air::PublicValues;
+use std::time::Duration;
+use std::{env, fs};
 
 use anyhow::{Context, Ok, Result};
+use io::proof_serde;
+pub use io::{SP1PublicValues, SP1Stdin};
 use proto::network::{ProofStatus, TransactionStatus};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use tokio::{runtime, time::sleep};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use tokio::runtime;
+use tokio::time::sleep;
 use util::StageProgressBar;
 use utils::*;
-use wp1_core::{
-    runtime::{Program, Runtime},
-    stark::{
-        Com, OpeningProof, PcsProverData, ProgramVerificationError, Proof, RiscvAir, ShardMainData,
-        StarkGenericConfig,
-    },
-    utils::run_and_prove,
+pub use wp1_core::air::PublicValues;
+use wp1_core::runtime::{Program, Runtime};
+use wp1_core::stark::{
+    Com, DeferredDigest, OpeningProof, PcsProverData, ProgramVerificationError, Proof, RiscvAir,
+    ShardMainData, StarkGenericConfig,
 };
+use wp1_core::utils::run_and_prove;
 
 use crate::client::NetworkClient;
-
-use std::env;
-use std::fs;
-use std::time::Duration;
-use wp1_core::stark::DeferredDigest;
 
 /// A proof of a RISCV ELF execution with given inputs and outputs.
 #[derive(Serialize, Deserialize)]

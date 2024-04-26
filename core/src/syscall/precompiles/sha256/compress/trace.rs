@@ -3,15 +3,11 @@ use std::borrow::BorrowMut;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 
-use super::{
-    columns::{ShaCompressCols, NUM_SHA_COMPRESS_COLS},
-    ShaCompressChip, SHA_COMPRESS_K,
-};
-use crate::{
-    air::{MachineAir, Word},
-    runtime::{ExecutionRecord, Program},
-    utils::pad_rows,
-};
+use super::columns::{ShaCompressCols, NUM_SHA_COMPRESS_COLS};
+use super::{ShaCompressChip, SHA_COMPRESS_K};
+use crate::air::{MachineAir, Word};
+use crate::runtime::{ExecutionRecord, Program};
+use crate::utils::pad_rows;
 
 impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
     type Record = ExecutionRecord;

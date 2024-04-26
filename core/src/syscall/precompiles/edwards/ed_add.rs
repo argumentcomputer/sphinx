@@ -1,38 +1,32 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
-use std::{fmt::Debug, marker::PhantomData};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    bytes::ByteLookupEvent,
-    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_den::FieldDenCols,
-        field_inner_product::FieldInnerProductCols,
-        field_op::{FieldOpCols, FieldOperation},
-        params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
-    },
-    runtime::{ExecutionRecord, Program, Syscall, SyscallCode},
-    syscall::precompiles::{create_ec_add_event, SyscallContext},
-    utils::{
-        ec::{
-            edwards::EdwardsParameters, field::FieldParameters, AffinePoint, BaseLimbWidth,
-            EllipticCurve,
-        },
-        limbs_from_prev_access, pad_vec_rows,
-    },
-};
+use crate::air::{MachineAir, SP1AirBuilder};
+use crate::bytes::ByteLookupEvent;
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_den::FieldDenCols;
+use crate::operations::field::field_inner_product::FieldInnerProductCols;
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
+use crate::runtime::{ExecutionRecord, Program, Syscall, SyscallCode};
+use crate::syscall::precompiles::{create_ec_add_event, SyscallContext};
+use crate::utils::ec::edwards::EdwardsParameters;
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
+use crate::utils::{limbs_from_prev_access, pad_vec_rows};
 
 pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8>>();
 
@@ -306,11 +300,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        utils,
-        utils::tests::{ED25519_ELF, ED_ADD_ELF},
-        Program,
-    };
+    use crate::utils::tests::{ED25519_ELF, ED_ADD_ELF};
+    use crate::{utils, Program};
 
     #[test]
     fn test_ed_add_simple() {

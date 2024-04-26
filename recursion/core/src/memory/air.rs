@@ -3,19 +3,16 @@ use std::borrow::{Borrow, BorrowMut};
 
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_core::{
-    air::{AirInteraction, MachineAir, SP1AirBuilder},
-    lookup::InteractionKind,
-    utils::pad_to_power_of_two,
-};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
+use wp1_core::air::{AirInteraction, MachineAir, SP1AirBuilder};
+use wp1_core::lookup::InteractionKind;
+use wp1_core::utils::pad_to_power_of_two;
 
 use super::columns::MemoryInitCols;
-use crate::{
-    air::Block,
-    memory::{MemoryChipKind, MemoryGlobalChip},
-    runtime::{ExecutionRecord, RecursionProgram},
-};
+use crate::air::Block;
+use crate::memory::{MemoryChipKind, MemoryGlobalChip};
+use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 

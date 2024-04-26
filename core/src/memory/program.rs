@@ -1,15 +1,13 @@
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
+
 use p3_air::{Air, AirBuilder, BaseAir, PairBuilder};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
+use p3_field::{AbstractField, PrimeField};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-
 use wp1_derive::AlignedBorrow;
 
-use crate::air::{AirInteraction, PublicValues, SP1AirBuilder};
-use crate::air::{MachineAir, Word};
+use crate::air::{AirInteraction, MachineAir, PublicValues, SP1AirBuilder, Word};
 use crate::operations::IsZeroOperation;
 use crate::runtime::{ExecutionRecord, Program};
 use crate::utils::pad_to_power_of_two;

@@ -1,13 +1,9 @@
-use crate::{
-    runtime::{MemoryReadRecord, MemoryWriteRecord, Syscall},
-    syscall::precompiles::{
-        blake3::{
-            g_func, Blake3CompressInnerChip, Blake3CompressInnerEvent, G_INDEX, MSG_SCHEDULE,
-            NUM_MSG_WORDS_PER_CALL, NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,
-        },
-        SyscallContext,
-    },
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord, Syscall};
+use crate::syscall::precompiles::blake3::{
+    g_func, Blake3CompressInnerChip, Blake3CompressInnerEvent, G_INDEX, MSG_SCHEDULE,
+    NUM_MSG_WORDS_PER_CALL, NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,
 };
+use crate::syscall::precompiles::SyscallContext;
 
 impl Syscall for Blake3CompressInnerChip {
     fn num_extra_cycles(&self) -> u32 {

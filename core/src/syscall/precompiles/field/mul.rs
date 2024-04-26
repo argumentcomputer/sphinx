@@ -1,35 +1,29 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
-use std::{fmt::Debug, marker::PhantomData};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    bytes::ByteLookupEvent,
-    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        params::{Limbs, WORDS_FIELD_ELEMENT},
-    },
-    runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
-    syscall::precompiles::SyscallContext,
-    utils::{
-        bytes_to_words_le,
-        ec::field::{FieldParameters, FieldType, WithFieldMultiplication},
-        limbs_from_prev_access, pad_vec_rows,
-    },
-};
+use crate::air::{MachineAir, SP1AirBuilder};
+use crate::bytes::ByteLookupEvent;
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::params::{Limbs, WORDS_FIELD_ELEMENT};
+use crate::runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode};
+use crate::syscall::precompiles::SyscallContext;
+use crate::utils::ec::field::{FieldParameters, FieldType, WithFieldMultiplication};
+use crate::utils::{bytes_to_words_le, limbs_from_prev_access, pad_vec_rows};
 
 /// A set of columns to compute field element multiplication where p, q are in some prime field `Fp`.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -274,7 +268,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{utils, utils::tests::BLS12381_FP_MUL_ELF, Program};
+    use crate::utils::tests::BLS12381_FP_MUL_ELF;
+    use crate::{utils, Program};
 
     #[test]
     fn test_bls12381_fp_mul_simple() {

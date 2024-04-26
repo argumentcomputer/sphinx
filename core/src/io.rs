@@ -1,4 +1,5 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 use crate::utils::Buffer;
 
@@ -120,7 +121,8 @@ impl AsRef<[u8]> for SP1PublicValues {
 }
 
 pub mod proof_serde {
-    use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
+    use serde::de::DeserializeOwned;
+    use serde::{Deserialize, Deserializer, Serialize};
 
     use crate::stark::{Proof, StarkGenericConfig};
 

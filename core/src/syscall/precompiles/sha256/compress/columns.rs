@@ -2,13 +2,11 @@ use std::mem::size_of;
 
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::Word,
-    memory::MemoryReadWriteCols,
-    operations::{
-        Add5Operation, AddOperation, AndOperation, FixedRotateRightOperation, NotOperation,
-        XorOperation,
-    },
+use crate::air::Word;
+use crate::memory::MemoryReadWriteCols;
+use crate::operations::{
+    Add5Operation, AddOperation, AndOperation, FixedRotateRightOperation, NotOperation,
+    XorOperation,
 };
 
 pub(crate) const NUM_SHA_COMPRESS_COLS: usize = size_of::<ShaCompressCols<u8>>();

@@ -1,7 +1,9 @@
 #![allow(unused_unsafe)]
-use std::{alloc::Layout, io::Write};
+use std::alloc::Layout;
+use std::io::Write;
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::{syscall_hint_len, syscall_hint_read, syscall_write};
 

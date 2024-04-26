@@ -1,12 +1,11 @@
 use core::borrow::Borrow;
 use core::mem::size_of;
-use p3_air::AirBuilder;
-use p3_air::{Air, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField32;
+use std::borrow::BorrowMut;
+
+use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use std::borrow::BorrowMut;
 use tracing::instrument;
 use wp1_core::air::{MachineAir, SP1AirBuilder};
 use wp1_core::utils::pad_to_power_of_two;
@@ -310,29 +309,23 @@ where
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
     use std::borrow::Borrow;
     use std::time::Instant;
 
+    use itertools::Itertools;
     use p3_baby_bear::{BabyBear, DiffusionMatrixBabybear};
     use p3_field::AbstractField;
-    use p3_matrix::{dense::RowMajorMatrix, Matrix};
-    use p3_poseidon2::Poseidon2;
-    use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::inner_perm;
-    use wp1_core::{
-        air::MachineAir,
-        utils::{uni_stark_prove, uni_stark_verify, BabyBearPoseidon2},
-    };
-
-    use crate::{
-        poseidon2::{Poseidon2Chip, Poseidon2Event, WIDTH},
-        runtime::ExecutionRecord,
-    };
+    use p3_matrix::dense::RowMajorMatrix;
+    use p3_matrix::Matrix;
+    use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
     use p3_symmetric::Permutation;
+    use wp1_core::air::MachineAir;
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::utils::{inner_perm, uni_stark_prove, uni_stark_verify, BabyBearPoseidon2};
 
     use super::Poseidon2Cols;
+    use crate::poseidon2::{Poseidon2Chip, Poseidon2Event, WIDTH};
+    use crate::runtime::ExecutionRecord;
 
     const ROWS_PER_PERMUTATION: usize = 31;
 

@@ -1,6 +1,7 @@
 use wp1_derive::AlignedBorrow;
 
-use crate::{air::IsExtZeroOperation, memory::MemoryReadWriteCols};
+use crate::air::IsExtZeroOperation;
+use crate::memory::MemoryReadWriteCols;
 
 mod alu;
 mod branch;

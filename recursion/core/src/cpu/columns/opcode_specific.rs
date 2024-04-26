@@ -1,7 +1,5 @@
-use std::{
-    fmt::{Debug, Formatter},
-    mem::{size_of, transmute},
-};
+use std::fmt::{Debug, Formatter};
+use std::mem::{size_of, transmute};
 
 use crate::cpu::columns::AluCols;
 

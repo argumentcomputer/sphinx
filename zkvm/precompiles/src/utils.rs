@@ -1,13 +1,9 @@
-use std::{
-    ops::{Mul, Shl, Shr},
-    slice,
-};
+use std::ops::{Mul, Shl, Shr};
+use std::slice;
 
-use hybrid_array::{
-    sizes::{U16, U4},
-    typenum::B1,
-    Array, ArraySize,
-};
+use hybrid_array::sizes::{U16, U4};
+use hybrid_array::typenum::B1;
+use hybrid_array::{Array, ArraySize};
 
 pub trait CurveOperations<N: ArraySize = U16> {
     const GENERATOR: N::ArrayType<u32>;

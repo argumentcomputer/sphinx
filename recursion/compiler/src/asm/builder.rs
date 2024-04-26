@@ -1,7 +1,8 @@
 use p3_field::{ExtensionField, PrimeField32, TwoAdicField};
 use wp1_recursion_core::runtime::RecursionProgram;
 
-use super::{config::AsmConfig, AsmCompiler, AssemblyCode};
+use super::config::AsmConfig;
+use super::{AsmCompiler, AssemblyCode};
 use crate::prelude::Builder;
 
 /// A builder that compiles assembly code.

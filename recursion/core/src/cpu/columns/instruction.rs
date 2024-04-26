@@ -1,9 +1,11 @@
-use std::{iter::once, vec::IntoIter};
+use std::iter::once;
+use std::vec::IntoIter;
 
 use p3_field::PrimeField;
 use wp1_derive::AlignedBorrow;
 
-use crate::{air::Block, cpu::Instruction};
+use crate::air::Block;
+use crate::cpu::Instruction;
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

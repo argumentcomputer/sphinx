@@ -1,10 +1,8 @@
 use ff::PrimeField as FFPrimeField;
 use p3_bn254_fr::{Bn254Fr, FFBn254Fr};
-use zkhash::{
-    ark_ff::{BigInteger, PrimeField},
-    fields::bn256::FpBN256 as ark_FpBN256,
-    poseidon2::poseidon2_instance_bn256::RC3,
-};
+use zkhash::ark_ff::{BigInteger, PrimeField};
+use zkhash::fields::bn256::FpBN256 as ark_FpBN256;
+use zkhash::poseidon2::poseidon2_instance_bn256::RC3;
 
 fn bn254_from_ark_ff(input: ark_FpBN256) -> Bn254Fr {
     let bytes = input.into_bigint().to_bytes_le();

@@ -1,10 +1,10 @@
-use std::{borrow::Cow, str::FromStr};
+use std::borrow::Cow;
+use std::str::FromStr;
 
-use alloy::{
-    signers::{wallet::LocalWallet, Signer},
-    sol,
-    sol_types::{Eip712Domain, SolStruct},
-};
+use alloy::signers::wallet::LocalWallet;
+use alloy::signers::Signer;
+use alloy::sol;
+use alloy::sol_types::{Eip712Domain, SolStruct};
 use anyhow::Result;
 
 sol! {

@@ -3,11 +3,13 @@ use std::borrow::Borrow;
 use itertools::Itertools;
 use p3_air::{ExtensionBuilder, PairBuilder};
 use p3_field::{AbstractExtensionField, AbstractField, ExtensionField, Field, Powers, PrimeField};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use rayon_scan::ScanParallelIterator;
 
-use crate::{air::MultiTableAirBuilder, lookup::Interaction};
+use crate::air::MultiTableAirBuilder;
+use crate::lookup::Interaction;
 
 /// Generates powers of a random element based on how many interactions there are in the chip.
 ///

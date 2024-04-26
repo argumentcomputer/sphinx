@@ -1,14 +1,10 @@
 use alloc::rc::Rc;
-use core::{
-    any::Any,
-    ops::{Add, Div, Mul, Neg, Sub},
-};
-use std::{
-    any::TypeId,
-    iter::{Product, Sum},
-    mem,
-    ops::{AddAssign, DivAssign, MulAssign, SubAssign},
-};
+use core::any::Any;
+use core::ops::{Add, Div, Mul, Neg, Sub};
+use std::any::TypeId;
+use std::iter::{Product, Sum};
+use std::mem;
+use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 use p3_field::{AbstractField, ExtensionField, Field};
 

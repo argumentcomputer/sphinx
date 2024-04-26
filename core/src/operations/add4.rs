@@ -2,10 +2,8 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{SP1AirBuilder, Word, WORD_SIZE},
-    runtime::ExecutionRecord,
-};
+use crate::air::{SP1AirBuilder, Word, WORD_SIZE};
+use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the add of four words.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]

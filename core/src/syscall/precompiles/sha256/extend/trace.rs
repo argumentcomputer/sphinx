@@ -4,10 +4,8 @@ use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 
 use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
-use crate::{
-    air::MachineAir,
-    runtime::{ExecutionRecord, Program},
-};
+use crate::air::MachineAir;
+use crate::runtime::{ExecutionRecord, Program};
 
 impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
     type Record = ExecutionRecord;

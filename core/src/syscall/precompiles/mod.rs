@@ -8,14 +8,13 @@ pub mod secp256k1;
 pub mod sha256;
 pub mod weierstrass;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
-    runtime::{MemoryReadRecord, MemoryWriteRecord, SyscallContext},
-    utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve},
-};
+use crate::operations::field::params::{LimbWidth, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT};
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord, SyscallContext};
+use crate::utils::ec::{AffinePoint, BaseLimbWidth, EllipticCurve};
 
 /// Elliptic curve add event.
 #[derive(Debug, Clone, Serialize, Deserialize)]

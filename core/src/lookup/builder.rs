@@ -4,10 +4,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_uni_stark::{Entry, SymbolicExpression, SymbolicVariable};
 
 use super::Interaction;
-use crate::{
-    air::{AirInteraction, MessageBuilder},
-    stark::PROOF_MAX_NUM_PVS,
-};
+use crate::air::{AirInteraction, MessageBuilder};
+use crate::stark::PROOF_MAX_NUM_PVS;
 
 /// A builder for the lookup table interactions.
 pub struct InteractionBuilder<F: Field> {
@@ -201,7 +199,8 @@ mod tests {
     use p3_matrix::Matrix;
 
     use super::*;
-    use crate::{air::SP1AirBuilder, lookup::InteractionKind};
+    use crate::air::SP1AirBuilder;
+    use crate::lookup::InteractionKind;
 
     #[test]
     fn test_symbolic_to_virtual_pair_col() {

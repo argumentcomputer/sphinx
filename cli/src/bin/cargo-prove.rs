@@ -1,9 +1,10 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use wp1_cli::commands::{
-    build::BuildCmd, build_toolchain::BuildToolchainCmd, install_toolchain::InstallToolchainCmd,
-    new::NewCmd, prove::ProveCmd,
-};
+use wp1_cli::commands::build::BuildCmd;
+use wp1_cli::commands::build_toolchain::BuildToolchainCmd;
+use wp1_cli::commands::install_toolchain::InstallToolchainCmd;
+use wp1_cli::commands::new::NewCmd;
+use wp1_cli::commands::prove::ProveCmd;
 
 const VERSION_MESSAGE: &str = concat!(
     "sp1",

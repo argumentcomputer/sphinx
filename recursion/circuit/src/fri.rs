@@ -4,21 +4,17 @@ use p3_field::{AbstractField, TwoAdicField};
 use p3_fri::FriConfig;
 use p3_matrix::Dimensions;
 use p3_util::log2_strict_usize;
-use wp1_recursion_compiler::{
-    ir::{Builder, Config, Felt},
-    prelude::*,
-};
+use wp1_recursion_compiler::ir::{Builder, Config, Felt};
+use wp1_recursion_compiler::prelude::*;
 use wp1_recursion_core::stark::config::OuterChallengeMmcs;
 
-use crate::{
-    challenger::MultiField32ChallengerVariable,
-    mmcs::verify_batch,
-    types::{
-        FriChallenges, FriProofVariable, FriQueryProofVariable, OuterDigestVariable,
-        TwoAdicPcsProofVariable, TwoAdicPcsRoundVariable,
-    },
-    DIGEST_SIZE,
+use crate::challenger::MultiField32ChallengerVariable;
+use crate::mmcs::verify_batch;
+use crate::types::{
+    FriChallenges, FriProofVariable, FriQueryProofVariable, OuterDigestVariable,
+    TwoAdicPcsProofVariable, TwoAdicPcsRoundVariable,
 };
+use crate::DIGEST_SIZE;
 
 pub fn verify_shape_and_sample_challenges<C: Config>(
     builder: &mut Builder<C>,
@@ -245,26 +241,22 @@ pub mod tests {
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
     use serial_test::serial;
-    use wp1_recursion_compiler::{
-        config::OuterConfig,
-        constraints::{groth16_ffi, ConstraintCompiler},
-        ir::{Builder, Ext, Felt, SymbolicExt, Var, Witness},
-    };
+    use wp1_recursion_compiler::config::OuterConfig;
+    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
+    use wp1_recursion_compiler::ir::{Builder, Ext, Felt, SymbolicExt, Var, Witness};
     use wp1_recursion_core::stark::config::{
         outer_perm, test_fri_config, OuterChallenge, OuterChallengeMmcs, OuterChallenger,
         OuterCompress, OuterDft, OuterFriProof, OuterHash, OuterPcs, OuterVal, OuterValMmcs,
     };
 
     use super::{verify_shape_and_sample_challenges, verify_two_adic_pcs, TwoAdicPcsRoundVariable};
-    use crate::{
-        challenger::MultiField32ChallengerVariable,
-        fri::FriQueryProofVariable,
-        types::{
-            BatchOpeningVariable, FriCommitPhaseProofStepVariable, FriProofVariable,
-            OuterDigestVariable, TwoAdicPcsMatsVariable, TwoAdicPcsProofVariable,
-        },
-        DIGEST_SIZE,
+    use crate::challenger::MultiField32ChallengerVariable;
+    use crate::fri::FriQueryProofVariable;
+    use crate::types::{
+        BatchOpeningVariable, FriCommitPhaseProofStepVariable, FriProofVariable,
+        OuterDigestVariable, TwoAdicPcsMatsVariable, TwoAdicPcsProofVariable,
     };
+    use crate::DIGEST_SIZE;
 
     pub fn const_fri_proof(
         builder: &mut Builder<OuterConfig>,

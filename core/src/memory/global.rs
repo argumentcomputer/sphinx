@@ -1,19 +1,16 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
 
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
-use crate::{
-    air::{AirInteraction, MachineAir, SP1AirBuilder, Word, WordAirBuilder},
-    runtime::{ExecutionRecord, Program},
-    utils::pad_to_power_of_two,
-};
+use crate::air::{AirInteraction, MachineAir, SP1AirBuilder, Word, WordAirBuilder};
+use crate::runtime::{ExecutionRecord, Program};
+use crate::utils::pad_to_power_of_two;
 
 /// The type of memory chip that is being initialized.
 #[derive(PartialEq, Eq)]
@@ -176,14 +173,13 @@ mod tests {
     use p3_baby_bear::BabyBear;
 
     use super::*;
-    use crate::{
-        lookup::{debug_interactions_with_all_chips, InteractionKind},
-        runtime::{tests::simple_program, Runtime},
-        stark::{MachineRecord, RiscvAir, StarkGenericConfig},
-        syscall::precompiles::sha256::extend_tests::sha_extend_program,
-        utils::{
-            setup_logger, uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
-        },
+    use crate::lookup::{debug_interactions_with_all_chips, InteractionKind};
+    use crate::runtime::tests::simple_program;
+    use crate::runtime::Runtime;
+    use crate::stark::{MachineRecord, RiscvAir, StarkGenericConfig};
+    use crate::syscall::precompiles::sha256::extend_tests::sha_extend_program;
+    use crate::utils::{
+        setup_logger, uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
     };
 
     #[test]

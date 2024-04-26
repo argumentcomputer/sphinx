@@ -1,9 +1,6 @@
-use std::{
-    fs,
-    io::{BufRead, BufReader},
-    process::{exit, Command, Stdio},
-    thread,
-};
+use std::io::{BufRead, BufReader};
+use std::process::{exit, Command, Stdio};
+use std::{fs, thread};
 
 use anyhow::{Context, Result};
 use cargo_metadata::camino::Utf8PathBuf;

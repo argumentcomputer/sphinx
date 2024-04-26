@@ -1,8 +1,6 @@
-use wp1_core::{
-    runtime::Program,
-    stark::{Proof, RiscvAir},
-    utils::BabyBearPoseidon2,
-};
+use wp1_core::runtime::Program;
+use wp1_core::stark::{Proof, RiscvAir};
+use wp1_core::utils::BabyBearPoseidon2;
 use wp1_prover::SP1ProverImpl;
 use wp1_recursion_circuit::stark::build_wrap_circuit;
 use wp1_sdk::utils::setup_logger;

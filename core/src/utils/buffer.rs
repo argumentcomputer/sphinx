@@ -1,4 +1,5 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 /// A buffer of serializable/deserializable objects.
 #[derive(Serialize, Deserialize, Clone)]

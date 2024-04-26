@@ -1,11 +1,12 @@
 pub mod config;
 pub mod poseidon2;
 
-use p3_field::{extension::BinomiallyExtendable, PrimeField32};
+use p3_field::extension::BinomiallyExtendable;
+use p3_field::PrimeField32;
 use wp1_core::stark::{Chip, MachineStark, StarkGenericConfig};
 use wp1_derive::MachineAir;
 
-use crate::runtime::D;
+use crate::runtime::{D, DIGEST_SIZE};
 use crate::{
     cpu::CpuChip,
     memory::{MemoryChipKind, MemoryGlobalChip},
@@ -13,8 +14,6 @@ use crate::{
     poseidon2_wide::Poseidon2WideChip,
     program::ProgramChip,
 };
-
-use crate::runtime::DIGEST_SIZE;
 
 #[derive(MachineAir)]
 #[wp1_core_path = "wp1_core"]

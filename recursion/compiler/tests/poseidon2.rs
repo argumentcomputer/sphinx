@@ -1,11 +1,10 @@
 use p3_field::{AbstractField, PrimeField32};
 use p3_symmetric::Permutation;
 use rand::{thread_rng, Rng};
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::{
-    asm::AsmBuilder,
-    ir::{Array, Var},
-};
+use wp1_core::stark::StarkGenericConfig;
+use wp1_core::utils::BabyBearPoseidon2;
+use wp1_recursion_compiler::asm::AsmBuilder;
+use wp1_recursion_compiler::ir::{Array, Var};
 use wp1_recursion_core::runtime::{Runtime, PERMUTATION_WIDTH};
 
 #[test]

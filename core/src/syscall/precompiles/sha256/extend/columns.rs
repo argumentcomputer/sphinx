@@ -2,12 +2,10 @@ use std::mem::size_of;
 
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    memory::{MemoryReadCols, MemoryWriteCols},
-    operations::{
-        Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, IsZeroOperation,
-        XorOperation,
-    },
+use crate::memory::{MemoryReadCols, MemoryWriteCols};
+use crate::operations::{
+    Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, IsZeroOperation,
+    XorOperation,
 };
 
 pub const NUM_SHA_EXTEND_COLS: usize = size_of::<ShaExtendCols<u8>>();

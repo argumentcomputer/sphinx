@@ -1,11 +1,9 @@
 use p3_baby_bear::BabyBear;
 use p3_field::AbstractField;
 
-use crate::{
-    runtime::{Syscall, SyscallContext},
-    stark::{RiscvAir, StarkGenericConfig},
-    utils::BabyBearPoseidon2Inner,
-};
+use crate::runtime::{Syscall, SyscallContext};
+use crate::stark::{RiscvAir, StarkGenericConfig};
+use crate::utils::BabyBearPoseidon2Inner;
 
 /// Verifies an SP1 recursive verifier proof. Note that this syscall only verifies the proof during
 /// runtime. The actual constraint-level verification is deferred to the recursive layer, where

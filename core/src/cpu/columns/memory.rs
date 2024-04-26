@@ -1,8 +1,10 @@
-use std::{array, mem::size_of};
+use std::array;
+use std::mem::size_of;
 
 use wp1_derive::AlignedBorrow;
 
-use crate::{air::Word, memory::MemoryReadWriteCols};
+use crate::air::Word;
+use crate::memory::MemoryReadWriteCols;
 
 pub const NUM_MEMORY_COLUMNS: usize = size_of::<MemoryColumns<u8>>();
 

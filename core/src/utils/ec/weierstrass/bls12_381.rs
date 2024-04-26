@@ -1,22 +1,19 @@
-use bls12_381::{fp::Fp, fp2::Fp2};
-use hybrid_array::{typenum::U48, Array};
+use bls12_381::fp::Fp;
+use bls12_381::fp2::Fp2;
+use hybrid_array::typenum::U48;
+use hybrid_array::Array;
 use num::{BigUint, Num, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::{
-    runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{
-        field::{
-            FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication,
-            WithFieldSubtraction, WithQuadFieldAddition, WithQuadFieldMultiplication,
-            WithQuadFieldSubtraction,
-        },
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
-    },
+use crate::runtime::Syscall;
+use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
+use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
+use crate::utils::ec::field::{
+    FieldParameters, FieldType, WithFieldAddition, WithFieldMultiplication, WithFieldSubtraction,
+    WithQuadFieldAddition, WithQuadFieldMultiplication, WithQuadFieldSubtraction,
 };
+use crate::utils::ec::{CurveType, EllipticCurveParameters, WithAddition, WithDoubling};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -240,10 +237,11 @@ pub fn bls12381_sqrt(a: &BigUint) -> BigUint {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::utils::ec::utils::biguint_from_limbs;
     use num::bigint::RandBigInt;
     use rand::thread_rng;
+
+    use super::*;
+    use crate::utils::ec::utils::biguint_from_limbs;
 
     const NUM_TEST_CASES: usize = 10;
 

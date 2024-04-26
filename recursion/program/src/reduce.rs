@@ -5,8 +5,7 @@ use p3_challenger::DuplexChallenger;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractField;
 use wp1_core::air::Word;
-use wp1_core::stark::PROOF_MAX_NUM_PVS;
-use wp1_core::stark::{RiscvAir, ShardProof, StarkGenericConfig, VerifyingKey};
+use wp1_core::stark::{RiscvAir, ShardProof, StarkGenericConfig, VerifyingKey, PROOF_MAX_NUM_PVS};
 use wp1_core::utils::{inner_fri_config, wp1_fri_config, BabyBearPoseidon2Inner};
 use wp1_recursion_compiler::asm::{AsmBuilder, AsmConfig};
 use wp1_recursion_compiler::ir::{Array, Felt, Var};
@@ -18,12 +17,10 @@ use wp1_sdk::utils::BabyBearPoseidon2;
 use wp1_sdk::PublicValues;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
-use crate::fri::TwoAdicFriPcsVariable;
-use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::fri::{TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable};
 use crate::hints::Hintable;
 use crate::stark::StarkVerifier;
-use crate::types::ShardProofVariable;
-use crate::types::VerifyingKeyVariable;
+use crate::types::{ShardProofVariable, VerifyingKeyVariable};
 use crate::utils::{clone, const_fri_config, felt2var};
 
 type SC = BabyBearPoseidon2;

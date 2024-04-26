@@ -1,26 +1,23 @@
-use nohash_hasher::BuildNoHashHasher;
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::{Seek, Write},
-    time::Instant,
-};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{Seek, Write};
+use std::time::Instant;
 
 pub use baby_bear_blake3::BabyBearBlake3;
+use nohash_hasher::BuildNoHashHasher;
 use p3_challenger::CanObserve;
 use p3_field::PrimeField32;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use size::Size;
 
-use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
-use crate::stark::MachineRecord;
-use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};
-use crate::utils::env::shard_batch_size;
-use crate::{
-    runtime::{Program, Runtime},
-    stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
-    SP1ProofWithIO, SP1PublicValues, SP1Stdin,
+use crate::runtime::{ExecutionRecord, MemoryRecord, Program, Runtime, ShardingConfig};
+use crate::stark::{
+    Com, LocalProver, MachineRecord, OpeningProof, PcsProverData, RiscvAir, ShardMainData,
+    ShardProof, StarkGenericConfig, UniConfig,
 };
+use crate::utils::env::shard_batch_size;
+use crate::{SP1ProofWithIO, SP1PublicValues, SP1Stdin};
 
 const LOG_DEGREE_BOUND: usize = 31;
 
@@ -454,7 +451,8 @@ pub mod baby_bear_poseidon2 {
     use p3_challenger::DuplexChallenger;
     use p3_commit::ExtensionMmcs;
     use p3_dft::Radix2DitParallel;
-    use p3_field::{extension::BinomialExtensionField, Field};
+    use p3_field::extension::BinomialExtensionField;
+    use p3_field::Field;
     use p3_fri::{FriConfig, TwoAdicFriPcs};
     use p3_merkle_tree::FieldMerkleTreeMmcs;
     use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};

@@ -1,12 +1,10 @@
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{SP1AirBuilder, Word},
-    bytes::{ByteLookupEvent, ByteOpcode},
-    disassembler::WORD_SIZE,
-    runtime::ExecutionRecord,
-};
+use crate::air::{SP1AirBuilder, Word};
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
+use crate::disassembler::WORD_SIZE;
+use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the and of two words.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]

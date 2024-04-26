@@ -1,8 +1,6 @@
-use std::{
-    io::{BufRead, BufReader},
-    process::{Command, Stdio},
-    thread,
-};
+use std::io::{BufRead, BufReader};
+use std::process::{Command, Stdio};
+use std::thread;
 
 use chrono::Local;
 

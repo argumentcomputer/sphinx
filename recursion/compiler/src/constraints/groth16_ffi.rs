@@ -1,8 +1,6 @@
-use std::{
-    fs::File,
-    io::Write,
-    process::{Command, Stdio},
-};
+use std::fs::File;
+use std::io::Write;
+use std::process::{Command, Stdio};
 
 use p3_field::{AbstractExtensionField, AbstractField, PrimeField};
 use serde::{Deserialize, Serialize};

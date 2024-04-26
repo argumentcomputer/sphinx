@@ -1,7 +1,8 @@
 use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
-use crate::{cpu::Instruction, runtime::Opcode};
+use crate::cpu::Instruction;
+use crate::runtime::Opcode;
 
 const OPCODE_COUNT: usize = core::mem::size_of::<OpcodeSelectorCols<u8>>();
 

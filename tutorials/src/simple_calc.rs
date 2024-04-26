@@ -4,7 +4,8 @@ use std::borrow::{Borrow, BorrowMut};
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, Field};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use wp1_core::stark::SP1AirBuilder;
 use wp1_derive::AlignedBorrow;
 
@@ -202,9 +203,9 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_field::{AbstractField, Field};
     use p3_matrix::dense::RowMajorMatrix;
-    use wp1_core::{
-        stark::StarkGenericConfig,
-        utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::utils::{
+        uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
     };
 
     use super::*;

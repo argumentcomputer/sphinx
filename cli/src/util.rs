@@ -1,4 +1,5 @@
-use std::{fmt::Display, time::Duration};
+use std::fmt::Display;
+use std::time::Duration;
 
 pub(crate) fn write_status(style: &dyn Display, status: &str, msg: &str) {
     println!("{style}{status:>12}{style:#} {msg}");

@@ -2,9 +2,8 @@ use std::mem::size_of;
 
 use wp1_derive::AlignedBorrow;
 
-use super::{
-    g::GOperation, NUM_MSG_WORDS_PER_CALL, NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,
-};
+use super::g::GOperation;
+use super::{NUM_MSG_WORDS_PER_CALL, NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT};
 use crate::memory::{MemoryReadCols, MemoryReadWriteCols};
 
 pub(crate) const NUM_BLAKE3_COMPRESS_INNER_COLS: usize = size_of::<Blake3CompressInnerCols<u8>>();

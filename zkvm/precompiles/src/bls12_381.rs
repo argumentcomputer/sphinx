@@ -1,8 +1,10 @@
 #![allow(unused)]
 
-use hybrid_array::{sizes::U24, typenum::Unsigned};
+use hybrid_array::sizes::U24;
+use hybrid_array::typenum::Unsigned;
 
-use crate::{syscall_bls12381_g1_add, syscall_bls12381_g1_double, utils::CurveOperations};
+use crate::utils::CurveOperations;
+use crate::{syscall_bls12381_g1_add, syscall_bls12381_g1_double};
 
 #[derive(Copy, Clone)]
 pub struct Bls12381;
@@ -30,8 +32,9 @@ impl CurveOperations<U24> for Bls12381 {
     }
 }
 
-use crate::syscall_bls12381_g1_decompress;
 use anyhow::Result;
+
+use crate::syscall_bls12381_g1_decompress;
 
 /// Decompresses a compressed public key using bls12381_g1_decompress precompile.
 pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {

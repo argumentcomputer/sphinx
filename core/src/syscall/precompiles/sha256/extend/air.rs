@@ -5,14 +5,12 @@ use p3_field::AbstractField;
 use p3_matrix::Matrix;
 
 use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
-use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder},
-    memory::MemoryCols,
-    operations::{
-        Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, XorOperation,
-    },
-    runtime::SyscallCode,
+use crate::air::{BaseAirBuilder, SP1AirBuilder};
+use crate::memory::MemoryCols;
+use crate::operations::{
+    Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, XorOperation,
 };
+use crate::runtime::SyscallCode;
 
 impl<F> BaseAir<F> for ShaExtendChip {
     fn width(&self) -> usize {

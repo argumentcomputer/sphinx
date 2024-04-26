@@ -4,12 +4,9 @@ use nohash_hasher::BuildNoHashHasher;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::{
-    stark::{Proof, VerifyingKey},
-    utils::BabyBearPoseidon2Inner,
-};
-
 use super::{ExecutionRecord, MemoryAccessRecord, MemoryRecord};
+use crate::stark::{Proof, VerifyingKey};
+use crate::utils::BabyBearPoseidon2Inner;
 
 /// Holds data describing the current state of a program's execution.
 #[serde_as]

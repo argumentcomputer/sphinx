@@ -5,9 +5,8 @@ use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::CurveType;
-use crate::utils::ec::{
-    field::FieldParameters, AffinePoint, EllipticCurve, EllipticCurveParameters,
-};
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::{AffinePoint, EllipticCurve, EllipticCurveParameters};
 
 pub trait EdwardsParameters: EllipticCurveParameters {
     const D: Array<u16, <Self::BaseField as FieldParameters>::NB_LIMBS>;

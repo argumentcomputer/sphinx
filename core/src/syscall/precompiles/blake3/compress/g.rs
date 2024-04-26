@@ -2,11 +2,9 @@ use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
 use super::g_func;
-use crate::{
-    air::{SP1AirBuilder, Word, WORD_SIZE},
-    operations::{AddOperation, FixedRotateRightOperation, XorOperation},
-    runtime::ExecutionRecord,
-};
+use crate::air::{SP1AirBuilder, Word, WORD_SIZE};
+use crate::operations::{AddOperation, FixedRotateRightOperation, XorOperation};
+use crate::runtime::ExecutionRecord;
 /// A set of columns needed to compute the `g` of the input state.
 ///  ``` ignore
 /// fn g(state: &mut BlockWords, a: usize, b: usize, c: usize, d: usize, x: u32, y: u32) {

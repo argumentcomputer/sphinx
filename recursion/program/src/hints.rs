@@ -1,19 +1,16 @@
 use p3_challenger::DuplexChallenger;
 use p3_commit::TwoAdicMultiplicativeCoset;
-use p3_field::TwoAdicField;
-use p3_field::{AbstractExtensionField, AbstractField};
+use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
 use wp1_core::stark::{
     AirOpenedValues, ChipOpenedValues, Com, ShardCommitment, ShardOpenedValues, ShardProof,
+    StarkGenericConfig, VerifyingKey,
 };
-use wp1_core::stark::{StarkGenericConfig, VerifyingKey};
 use wp1_core::utils::{
     BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm,
     InnerVal,
 };
-use wp1_recursion_compiler::{
-    config::InnerConfig,
-    ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var},
-};
+use wp1_recursion_compiler::config::InnerConfig;
+use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var};
 use wp1_recursion_core::air::Block;
 use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
 use wp1_sdk::utils::BabyBearPoseidon2;

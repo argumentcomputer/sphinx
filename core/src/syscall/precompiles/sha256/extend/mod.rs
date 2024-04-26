@@ -50,14 +50,12 @@ pub mod extend_tests {
     use p3_matrix::dense::RowMajorMatrix;
 
     use super::ShaExtendChip;
-    use crate::{
-        air::MachineAir,
-        alu::AluEvent,
-        runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode},
-        utils::{
-            self, run_test,
-            tests::{SHA2_ELF, SHA_EXTEND_ELF},
-        },
+    use crate::air::MachineAir;
+    use crate::alu::AluEvent;
+    use crate::runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode};
+    use crate::utils::tests::{SHA2_ELF, SHA_EXTEND_ELF};
+    use crate::utils::{
+        run_test, {self},
     };
 
     pub fn sha_extend_program() -> Program {

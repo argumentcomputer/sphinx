@@ -5,23 +5,17 @@ use std::str::FromStr;
 
 use hybrid_array::Array;
 use k256::FieldElement;
-use num::{
-    traits::{FromBytes, ToBytes},
-    BigUint, Zero,
-};
+use num::traits::{FromBytes, ToBytes};
+use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::{SwCurve, WeierstrassParameters};
-use crate::{
-    operations::field::params::DEFAULT_NUM_LIMBS_T,
-    runtime::Syscall,
-    stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-    syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{
-        field::{FieldParameters, FieldType},
-        CurveType, EllipticCurveParameters, WithAddition, WithDoubling,
-    },
-};
+use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+use crate::runtime::Syscall;
+use crate::stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip};
+use crate::syscall::precompiles::{create_ec_add_event, create_ec_double_event};
+use crate::utils::ec::field::{FieldParameters, FieldType};
+use crate::utils::ec::{CurveType, EllipticCurveParameters, WithAddition, WithDoubling};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Secp256k1 curve parameter

@@ -8,23 +8,25 @@ use p3_challenger::CanObserve;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use wp1_core::{
-    air::{MachineAir, PublicValues, Word},
-    runtime::Program,
-    stark::{
-        Challenger, Com, Dom, LocalProver, MachineStark, OpeningProof, PcsProverData, Proof,
-        Prover, RiscvAir, ShardMainData, ShardProof, StarkGenericConfig, Val, VerifyingKey,
-    },
-    utils::{run_and_prove, BabyBearPoseidon2, BabyBearPoseidon2Inner},
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use wp1_core::air::{MachineAir, PublicValues, Word};
+use wp1_core::runtime::Program;
+use wp1_core::stark::{
+    Challenger, Com, Dom, LocalProver, MachineStark, OpeningProof, PcsProverData, Proof, Prover,
+    RiscvAir, ShardMainData, ShardProof, StarkGenericConfig, Val, VerifyingKey,
 };
-use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
-use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
-use wp1_recursion_core::{
-    runtime::{RecursionProgram, Runtime},
-    stark::{config::BabyBearPoseidon2Outer, RecursionAir},
-};
-use wp1_recursion_program::{hints::Hintable, reduce::ReduceProgram, stark::EMPTY};
+use wp1_core::utils::{run_and_prove, BabyBearPoseidon2, BabyBearPoseidon2Inner};
+use wp1_recursion_circuit::stark::build_wrap_circuit;
+use wp1_recursion_circuit::witness::Witnessable;
+use wp1_recursion_compiler::constraints::groth16_ffi;
+use wp1_recursion_compiler::ir::Witness;
+use wp1_recursion_core::runtime::{RecursionProgram, Runtime};
+use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
+use wp1_recursion_core::stark::RecursionAir;
+use wp1_recursion_program::hints::Hintable;
+use wp1_recursion_program::reduce::ReduceProgram;
+use wp1_recursion_program::stark::EMPTY;
 
 type SP1SC = BabyBearPoseidon2;
 type SP1F = <SP1SC as StarkGenericConfig>::Val;
@@ -494,15 +496,16 @@ impl SP1ProverImpl {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use wp1_core::{
-        runtime::Runtime,
-        utils::{prove_core, setup_logger},
-    };
-    use wp1_recursion_circuit::{stark::build_wrap_circuit, witness::Witnessable};
-    use wp1_recursion_compiler::{constraints::groth16_ffi, ir::Witness};
+    use wp1_core::runtime::Runtime;
+    use wp1_core::utils::{prove_core, setup_logger};
+    use wp1_recursion_circuit::stark::build_wrap_circuit;
+    use wp1_recursion_circuit::witness::Witnessable;
+    use wp1_recursion_compiler::constraints::groth16_ffi;
+    use wp1_recursion_compiler::ir::Witness;
     use wp1_recursion_core::stark::config::BabyBearPoseidon2Outer;
     use wp1_sdk::{ProverClient, SP1Stdin};
+
+    use super::*;
 
     #[test]
     #[ignore]

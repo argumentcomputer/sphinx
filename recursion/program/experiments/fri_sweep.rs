@@ -1,5 +1,6 @@
 //! Sweeps end-to-end prover performance across a wide range of parameters for Fibonacci.
-use std::{fs::File, io::BufWriter, io::Write};
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
 use itertools::iproduct;
 use wp1_core::utils::{inner_perm, InnerChallenge, InnerVal};

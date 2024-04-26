@@ -2,12 +2,10 @@ mod build;
 pub mod commands;
 mod util;
 
-use std::{
-    cmp::min,
-    fs::File as SyncFile,
-    io::Write,
-    process::{Command, Stdio},
-};
+use std::cmp::min;
+use std::fs::File as SyncFile;
+use std::io::Write;
+use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
 use futures_util::StreamExt;

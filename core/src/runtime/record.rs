@@ -1,37 +1,35 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    mem::take,
-    sync::Arc,
-};
+use std::collections::{BTreeMap, HashMap};
+use std::mem::take;
+use std::sync::Arc;
 
 use itertools::Itertools;
 use p3_field::AbstractField;
 use serde::{Deserialize, Serialize};
 
-use super::{program::Program, Opcode};
-use crate::{
-    air::PublicValues,
-    alu::AluEvent,
-    bytes::{ByteLookupEvent, ByteOpcode},
-    cpu::CpuEvent,
-    runtime::{MemoryInitializeFinalizeEvent, MemoryRecordEnum},
-    stark::MachineRecord,
-    syscall::precompiles::{
-        blake3::Blake3CompressInnerEvent,
-        bls12_381::g1_decompress::Bls12381G1DecompressEvent,
-        edwards::EdDecompressEvent,
-        field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
-        keccak256::KeccakPermuteEvent,
-        quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
-        secp256k1::decompress::Secp256k1DecompressEvent,
-        sha256::{ShaCompressEvent, ShaExtendEvent},
-        ECAddEvent, ECDoubleEvent,
-    },
-    utils::{
-        ec::{field::FieldParameters, weierstrass::bls12_381::Bls12381BaseField},
-        env,
-    },
-};
+use super::program::Program;
+use super::Opcode;
+use crate::air::PublicValues;
+use crate::alu::AluEvent;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
+use crate::cpu::CpuEvent;
+use crate::runtime::{MemoryInitializeFinalizeEvent, MemoryRecordEnum};
+use crate::stark::MachineRecord;
+use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
+use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressEvent;
+use crate::syscall::precompiles::edwards::EdDecompressEvent;
+use crate::syscall::precompiles::field::add::FieldAddEvent;
+use crate::syscall::precompiles::field::mul::FieldMulEvent;
+use crate::syscall::precompiles::field::sub::FieldSubEvent;
+use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
+use crate::syscall::precompiles::quad_field::add::QuadFieldAddEvent;
+use crate::syscall::precompiles::quad_field::mul::QuadFieldMulEvent;
+use crate::syscall::precompiles::quad_field::sub::QuadFieldSubEvent;
+use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressEvent;
+use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
+use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
+use crate::utils::env;
 
 /// A record of the execution of a program. Contains event data for everything that happened during
 /// the execution of the shard.

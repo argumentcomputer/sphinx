@@ -6,7 +6,8 @@ use p3_field::{AbstractField, Field, PrimeField32, TwoAdicField};
 use p3_matrix::Matrix;
 
 use super::{ShaExtendChip, ShaExtendCols};
-use crate::{air::SP1AirBuilder, operations::IsZeroOperation};
+use crate::air::SP1AirBuilder;
+use crate::operations::IsZeroOperation;
 
 impl<F: Field> ShaExtendCols<F> {
     pub fn populate_flags(&mut self, i: usize) {

@@ -1,5 +1,6 @@
 use core::fmt::Display;
-use std::{fmt::Formatter, marker::PhantomData};
+use std::fmt::Formatter;
+use std::marker::PhantomData;
 
 use itertools::Itertools;
 use p3_air::Air;
@@ -7,10 +8,11 @@ use p3_challenger::{CanObserve, FieldChallenger};
 use p3_commit::{LagrangeSelectors, Pcs, PolynomialSpace};
 use p3_field::{AbstractExtensionField, AbstractField};
 
-use super::{
-    folder::VerifierConstraintFolder, types::*, Domain, StarkGenericConfig, Val, VerifyingKey,
-};
-use crate::{air::MachineAir, stark::MachineChip};
+use super::folder::VerifierConstraintFolder;
+use super::types::*;
+use super::{Domain, StarkGenericConfig, Val, VerifyingKey};
+use crate::air::MachineAir;
+use crate::stark::MachineChip;
 
 pub struct Verifier<SC, A>(PhantomData<SC>, PhantomData<A>);
 

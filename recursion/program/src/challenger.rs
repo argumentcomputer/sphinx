@@ -1,9 +1,8 @@
 use p3_field::AbstractField;
-use wp1_recursion_compiler::prelude::MemIndex;
-use wp1_recursion_compiler::prelude::MemVariable;
-use wp1_recursion_compiler::prelude::Ptr;
-use wp1_recursion_compiler::prelude::Variable;
-use wp1_recursion_compiler::prelude::{Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var};
+use wp1_recursion_compiler::prelude::{
+    Array, Builder, Config, DslVariable, Ext, Felt, MemIndex, MemVariable, Ptr, Usize, Var,
+    Variable,
+};
 use wp1_recursion_core::runtime::{DIGEST_SIZE, PERMUTATION_WIDTH};
 
 use crate::fri::types::DigestVariable;
@@ -232,11 +231,10 @@ impl<C: Config> FeltChallenger<C> for DuplexChallengerVariable<C> {
 mod tests {
     use p3_challenger::{CanObserve, CanSample};
     use p3_field::{AbstractField, PrimeField32};
-    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-    use wp1_recursion_compiler::{
-        asm::{AsmBuilder, AsmConfig},
-        ir::{Felt, Usize, Var},
-    };
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::utils::BabyBearPoseidon2;
+    use wp1_recursion_compiler::asm::{AsmBuilder, AsmConfig};
+    use wp1_recursion_compiler::ir::{Felt, Usize, Var};
     use wp1_recursion_core::runtime::{Runtime, PERMUTATION_WIDTH};
 
     use crate::challenger::DuplexChallengerVariable;

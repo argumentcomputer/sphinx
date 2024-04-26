@@ -1,25 +1,20 @@
 use core::mem::size_of;
-use std::{
-    borrow::{Borrow, BorrowMut},
-    mem::transmute,
-};
+use std::borrow::{Borrow, BorrowMut};
+use std::mem::transmute;
 
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use tracing::instrument;
-use wp1_core::{
-    air::{AirInteraction, BinomialExtension, MachineAir, SP1AirBuilder},
-    lookup::InteractionKind,
-    utils::{indices_arr, pad_rows},
-};
+use wp1_core::air::{AirInteraction, BinomialExtension, MachineAir, SP1AirBuilder};
+use wp1_core::lookup::InteractionKind;
+use wp1_core::utils::{indices_arr, pad_rows};
 
 use super::columns::CpuCols;
-use crate::{
-    air::{BinomialExtensionUtils, BlockBuilder},
-    cpu::CpuChip,
-    runtime::{ExecutionRecord, RecursionProgram},
-};
+use crate::air::{BinomialExtensionUtils, BlockBuilder};
+use crate::cpu::CpuChip;
+use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 pub const NUM_CPU_COLS: usize = size_of::<CpuCols<u8>>();
 

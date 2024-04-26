@@ -1,20 +1,17 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
 use std::collections::HashMap;
 
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField;
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    cpu::columns::{InstructionCols, OpcodeSelectorCols},
-    runtime::{ExecutionRecord, Program},
-    utils::pad_to_power_of_two,
-};
+use crate::air::{MachineAir, SP1AirBuilder};
+use crate::cpu::columns::{InstructionCols, OpcodeSelectorCols};
+use crate::runtime::{ExecutionRecord, Program};
+use crate::utils::pad_to_power_of_two;
 
 /// The number of preprocessed program columns.
 pub const NUM_PROGRAM_PREPROCESSED_COLS: usize = size_of::<ProgramPreprocessedCols<u8>>();
@@ -187,16 +184,15 @@ where
 #[cfg(test)]
 mod tests {
 
-    use std::{collections::BTreeMap, sync::Arc};
+    use std::collections::BTreeMap;
+    use std::sync::Arc;
 
     use p3_baby_bear::BabyBear;
     use p3_matrix::dense::RowMajorMatrix;
 
-    use crate::{
-        air::MachineAir,
-        program::ProgramChip,
-        runtime::{ExecutionRecord, Instruction, Opcode, Program},
-    };
+    use crate::air::MachineAir;
+    use crate::program::ProgramChip;
+    use crate::runtime::{ExecutionRecord, Instruction, Opcode, Program};
 
     #[test]
     fn generate_trace() {

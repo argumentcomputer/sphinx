@@ -1,7 +1,5 @@
-use core::{
-    fmt::Debug,
-    ops::{Add, AddAssign, Mul, Neg, Sub},
-};
+use core::fmt::Debug;
+use core::ops::{Add, AddAssign, Mul, Neg, Sub};
 
 use itertools::Itertools;
 use p3_field::{AbstractExtensionField, AbstractField, Field};

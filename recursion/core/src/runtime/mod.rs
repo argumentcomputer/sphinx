@@ -4,8 +4,9 @@ mod program;
 mod record;
 
 use std::collections::VecDeque;
+use std::marker::PhantomData;
 use std::process::exit;
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
 use hashbrown::HashMap;
 pub use instruction::*;
@@ -18,7 +19,10 @@ pub use program::*;
 pub use record::*;
 use wp1_core::runtime::MemoryAccessPosition;
 
-use crate::{air::Block, cpu::CpuEvent, memory::MemoryRecord, poseidon2::Poseidon2Event};
+use crate::air::Block;
+use crate::cpu::CpuEvent;
+use crate::memory::MemoryRecord;
+use crate::poseidon2::Poseidon2Event;
 
 pub const STACK_SIZE: usize = 1 << 24;
 pub const MEMORY_SIZE: usize = 1 << 28;
@@ -830,10 +834,8 @@ where
 #[cfg(test)]
 mod tests {
     use p3_field::AbstractField;
-    use wp1_core::{
-        stark::{RiscvAir, StarkGenericConfig},
-        utils::BabyBearPoseidon2,
-    };
+    use wp1_core::stark::{RiscvAir, StarkGenericConfig};
+    use wp1_core::utils::BabyBearPoseidon2;
 
     use super::{Instruction, Opcode, RecursionProgram, Runtime};
 

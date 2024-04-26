@@ -1,12 +1,11 @@
 use std::io::Read;
 
-use crate::stark::{Proof, VerifyingKey};
-use crate::utils::BabyBearPoseidon2Inner;
-
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use super::Runtime;
+use crate::stark::{Proof, VerifyingKey};
+use crate::utils::BabyBearPoseidon2Inner;
 
 impl Read for Runtime {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
@@ -60,9 +59,10 @@ pub(crate) mod tests {
     use serde::Deserialize;
 
     use super::*;
-    use crate::{
-        runtime::Program,
-        utils::{self, prove_core, tests::IO_ELF, BabyBearBlake3},
+    use crate::runtime::Program;
+    use crate::utils::tests::IO_ELF;
+    use crate::utils::{
+        prove_core, BabyBearBlake3, {self},
     };
 
     #[derive(Serialize, Deserialize, Debug, PartialEq)]

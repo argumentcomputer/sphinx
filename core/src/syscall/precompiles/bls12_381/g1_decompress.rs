@@ -3,41 +3,36 @@ use core::mem::size_of;
 use std::fmt::Debug;
 
 use bls12_381::G1Affine;
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, One, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
-    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        field_sqrt::FieldSqrtCols,
-        params::Limbs,
-    },
-    runtime::{
-        ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
-        SyscallContext,
-    },
-    utils::{
-        bytes_to_words_le_vec,
-        ec::{
-            field::FieldParameters,
-            weierstrass::{
-                bls12_381::{bls12381_sqrt, Bls12381BaseField, Bls12381Parameters},
-                SwCurve, WeierstrassParameters,
-            },
-            AffinePoint,
-        },
-        limbs_from_access, limbs_from_prev_access, pad_rows, words_to_bytes_le_vec,
-    },
-};
-
 use super::{BLS12_381_NUM_LIMBS, BLS12_381_NUM_WORDS_FOR_FIELD};
+use crate::air::{BaseAirBuilder, MachineAir, SP1AirBuilder};
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::Limbs;
+use crate::runtime::{
+    ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
+    SyscallContext,
+};
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::weierstrass::bls12_381::{
+    bls12381_sqrt, Bls12381BaseField, Bls12381Parameters,
+};
+use crate::utils::ec::weierstrass::{SwCurve, WeierstrassParameters};
+use crate::utils::ec::AffinePoint;
+use crate::utils::{
+    bytes_to_words_le_vec, limbs_from_access, limbs_from_prev_access, pad_rows,
+    words_to_bytes_le_vec,
+};
 
 /// This function decompresses a compressed BLS12-381 G1 elliptic curve point.
 ///
@@ -448,32 +443,27 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::bls12_381_g1_decompress;
-    use crate::{
-        runtime::{Instruction, Opcode, SyscallCode},
-        stark::SwCurve,
-        syscall::precompiles::bls12_381::BLS12_381_NUM_LIMBS,
-        utils::{
-            self, bytes_to_words_be_vec,
-            ec::{
-                field::FieldParameters,
-                weierstrass::{
-                    bls12_381::{Bls12381BaseField, Bls12381Parameters},
-                    WeierstrassParameters,
-                },
-                AffinePoint,
-            },
-            run_test_io, run_test_with_memory_inspection,
-            tests::BLS12381_G1_DECOMPRESS_ELF,
-            words_to_bytes_le_vec,
-        },
-        Program, SP1Stdin,
-    };
     use bls12_381::G1Affine;
-    use elliptic_curve::{group::Curve, Group as _};
+    use elliptic_curve::group::Curve;
+    use elliptic_curve::Group as _;
     use hybrid_array::typenum::Unsigned;
     use rand::rngs::StdRng;
     use rand::SeedableRng;
+
+    use super::bls12_381_g1_decompress;
+    use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use crate::stark::SwCurve;
+    use crate::syscall::precompiles::bls12_381::BLS12_381_NUM_LIMBS;
+    use crate::utils::ec::field::FieldParameters;
+    use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parameters};
+    use crate::utils::ec::weierstrass::WeierstrassParameters;
+    use crate::utils::ec::AffinePoint;
+    use crate::utils::tests::BLS12381_G1_DECOMPRESS_ELF;
+    use crate::utils::{
+        bytes_to_words_be_vec, run_test_io, run_test_with_memory_inspection, words_to_bytes_le_vec,
+        {self},
+    };
+    use crate::{Program, SP1Stdin};
 
     const NUM_TEST_CASES: usize = 10;
 

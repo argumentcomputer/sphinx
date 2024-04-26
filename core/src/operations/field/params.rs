@@ -3,11 +3,9 @@ use std::fmt::Debug;
 use std::ops::{Div, Mul, Shl, Shr, Sub};
 use std::slice::Iter;
 
-use hybrid_array::{
-    sizes::{U32, U4},
-    typenum::{Double, Shright, Sub1, B1},
-    Array, ArraySize, AssocArraySize,
-};
+use hybrid_array::sizes::{U32, U4};
+use hybrid_array::typenum::{Double, Shright, Sub1, B1};
+use hybrid_array::{Array, ArraySize, AssocArraySize};
 
 use crate::air::Polynomial;
 
@@ -118,7 +116,8 @@ where
 mod tests {
     use num::BigUint;
 
-    use crate::utils::ec::{edwards::ed25519::Ed25519BaseField, field::FieldParameters};
+    use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
+    use crate::utils::ec::field::FieldParameters;
 
     #[test]
     fn test_modulus() {

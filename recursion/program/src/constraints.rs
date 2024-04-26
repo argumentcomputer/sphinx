@@ -1,22 +1,16 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
 use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
-};
-use wp1_recursion_compiler::{
-    ir::{Array, Felt},
-    prelude::{Builder, Config, Ext, ExtConst, SymbolicExt},
-};
+use wp1_core::air::MachineAir;
+use wp1_core::stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS};
+use wp1_recursion_compiler::ir::{Array, Felt};
+use wp1_recursion_compiler::prelude::{Builder, Config, Ext, ExtConst, SymbolicExt};
 
-use crate::{
-    commit::PolynomialSpaceVariable,
-    folder::RecursiveVerifierConstraintFolder,
-    fri::TwoAdicMultiplicativeCosetVariable,
-    stark::StarkVerifier,
-    types::{ChipOpenedValuesVariable, ChipOpening},
-};
+use crate::commit::PolynomialSpaceVariable;
+use crate::folder::RecursiveVerifierConstraintFolder;
+use crate::fri::TwoAdicMultiplicativeCosetVariable;
+use crate::stark::StarkVerifier;
+use crate::types::{ChipOpenedValuesVariable, ChipOpening};
 
 impl<C: Config, SC> StarkVerifier<C, SC>
 where
@@ -161,16 +155,16 @@ mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, PolynomialSpace};
     use p3_field::PrimeField32;
-    use serde::{de::DeserializeOwned, Serialize};
-    use wp1_core::{
-        runtime::Program,
-        stark::{
-            Chip, Com, Dom, MachineStark, OpeningProof, PcsProverData, RiscvAir, ShardCommitment,
-            ShardMainData, ShardProof, StarkGenericConfig,
-        },
-        utils::BabyBearPoseidon2,
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
+    use wp1_core::runtime::Program;
+    use wp1_core::stark::{
+        Chip, Com, Dom, MachineStark, OpeningProof, PcsProverData, RiscvAir, ShardCommitment,
+        ShardMainData, ShardProof, StarkGenericConfig,
     };
-    use wp1_recursion_compiler::{asm::AsmBuilder, prelude::ExtConst};
+    use wp1_core::utils::BabyBearPoseidon2;
+    use wp1_recursion_compiler::asm::AsmBuilder;
+    use wp1_recursion_compiler::prelude::ExtConst;
     use wp1_recursion_core::runtime::Runtime;
     use wp1_sdk::{ProverClient, SP1Stdin};
 

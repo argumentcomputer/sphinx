@@ -1,16 +1,16 @@
 use std::fmt::Debug;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::BigUint;
 use p3_field::Field;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use super::utils::biguint_from_limbs;
-use crate::{
-    operations::field::params::{LimbWidth, Limbs, NB_BITS_PER_LIMB},
-    runtime::ExecutionRecord,
-    syscall::precompiles,
-};
+use crate::operations::field::params::{LimbWidth, Limbs, NB_BITS_PER_LIMB};
+use crate::runtime::ExecutionRecord;
+use crate::syscall::precompiles;
 
 #[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]

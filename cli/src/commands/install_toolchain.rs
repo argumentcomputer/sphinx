@@ -1,15 +1,14 @@
+use std::fs::{self};
+use std::io::Read;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
-use std::{
-    fs::{self},
-    io::Read,
-    process::Command,
-};
+use std::process::Command;
 
 use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
-use rand::{distributions::Alphanumeric, Rng};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use reqwest::Client;
 
 use crate::{

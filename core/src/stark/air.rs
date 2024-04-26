@@ -1,3 +1,6 @@
+use p3_field::PrimeField32;
+pub use riscv_chips::*;
+
 use super::MachineStark;
 pub use crate::air::SP1AirBuilder;
 use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
@@ -7,31 +10,34 @@ use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressC
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parameters};
 use crate::StarkGenericConfig;
-use p3_field::PrimeField32;
-pub use riscv_chips::*;
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
-    pub use crate::{
-        alu::{AddSubChip, BitwiseChip, DivRemChip, LtChip, MulChip, ShiftLeft, ShiftRightChip},
-        bytes::ByteChip,
-        cpu::CpuChip,
-        memory::MemoryChip,
-        program::ProgramChip,
-        syscall::precompiles::{
-            blake3::Blake3CompressInnerChip,
-            edwards::{EdAddAssignChip, EdDecompressChip},
-            field::{add::FieldAddChip, mul::FieldMulChip, sub::FieldSubChip},
-            keccak256::KeccakPermuteChip,
-            quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
-            sha256::{ShaCompressChip, ShaExtendChip},
-            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-        },
-        utils::ec::{
-            edwards::{ed25519::Ed25519Parameters, EdwardsCurve},
-            weierstrass::{bn254::Bn254Parameters, secp256k1::Secp256k1Parameters, SwCurve},
-        },
+    pub use crate::alu::{
+        AddSubChip, BitwiseChip, DivRemChip, LtChip, MulChip, ShiftLeft, ShiftRightChip,
     };
+    pub use crate::bytes::ByteChip;
+    pub use crate::cpu::CpuChip;
+    pub use crate::memory::MemoryChip;
+    pub use crate::program::ProgramChip;
+    pub use crate::syscall::precompiles::blake3::Blake3CompressInnerChip;
+    pub use crate::syscall::precompiles::edwards::{EdAddAssignChip, EdDecompressChip};
+    pub use crate::syscall::precompiles::field::add::FieldAddChip;
+    pub use crate::syscall::precompiles::field::mul::FieldMulChip;
+    pub use crate::syscall::precompiles::field::sub::FieldSubChip;
+    pub use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
+    pub use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
+    pub use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
+    pub use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
+    pub use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
+    pub use crate::syscall::precompiles::weierstrass::{
+        WeierstrassAddAssignChip, WeierstrassDoubleAssignChip,
+    };
+    pub use crate::utils::ec::edwards::ed25519::Ed25519Parameters;
+    pub use crate::utils::ec::edwards::EdwardsCurve;
+    pub use crate::utils::ec::weierstrass::bn254::Bn254Parameters;
+    pub use crate::utils::ec::weierstrass::secp256k1::Secp256k1Parameters;
+    pub use crate::utils::ec::weierstrass::SwCurve;
 }
 
 /// An AIR for encoding RISC-V execution.

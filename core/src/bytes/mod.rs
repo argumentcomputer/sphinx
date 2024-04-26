@@ -15,10 +15,8 @@ pub use opcode::*;
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 
-use self::{
-    columns::{BytePreprocessedCols, NUM_BYTE_PREPROCESSED_COLS},
-    utils::shr_carry,
-};
+use self::columns::{BytePreprocessedCols, NUM_BYTE_PREPROCESSED_COLS};
+use self::utils::shr_carry;
 use crate::bytes::trace::NUM_ROWS;
 
 /// The number of different byte operations.

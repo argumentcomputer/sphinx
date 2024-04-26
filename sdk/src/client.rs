@@ -1,27 +1,22 @@
-use std::{
-    env,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::env;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Ok, Result};
 use futures::future::join_all;
 use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
-use serde::{de::DeserializeOwned, Serialize};
-use twirp::{
-    reqwest::{Client as HttpClient, Url},
-    Client as TwirpClient,
-};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use twirp::reqwest::{Client as HttpClient, Url};
+use twirp::Client as TwirpClient;
 use wp1_core::stark::StarkGenericConfig;
 
-use crate::{
-    auth::NetworkAuth,
-    proto::network::{
-        CreateProofRequest, GetNonceRequest, GetProofStatusRequest, GetProofStatusResponse,
-        GetRelayStatusRequest, GetRelayStatusResponse, NetworkServiceClient, ProofStatus,
-        RelayProofRequest, SubmitProofRequest, TransactionStatus,
-    },
-    SP1ProofWithIO, SP1Stdin,
+use crate::auth::NetworkAuth;
+use crate::proto::network::{
+    CreateProofRequest, GetNonceRequest, GetProofStatusRequest, GetProofStatusResponse,
+    GetRelayStatusRequest, GetRelayStatusResponse, NetworkServiceClient, ProofStatus,
+    RelayProofRequest, SubmitProofRequest, TransactionStatus,
 };
+use crate::{SP1ProofWithIO, SP1Stdin};
 
 /// The default RPC endpoint for the Succinct prover network.
 const DEFAULT_PROVER_NETWORK_RPC: &str = "https://rpc.succinct.xyz/";

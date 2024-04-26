@@ -1,7 +1,8 @@
 use p3_field::{AbstractField, Field};
 use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, Var};
 
-use crate::{poseidon2::Poseidon2CircuitBuilder, DIGEST_SIZE, SPONGE_SIZE};
+use crate::poseidon2::Poseidon2CircuitBuilder;
+use crate::{DIGEST_SIZE, SPONGE_SIZE};
 
 #[derive(Clone)]
 pub struct MultiField32ChallengerVariable<C: Config> {
@@ -146,21 +147,18 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_bn254_fr::Bn254Fr;
     use p3_challenger::{CanObserve, CanSample, FieldChallenger};
-    use p3_field::{
-        extension::BinomialExtensionField, reduce_32 as reduce_32_gt, split_32 as split_32_gt,
-        AbstractField,
-    };
+    use p3_field::extension::BinomialExtensionField;
+    use p3_field::{reduce_32 as reduce_32_gt, split_32 as split_32_gt, AbstractField};
     use p3_symmetric::Hash;
     use serial_test::serial;
-    use wp1_recursion_compiler::{
-        config::OuterConfig,
-        constraints::{groth16_ffi, ConstraintCompiler},
-        ir::{Builder, SymbolicExt, Witness},
-    };
+    use wp1_recursion_compiler::config::OuterConfig;
+    use wp1_recursion_compiler::constraints::{groth16_ffi, ConstraintCompiler};
+    use wp1_recursion_compiler::ir::{Builder, SymbolicExt, Witness};
     use wp1_recursion_core::stark::config::{outer_perm, OuterChallenger};
 
     use super::{reduce_32, split_32};
-    use crate::{challenger::MultiField32ChallengerVariable, DIGEST_SIZE};
+    use crate::challenger::MultiField32ChallengerVariable;
+    use crate::DIGEST_SIZE;
 
     #[test]
     #[serial]

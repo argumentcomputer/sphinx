@@ -4,11 +4,10 @@ use num::BigUint;
 use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
-use super::{
-    field_op::FieldOpCols,
-    params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T},
-};
-use crate::{air::SP1AirBuilder, utils::ec::field::FieldParameters};
+use super::field_op::FieldOpCols;
+use super::params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T};
+use crate::air::SP1AirBuilder;
+use crate::utils::ec::field::FieldParameters;
 
 /// A set of columns to compute the square root in the ed25519 curve. `T` is the field in which each
 /// limb lives.
@@ -77,33 +76,29 @@ impl<V: Copy, U: LimbWidth> FieldSqrtCols<V, U> {
 
 #[cfg(test)]
 mod tests {
-    use core::{
-        borrow::{Borrow, BorrowMut},
-        mem::size_of,
-    };
+    use core::borrow::{Borrow, BorrowMut};
+    use core::mem::size_of;
 
-    use num::{bigint::RandBigInt, BigUint, One, Zero};
+    use num::bigint::RandBigInt;
+    use num::{BigUint, One, Zero};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
     use p3_field::{Field, PrimeField32};
-    use p3_matrix::{dense::RowMajorMatrix, Matrix};
+    use p3_matrix::dense::RowMajorMatrix;
+    use p3_matrix::Matrix;
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
 
     use super::{FieldSqrtCols, LimbWidth, Limbs};
-    use crate::{
-        air::{MachineAir, SP1AirBuilder},
-        operations::field::params::DEFAULT_NUM_LIMBS_T,
-        runtime::{ExecutionRecord, Program},
-        stark::StarkGenericConfig,
-        utils::{
-            ec::{
-                edwards::ed25519::{ed25519_sqrt, Ed25519BaseField},
-                field::FieldParameters,
-            },
-            pad_to_power_of_two, uni_stark_prove as prove, uni_stark_verify as verify,
-            BabyBearPoseidon2,
-        },
+    use crate::air::{MachineAir, SP1AirBuilder};
+    use crate::operations::field::params::DEFAULT_NUM_LIMBS_T;
+    use crate::runtime::{ExecutionRecord, Program};
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::edwards::ed25519::{ed25519_sqrt, Ed25519BaseField};
+    use crate::utils::ec::field::FieldParameters;
+    use crate::utils::{
+        pad_to_power_of_two, uni_stark_prove as prove, uni_stark_verify as verify,
+        BabyBearPoseidon2,
     };
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {

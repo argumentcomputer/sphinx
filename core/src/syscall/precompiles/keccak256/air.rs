@@ -5,15 +5,11 @@ use p3_field::AbstractField;
 use p3_keccak_air::{KeccakAir, NUM_KECCAK_COLS, NUM_ROUNDS, U64_LIMBS};
 use p3_matrix::Matrix;
 
-use super::{
-    columns::{KeccakMemCols, NUM_KECCAK_MEM_COLS},
-    KeccakPermuteChip, STATE_NUM_WORDS, STATE_SIZE,
-};
-use crate::{
-    air::{SP1AirBuilder, SubAirBuilder, WordAirBuilder},
-    memory::MemoryCols,
-    runtime::SyscallCode,
-};
+use super::columns::{KeccakMemCols, NUM_KECCAK_MEM_COLS};
+use super::{KeccakPermuteChip, STATE_NUM_WORDS, STATE_SIZE};
+use crate::air::{SP1AirBuilder, SubAirBuilder, WordAirBuilder};
+use crate::memory::MemoryCols;
+use crate::runtime::SyscallCode;
 
 impl<F> BaseAir<F> for KeccakPermuteChip {
     fn width(&self) -> usize {
@@ -149,12 +145,11 @@ mod test {
     use rand::{Rng, SeedableRng};
     use tiny_keccak::Hasher;
 
-    use crate::{
-        runtime::Program,
-        stark::{RiscvAir, StarkGenericConfig},
-        utils::{run_and_prove, setup_logger, tests::KECCAK256_ELF, BabyBearPoseidon2},
-        SP1PublicValues, SP1Stdin,
-    };
+    use crate::runtime::Program;
+    use crate::stark::{RiscvAir, StarkGenericConfig};
+    use crate::utils::tests::KECCAK256_ELF;
+    use crate::utils::{run_and_prove, setup_logger, BabyBearPoseidon2};
+    use crate::{SP1PublicValues, SP1Stdin};
 
     const NUM_TEST_CASES: usize = 45;
 

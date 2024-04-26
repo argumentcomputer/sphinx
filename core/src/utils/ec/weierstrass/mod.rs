@@ -1,11 +1,13 @@
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use serde::{Deserialize, Serialize};
 
 use super::CurveType;
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::utils::biguint_to_bits_le;
 use crate::utils::ec::{
-    field::FieldParameters, utils::biguint_to_bits_le, AffinePoint, EllipticCurve,
-    EllipticCurveParameters, WithAddition, WithDoubling,
+    AffinePoint, EllipticCurve, EllipticCurveParameters, WithAddition, WithDoubling,
 };
 
 pub mod bls12_381;

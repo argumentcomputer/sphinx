@@ -1,10 +1,11 @@
 use core::borrow::Borrow;
 use core::mem::size_of;
+use std::borrow::BorrowMut;
+
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use std::borrow::BorrowMut;
 use tracing::instrument;
 use wp1_core::air::{MachineAir, SP1AirBuilder};
 use wp1_core::utils::pad_to_power_of_two;
@@ -359,8 +360,8 @@ mod tests {
     use wp1_core::utils::{inner_perm, uni_stark_prove, uni_stark_verify, BabyBearPoseidon2Inner};
 
     use crate::poseidon2::Poseidon2Event;
-    use crate::poseidon2_wide::external::{Poseidon2WideCols, WIDTH};
-    use crate::{poseidon2_wide::external::Poseidon2WideChip, runtime::ExecutionRecord};
+    use crate::poseidon2_wide::external::{Poseidon2WideChip, Poseidon2WideCols, WIDTH};
+    use crate::runtime::ExecutionRecord;
 
     /// A test generating a trace for a single permutation that checks that the output is correct
     #[test]

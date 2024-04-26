@@ -1,7 +1,9 @@
 use std::mem::size_of;
+
 use wp1_derive::AlignedBorrow;
 
-use crate::{air::PV_DIGEST_NUM_WORDS, operations::IsZeroOperation};
+use crate::air::PV_DIGEST_NUM_WORDS;
+use crate::operations::IsZeroOperation;
 
 pub const NUM_ECALL_COLS: usize = size_of::<EcallCols<u8>>();
 

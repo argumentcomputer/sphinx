@@ -19,10 +19,8 @@ pub use programs::*;
 pub use prove::*;
 pub use tracer::*;
 
-use crate::{
-    memory::MemoryCols,
-    operations::field::params::{LimbWidth, Limbs},
-};
+use crate::memory::MemoryCols;
+use crate::operations::field::params::{LimbWidth, Limbs};
 
 pub const fn indices_arr<const N: usize>() -> [usize; N] {
     let mut indices_arr = [0; N];

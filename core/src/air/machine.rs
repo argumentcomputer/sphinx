@@ -3,7 +3,8 @@ use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 pub use wp1_derive::MachineAir;
 
-use crate::{runtime::Program, stark::MachineRecord};
+use crate::runtime::Program;
+use crate::stark::MachineRecord;
 
 /// An AIR that is part of a multi table AIR arithmetization.
 pub trait MachineAir<F: Field>: BaseAir<F> {

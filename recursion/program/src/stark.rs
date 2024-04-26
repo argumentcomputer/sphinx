@@ -1,23 +1,17 @@
 use p3_air::Air;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, TwoAdicField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{Com, MachineStark, StarkGenericConfig},
-};
+use wp1_core::air::MachineAir;
+use wp1_core::stark::{Com, MachineStark, StarkGenericConfig};
 use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Usize, Var};
 use wp1_recursion_core::runtime::DIGEST_SIZE;
 
-use crate::{
-    challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger},
-    commit::{PcsVariable, PolynomialSpaceVariable},
-    folder::RecursiveVerifierConstraintFolder,
-    fri::{
-        types::{TwoAdicPcsMatsVariable, TwoAdicPcsRoundVariable},
-        TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable,
-    },
-    types::{ShardCommitmentVariable, ShardProofVariable, VerifyingKeyVariable},
-};
+use crate::challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger};
+use crate::commit::{PcsVariable, PolynomialSpaceVariable};
+use crate::folder::RecursiveVerifierConstraintFolder;
+use crate::fri::types::{TwoAdicPcsMatsVariable, TwoAdicPcsRoundVariable};
+use crate::fri::{TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable};
+use crate::types::{ShardCommitmentVariable, ShardProofVariable, VerifyingKeyVariable};
 
 pub const EMPTY: usize = 0x_1111_1111;
 
@@ -267,30 +261,18 @@ pub(crate) mod tests {
     use p3_field::AbstractField;
     use rand::Rng;
     use wp1_core::runtime::Program;
-    use wp1_core::stark::LocalProver;
-    use wp1_core::utils::InnerChallenge;
-    use wp1_core::utils::InnerVal;
-    use wp1_core::{
-        stark::{RiscvAir, ShardProof, StarkGenericConfig},
-        utils::BabyBearPoseidon2,
-    };
+    use wp1_core::stark::{LocalProver, RiscvAir, ShardProof, StarkGenericConfig};
+    use wp1_core::utils::{BabyBearPoseidon2, InnerChallenge, InnerVal};
+    use wp1_recursion_compiler::asm::AsmBuilder;
     use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_compiler::ir::Array;
-    use wp1_recursion_compiler::ir::Ext;
-    use wp1_recursion_compiler::ir::Felt;
+    use wp1_recursion_compiler::ir::{Array, Builder, Ext, ExtConst, Felt};
     use wp1_recursion_compiler::prelude::Usize;
-    use wp1_recursion_compiler::{
-        asm::AsmBuilder,
-        ir::{Builder, ExtConst},
-    };
-    use wp1_recursion_core::{
-        runtime::{Runtime, DIGEST_SIZE},
-        stark::RecursionAir,
-    };
-    use wp1_sdk::{utils::setup_logger, ProverClient, SP1Stdin};
+    use wp1_recursion_core::runtime::{Runtime, DIGEST_SIZE};
+    use wp1_recursion_core::stark::RecursionAir;
+    use wp1_sdk::utils::setup_logger;
+    use wp1_sdk::{ProverClient, SP1Stdin};
 
-    use crate::challenger::CanObserveVariable as _;
-    use crate::challenger::{DuplexChallengerVariable, FeltChallenger};
+    use crate::challenger::{CanObserveVariable as _, DuplexChallengerVariable, FeltChallenger};
     use crate::hints::Hintable as _;
     use crate::types::ShardCommitmentVariable;
 

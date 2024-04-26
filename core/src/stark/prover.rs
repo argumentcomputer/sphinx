@@ -1,30 +1,29 @@
-use std::{
-    cmp::Reverse,
-    marker::PhantomData,
-    sync::atomic::{AtomicU32, Ordering},
-    time::Instant,
-};
+use std::cmp::Reverse;
+use std::marker::PhantomData;
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::Instant;
 
 use itertools::Itertools;
 use p3_air::Air;
 use p3_challenger::{CanObserve, FieldChallenger};
 use p3_commit::{Pcs, PolynomialSpace};
 use p3_field::{AbstractField, ExtensionField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use p3_util::{log2_ceil_usize, log2_strict_usize};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
-use super::{quotient_values, MachineStark, PcsProverData, Val};
-use super::{types::*, StarkGenericConfig};
-use super::{Com, OpeningProof};
-use super::{ProvingKey, VerifierConstraintFolder};
+use super::types::*;
+use super::{
+    quotient_values, Com, MachineStark, OpeningProof, PcsProverData, ProvingKey,
+    StarkGenericConfig, Val, VerifierConstraintFolder,
+};
 use crate::air::MachineAir;
 use crate::lookup::InteractionBuilder;
 use crate::stark::record::MachineRecord;
-use crate::stark::MachineChip;
-use crate::stark::PackedChallenge;
-use crate::stark::ProverConstraintFolder;
+use crate::stark::{MachineChip, PackedChallenge, ProverConstraintFolder};
 use crate::utils::env;
 
 fn chunk_vec<T>(mut vec: Vec<T>, chunk_size: usize) -> Vec<Vec<T>> {

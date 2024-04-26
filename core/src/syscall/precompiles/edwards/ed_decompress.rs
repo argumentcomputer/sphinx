@@ -1,45 +1,36 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
 use std::marker::PhantomData;
 
 use curve25519_dalek::edwards::CompressedEdwardsY;
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, One, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
-    memory::{MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        field_sqrt::FieldSqrtCols,
-        params::{
-            LimbWidth, Limbs, BYTES_COMPRESSED_CURVEPOINT, BYTES_FIELD_ELEMENT,
-            DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT,
-        },
-    },
-    runtime::{
-        ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
-    },
-    syscall::precompiles::SyscallContext,
-    utils::{
-        bytes_to_words_le,
-        ec::{
-            edwards::{
-                ed25519::{decompress, ed25519_sqrt},
-                EdwardsParameters,
-            },
-            field::FieldParameters,
-            BaseLimbWidth,
-        },
-        limbs_from_access, limbs_from_prev_access, pad_vec_rows, words_to_bytes_le,
-    },
+use crate::air::{BaseAirBuilder, MachineAir, SP1AirBuilder};
+use crate::memory::{MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::{
+    LimbWidth, Limbs, BYTES_COMPRESSED_CURVEPOINT, BYTES_FIELD_ELEMENT, DEFAULT_NUM_LIMBS_T,
+    WORDS_FIELD_ELEMENT,
+};
+use crate::runtime::{
+    ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
+};
+use crate::syscall::precompiles::SyscallContext;
+use crate::utils::ec::edwards::ed25519::{decompress, ed25519_sqrt};
+use crate::utils::ec::edwards::EdwardsParameters;
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::BaseLimbWidth;
+use crate::utils::{
+    bytes_to_words_le, limbs_from_access, limbs_from_prev_access, pad_vec_rows, words_to_bytes_le,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -356,13 +347,9 @@ where
 
 #[cfg(test)]
 pub mod tests {
-    use crate::{
-        runtime::Program,
-        utils::{
-            tests::ED_DECOMPRESS_ELF,
-            {self},
-        },
-    };
+    use crate::runtime::Program;
+    use crate::utils::tests::ED_DECOMPRESS_ELF;
+    use crate::utils::{self};
 
     #[test]
     fn test_ed_decompress() {

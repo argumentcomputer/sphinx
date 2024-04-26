@@ -1,32 +1,27 @@
-use core::{
-    borrow::{Borrow, BorrowMut},
-    mem::size_of,
-};
-use std::{fmt::Debug, marker::PhantomData};
+use core::borrow::{Borrow, BorrowMut};
+use core::mem::size_of;
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use hybrid_array::{typenum::Unsigned, Array};
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT},
-    },
-    runtime::{ExecutionRecord, Program, SyscallCode},
-    utils::{
-        ec::{
-            weierstrass::WeierstrassParameters, AffinePoint, BaseLimbWidth, CurveType,
-            EllipticCurve, WithAddition,
-        },
-        limbs_from_prev_access, pad_vec_rows,
-    },
+use crate::air::{MachineAir, SP1AirBuilder};
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::params::{
+    LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT, WORDS_FIELD_ELEMENT,
 };
+use crate::runtime::{ExecutionRecord, Program, SyscallCode};
+use crate::utils::ec::weierstrass::WeierstrassParameters;
+use crate::utils::ec::{AffinePoint, BaseLimbWidth, CurveType, EllipticCurve, WithAddition};
+use crate::utils::{limbs_from_prev_access, pad_vec_rows};
 
 /// A set of columns to compute `WeierstrassAdd` that add two points on a Weierstrass curve.
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -361,16 +356,12 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        runtime::Program,
-        utils::{
-            run_test, setup_logger,
-            tests::{
-                BLS12381_G1_ADD_ELF, BLS12381_G1_SCALARMUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
-                SECP256K1_ADD_ELF, SECP256K1_MUL_ELF,
-            },
-        },
+    use crate::runtime::Program;
+    use crate::utils::tests::{
+        BLS12381_G1_ADD_ELF, BLS12381_G1_SCALARMUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
+        SECP256K1_ADD_ELF, SECP256K1_MUL_ELF,
     };
+    use crate::utils::{run_test, setup_logger};
 
     #[test]
     fn test_secp256k1_add_simple() {

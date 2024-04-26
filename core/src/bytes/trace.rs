@@ -3,14 +3,10 @@ use std::borrow::BorrowMut;
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 
-use super::{
-    columns::{ByteMultCols, NUM_BYTE_MULT_COLS, NUM_BYTE_PREPROCESSED_COLS},
-    ByteChip,
-};
-use crate::{
-    air::MachineAir,
-    runtime::{ExecutionRecord, Program},
-};
+use super::columns::{ByteMultCols, NUM_BYTE_MULT_COLS, NUM_BYTE_PREPROCESSED_COLS};
+use super::ByteChip;
+use crate::air::MachineAir;
+use crate::runtime::{ExecutionRecord, Program};
 
 pub const NUM_ROWS: usize = 1 << 16;
 

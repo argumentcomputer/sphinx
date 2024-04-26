@@ -50,10 +50,9 @@ impl ShaCompressChip {
 #[cfg(test)]
 pub mod compress_tests {
 
-    use crate::{
-        runtime::{Instruction, Opcode, Program, SyscallCode},
-        utils::{run_test, setup_logger, tests::SHA_COMPRESS_ELF},
-    };
+    use crate::runtime::{Instruction, Opcode, Program, SyscallCode};
+    use crate::utils::tests::SHA_COMPRESS_ELF;
+    use crate::utils::{run_test, setup_logger};
 
     pub fn sha_compress_program() -> Program {
         let w_ptr = 100;

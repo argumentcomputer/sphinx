@@ -2,40 +2,36 @@ use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use std::fmt::Debug;
 
-use elliptic_curve::{point::DecompressPoint, sec1::ToEncodedPoint, subtle::Choice};
-use hybrid_array::{typenum::Unsigned, Array};
+use elliptic_curve::point::DecompressPoint;
+use elliptic_curve::sec1::ToEncodedPoint;
+use elliptic_curve::subtle::Choice;
+use hybrid_array::typenum::Unsigned;
+use hybrid_array::Array;
 use num::{BigUint, Zero};
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
-    memory::{MemoryReadCols, MemoryWriteCols},
-    operations::field::{
-        field_op::{FieldOpCols, FieldOperation},
-        field_sqrt::FieldSqrtCols,
-        params::{Limbs, DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT},
-    },
-    runtime::{
-        ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
-        SyscallContext,
-    },
-    stark::Secp256k1Parameters,
-    utils::{
-        bytes_to_words_le_vec,
-        ec::{
-            field::FieldParameters,
-            weierstrass::{
-                secp256k1::{secp256k1_sqrt, Secp256k1BaseField},
-                WeierstrassParameters,
-            },
-            AffinePoint,
-        },
-        limbs_from_access, limbs_from_prev_access, pad_rows, words_to_bytes_le_vec,
-    },
+use crate::air::{BaseAirBuilder, MachineAir, SP1AirBuilder};
+use crate::memory::{MemoryReadCols, MemoryWriteCols};
+use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
+use crate::operations::field::field_sqrt::FieldSqrtCols;
+use crate::operations::field::params::{Limbs, DEFAULT_NUM_LIMBS_T, WORDS_FIELD_ELEMENT};
+use crate::runtime::{
+    ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, Syscall, SyscallCode,
+    SyscallContext,
+};
+use crate::stark::Secp256k1Parameters;
+use crate::utils::ec::field::FieldParameters;
+use crate::utils::ec::weierstrass::secp256k1::{secp256k1_sqrt, Secp256k1BaseField};
+use crate::utils::ec::weierstrass::WeierstrassParameters;
+use crate::utils::ec::AffinePoint;
+use crate::utils::{
+    bytes_to_words_le_vec, limbs_from_access, limbs_from_prev_access, pad_rows,
+    words_to_bytes_le_vec,
 };
 
 /// This function decompresses a compressed representation of an elliptic curve
@@ -364,12 +360,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        utils::{self, run_test_io, tests::SECP256K1_DECOMPRESS_ELF},
-        Program, SP1Stdin,
-    };
     use elliptic_curve::sec1::ToEncodedPoint;
-    use rand::{rngs::StdRng, SeedableRng};
+    use rand::rngs::StdRng;
+    use rand::SeedableRng;
+
+    use crate::utils::tests::SECP256K1_DECOMPRESS_ELF;
+    use crate::utils::{
+        run_test_io, {self},
+    };
+    use crate::{Program, SP1Stdin};
 
     #[test]
     fn test_weierstrass_secp256k1_decompress() {

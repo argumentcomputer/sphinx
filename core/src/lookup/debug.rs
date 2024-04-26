@@ -5,10 +5,8 @@ use p3_field::{AbstractField, Field, PrimeField32, PrimeField64};
 use p3_matrix::Matrix;
 
 use super::InteractionKind;
-use crate::{
-    air::MachineAir,
-    stark::{MachineChip, MachineStark, ProvingKey, StarkGenericConfig, Val},
-};
+use crate::air::MachineAir;
+use crate::stark::{MachineChip, MachineStark, ProvingKey, StarkGenericConfig, Val};
 
 #[derive(Debug)]
 pub struct InteractionData<F: Field> {
@@ -207,12 +205,11 @@ where
 #[cfg(test)]
 mod test {
     use super::debug_interactions_with_all_chips;
-    use crate::{
-        lookup::InteractionKind,
-        runtime::{Program, Runtime, ShardingConfig},
-        stark::RiscvAir,
-        utils::{setup_logger, tests::FIBONACCI_ELF, BabyBearPoseidon2},
-    };
+    use crate::lookup::InteractionKind;
+    use crate::runtime::{Program, Runtime, ShardingConfig};
+    use crate::stark::RiscvAir;
+    use crate::utils::tests::FIBONACCI_ELF;
+    use crate::utils::{setup_logger, BabyBearPoseidon2};
 
     #[test]
     fn test_debug_interactions() {
