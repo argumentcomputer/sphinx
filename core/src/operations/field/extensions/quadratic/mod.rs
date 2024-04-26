@@ -11,7 +11,7 @@ use wp1_derive::AlignedBorrow;
 use crate::{
     air::{Polynomial, SP1AirBuilder},
     operations::field::{
-        params::{LimbWidth, Limbs, DEFAULT_NUM_LIMBS_T, WITNESS_LIMBS},
+        params::{Limbs, WITNESS_LIMBS},
         util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
         util_air::eval_field_operation,
     },
@@ -38,20 +38,32 @@ pub enum QuadFieldOperation {
 /// This can be checked by adding the field parameter to the `test_check_fields()` test below.
 /// If the field does not pass the `check_quad_extension_preconditions` check, it is currently
 /// unsafe to use with this implementation.
-#[derive(Debug, Clone, AlignedBorrow)]
+#[derive(Clone, AlignedBorrow)]
 #[repr(C)]
-pub struct QuadFieldOpCols<T, U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct QuadFieldOpCols<T, P: FieldParameters> {
     /// The result of `a op b`, where a, b are quadratic extension field elements
-    pub result: [Limbs<T, U>; 2],
-    pub(crate) carry: [Limbs<T, U>; 2],
-    pub(crate) witness_low: [Array<T, WITNESS_LIMBS<U>>; 2],
-    pub(crate) witness_high: [Array<T, WITNESS_LIMBS<U>>; 2],
+    pub result: [Limbs<T, P::NB_LIMBS>; 2],
+    pub(crate) carry: [Limbs<T, P::NB_LIMBS>; 2],
+    pub(crate) witness_low: [Array<T, WITNESS_LIMBS<P::NB_LIMBS>>; 2],
+    pub(crate) witness_high: [Array<T, WITNESS_LIMBS<P::NB_LIMBS>>; 2],
 }
+
+impl<T: Debug, P: FieldParameters> Debug for QuadFieldOpCols<T, P> {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fmt.debug_struct("QuadFieldOpCols")
+            .field("result", &self.result)
+            .field("carry", &self.carry)
+            .field("witness_low", &self.witness_low)
+            .field("witness_high", &self.witness_high)
+            .finish()
+    }
+}
+
 // TODO(wwared): we want to generalize this to an arbitrary compile time constant `beta` value
 //               ideally by adding a proper trait encapsulating the quadratic field parameters
 
-impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
-    pub fn populate<P: FieldParameters<NB_LIMBS = U>>(
+impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
+    pub fn populate(
         &mut self,
         a: &[BigUint; 2],
         b: &[BigUint; 2],
@@ -78,7 +90,7 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
             // to contain the result by the user.
             // Note that this reversal means we have to flip result, a correspondingly in
             // the `eval` function.
-            self.populate::<P>(&result, b, QuadFieldOperation::Add);
+            self.populate(&result, b, QuadFieldOperation::Add);
             self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
             return result;
         }
@@ -125,7 +137,7 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
             // multiplication because those columns are expected to contain the result by the user.
             // Note that this reversal means we have to flip result, a correspondingly in the `eval`
             // function.
-            self.populate::<P>(&result, b, QuadFieldOperation::Mul);
+            self.populate(&result, b, QuadFieldOperation::Mul);
             self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
             return result;
         }
@@ -195,8 +207,8 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
             &p_op[0] - &p_result[0] - &p_carry[0] * &p_modulus,
             &p_op[1] - &p_result[1] - &p_carry[1] * &p_modulus,
         ];
-        debug_assert_eq!(p_vanishing[0].degree(), WITNESS_LIMBS::<U>::USIZE);
-        debug_assert_eq!(p_vanishing[1].degree(), WITNESS_LIMBS::<U>::USIZE);
+        debug_assert_eq!(p_vanishing[0].degree(), WITNESS_LIMBS::<P::NB_LIMBS>::USIZE);
+        debug_assert_eq!(p_vanishing[1].degree(), WITNESS_LIMBS::<P::NB_LIMBS>::USIZE);
 
         let p_witness = p_vanishing.map(|v| {
             compute_root_quotient_and_shift(&v, P::WITNESS_OFFSET, P::NB_BITS_PER_LIMB as u32)
@@ -218,10 +230,9 @@ impl<F: PrimeField32, U: LimbWidth> QuadFieldOpCols<F, U> {
     }
 }
 
-impl<V: Copy, U: LimbWidth> QuadFieldOpCols<V, U> {
+impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
-        P: FieldParameters<NB_LIMBS = U>,
         A: Into<Polynomial<AB::Expr>> + Clone,
         B: Into<Polynomial<AB::Expr>> + Clone,
     >(
@@ -309,7 +320,7 @@ mod tests {
     use super::{QuadFieldOpCols, QuadFieldOperation};
     use crate::{
         air::{MachineAir, SP1AirBuilder},
-        operations::field::params::{LimbWidth, Limbs},
+        operations::field::params::Limbs,
         runtime::{ExecutionRecord, Program},
         stark::StarkGenericConfig,
         utils::{
@@ -320,10 +331,10 @@ mod tests {
     };
 
     #[derive(AlignedBorrow, Debug, Clone)]
-    pub struct TestCols<T, U: LimbWidth> {
-        pub a: [Limbs<T, U>; 2],
-        pub b: [Limbs<T, U>; 2],
-        pub a_op_b: QuadFieldOpCols<T, U>,
+    pub struct TestCols<T, P: FieldParameters> {
+        pub a: [Limbs<T, P::NB_LIMBS>; 2],
+        pub b: [Limbs<T, P::NB_LIMBS>; 2],
+        pub a_op_b: QuadFieldOpCols<T, P>,
     }
 
     struct QuadFieldOpChip<P: FieldParameters> {
@@ -421,10 +432,10 @@ mod tests {
                 .into_iter()
                 .map(|(a, b)| {
                     let mut row = vec![F::zero(); num_test_cols];
-                    let cols: &mut TestCols<F, P::NB_LIMBS> = row.as_mut_slice().borrow_mut();
+                    let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
                     cols.b = [P::to_limbs_field::<F>(&b[0]), P::to_limbs_field::<F>(&b[1])];
-                    cols.a_op_b.populate::<P>(&a, &b, self.operation);
+                    cols.a_op_b.populate(&a, &b, self.operation);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -447,7 +458,7 @@ mod tests {
 
     impl<F: Field, P: FieldParameters> BaseAir<F> for QuadFieldOpChip<P> {
         fn width(&self) -> usize {
-            size_of::<TestCols<u8, P::NB_LIMBS>>()
+            size_of::<TestCols<u8, P>>()
         }
     }
 
@@ -458,10 +469,10 @@ mod tests {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
             let local = main.row_slice(0);
-            let local: &TestCols<AB::Var, P::NB_LIMBS> = (*local).borrow();
+            let local: &TestCols<AB::Var, P> = (*local).borrow();
             local
                 .a_op_b
-                .eval::<AB, P, _, _>(builder, &local.a, &local.b, self.operation);
+                .eval(builder, &local.a, &local.b, self.operation);
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]

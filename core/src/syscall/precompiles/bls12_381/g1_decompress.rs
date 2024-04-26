@@ -147,12 +147,12 @@ pub struct Bls12381G1DecompressCols<T> {
     pub x_msb_access: MemoryWriteCols<T>,
     pub y_access: Array<MemoryWriteCols<T>, BLS12_381_NUM_WORDS_FOR_FIELD>,
     pub(crate) x_msbits: [T; 8],
-    pub(crate) x_2: FieldOpCols<T, BLS12_381_NUM_LIMBS>,
-    pub(crate) x_3: FieldOpCols<T, BLS12_381_NUM_LIMBS>,
-    pub(crate) x_3_plus_b: FieldOpCols<T, BLS12_381_NUM_LIMBS>,
-    pub(crate) y: FieldSqrtCols<T, BLS12_381_NUM_LIMBS>,
-    pub(crate) two_y: FieldOpCols<T, BLS12_381_NUM_LIMBS>,
-    pub(crate) neg_y: FieldOpCols<T, BLS12_381_NUM_LIMBS>,
+    pub(crate) x_2: FieldOpCols<T, Bls12381BaseField>,
+    pub(crate) x_3: FieldOpCols<T, Bls12381BaseField>,
+    pub(crate) x_3_plus_b: FieldOpCols<T, Bls12381BaseField>,
+    pub(crate) y: FieldSqrtCols<T, Bls12381BaseField>,
+    pub(crate) two_y: FieldOpCols<T, Bls12381BaseField>,
+    pub(crate) neg_y: FieldOpCols<T, Bls12381BaseField>,
     pub(crate) two_y_lsbits: [T; 8],
 }
 
@@ -183,28 +183,19 @@ impl Bls12381G1DecompressChip {
 
     fn populate_field_ops<F: PrimeField32>(cols: &mut Bls12381G1DecompressCols<F>, x: &BigUint) {
         // Y = sqrt(x^3 + b)
-        let x_2 =
-            cols.x_2
-                .populate::<Bls12381BaseField>(&x.clone(), &x.clone(), FieldOperation::Mul);
-        let x_3 = cols
-            .x_3
-            .populate::<Bls12381BaseField>(&x_2, x, FieldOperation::Mul);
+        let x_2 = cols
+            .x_2
+            .populate(&x.clone(), &x.clone(), FieldOperation::Mul);
+        let x_3 = cols.x_3.populate(&x_2, x, FieldOperation::Mul);
         let b = Bls12381Parameters::b_int();
-        let x_3_plus_b =
-            cols.x_3_plus_b
-                .populate::<Bls12381BaseField>(&x_3, &b, FieldOperation::Add);
+        let x_3_plus_b = cols.x_3_plus_b.populate(&x_3, &b, FieldOperation::Add);
 
-        let y = cols
-            .y
-            .populate::<Bls12381BaseField>(&x_3_plus_b, bls12381_sqrt);
+        let y = cols.y.populate(&x_3_plus_b, bls12381_sqrt);
 
-        let two_y = cols
-            .two_y
-            .populate::<Bls12381BaseField>(&y, &y, FieldOperation::Add);
+        let two_y = cols.two_y.populate(&y, &y, FieldOperation::Add);
 
         let zero = BigUint::zero();
-        cols.neg_y
-            .populate::<Bls12381BaseField>(&zero, &y, FieldOperation::Sub);
+        cols.neg_y.populate(&zero, &y, FieldOperation::Sub);
 
         // Decompose bits of least significant 2*Y byte
         let two_y_bytes = two_y.to_bytes_le();
@@ -348,25 +339,15 @@ where
         // Overwrite the MSByte with the overwritten value (with flags cleared)
         x[num_limbs - 1] = row.x_msb_access.value()[3];
 
-        row.x_2
-            .eval::<AB, Bls12381BaseField, _, _>(builder, &x, &x, FieldOperation::Mul);
-        row.x_3.eval::<AB, Bls12381BaseField, _, _>(
-            builder,
-            &row.x_2.result,
-            &x,
-            FieldOperation::Mul,
-        );
+        row.x_2.eval(builder, &x, &x, FieldOperation::Mul);
+        row.x_3
+            .eval(builder, &row.x_2.result, &x, FieldOperation::Mul);
         let b = Bls12381Parameters::b_int();
         let b_const = Bls12381BaseField::to_limbs_field::<AB::F>(&b);
-        row.x_3_plus_b.eval::<AB, Bls12381BaseField, _, _>(
-            builder,
-            &row.x_3.result,
-            &b_const,
-            FieldOperation::Add,
-        );
-        row.y
-            .eval::<AB, Bls12381BaseField>(builder, &row.x_3_plus_b.result);
-        row.neg_y.eval::<AB, Bls12381BaseField, _, _>(
+        row.x_3_plus_b
+            .eval(builder, &row.x_3.result, &b_const, FieldOperation::Add);
+        row.y.eval(builder, &row.x_3_plus_b.result);
+        row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &row.y.multiplication.result,
