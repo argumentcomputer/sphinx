@@ -11,6 +11,7 @@ mod sha_compress;
 mod sha_extend;
 mod sys;
 mod unconstrained;
+#[cfg(feature = "verify")]
 mod verify;
 
 pub use bls12_381::*;
@@ -25,6 +26,7 @@ pub use sha_compress::*;
 pub use sha_extend::*;
 pub use sys::*;
 pub use unconstrained::*;
+#[cfg(feature = "verify")]
 pub use verify::*;
 
 /// These codes MUST match the codes in `core/src/runtime/syscall.rs`. There is a derived test

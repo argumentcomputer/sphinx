@@ -7,24 +7,25 @@ license.workspace = true
 
 [dependencies]
 wp1-precompiles = { path = "../precompiles" }
-wp1-primitives = { path = "../../primitives" }
-p3-baby-bear = { workspace = true }
-p3-field = { workspace = true }
+wp1-primitives = { path = "../../primitives", optional = true }
+p3-baby-bear = { workspace = true, optional = true }
+p3-field = { workspace = true, optional = true }
 bincode = { workspace = true }
 cfg-if = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
 k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
 once_cell = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-libm = { workspace = true, optional = true }
+rand = { workspace = true }
 sha2 = { workspace = true }
 
-[target.'cfg(target_os = "zkvm")'.dependencies]
-rand = "0.8.5"
-
 [features]
-default = ["libm"]
-libm = ["dep:libm"]
+default = []
+verify = ["dep:wp1-primitives", "dep:p3-baby-bear", "dep:p3-field"]
 
-[package.metadata.cargo-udeps.ignore]
-normal = ["libm", "p3-baby-bear", "p3-field", "wp1-primitives"]
+[package.metadata.cargo-udeps.ignore] # used w/ verify feature & some examples
+normal = [
+    "p3-baby-bear",
+    "p3-field",
+    "wp1-primitives",
+    "rand"
+]

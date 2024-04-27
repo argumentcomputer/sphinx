@@ -27,7 +27,7 @@ p3-field = { workspace = true }
 tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
-axum = "=0.7.5"
+axum = { workspace = true }
 alloy = { workspace = true, features = ["contract", "signer-wallet"] }
 dotenv = { workspace = true }
 sha2 = { workspace = true }
