@@ -344,8 +344,9 @@ where
         // Compute the quotient values.
         let alpha: SC::Challenge = challenger.sample_ext_element::<SC::Challenge>();
         let parent_span = tracing::debug_span!("compute quotient values");
-        let quotient_values = parent_span.in_scope(|| {
-            quotient_domains
+        let quotient_values =
+            parent_span.in_scope(|| {
+                quotient_domains
                 .into_par_iter()
                 .enumerate()
                 .map(|(i, quotient_domain)| {
@@ -354,15 +355,14 @@ where
                             let preprocessed_trace_on_quotient_domains = pk
                                 .chip_ordering
                                 .get(&chips[i].name())
-                                .map(|&index| {
-                                    pcs.get_evaluations_on_domain(&pk.data, index, *quotient_domain)
-                                        .to_row_major_matrix()
-                                })
-                                .unwrap_or_else(|| {
+                                .map_or_else(|| {
                                     RowMajorMatrix::new_col(vec![
                                         SC::Val::zero();
                                         quotient_domain.size()
                                     ])
+                                }, |&index| {
+                                    pcs.get_evaluations_on_domain(&pk.data, index, *quotient_domain)
+                                        .to_row_major_matrix()
                                 });
                             let main_trace_on_quotient_domains = pcs
                                 .get_evaluations_on_domain(
@@ -389,7 +389,7 @@ where
                         })
                 })
                 .collect::<Vec<_>>()
-        });
+            });
 
         // Split the quotient values and commit to them.
         let quotient_domains_and_chunks = quotient_domains
