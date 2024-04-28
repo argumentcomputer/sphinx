@@ -4,7 +4,6 @@ use p3_field::PrimeField32;
 use p3_keccak_air::{generate_trace_rows, NUM_KECCAK_COLS, NUM_ROUNDS};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
-use tracing::instrument;
 
 use crate::bytes::event::ByteRecord;
 use crate::{runtime::Program, stark::MachineRecord};
@@ -24,7 +23,6 @@ impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
         "KeccakPermute".to_string()
     }
 
-    #[instrument(name = "generate keccak permute trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord,

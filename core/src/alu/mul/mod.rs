@@ -36,10 +36,12 @@ use core::{
 };
 
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, PrimeField};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
-use tracing::instrument;
+use p3_field::AbstractField;
+use p3_field::PrimeField;
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
+use p3_maybe_rayon::prelude::ParallelIterator;
+use p3_maybe_rayon::prelude::ParallelSlice;
 use wp1_derive::AlignedBorrow;
 
 use crate::air::MachineAir;
@@ -128,7 +130,6 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
         "Mul".to_string()
     }
 
-    #[instrument(name = "generate mul trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord,
