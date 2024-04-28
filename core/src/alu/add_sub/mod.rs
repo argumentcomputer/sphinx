@@ -5,9 +5,10 @@ use core::{
 
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField;
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
-use tracing::instrument;
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
+use p3_maybe_rayon::prelude::ParallelIterator;
+use p3_maybe_rayon::prelude::ParallelSlice;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
@@ -63,7 +64,6 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
         "AddSub".to_string()
     }
 
-    #[instrument(name = "generate add_sub trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord,

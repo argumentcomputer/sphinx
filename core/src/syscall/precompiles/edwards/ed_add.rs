@@ -5,12 +5,16 @@ use core::{
 use std::{fmt::Debug, marker::PhantomData};
 
 use hybrid_array::{typenum::Unsigned, Array};
-use num::{BigUint, Zero};
-use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, PrimeField32};
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use tracing::instrument;
+use num::BigUint;
+use num::Zero;
+use p3_air::AirBuilder;
+use p3_air::{Air, BaseAir};
+use p3_field::AbstractField;
+use p3_field::PrimeField32;
+use p3_matrix::dense::RowMajorMatrix;
+use p3_matrix::Matrix;
+use p3_maybe_rayon::prelude::IntoParallelRefIterator;
+use p3_maybe_rayon::prelude::ParallelIterator;
 use wp1_derive::AlignedBorrow;
 
 use crate::air::SP1AirBuilder;
@@ -145,7 +149,6 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         "EdAddAssign".to_string()
     }
 
-    #[instrument(name = "generate ed add trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord,

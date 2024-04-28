@@ -10,6 +10,7 @@ use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parame
 use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
+use tracing::instrument;
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
@@ -113,6 +114,7 @@ pub enum RiscvAir<F: PrimeField32> {
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
+    #[instrument("construct RiscvAir machine", level = "debug", skip_all)]
     pub fn machine<SC: StarkGenericConfig<Val = F>>(config: SC) -> StarkMachine<SC, Self> {
         let chips = Self::get_all()
             .into_iter()

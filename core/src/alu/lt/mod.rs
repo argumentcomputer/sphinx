@@ -10,7 +10,6 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
-use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 use crate::air::{BaseAirBuilder, MachineAir};
@@ -101,7 +100,6 @@ impl<F: PrimeField32> MachineAir<F> for LtChip {
         "Lt".to_string()
     }
 
-    #[instrument(name = "generate lt trace", level = "debug", skip_all)]
     fn generate_trace(
         &self,
         input: &ExecutionRecord,
