@@ -62,7 +62,6 @@ impl<F: Field> IsZeroWordOperation<F> {
         }
 
         // From here, we only assert when is_real is true.
-        builder.assert_bool(is_real.clone());
         let mut builder_is_real = builder.when(is_real);
 
         // Calculate is_upper_half_zero and is_lower_half_zero and finally the result.

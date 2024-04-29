@@ -437,6 +437,8 @@ where
         let one = AB::Expr::one();
         let zero = AB::Expr::zero();
 
+        builder.assert_bool(local.is_real);
+
         // Calculate whether b, remainder, and c are negative.
         {
             // Negative if and only if op code is signed & MSB = 1.

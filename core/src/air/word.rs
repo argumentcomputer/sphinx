@@ -1,5 +1,4 @@
 use core::fmt::Debug;
-use hybrid_array::typenum::U;
 use std::{
     array::IntoIter,
     ops::{Index, IndexMut},
@@ -67,6 +66,7 @@ impl<T: AbstractField> Word<T> {
 impl<F: Field> Word<F> {
     /// Converts a word to a u32.
     pub fn to_u32(&self) -> u32 {
+        // TODO: avoid string conversion
         u32::from_le_bytes(self.0.map(|x| x.to_string().parse::<u8>().unwrap()))
     }
 }

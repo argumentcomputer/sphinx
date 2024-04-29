@@ -11,11 +11,11 @@ use crate::stark::{CpuChip, SP1AirBuilder};
 
 impl CpuChip {
     /// Whether the instruction is an ECALL instruction.
-    pub(crate) fn is_ecall_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_ecall_instruction<T: Copy>(
         &self,
-        opcode_selectors: &OpcodeSelectorCols<AB::Var>,
-    ) -> AB::Expr {
-        opcode_selectors.is_ecall.into()
+        opcode_selectors: &OpcodeSelectorCols<T>,
+    ) -> T {
+        opcode_selectors.is_ecall
     }
 
     /// Constraints related to the ECALL opcode.
@@ -25,7 +25,8 @@ impl CpuChip {
     /// 2. Check for valid op_a values.
     pub(crate) fn eval_ecall<AB: SP1AirBuilder>(&self, builder: &mut AB, local: &CpuCols<AB::Var>) {
         let ecall_cols = local.opcode_specific_columns.ecall();
-        let is_ecall_instruction = self.is_ecall_instruction::<AB>(&local.selectors);
+        let is_ecall_instruction = self.is_ecall_instruction(&local.selectors);
+        builder.assert_bool(is_ecall_instruction);
 
         // The syscall code is the read-in value of op_a at the start of the instruction.
         let syscall_code = local.op_a_access.prev_value();
@@ -37,7 +38,7 @@ impl CpuChip {
 
         // When is_ecall_instruction == true AND sent_to_table == true, ecall_mul_send_to_table should be true.
         builder
-            .when(is_ecall_instruction.clone())
+            .when(is_ecall_instruction)
             .assert_eq(send_to_table, local.ecall_mul_send_to_table);
         builder.send_syscall(
             local.shard,
@@ -55,7 +56,7 @@ impl CpuChip {
                 syscall_id
                     - AB::Expr::from_canonical_u32(SyscallCode::ENTER_UNCONSTRAINED.syscall_id()),
                 ecall_cols.is_enter_unconstrained,
-                is_ecall_instruction.clone(),
+                is_ecall_instruction,
             );
             ecall_cols.is_enter_unconstrained.result
         };
@@ -66,7 +67,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HINT_LEN.syscall_id()),
                 ecall_cols.is_hint_len,
-                is_ecall_instruction.clone(),
+                is_ecall_instruction,
             );
             ecall_cols.is_hint_len.result
         };
@@ -74,12 +75,12 @@ impl CpuChip {
         // When syscall_id is ENTER_UNCONSTRAINED, the new value of op_a should be 0.
         let zero_word = Word::<AB::F>::from(0);
         builder
-            .when(is_ecall_instruction.clone() * is_enter_unconstrained)
+            .when(is_ecall_instruction * is_enter_unconstrained)
             .assert_word_eq(local.op_a_val(), zero_word);
 
         // When the syscall is not one of ENTER_UNCONSTRAINED or HINT_LEN, op_a shouldn't change.
         builder
-            .when(is_ecall_instruction.clone())
+            .when(is_ecall_instruction)
             .when_not(is_enter_unconstrained + is_hint_len)
             .assert_word_eq(local.op_a_val(), local.op_a_access.prev_value);
     }
@@ -187,7 +188,7 @@ impl CpuChip {
         local: &CpuCols<AB::Var>,
     ) -> AB::Expr {
         let ecall_cols = local.opcode_specific_columns.ecall();
-        let is_ecall_instruction = self.is_ecall_instruction::<AB>(&local.selectors);
+        let is_ecall_instruction = self.is_ecall_instruction(&local.selectors);
 
         // The syscall code is the read-in value of op_a at the start of the instruction.
         let syscall_code = local.op_a_access.prev_value();
@@ -200,7 +201,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HALT.syscall_id()),
                 ecall_cols.is_halt,
-                is_ecall_instruction.clone(),
+                is_ecall_instruction,
             );
             ecall_cols.is_halt.result
         };
@@ -216,7 +217,7 @@ impl CpuChip {
     ) -> (AB::Expr, AB::Expr) {
         let ecall_cols = local.opcode_specific_columns.ecall();
 
-        let is_ecall_instruction = self.is_ecall_instruction::<AB>(&local.selectors);
+        let is_ecall_instruction = self.is_ecall_instruction(&local.selectors);
 
         // The syscall code is the read-in value of op_a at the start of the instruction.
         let syscall_code = local.op_a_access.prev_value();
@@ -229,7 +230,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::COMMIT.syscall_id()),
                 ecall_cols.is_commit,
-                is_ecall_instruction.clone(),
+                is_ecall_instruction,
             );
             ecall_cols.is_commit.result
         };
@@ -243,7 +244,7 @@ impl CpuChip {
                         SyscallCode::COMMIT_DEFERRED_PROOFS.syscall_id(),
                     ),
                 ecall_cols.is_commit_deferred_proofs,
-                is_ecall_instruction.clone(),
+                is_ecall_instruction,
             );
             ecall_cols.is_commit_deferred_proofs.result
         };
@@ -256,13 +257,13 @@ impl CpuChip {
         &self,
         local: &CpuCols<AB::Var>,
     ) -> AB::Expr {
-        let is_ecall_instruction = self.is_ecall_instruction::<AB>(&local.selectors);
+        let is_ecall_instruction = self.is_ecall_instruction(&local.selectors);
 
         // The syscall code is the read-in value of op_a at the start of the instruction.
         let syscall_code = local.op_a_access.prev_value();
 
         let num_extra_cycles = syscall_code[2];
 
-        num_extra_cycles * is_ecall_instruction.clone()
+        num_extra_cycles * is_ecall_instruction
     }
 }

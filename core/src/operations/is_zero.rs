@@ -39,16 +39,18 @@ impl<F: Field> IsZeroOperation<F> {
         u32::from(a == F::zero())
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder, Ea, Ereal>(
         builder: &mut AB,
-        a: AB::Expr,
+        a: Ea,
         cols: IsZeroOperation<AB::Var>,
-        is_real: AB::Expr,
+        is_real: Ereal,
     ) where
         AB: AirBuilder<F = F>,
+        Ea: Into<AB::Expr>,
+        Ereal: Into<AB::Expr>,
     {
-        builder.assert_bool(is_real.clone());
-        let mut builder_is_real = builder.when(is_real);
+        let mut builder_is_real = builder.when(is_real.into());
+        let a = a.into();
 
         // 1. Input == 0 => is_zero = 1 regardless of the inverse.
         // 2. Input != 0
