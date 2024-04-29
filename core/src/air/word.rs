@@ -99,8 +99,7 @@ impl<T> IndexMut<usize> for Word<T> {
 
 impl<F: AbstractField> From<u32> for Word<F> {
     fn from(value: u32) -> Self {
-        let inner = value.to_le_bytes().map(F::from_canonical_u8);
-        Word(inner)
+        Word(value.to_le_bytes().map(F::from_canonical_u8))
     }
 }
 
