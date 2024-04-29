@@ -79,7 +79,7 @@ impl<T: Clone + Debug> PublicValues<Word<T>, T> {
     pub fn from_vec(data: &[T]) -> Self {
         let mut iter = data.iter().cloned();
 
-        let committed_value_digest = array::from_fn(|_|(&mut iter).collect());
+        let committed_value_digest = array::from_fn(|_| (&mut iter).collect());
 
         let deferred_proofs_digest = iter
             .by_ref()

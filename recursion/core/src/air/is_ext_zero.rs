@@ -46,7 +46,9 @@ impl<F: Field + BinomiallyExtendable<D>> IsExtZeroOperation<F> {
 
         result
     }
+}
 
+impl<F: Field> IsExtZeroOperation<F> {
     pub fn eval<AB: SP1AirBuilder>(
         builder: &mut AB,
         a: BinomialExtension<AB::Expr>,
