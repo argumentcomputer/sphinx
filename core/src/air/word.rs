@@ -117,7 +117,6 @@ impl<T> FromIterator<T> for Word<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut iter = iter.into_iter();
         let elements = std::array::from_fn(|_| iter.next().unwrap());
-        assert!(iter.next().is_none());
         Word(elements)
     }
 }
