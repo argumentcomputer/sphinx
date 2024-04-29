@@ -1,7 +1,6 @@
 pub mod air;
 pub mod columns;
-
-pub use air::*;
+mod trace;
 pub use columns::*;
 
 use crate::air::Block;
