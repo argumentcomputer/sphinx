@@ -10,6 +10,7 @@ mod types;
 pub mod utils;
 mod verify;
 
+use crate::utils::RECONSTRUCT_COMMITMENTS_ENV_VAR;
 use p3_baby_bear::BabyBear;
 use p3_bn254_fr::Bn254Fr;
 use p3_challenger::CanObserve;
@@ -19,6 +20,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use size::Size;
+use std::env;
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::instrument;
@@ -431,6 +433,10 @@ impl SP1Prover {
             Prover<SC, RecursionAirSkinnyDeg7<BabyBear>>,
         LocalProver<SC, RecursionAirWideDeg3<BabyBear>>: Prover<SC, RecursionAirWideDeg3<BabyBear>>,
     {
+        // Setup the prover parameters.
+        let rc = env::var(RECONSTRUCT_COMMITMENTS_ENV_VAR).unwrap_or_default();
+        env::set_var(RECONSTRUCT_COMMITMENTS_ENV_VAR, "false");
+
         // Compute inputs.
         let is_recursive_flags: Vec<usize> = reduce_proofs
             .iter()
@@ -580,6 +586,9 @@ impl SP1Prover {
             (runtime.timestamp as f64 / elapsed) / 1000f64,
             Size::from_bytes(proof_size),
         );
+
+        // Restore the prover parameters.
+        env::set_var(RECONSTRUCT_COMMITMENTS_ENV_VAR, rc);
 
         // Return the reduced proof.
         assert!(proof.shard_proofs.len() == 1);
@@ -742,7 +751,7 @@ mod tests {
     #[ignore]
     fn test_prove_sp1() {
         setup_logger();
-        std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
+        env::set_var("RECONSTRUCT_COMMITMENTS", "false");
 
         // Generate SP1 proof
         let elf =
@@ -775,10 +784,10 @@ mod tests {
     #[test]
     fn test_deferred_verify() {
         setup_logger();
-        std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
-        std::env::set_var("FRI_QUERIES", "1");
-        std::env::set_var("SHARD_SIZE", "262144");
-        std::env::set_var("MAX_RECURSION_PROGRAM_SIZE", "1");
+        env::set_var("RECONSTRUCT_COMMITMENTS", "false");
+        env::set_var("FRI_QUERIES", "1");
+        env::set_var("SHARD_SIZE", "262144");
+        env::set_var("MAX_RECURSION_PROGRAM_SIZE", "1");
 
         // keccak program which proves keccak of various inputs
         let keccak_elf = include_bytes!("../../tests/keccak256/elf/riscv32im-succinct-zkvm-elf");
