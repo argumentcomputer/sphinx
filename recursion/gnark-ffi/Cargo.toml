@@ -11,6 +11,7 @@ wp1-recursion-compiler = { path = "../compiler" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
-reqwest = { version = "0.11", features = ["json", "blocking"] }
+reqwest = { workspace = true, features = ["json", "blocking"] }
 rand = { workspace = true }
 crossbeam = { workspace = true }
+log = { workspace = true }
