@@ -14,7 +14,7 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
 wp1-prover = { path = "../prover" }
 wp1-core = { path = "../core" }
@@ -24,10 +24,16 @@ tokio = { workspace = true, features = ["full"] }
 p3-matrix = { workspace = true }
 p3-commit = { workspace = true }
 p3-field = { workspace = true }
+indicatif = { workspace = true }
 tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
 axum = { workspace = true }
+home = { workspace = true }
 alloy = { workspace = true, features = ["contract", "signer-wallet"] }
 dotenv = { workspace = true }
 sha2 = { workspace = true }
+tempfile = { workspace = true }
+
+[build-dependencies]
+vergen = { workspace = true, features = ["build", "git", "git2"] }
