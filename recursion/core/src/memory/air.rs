@@ -4,10 +4,11 @@ use std::borrow::{Borrow, BorrowMut};
 use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use tracing::instrument;
 use wp1_core::{
     air::{AirInteraction, MachineAir, SP1AirBuilder},
     lookup::InteractionKind,
-    utils::pad_to_power_of_two,
+    utils::pad_rows_fixed,
 };
 
 use super::columns::MemoryInitCols;
@@ -20,7 +21,10 @@ pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 #[allow(dead_code)]
 impl MemoryGlobalChip {
     pub fn new(kind: MemoryChipKind) -> Self {
-        Self { kind }
+        Self {
+            kind,
+            fixed_log2_rows: None,
+        }
     }
 }
 
@@ -39,13 +43,13 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
         // This is a no-op.
     }
 
-    #[allow(unused_variables)]
+    #[instrument(name = "generate memory trace", level = "debug", skip_all, fields(first_rows = input.first_memory_record.len(), last_rows = input.last_memory_record.len()))]
     fn generate_trace(
         &self,
         input: &ExecutionRecord<F>,
         _output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
-        let rows = match self.kind {
+        let mut rows = match self.kind {
             MemoryChipKind::Init => {
                 let addresses = &input.first_memory_record;
                 addresses
@@ -76,14 +80,17 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
                 .collect::<Vec<_>>(),
         };
 
-        let mut trace = RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_MEMORY_INIT_COLS,
+        // Pad the trace to a power of two.
+        pad_rows_fixed(
+            &mut rows,
+            || [F::zero(); NUM_MEMORY_INIT_COLS],
+            self.fixed_log2_rows,
         );
 
-        pad_to_power_of_two::<NUM_MEMORY_INIT_COLS, F>(&mut trace.values);
-
-        trace
+        RowMajorMatrix::new(
+            rows.into_iter().flatten().collect::<Vec<_>>(),
+            NUM_MEMORY_INIT_COLS,
+        )
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
