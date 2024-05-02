@@ -4544,16 +4544,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "web-time"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4838,7 +4828,6 @@ dependencies = [
  "tracing",
  "tracing-forest",
  "tracing-subscriber",
- "web-time",
  "wp1-derive",
  "wp1-primitives",
  "wp1-zkvm",
