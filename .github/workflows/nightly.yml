@@ -60,6 +60,12 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Install WP1 toolchain
+        run: |
+          cd cli
+          cargo install --locked --path .
+          cd ~
+          cargo prove install-toolchain
       - name: Prove example scripts
         run: |
           make

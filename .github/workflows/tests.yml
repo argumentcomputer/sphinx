@@ -195,9 +195,15 @@ jobs:
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
+      - name: Install WP1 toolchain
+        run: |
+          cd wp1/cli
+          cargo install --locked --path .
+          cd ~
+          cargo prove install-toolchain
       - uses: actions/checkout@v4
         with:
-          repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO}}"
+          repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
           token: ${{ secrets.REPO_TOKEN }}
           submodules: recursive
