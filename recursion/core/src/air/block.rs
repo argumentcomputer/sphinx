@@ -8,6 +8,7 @@ use p3_field::ExtensionField;
 use p3_field::Field;
 use p3_field::PrimeField32;
 use serde::{Deserialize, Serialize};
+use wp1_core::air::ExtensionAirBuilder;
 use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
 
@@ -52,7 +53,7 @@ impl<T> Block<T> {
 }
 
 impl<T: Clone> Block<T> {
-    pub fn as_extension<AB: SP1AirBuilder<Var = T>>(&self) -> BinomialExtension<AB::Expr> {
+    pub fn as_extension<AB: ExtensionAirBuilder<Var = T>>(&self) -> BinomialExtension<AB::Expr> {
         let arr: [AB::Expr; 4] = self.0.clone().map(|x| AB::Expr::zero() + x);
         BinomialExtension(arr)
     }
