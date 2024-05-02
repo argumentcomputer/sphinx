@@ -615,7 +615,7 @@ mod tests {
 
         for candidate in &CANDIDATES {
             let pt_compressed = candidate;
-            let pt_affine = bls12_381::G1Affine::from_compressed(candidate).unwrap();
+            let pt_affine = G1Affine::from_compressed(candidate).unwrap();
             let pt_uncompressed = pt_affine.to_uncompressed();
 
             let inputs = SP1Stdin::from(&pt_compressed[..]);

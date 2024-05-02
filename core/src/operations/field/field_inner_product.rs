@@ -97,7 +97,7 @@ impl<V: Copy, P: FieldParameters> FieldInnerProductCols<V, P> {
 
         let p_inner_product = a
             .into_iter()
-            .zip(b.into_iter())
+            .zip(b)
             .map(|(a, b)| Polynomial::from(a) * Polynomial::from(b))
             .fold(p_zero, |acc, partial| acc + partial);
 

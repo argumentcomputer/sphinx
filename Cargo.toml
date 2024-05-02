@@ -94,7 +94,7 @@ rand = "0.8.5"
 rayon = "1.10.0"
 rayon-scan = "0.1.1"
 reqwest = { version = "0.12.3", default-features = false }
-reqwest-middleware = "0.2.5"
+reqwest-middleware = "0.3.0"
 rrs-lib = { git = "https://github.com/GregAC/rrs.git" }
 serde = "1.0.199"
 serde_json = { version = "1.0.116", default-features = false }

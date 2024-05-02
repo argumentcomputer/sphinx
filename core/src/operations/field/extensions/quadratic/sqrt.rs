@@ -66,7 +66,7 @@ impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
         // retrieve that value and overwrite that member variable with a.
         let sqrt = self.multiplication.result.clone();
         let mut multiplication = self.multiplication.clone();
-        multiplication.result = a.clone();
+        multiplication.result.clone_from(a);
 
         // Compute sqrt * sqrt. We pass in P since we want its BaseField to be the mod.
         multiplication.eval(builder, &sqrt, &sqrt, QuadFieldOperation::Mul);

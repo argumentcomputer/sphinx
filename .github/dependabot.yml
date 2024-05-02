@@ -9,7 +9,6 @@ updates:
     ignore:
       # Ignore updates from certain packages
       - dependency-name: "syn" # this is a major update for a pre-1.0 package
-      - dependency-name: "reqwest" # this is blocked on twirp
 
     groups:
       rust-dependencies:

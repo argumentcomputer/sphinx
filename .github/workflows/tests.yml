@@ -185,6 +185,11 @@ jobs:
         with:
           path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
           submodules: recursive
+      - name: Install cargo prove
+        run: |
+          cargo install --locked --path .
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}/cli
       - name: Setup CI
         uses: ./wp1/.github/actions/setup
         with:
