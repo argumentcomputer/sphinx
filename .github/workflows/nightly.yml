@@ -14,17 +14,22 @@ jobs:
   unused-dependencies:
     uses: lurk-lab/ci-workflows/.github/workflows/unused-deps.yml@main
 
-  # TODO: Open an issue on failure
   typos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Install typos binary
-        run: cargo +stable install typos-cli
       - name: Check typos
-        uses: crate-ci/typos@v1
+        uses: crate-ci/typos@v1.21.0
+      - name: Open an issue on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_COMMIT: ${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          filename: .github/templates/TYPOS.md
+          update_existing: true
 
   linux-exhaustive:
     name: Run all tests including ignored
@@ -50,7 +55,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
-          filename: .github/NIGHTLY_FAILURE.md
+          filename: .github/templates/NIGHTLY_TESTS.md
           update_existing: true
 
   prove:

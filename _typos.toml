@@ -13,3 +13,5 @@ TwoAdicCase = "TwoAdicCase"
 wich = "wich"
 # or the acronym TRE
 tre =  "tre"
+# or the acronym EIN
+EIN = "EIN"

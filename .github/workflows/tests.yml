@@ -57,7 +57,7 @@ jobs:
           cargo nextest run --cargo-profile dev-ci --profile ci -p wp1-recursion-circuit
 
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-16x
     steps:
       - uses: actions/checkout@v4
         with:
@@ -163,7 +163,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
           WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
         with:
-          filename: .github/M1_MAC_FAILURE.md
+          filename: .github/templates/M1_MAC.md
           update_existing: true
 
   check-aptos-lc-compiles:
@@ -187,20 +187,14 @@ jobs:
           submodules: recursive
       - name: Install cargo prove
         run: |
-          cargo install --locked --path .
+          cargo install --locked --path ./cli
           cargo prove install-toolchain
-        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}/cli
+        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
       - name: Setup CI
         uses: ./wp1/.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
-      - name: Install WP1 toolchain
-        run: |
-          cd wp1/cli
-          cargo install --locked --path .
-          cd ~
-          cargo prove install-toolchain
       - uses: actions/checkout@v4
         with:
           repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
@@ -212,15 +206,3 @@ jobs:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
           downstream-path: "${{ env.DOWNSTREAM_REPO }}/aptos"
           patch-ssh: true
-
-  # TEMPORARY: Test on PR
-  typos:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Install typos binary
-        run: cargo +stable install typos-cli
-      - name: Check typos
-        uses: crate-ci/typos@v1
