@@ -101,9 +101,9 @@ pub fn pad_vec_rows<T: Clone>(rows: &mut Vec<Vec<T>>, row_fn: impl Fn() -> Vec<T
     rows.resize(padded_nb_rows, dummy_row);
 }
 
-pub fn pad_rows_fixed<T: Clone, const N: usize>(
-    rows: &mut Vec<[T; N]>,
-    row_fn: impl Fn() -> [T; N],
+pub fn pad_rows_fixed<R: Clone>(
+    rows: &mut Vec<R>,
+    row_fn: impl Fn() -> R,
     size_log2: Option<usize>,
 ) {
     let nb_rows = rows.len();

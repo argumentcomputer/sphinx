@@ -364,10 +364,10 @@ mod tests {
             .collect::<Vec<_>>();
 
         let mut input_exec = ExecutionRecord::<BabyBear>::default();
-        for input in test_inputs.iter().cloned() {
+        for (input, output) in test_inputs.into_iter().zip_eq(expected_outputs.clone()) {
             input_exec
                 .poseidon2_events
-                .push(Poseidon2Event::dummy_from_input(input));
+                .push(Poseidon2Event::dummy_from_input(input, output));
         }
 
         let trace: RowMajorMatrix<BabyBear> =
@@ -381,7 +381,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "broken in upstream, will be fixed by https://github.com/succinctlabs/sp1/pull/672"]
     fn prove_babybear() {
         let config = BabyBearPoseidon2::new();
         let mut challenger = config.challenger();
@@ -394,11 +393,24 @@ mod tests {
             .map(|i| [BabyBear::from_canonical_u32(i); WIDTH])
             .collect_vec();
 
+        let gt: Poseidon2<
+            BabyBear,
+            Poseidon2ExternalMatrixGeneral,
+            DiffusionMatrixBabyBear,
+            16,
+            7,
+        > = inner_perm();
+
+        let expected_outputs = test_inputs
+            .iter()
+            .map(|input| gt.permute(*input))
+            .collect::<Vec<_>>();
+
         let mut input_exec = ExecutionRecord::<BabyBear>::default();
-        for input in test_inputs.iter().cloned() {
+        for (input, output) in test_inputs.into_iter().zip_eq(expected_outputs) {
             input_exec
                 .poseidon2_events
-                .push(Poseidon2Event::dummy_from_input(input));
+                .push(Poseidon2Event::dummy_from_input(input, output));
         }
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&input_exec, &mut ExecutionRecord::<BabyBear>::default());
