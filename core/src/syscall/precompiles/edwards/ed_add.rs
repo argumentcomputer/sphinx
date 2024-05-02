@@ -79,10 +79,10 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         record: &mut impl ByteRecord,
         shard: u32,
         cols: &mut EdAddAssignCols<F, <E as EllipticCurveParameters>::BaseField>,
-        p_x: BigUint,
-        p_y: BigUint,
-        q_x: BigUint,
-        q_y: BigUint,
+        p_x: &BigUint,
+        p_y: &BigUint,
+        q_x: &BigUint,
+        q_y: &BigUint,
     ) {
         let x3_numerator = cols.x3_numerator.populate(
             record,
@@ -98,10 +98,10 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         );
         let x1_mul_y1 = cols
             .x1_mul_y1
-            .populate(record, shard, &p_x, &p_y, FieldOperation::Mul);
+            .populate(record, shard, p_x, p_y, FieldOperation::Mul);
         let x2_mul_y2 = cols
             .x2_mul_y2
-            .populate(record, shard, &q_x, &q_y, FieldOperation::Mul);
+            .populate(record, shard, q_x, q_y, FieldOperation::Mul);
         let f = cols
             .f
             .populate(record, shard, &x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
@@ -178,10 +178,10 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
                     &mut new_byte_lookup_events,
                     event.shard,
                     cols,
-                    p_x,
-                    p_y,
-                    q_x,
-                    q_y,
+                    &p_x,
+                    &p_y,
+                    &q_x,
+                    &q_y,
                 );
 
                 // Populate the memory access columns.
@@ -210,10 +210,10 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
                 &mut vec![],
                 0,
                 cols,
-                zero.clone(),
-                zero.clone(),
-                zero.clone(),
-                zero,
+                &zero,
+                &zero,
+                &zero,
+                &zero,
             );
             row
         });

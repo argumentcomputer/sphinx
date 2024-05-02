@@ -14,7 +14,7 @@ use crate::air::SP1AirBuilder;
 use crate::bytes::event::ByteRecord;
 
 /// Airthmetic operation for emulating modular arithmetic.
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum FieldOperation {
     Add,
     Mul,
@@ -208,7 +208,7 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
             FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
         };
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;
-        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
+        let p_limbs = P::modulus_field_iter::<AB::F>().map(AB::Expr::from).collect();
         let p_vanishing = p_op_minus_result - &(&p_carry * &p_limbs);
         let p_witness_low = self.witness_low.iter().into();
         let p_witness_high = self.witness_high.iter().into();
