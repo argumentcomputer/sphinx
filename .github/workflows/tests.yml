@@ -164,7 +164,6 @@ jobs:
           WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
         with:
           filename: .github/templates/M1_MAC.md
-          update_existing: true
 
   check-aptos-lc-compiles:
     runs-on: ubuntu-latest
