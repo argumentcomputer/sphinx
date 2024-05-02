@@ -17,8 +17,17 @@ jobs:
   rust-version-check:
     uses: lurk-lab/ci-workflows/.github/workflows/rust-version-check.yml@main
 
+  # TODO: Open an issue on failure
   typos:
-    uses: lurk-lab/ci-workflows/.github/workflows/typos.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install typos binary
+        run: cargo +stable install typos-cli
+      - name: Check typos
+        uses: crate-ci/typos@v1
 
   linux-exhaustive:
     name: Run all tests including ignored

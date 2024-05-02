@@ -402,7 +402,7 @@ mod tests {
         }
     }
 
-    /// A test proving 2^10 permuations
+    /// A test proving 2^10 permutations
     #[test]
     fn poseidon2_wide_prove_babybear() {
         let config = BabyBearPoseidon2Inner::new();

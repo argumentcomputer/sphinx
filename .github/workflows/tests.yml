@@ -212,3 +212,15 @@ jobs:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
           downstream-path: "${{ env.DOWNSTREAM_REPO }}/aptos"
           patch-ssh: true
+
+  # TEMPORARY: Test on PR
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install typos binary
+        run: cargo +stable install typos-cli
+      - name: Check typos
+        uses: crate-ci/typos@v1
