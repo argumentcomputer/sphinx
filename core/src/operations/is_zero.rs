@@ -39,13 +39,12 @@ impl<F: Field> IsZeroOperation<F> {
         u32::from(a == F::zero())
     }
 
-    pub fn eval<AB: SP1AirBuilder, Ea, Ereal>(
+    pub fn eval<AB: SP1AirBuilder<F = F>, Ea, Ereal>(
         builder: &mut AB,
         a: Ea,
         cols: IsZeroOperation<AB::Var>,
         is_real: Ereal,
     ) where
-        AB: AirBuilder<F = F>,
         Ea: Into<AB::Expr>,
         Ereal: Into<AB::Expr>,
     {

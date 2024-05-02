@@ -28,15 +28,13 @@ impl<F: Field> NotOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         cols: NotOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) where
-        AB: AirBuilder<F = F>,
-    {
+    ){
         for i in (0..WORD_SIZE).step_by(2) {
             builder.send_byte_pair(
                 AB::F::from_canonical_u32(ByteOpcode::U8Range as u32),

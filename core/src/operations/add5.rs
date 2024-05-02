@@ -93,15 +93,13 @@ impl<F: Field> Add5Operation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         words: &[Word<AB::Var>; 5],
         shard: AB::Var,
         is_real: AB::Var,
         cols: Add5Operation<AB::Var>,
-    ) where
-        AB: AirBuilder<F = F>,
-    {
+    ){
         builder.assert_bool(is_real);
         // Range check each byte.
         {

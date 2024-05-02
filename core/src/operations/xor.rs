@@ -1,4 +1,4 @@
-use p3_air::AirBuilder;
+
 use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
@@ -39,16 +39,14 @@ impl<F: Field> XorOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         b: Word<AB::Var>,
         cols: XorOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) where
-        AB: AirBuilder<F = F>,
-    {
+    ){
         for i in 0..WORD_SIZE {
             builder.send_byte(
                 AB::F::from_canonical_u32(ByteOpcode::XOR as u32),

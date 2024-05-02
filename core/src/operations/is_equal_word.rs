@@ -1,4 +1,3 @@
-use p3_air::AirBuilder;
 use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
@@ -29,15 +28,13 @@ impl<F: Field> IsEqualWordOperation<F> {
         u32::from(a_u32 == b_u32)
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: &Word<AB::Expr>,
         b: &Word<AB::Expr>,
         cols: IsEqualWordOperation<AB::Var>,
         is_real: AB::Expr,
-    ) where
-        AB: AirBuilder<F = F>,
-    {
+    ){
         // Calculate differences in limbs.
         let diff = Word([
             a[0].clone() - b.0[0].clone(),

@@ -1,4 +1,3 @@
-use p3_air::AirBuilder;
 use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
@@ -98,15 +97,13 @@ impl<F: Field> GOperation<F> {
         result
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         input: [Word<AB::Var>; 6],
         cols: GOperation<AB::Var>,
         shard: AB::Var,
         is_real: AB::Var,
-    ) where
-        AB: AirBuilder<F = F>,
-    {
+    ){
         builder.assert_bool(is_real);
         let mut a = input[0];
         let mut b = input[1];
