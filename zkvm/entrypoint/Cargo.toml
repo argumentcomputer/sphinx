@@ -20,12 +20,4 @@ sha2 = { workspace = true }
 
 [features]
 default = []
-verify = ["dep:wp1-primitives", "dep:p3-baby-bear", "dep:p3-field"]
-
-[package.metadata.cargo-udeps.ignore] # used w/ verify feature & some examples
-normal = [
-    "p3-baby-bear",
-    "p3-field",
-    "wp1-primitives",
-    "rand"
-]
+verify = ["dep:wp1-primitives", "dep:p3-baby-bear", "dep:p3-field", "wp1-precompiles/verify"]
