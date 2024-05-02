@@ -352,9 +352,9 @@ where
         let mut x: Limbs<AB::Var, BLS12_381_NUM_LIMBS> = limbs_from_prev_access(&row.x_access);
         // Overwrite the MSByte with the overwritten value (with flags cleared)
         x[num_limbs - 1] = row.x_msb_access.value()[3];
-        // Check the unmodified bytes pass a range check
+        // Check the unmasked bytes pass a range check
         row.unmasked_range_x
-            .eval(builder, &x, row.shard, row.is_real);
+           .eval(builder, &x, row.shard, row.is_real);
 
         row.x_2
             .eval(builder, &x, &x, FieldOperation::Mul, row.shard, row.is_real);
@@ -393,7 +393,7 @@ where
             row.is_real,
         );
 
-        // Constrain decomposition of least significant byte of Y into `y_least_bits`
+        // Constrain decomposition of least significant byte of 2*Y into `two_y_lsbits`
         for i in 0..8 {
             builder.when(row.is_real).assert_bool(row.two_y_lsbits[i]);
         }

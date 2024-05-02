@@ -117,7 +117,7 @@ impl<V: Copy, P: FieldParameters> FieldInnerProductCols<V, P> {
             .fold(p_zero, |acc, partial| acc + partial);
 
         let p_inner_product_minus_result = &p_inner_product - &p_result;
-        let p_limbs = Polynomial::from_iter(P::modulus_field_iter::<AB::F>().map(AB::Expr::from));
+        let p_limbs = P::modulus_field_iter::<AB::F>().map(AB::Expr::from).collect();
         let p_vanishing = &p_inner_product_minus_result - &(&p_carry * &p_limbs);
 
         let p_witness_low = self.witness_low.iter().into();
