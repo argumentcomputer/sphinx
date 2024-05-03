@@ -124,7 +124,7 @@ jobs:
 
   mac-m1:
     name: CI Tests on OSX ARM
-    runs-on: macos-latest-xlarge
+    runs-on: warp-macos-latest-arm64-6x
     if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
