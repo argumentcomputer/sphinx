@@ -537,6 +537,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 &shards,
                 &InteractionKind::all_kinds(),
             );
+            panic!("Cumulative sum is not zero");
         }
     }
 }
