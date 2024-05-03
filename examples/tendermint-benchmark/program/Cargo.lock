@@ -522,7 +522,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "num-bigint",
  "p3-field",
@@ -536,7 +536,7 @@ dependencies = [
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -548,7 +548,7 @@ dependencies = [
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "itertools 0.12.1",
  "num-bigint",
@@ -561,7 +561,7 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "itertools 0.12.1",
  "p3-field",
@@ -575,14 +575,14 @@ dependencies = [
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
- "itertools 0.12.1",
+ "itertools 0.11.0",
  "p3-dft",
  "p3-field",
  "p3-matrix",
@@ -594,7 +594,7 @@ dependencies = [
 [[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "gcd",
  "p3-field",
@@ -606,7 +606,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "itertools 0.12.1",
  "p3-field",
@@ -616,7 +616,7 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#55c41cef066fee6121b59972da78a08b0087b561"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#d379375a75417ddfd0a059ce7db63e162ec52c69"
 dependencies = [
  "serde",
 ]
@@ -788,9 +788,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.198"
+version = "1.0.200"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9846a40c979031340571da2545a4e5b7c4163bdae79b301d5f86d03979451fcc"
+checksum = "ddc6f9cc94d67c0e21aaf7eda3a010fd3af78ebf6e096aa6e2e13c79749cce4f"
 dependencies = [
  "serde_derive",
 ]
@@ -806,9 +806,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.198"
+version = "1.0.200"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e88edab869b01783ba905e7d0153f9fc1a6505a96e4ad3018011eedb838566d9"
+checksum = "856f046b9400cee3c8c94ed572ecdb752444c24528c035cd35882aad6f492bcb"
 dependencies = [
  "proc-macro2",
  "quote",
