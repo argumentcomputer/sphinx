@@ -206,15 +206,7 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
             let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
             let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            Self::populate_field_ops(
-                &mut vec![],
-                0,
-                cols,
-                &zero,
-                &zero,
-                &zero,
-                &zero,
-            );
+            Self::populate_field_ops(&mut vec![], 0, cols, &zero, &zero, &zero, &zero);
             row
         });
 

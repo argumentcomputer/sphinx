@@ -354,7 +354,7 @@ where
         x[num_limbs - 1] = row.x_msb_access.value()[3];
         // Check the unmasked bytes pass a range check
         row.unmasked_range_x
-           .eval(builder, &x, row.shard, row.is_real);
+            .eval(builder, &x, row.shard, row.is_real);
 
         row.x_2
             .eval(builder, &x, &x, FieldOperation::Mul, row.shard, row.is_real);
@@ -376,14 +376,9 @@ where
             row.shard,
             row.is_real,
         );
-        // We can grab the even sqrt: the negation, if any, will come later
-        row.y.eval(
-            builder,
-            &row.x_3_plus_b.result,
-            AB::Expr::zero(),
-            row.shard,
-            row.is_real,
-        );
+
+        row.y
+            .eval(builder, &row.x_3_plus_b.result, row.shard, row.is_real);
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),

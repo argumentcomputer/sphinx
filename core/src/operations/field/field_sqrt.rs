@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
 use num::BigUint;
-use p3_air::AirBuilder;
 use p3_field::PrimeField32;
 use wp1_derive::AlignedBorrow;
 
@@ -10,14 +9,12 @@ use super::params::Limbs;
 use super::range::FieldRangeCols;
 use crate::air::SP1AirBuilder;
 use crate::bytes::event::ByteRecord;
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::params::FieldParameters;
-use p3_field::AbstractField;
 
 /// A set of columns to compute the square root in emulated arithmetic.
 ///
 /// *Safety*: The `FieldSqrtCols` asserts that `multiplication.result` is a square root of the given
-/// input lying within the range `[0, modulus)` with the least significant bit `lsb`.
+/// input lying within the range `[0, modulus)`
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldSqrtCols<T, P: FieldParameters> {
@@ -28,9 +25,6 @@ pub struct FieldSqrtCols<T, P: FieldParameters> {
     pub multiplication: FieldOpCols<T, P>,
 
     pub range: FieldRangeCols<T, P>,
-
-    // The least significant bit of the square root.
-    pub lsb: T,
 }
 
 impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
@@ -67,19 +61,6 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
         // Populate the range columns.
         self.range.populate(record, shard, &sqrt);
 
-        let sqrt_bytes = P::to_limbs(&sqrt);
-        self.lsb = F::from_canonical_u8(sqrt_bytes[0] & 1);
-
-        let and_event = ByteLookupEvent {
-            shard,
-            opcode: ByteOpcode::AND,
-            a1: self.lsb.as_canonical_u32(),
-            a2: 0,
-            b: u32::from(sqrt_bytes[0]),
-            c: 1,
-        };
-        record.add_byte_lookup_event(and_event);
-
         sqrt
     }
 }
@@ -89,13 +70,11 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
         ER: Into<AB::Expr> + Clone,
-        EOdd: Into<AB::Expr>,
         EShard: Into<AB::Expr> + Clone,
     >(
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
-        is_odd: EOdd,
         shard: EShard,
         is_real: ER,
     ) where
@@ -120,19 +99,6 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
 
         self.range
             .eval(builder, &sqrt, shard.clone(), is_real.clone());
-
-        // Assert that the square root is the positive one, i.e., with least significant bit 0.
-        // This is done by computing LSB = least_significant_byte & 1.
-        builder.assert_bool(self.lsb);
-        builder.when(is_real.clone()).assert_eq(self.lsb, is_odd);
-        builder.send_byte(
-            ByteOpcode::AND.as_field::<AB::F>(),
-            self.lsb,
-            sqrt[0],
-            AB::F::one(),
-            shard,
-            is_real,
-        );
     }
 }
 
@@ -263,7 +229,7 @@ mod tests {
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
             local
                 .sqrt
-                .eval(builder, &local.a, AB::F::zero(), AB::F::one(), AB::F::one());
+                .eval(builder, &local.a, AB::F::one(), AB::F::one());
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]
