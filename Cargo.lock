@@ -3924,6 +3924,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
 
 [[package]]
+name = "subtle-encoding"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dcb1ed7b8330c5eed5441052651dd7a12c75e2ed88f2ec024ae1fa3a5e59945"
+dependencies = [
+ "zeroize",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4955,6 +4964,7 @@ dependencies = [
 name = "wp1-prover"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "backtrace",
  "bincode",
  "clap",
@@ -4970,6 +4980,8 @@ dependencies = [
  "serde_json",
  "sha2",
  "size",
+ "subtle-encoding",
+ "tempfile",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
@@ -5092,6 +5104,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "subtle-encoding",
  "tempfile",
  "wp1-recursion-compiler",
 ]

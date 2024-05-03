@@ -32,7 +32,10 @@ serde_json = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 sha2 = { workspace = true }
 hex = { workspace = true }
+anyhow = { workspace = true }
 size = { workspace = true }
+subtle-encoding = { workspace = true }
+tempfile = { workspace = true }
 
 [[bin]]
 name = "fibonacci_sweep"
@@ -49,6 +52,10 @@ path = "scripts/fibonacci_groth16.rs"
 [[bin]]
 name = "e2e"
 path = "scripts/e2e.rs"
+
+[[bin]]
+name = "test_groth16_verification"
+path = "scripts/test_groth16_verification.rs"
 
 [[bin]]
 name = "build_groth16"

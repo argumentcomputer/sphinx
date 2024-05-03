@@ -14,4 +14,5 @@ tempfile = { workspace = true }
 reqwest = { workspace = true, features = ["json", "blocking"] }
 rand = { workspace = true }
 crossbeam = { workspace = true }
+subtle-encoding = { workspace = true }
 log = { workspace = true }
