@@ -11,6 +11,7 @@ sol! {
     struct CreateProof {
         uint64 nonce;
         uint64 deadline;
+        uint32 mode;
     }
 
     struct SubmitProof {
@@ -78,8 +79,17 @@ impl NetworkAuth {
     }
 
     /// Signs a message to to request ot create a proof.
-    pub async fn sign_create_proof_message(&self, nonce: u64, deadline: u64) -> Result<Vec<u8>> {
-        let type_struct = CreateProof { nonce, deadline };
+    pub async fn sign_create_proof_message(
+        &self,
+        nonce: u64,
+        deadline: u64,
+        mode: i32,
+    ) -> Result<Vec<u8>> {
+        let type_struct = CreateProof {
+            nonce,
+            deadline,
+            mode: mode as u32,
+        };
         self.sign_message(type_struct).await
     }
 
