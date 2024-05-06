@@ -51,8 +51,8 @@ p3-uni-stark = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-
 p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
 p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
 alloy = { git = "https://github.com/alloy-rs/alloy", rev = "bfd0fda" }
-anstyle = "1.0.6"
-anyhow = "1.0.80"
+anstyle = "1.0.7"
+anyhow = "1.0.83"
 arrayref = "0.3.6"
 async-trait = "0.1.77"
 axum = "=0.7.5"
@@ -72,7 +72,7 @@ elliptic-curve = "0.13.8"
 ff = "0.13"
 futures = "0.3.30"
 futures-util = "0.3.14"
-getrandom = "0.2.14"
+getrandom = "0.2.15"
 hashbrown = "0.14.5"
 hex = "0.4.3"
 home = "0.5.9"
