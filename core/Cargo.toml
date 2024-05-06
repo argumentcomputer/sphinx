@@ -31,19 +31,22 @@ p3-poseidon2 = { workspace = true }
 p3-symmetric = { workspace = true }
 p3-uni-stark = { workspace = true }
 p3-util = { workspace = true }
+thiserror = { workspace = true }
+hybrid-array = { workspace = true }
+bls12_381 = { workspace = true }
 rrs-lib = { workspace = true }
 wp1-derive = { path = "../derive" }
 wp1-primitives = { path = "../primitives" }
-
+anyhow = { workspace = true }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
-bls12_381 = { workspace = true }
+blake3-zkvm = { workspace = true }
 cfg-if = { workspace = true }
+generic-array = { workspace = true, features = ["alloc", "serde"] }
+typenum = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
-hashbrown = { workspace = true }
 hex = { workspace = true }
-hybrid-array = { workspace = true }
 k256 = { workspace = true, features = ["expose-field"] }
 num_cpus = { workspace = true }
 serde_with = { workspace = true }
@@ -54,8 +57,9 @@ tracing-forest = { workspace = true, features = ["ansi", "smallvec"] }
 tracing-subscriber = { workspace = true, features = ["std", "env-filter"] }
 strum_macros = { workspace = true }
 strum = { workspace = true }
+web-time = { workspace = true }
 rayon-scan = { workspace = true }
-thiserror = { workspace = true }
+serial_test = { workspace = true }
 
 [dev-dependencies]
 tiny-keccak = { workspace = true, features = ["keccak"] }

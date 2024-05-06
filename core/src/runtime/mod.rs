@@ -141,7 +141,7 @@ impl Runtime {
         let index: u32 = (runtime.state.global_clk / u64::from(runtime.shard_size / 4))
             .try_into()
             .unwrap();
-        runtime.record.index = index;
+        runtime.record.index = index + 1;
         runtime
     }
 
@@ -913,20 +913,27 @@ impl Runtime {
 
     /// Executes up to `self.shard_batch_size` cycles of the program, returning whether the program has finished.
     fn execute(&mut self) -> bool {
+        // If it's the first cycle, initialize the program.
         if self.state.global_clk == 0 {
             self.initialize();
         }
 
-        let mut cycles = 0_u64;
+        // Loop until we've executed `self.shard_batch_size` shards if `self.shard_batch_size` is set.
         let mut done = false;
-        // Loop until we've executed the maximum number of cycles or the program has finished.
-        while self.shard_batch_size == 0 || cycles < u64::from(self.shard_batch_size) {
+        let mut current_shard = self.state.current_shard;
+        let mut num_shards_executed = 0;
+        loop {
             if self.execute_cycle() {
                 done = true;
                 break;
             }
-            if !self.unconstrained {
-                cycles += 1;
+
+            if env::shard_batch_size() > 0 && current_shard != self.state.current_shard {
+                num_shards_executed += 1;
+                current_shard = self.state.current_shard;
+                if num_shards_executed == env::shard_batch_size() {
+                    break;
+                }
             }
         }
 
