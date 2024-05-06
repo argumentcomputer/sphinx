@@ -1,5 +1,6 @@
 use core::fmt::Debug;
 use core::mem::size_of;
+use std::array;
 use std::iter::once;
 
 use itertools::Itertools;
@@ -72,41 +73,37 @@ impl PublicValues<u32, u32> {
     }
 }
 
-impl<T: Clone + Debug> PublicValues<Word<T>, T> {
+impl<T: Clone> PublicValues<Word<T>, T> {
     /// Convert a vector of field elements into a PublicValues struct.
     pub fn from_vec(data: &[T]) -> Self {
-        let mut iter = data.iter().cloned();
+        data.iter().cloned().collect::<Self>()
+    }
+}
 
-        let mut committed_value_digest = Vec::new();
-        for _ in 0..PV_DIGEST_NUM_WORDS {
-            committed_value_digest.push((&mut iter).collect());
-        }
+impl<T, IT> FromIterator<IT> for PublicValues<Word<T>, T>
+where
+    IT: Into<T>,
+{
+    /// Construct a PublicValues struct by reading the first elements from an iterator
+    fn from_iter<I: IntoIterator<Item = IT>>(iter: I) -> Self {
+        let mut iter = iter.into_iter().map(IT::into);
 
-        let mut deferred_proofs_digest = Vec::new();
-        for _ in 0..POSEIDON_NUM_WORDS {
-            deferred_proofs_digest.push((&mut iter).collect::<Word<_>>());
-        }
-
+        let committed_value_digest = array::from_fn(|_| (&mut iter).collect());
+        let deferred_proofs_digest = array::from_fn(|_| (&mut iter).collect());
         // Collecting the remaining items into a tuple.  Note that it is only getting the first
         // four items, as the rest would be padded values.
-        let remaining_items = iter.collect_vec();
-        assert!(
-            remaining_items.len() >= 4,
-            "Invalid number of items in the serialized vector."
-        );
-
-        let [shard, start_pc, next_pc, exit_code] = match &remaining_items.as_slice()[0..4] {
-            [shard, start_pc, next_pc, exit_code] => [shard, start_pc, next_pc, exit_code],
-            _ => unreachable!(),
-        };
+        let shard = iter.next().unwrap();
+        let start_pc = iter.next().unwrap();
+        let next_pc = iter.next().unwrap();
+        let exit_code = iter.next().unwrap();
 
         Self {
-            committed_value_digest: committed_value_digest.try_into().unwrap(),
-            deferred_proofs_digest: deferred_proofs_digest.try_into().unwrap(),
-            shard: shard.to_owned(),
-            start_pc: start_pc.to_owned(),
-            next_pc: next_pc.to_owned(),
-            exit_code: exit_code.to_owned(),
+            committed_value_digest,
+            deferred_proofs_digest,
+            shard,
+            start_pc,
+            next_pc,
+            exit_code,
         }
     }
 }

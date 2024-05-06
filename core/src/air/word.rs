@@ -4,8 +4,6 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use arrayref::array_ref;
-use itertools::Itertools;
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
@@ -68,6 +66,7 @@ impl<T: AbstractField> Word<T> {
 impl<F: Field> Word<F> {
     /// Converts a word to a u32.
     pub fn to_u32(&self) -> u32 {
+        // TODO: avoid string conversion
         u32::from_le_bytes(self.0.map(|x| x.to_string().parse::<u8>().unwrap()))
     }
 }
@@ -114,10 +113,10 @@ impl<T> IntoIterator for Word<T> {
     }
 }
 
-impl<T: Clone> FromIterator<T> for Word<T> {
+impl<T> FromIterator<T> for Word<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let elements = iter.into_iter().take(WORD_SIZE).collect_vec();
-
-        Word(array_ref![elements, 0, WORD_SIZE].clone())
+        let mut iter = iter.into_iter();
+        let elements = std::array::from_fn(|_| iter.next().unwrap());
+        Word(elements)
     }
 }

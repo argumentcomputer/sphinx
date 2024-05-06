@@ -170,8 +170,8 @@ impl CpuChip {
         // Compute the expected stored value for a SB instruction.
         let one = AB::Expr::one();
         let a_val = local.op_a_val();
-        let mem_val = *memory_columns.memory_access.value();
-        let prev_mem_val = *memory_columns.memory_access.prev_value();
+        let mem_val = memory_columns.memory_access.value();
+        let prev_mem_val = memory_columns.memory_access.prev_value();
         let sb_expected_stored_value = Word([
             a_val[0] * offset_is_zero.clone()
                 + (one.clone() - offset_is_zero.clone()) * prev_mem_val[0],
@@ -218,7 +218,7 @@ impl CpuChip {
         memory_columns: &MemoryColumns<AB::Var>,
         local: &CpuCols<AB::Var>,
     ) {
-        let mem_val = *memory_columns.memory_access.value();
+        let mem_val = memory_columns.memory_access.value();
 
         // Compute the offset_is_zero flag.  The other offset flags are already constrained by the
         // method `eval_memory_address_and_access`, which is called in `eval_memory_address_and_access`.

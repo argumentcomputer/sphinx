@@ -9,9 +9,13 @@ pub struct AirInteraction<E> {
 
 impl<E> AirInteraction<E> {
     /// Create a new interaction.
-    pub fn new(values: Vec<E>, multiplicity: E, kind: InteractionKind) -> Self {
+    pub fn new(
+        value_iter: impl IntoIterator<Item = E>,
+        multiplicity: E,
+        kind: InteractionKind,
+    ) -> Self {
         Self {
-            values,
+            values: value_iter.into_iter().collect(),
             multiplicity,
             kind,
         }

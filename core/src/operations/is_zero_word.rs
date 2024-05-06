@@ -48,7 +48,7 @@ impl<F: Field> IsZeroWordOperation<F> {
         u32::from(is_zero)
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: &Word<AB::Expr>,
         cols: IsZeroWordOperation<AB::Var>,
@@ -56,16 +56,10 @@ impl<F: Field> IsZeroWordOperation<F> {
     ) {
         // Calculate whether each byte is 0.
         for i in 0..WORD_SIZE {
-            IsZeroOperation::<AB::F>::eval(
-                builder,
-                a[i].clone(),
-                cols.is_zero_byte[i],
-                is_real.clone(),
-            );
+            IsZeroOperation::eval(builder, a[i].clone(), cols.is_zero_byte[i], is_real.clone());
         }
 
         // From here, we only assert when is_real is true.
-        builder.assert_bool(is_real.clone());
         let mut builder_is_real = builder.when(is_real);
 
         // Calculate is_upper_half_zero and is_lower_half_zero and finally the result.

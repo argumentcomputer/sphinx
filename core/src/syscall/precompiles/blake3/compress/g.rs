@@ -97,7 +97,7 @@ impl<F: Field> GOperation<F> {
         result
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         input: [Word<AB::Var>; 6],
         cols: GOperation<AB::Var>,
@@ -115,25 +115,25 @@ impl<F: Field> GOperation<F> {
         // First 4 steps.
         {
             // a = a + b + x.
-            AddOperation::<AB::F>::eval(builder, a, b, cols.a_plus_b, shard, is_real.into());
+            AddOperation::eval(builder, a, b, cols.a_plus_b, shard, is_real.into());
             a = cols.a_plus_b.value;
-            AddOperation::<AB::F>::eval(builder, a, x, cols.a_plus_b_plus_x, shard, is_real.into());
+            AddOperation::eval(builder, a, x, cols.a_plus_b_plus_x, shard, is_real.into());
             a = cols.a_plus_b_plus_x.value;
 
             // d = (d ^ a).rotate_right(16).
-            XorOperation::<AB::F>::eval(builder, d, a, cols.d_xor_a, shard, is_real);
+            XorOperation::eval(builder, d, a, cols.d_xor_a, shard, is_real);
             d = cols.d_xor_a.value;
             // Rotate right by 16 bits.
             d = Word([d[2], d[3], d[0], d[1]]);
 
             // c = c + d.
-            AddOperation::<AB::F>::eval(builder, c, d, cols.c_plus_d, shard, is_real.into());
+            AddOperation::eval(builder, c, d, cols.c_plus_d, shard, is_real.into());
             c = cols.c_plus_d.value;
 
             // b = (b ^ c).rotate_right(12).
-            XorOperation::<AB::F>::eval(builder, b, c, cols.b_xor_c, shard, is_real);
+            XorOperation::eval(builder, b, c, cols.b_xor_c, shard, is_real);
             b = cols.b_xor_c.value;
-            FixedRotateRightOperation::<AB::F>::eval(
+            FixedRotateRightOperation::eval(
                 builder,
                 b,
                 12,
@@ -147,32 +147,25 @@ impl<F: Field> GOperation<F> {
         // Second 4 steps.
         {
             // a = a + b + y.
-            AddOperation::<AB::F>::eval(builder, a, b, cols.a_plus_b_2, shard, is_real.into());
+            AddOperation::eval(builder, a, b, cols.a_plus_b_2, shard, is_real.into());
             a = cols.a_plus_b_2.value;
-            AddOperation::<AB::F>::eval(
-                builder,
-                a,
-                y,
-                cols.a_plus_b_2_add_y,
-                shard,
-                is_real.into(),
-            );
+            AddOperation::eval(builder, a, y, cols.a_plus_b_2_add_y, shard, is_real.into());
             a = cols.a_plus_b_2_add_y.value;
 
             // d = (d ^ a).rotate_right(8).
-            XorOperation::<AB::F>::eval(builder, d, a, cols.d_xor_a_2, shard, is_real);
+            XorOperation::eval(builder, d, a, cols.d_xor_a_2, shard, is_real);
             d = cols.d_xor_a_2.value;
             // Rotate right by 8 bits.
             d = Word([d[1], d[2], d[3], d[0]]);
 
             // c = c + d.
-            AddOperation::<AB::F>::eval(builder, c, d, cols.c_plus_d_2, shard, is_real.into());
+            AddOperation::eval(builder, c, d, cols.c_plus_d_2, shard, is_real.into());
             c = cols.c_plus_d_2.value;
 
             // b = (b ^ c).rotate_right(7).
-            XorOperation::<AB::F>::eval(builder, b, c, cols.b_xor_c_2, shard, is_real);
+            XorOperation::eval(builder, b, c, cols.b_xor_c_2, shard, is_real);
             b = cols.b_xor_c_2.value;
-            FixedRotateRightOperation::<AB::F>::eval(
+            FixedRotateRightOperation::eval(
                 builder,
                 b,
                 7,

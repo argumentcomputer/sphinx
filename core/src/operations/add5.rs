@@ -93,7 +93,7 @@ impl<F: Field> Add5Operation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         words: &[Word<AB::Var>; 5],
         shard: AB::Var,

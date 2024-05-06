@@ -102,7 +102,7 @@ impl<F: Field> OpcodeSelectorCols<F> {
     }
 }
 
-impl<T: Copy> IntoIterator for &OpcodeSelectorCols<T> {
+impl<T> IntoIterator for OpcodeSelectorCols<T> {
     type Item = T;
 
     type IntoIter = std::array::IntoIter<T, OPCODE_COUNT>;

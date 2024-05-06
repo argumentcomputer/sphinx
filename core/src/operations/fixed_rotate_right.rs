@@ -102,7 +102,7 @@ impl<F: Field> FixedRotateRightOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         input: Word<AB::Var>,
         rotation: usize,

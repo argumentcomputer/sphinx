@@ -42,7 +42,7 @@ impl CpuChip {
         // If we are writing to register 0, then the new value should be zero.
         builder
             .when(local.instruction.op_a_0)
-            .assert_word_zero(*local.op_a_access.value());
+            .assert_word_zero(local.op_a_access.value());
 
         // Write the `a` or the result to the first register described in the instruction unless
         // we are performing a branch or a store.

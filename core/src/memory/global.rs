@@ -137,20 +137,22 @@ where
         );
 
         if self.kind == MemoryChipType::Initialize {
-            let mut values = vec![AB::Expr::zero(), AB::Expr::zero(), local.addr.into()];
-            values.extend(local.value.map(Into::into));
+            let values = [AB::Expr::zero(), AB::Expr::zero(), local.addr.into()]
+                .into_iter()
+                .chain(local.value.map(Into::into));
             builder.receive(AirInteraction::new(
                 values,
                 local.is_real.into(),
                 crate::lookup::InteractionKind::Memory,
             ));
         } else {
-            let mut values = vec![
+            let values = [
                 local.shard.into(),
                 local.timestamp.into(),
                 local.addr.into(),
-            ];
-            values.extend(local.value.map(Into::into));
+            ]
+            .into_iter()
+            .chain(local.value.map(Into::into));
             builder.send(AirInteraction::new(
                 values,
                 local.is_real.into(),

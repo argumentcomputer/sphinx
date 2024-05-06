@@ -61,7 +61,7 @@ impl<F: Field> AddOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         b: Word<AB::Var>,

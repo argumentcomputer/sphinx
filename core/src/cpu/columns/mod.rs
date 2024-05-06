@@ -101,17 +101,17 @@ pub struct CpuCols<T: Copy> {
 impl<T: Copy> CpuCols<T> {
     /// Gets the value of the first operand.
     pub fn op_a_val(&self) -> Word<T> {
-        *self.op_a_access.value()
+        self.op_a_access.value()
     }
 
     /// Gets the value of the second operand.
     pub fn op_b_val(&self) -> Word<T> {
-        *self.op_b_access.value()
+        self.op_b_access.value()
     }
 
     /// Gets the value of the third operand.
     pub fn op_c_val(&self) -> Word<T> {
-        *self.op_c_access.value()
+        self.op_c_access.value()
     }
 }
 

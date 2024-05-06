@@ -434,8 +434,10 @@ where
         let local = main.row_slice(0);
         let local: &DivRemCols<AB::Var> = (*local).borrow();
         let base = AB::F::from_canonical_u32(1 << 8);
-        let one: AB::Expr = AB::F::one().into();
-        let zero: AB::Expr = AB::F::zero().into();
+        let one = AB::Expr::one();
+        let zero = AB::Expr::zero();
+
+        builder.assert_bool(local.is_real);
 
         // Calculate whether b, remainder, and c are negative.
         {
@@ -500,7 +502,7 @@ where
 
         // Calculate is_overflow. is_overflow = is_equal(b, -2^{31}) * is_equal(c, -1) * is_signed
         {
-            IsEqualWordOperation::<AB::F>::eval(
+            IsEqualWordOperation::eval(
                 builder,
                 &local.b.map(|x| x.into()),
                 &Word::from(i32::MIN as u32).map(|x: AB::F| x.into()),
@@ -508,7 +510,7 @@ where
                 local.is_real.into(),
             );
 
-            IsEqualWordOperation::<AB::F>::eval(
+            IsEqualWordOperation::eval(
                 builder,
                 &local.c.map(|x| x.into()),
                 &Word::from(-1i32 as u32).map(|x: AB::F| x.into()),
@@ -620,7 +622,7 @@ where
         // When division by 0, quotient must be 0xffffffff per RISC-V spec.
         {
             // Calculate whether c is 0.
-            IsZeroWordOperation::<AB::F>::eval(
+            IsZeroWordOperation::eval(
                 builder,
                 &local.c.map(|x| x.into()),
                 local.is_c_0,

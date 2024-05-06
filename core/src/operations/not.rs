@@ -28,7 +28,7 @@ impl<F: Field> NotOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         cols: NotOperation<AB::Var>,
@@ -51,7 +51,7 @@ impl<F: Field> NotOperation<F> {
         for i in 0..WORD_SIZE {
             builder
                 .when(is_real)
-                .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));
+                .assert_eq(cols.value[i] + a[i], AB::Expr::from_canonical_u8(u8::MAX));
         }
 
         // A dummy constraint to keep the degree 3.

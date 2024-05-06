@@ -53,21 +53,18 @@ pub fn pad_to_power_of_two_nongeneric<T: Clone + Default>(n: usize, values: &mut
 }
 
 pub fn limbs_from_prev_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) -> Limbs<T, U> {
-    let vec = cols
-        .iter()
+    cols.iter()
         .flat_map(|access| access.prev_value().0)
-        .collect::<Vec<T>>();
-
-    Array::try_from(&vec[..]).unwrap_or_else(|_| panic!("failed to convert to limbs"))
+        .collect()
 }
 
 pub fn limbs_from_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) -> Limbs<T, U> {
-    let vec = cols
+    let iter = cols
         .iter()
         .flat_map(|access| access.value().0)
         .collect::<Vec<T>>();
 
-    Array::try_from(&vec[..]).unwrap_or_else(|_| panic!("failed to convert to limbs"))
+    Array::from_iter(iter)
 }
 
 /// Pads `rows` to a length that is a power of two, using `row_fn` to generate new rows.

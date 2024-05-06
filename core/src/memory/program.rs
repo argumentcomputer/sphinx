@@ -164,14 +164,10 @@ where
         let mult_local: &MemoryProgramMultCols<AB::Var> = (*mult_local).borrow();
 
         // Get shard from public values and evaluate whether it is the first shard.
-        let public_values = PublicValues::<Word<AB::Expr>, AB::Expr>::from_vec(
-            &builder
-                .public_values()
-                .iter()
-                .map(|elm| (*elm).into())
-                .collect::<Vec<_>>(),
-        );
-        IsZeroOperation::<AB::F>::eval(
+        let public_values: PublicValues<_, AB::Expr> =
+            builder.public_values().iter().cloned().collect();
+
+        IsZeroOperation::eval(
             builder,
             public_values.shard - AB::Expr::one(),
             mult_local.is_first_shard,

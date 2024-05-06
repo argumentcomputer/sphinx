@@ -1,4 +1,4 @@
-use p3_field::{AbstractField, Field};
+use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
@@ -38,7 +38,7 @@ impl<F: Field> AndOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: SP1AirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         b: Word<AB::Var>,

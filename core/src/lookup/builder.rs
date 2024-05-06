@@ -247,18 +247,18 @@ mod tests {
             let z = local[2];
 
             builder.send(AirInteraction::new(
-                vec![x.into(), y.into()],
+                [x.into(), y.into()],
                 AB::F::from_canonical_u32(3).into(),
                 InteractionKind::Alu,
             ));
             builder.send(AirInteraction::new(
-                vec![x + y, z.into()],
+                [x + y, z.into()],
                 AB::F::from_canonical_u32(5).into(),
                 InteractionKind::Alu,
             ));
 
             builder.receive(AirInteraction::new(
-                vec![x.into()],
+                [x.into()],
                 y.into(),
                 InteractionKind::Byte,
             ));
