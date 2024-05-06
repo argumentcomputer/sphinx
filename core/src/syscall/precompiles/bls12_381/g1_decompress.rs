@@ -11,6 +11,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::params::FieldParameters;
 use crate::operations::field::range::FieldRangeCols;
 use crate::{
@@ -156,7 +157,7 @@ pub struct Bls12381G1DecompressCols<T> {
     pub(crate) y: FieldSqrtCols<T, Bls12381BaseField>,
     pub(crate) two_y: FieldOpCols<T, Bls12381BaseField>,
     pub(crate) neg_y: FieldOpCols<T, Bls12381BaseField>,
-    pub(crate) two_y_lsbits: [T; 8],
+    pub(crate) two_y_lsb: T,
 }
 
 /// A chip implementing BLS12-381 G1 elliptic curve point decompression.
@@ -211,17 +212,19 @@ impl Bls12381G1DecompressChip {
         cols.neg_y
             .populate(record, shard, &zero, &y, FieldOperation::Sub);
 
-        // Decompose bits of least significant 2*Y byte
-        let two_y_bytes = two_y.to_bytes_le();
+        // Byte-check the least significant 2*Y bit
+        let two_y_bytes = Bls12381BaseField::to_limbs(&two_y);
+        cols.two_y_lsb =  F::from_canonical_u8(two_y_bytes[0] & 1);
 
-        let two_y_lsb = if two_y_bytes.is_empty() {
-            0
-        } else {
-            two_y_bytes[0]
+        let and_event = ByteLookupEvent {
+            shard,
+            opcode: ByteOpcode::AND,
+            a1: cols.two_y_lsb.as_canonical_u32(),
+            a2: 0,
+            b: two_y_bytes[0] as u32,
+            c: 1,
         };
-        for i in 0..8 {
-            cols.two_y_lsbits[i] = F::from_canonical_u32(u32::from((two_y_lsb >> i) & 1));
-        }
+        record.add_byte_lookup_event(and_event);
     }
 }
 
@@ -397,25 +400,23 @@ where
         );
 
         // Constrain decomposition of least significant byte of 2*Y into `two_y_lsbits`
-        for i in 0..8 {
-            builder.when(row.is_real).assert_bool(row.two_y_lsbits[i]);
-        }
+        
         let two_y_least_byte = row.two_y.result[0];
-        let recomputed_two_y_lsbyte: AB::Expr = row
-            .two_y_lsbits
-            .iter()
-            .zip(powers_of_two)
-            .map(|(p, b)| (*p).into() * b)
-            .sum();
-        builder
-            .when(row.is_real)
-            .assert_eq(recomputed_two_y_lsbyte, two_y_least_byte);
+        builder.assert_bool(row.two_y_lsb);
+        builder.send_byte(
+            ByteOpcode::AND.as_field::<AB::F>(),
+            row.two_y_lsb,
+            two_y_least_byte,
+            AB::F::one(),
+            row.shard,
+            row.is_real,
+        );
 
         // Instead of doing a range check on y to see if y > (p-1)/2 or not,
         // we calculate the parity of 2*y by checking its LSBit.
         // If 2*y is even, then y <= (p-1)/2 (i.e. y_sign_flag == 0),
         // if 2*y is odd, then y > (p-1)/2 (i.e. y_sign_flag == 1)
-        let two_y_is_odd = row.two_y_lsbits[0];
+        let two_y_is_odd = row.two_y_lsb;
 
         let y_limbs: Limbs<AB::Var, BLS12_381_NUM_LIMBS> = limbs_from_access(&row.y_access);
 

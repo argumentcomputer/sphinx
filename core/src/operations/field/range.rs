@@ -99,7 +99,7 @@ impl<V: Copy, P: FieldParameters> FieldRangeCols<V, P> {
 
         // Check the flags are of valid form.
 
-        // Verrify that only one flag is set to one.
+        // Verify that only one flag is set to one.
         let mut sum_flags: AB::Expr = AB::Expr::zero();
         for &flag in self.byte_flags.iter() {
             // Assert that the flag is boolean.
