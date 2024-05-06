@@ -587,15 +587,20 @@ impl<SC: StarkGenericConfig> std::error::Error for ProgramVerificationError<SC> 
 #[cfg(test)]
 pub mod tests {
 
-    use crate::{
-        runtime::{
-            tests::{
-                fibonacci_program, simple_memory_program, simple_program, ssz_withdrawals_program,
-            },
-            Instruction, Opcode, Program,
-        },
-        utils::{run_test, setup_logger},
-    };
+    use serial_test::serial;
+
+    use crate::io::SP1Stdin;
+    use crate::runtime::tests::fibonacci_program;
+    use crate::runtime::tests::simple_memory_program;
+    use crate::runtime::tests::simple_program;
+    use crate::runtime::tests::ssz_withdrawals_program;
+    use crate::runtime::Instruction;
+    use crate::runtime::Opcode;
+    use crate::runtime::Program;
+    use crate::utils::run_and_prove;
+    use crate::utils::run_test;
+    use crate::utils::setup_logger;
+    use crate::utils::BabyBearPoseidon2;
 
     #[test]
     fn test_simple_prove() {
@@ -736,6 +741,21 @@ pub mod tests {
         setup_logger();
         let program = fibonacci_program();
         run_test(program).unwrap();
+    }
+
+    #[test]
+    #[serial]
+    fn test_fibonacci_prove_batch() {
+        std::env::set_var("SHARD_BATCH_SIZE", "1");
+        std::env::set_var("SHARD_SIZE", "16384");
+
+        setup_logger();
+        let program = fibonacci_program();
+        let stdin = SP1Stdin::new();
+        run_and_prove(&program, &stdin, BabyBearPoseidon2::new());
+
+        std::env::remove_var("SHARD_BATCH_SIZE");
+        std::env::remove_var("SHARD_SIZE");
     }
 
     #[test]
