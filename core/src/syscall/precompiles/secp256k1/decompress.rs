@@ -206,7 +206,7 @@ impl Secp256k1DecompressChip {
             opcode: ByteOpcode::AND,
             a1: cols.y_lsb.as_canonical_u32(),
             a2: 0,
-            b: y_bytes[0] as u32,
+            b: u32::from(y_bytes[0]),
             c: 1,
         };
         blu_events.add_byte_lookup_event(and_event);
@@ -325,7 +325,7 @@ where
             row.is_real,
         );
         row.y
-            .eval(builder, &row.x_3_plus_b.result, row.shard, row.is_real);
+            .eval(builder, &row.x_3_plus_b.result, &row.shard, &row.is_real);
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),

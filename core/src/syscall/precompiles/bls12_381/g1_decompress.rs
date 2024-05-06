@@ -221,7 +221,7 @@ impl Bls12381G1DecompressChip {
             opcode: ByteOpcode::AND,
             a1: cols.two_y_lsb.as_canonical_u32(),
             a2: 0,
-            b: two_y_bytes[0] as u32,
+            b: u32::from(two_y_bytes[0]),
             c: 1,
         };
         record.add_byte_lookup_event(and_event);
@@ -381,7 +381,7 @@ where
         );
 
         row.y
-            .eval(builder, &row.x_3_plus_b.result, row.shard, row.is_real);
+            .eval(builder, &row.x_3_plus_b.result, &row.shard, &row.is_real);
         row.two_y.eval(
             builder,
             &row.y.multiplication.result,

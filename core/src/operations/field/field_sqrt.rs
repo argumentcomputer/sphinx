@@ -75,8 +75,8 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
-        shard: EShard,
-        is_real: ER,
+        shard: &EShard,
+        is_real: &ER,
     ) where
         V: Into<AB::Expr>,
     {
@@ -229,7 +229,7 @@ mod tests {
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
             local
                 .sqrt
-                .eval(builder, &local.a, AB::F::one(), AB::F::one());
+                .eval(builder, &local.a, &AB::F::one(), &AB::F::one());
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]
