@@ -214,7 +214,7 @@ impl Bls12381G1DecompressChip {
 
         // Byte-check the least significant 2*Y bit
         let two_y_bytes = Bls12381BaseField::to_limbs(&two_y);
-        cols.two_y_lsb =  F::from_canonical_u8(two_y_bytes[0] & 1);
+        cols.two_y_lsb = F::from_canonical_u8(two_y_bytes[0] & 1);
 
         let and_event = ByteLookupEvent {
             shard,
@@ -399,8 +399,7 @@ where
             row.is_real,
         );
 
-        // Constrain decomposition of least significant byte of 2*Y into `two_y_lsbits`
-        
+        // Constrain decomposition of least significant bit of 2*Y into `two_y_lsb`
         let two_y_least_byte = row.two_y.result[0];
         builder.assert_bool(row.two_y_lsb);
         builder.send_byte(

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
 use crate::bytes::event::ByteRecord;
-use crate::bytes::ByteLookupEvent;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::range::FieldRangeCols;
 use crate::{
     air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
@@ -147,7 +147,7 @@ pub struct Secp256k1DecompressCols<T> {
     pub(crate) x_3_plus_b: FieldOpCols<T, Secp256k1BaseField>,
     pub(crate) y: FieldSqrtCols<T, Secp256k1BaseField>,
     pub(crate) neg_y: FieldOpCols<T, Secp256k1BaseField>,
-    pub(crate) y_least_bits: [T; 8],
+    pub(crate) y_lsb: T,
 }
 
 /// A chip implementing Secp256k1 elliptic curve point decompression.
@@ -196,12 +196,20 @@ impl Secp256k1DecompressChip {
         let zero = BigUint::zero();
         cols.neg_y
             .populate(blu_events, shard, &zero, &y, FieldOperation::Sub);
-        // Decompose bits of least significant Y byte
-        let y_bytes = y.to_bytes_le();
-        let y_lsb = if y_bytes.is_empty() { 0 } else { y_bytes[0] };
-        for i in 0..8 {
-            cols.y_least_bits[i] = F::from_canonical_u32(u32::from((y_lsb >> i) & 1));
-        }
+
+        // Byte-check the least significant Y bit
+        let y_bytes = Secp256k1BaseField::to_limbs(&y);
+        cols.y_lsb = F::from_canonical_u8(y_bytes[0] & 1);
+
+        let and_event = ByteLookupEvent {
+            shard,
+            opcode: ByteOpcode::AND,
+            a1: cols.y_lsb.as_canonical_u32(),
+            a2: 0,
+            b: y_bytes[0] as u32,
+            c: 1,
+        };
+        blu_events.add_byte_lookup_event(and_event);
     }
 }
 
@@ -327,25 +335,20 @@ where
             row.is_real,
         );
 
-        // Constrain decomposition of least significant byte of Y into `y_least_bits`
-        for i in 0..8 {
-            builder.when(row.is_real).assert_bool(row.y_least_bits[i]);
-        }
-        let y_least_byte = row.y.multiplication.result.0[0];
-        let powers_of_two = [1, 2, 4, 8, 16, 32, 64, 128].map(AB::F::from_canonical_u32);
-        let recomputed_byte: AB::Expr = row
-            .y_least_bits
-            .iter()
-            .zip(powers_of_two)
-            .map(|(p, b)| (*p).into() * b)
-            .sum();
-        builder
-            .when(row.is_real)
-            .assert_eq(recomputed_byte, y_least_byte);
+        // Constrain decomposition of least significant bit of Y into `y_lsb`
+        // we interpret y_lsb as to whether y is odd or even
+        let y_lsb = row.y.multiplication.result[0];
+        builder.when(row.is_real).assert_bool(row.y_lsb);
+        builder.send_byte(
+            ByteOpcode::AND.as_field::<AB::F>(),
+            row.y_lsb,
+            y_lsb,
+            AB::F::one(),
+            row.shard,
+            row.is_real,
+        );
 
-        // Interpret the lowest bit of Y as whether it is odd or not.
-        let y_is_odd = row.y_least_bits[0];
-
+        let y_is_odd = row.is_odd;
         let y_limbs: Limbs<AB::Var> = limbs_from_access(&row.y_access);
         builder
             .when(row.is_real)
