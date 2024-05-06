@@ -379,6 +379,14 @@ where
 
         row.y
             .eval(builder, &row.x_3_plus_b.result, row.shard, row.is_real);
+        row.two_y.eval(
+            builder,
+            &row.y.multiplication.result,
+            &row.y.multiplication.result,
+            FieldOperation::Add,
+            row.shard,
+            row.is_real,
+        );
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
