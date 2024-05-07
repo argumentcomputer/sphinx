@@ -143,7 +143,6 @@ mod test {
     const NUM_TEST_CASES: usize = 45;
 
     #[test]
-    #[ignore]
     fn test_keccak_random() {
         setup_logger();
         let mut rng = rand::rngs::StdRng::seed_from_u64(0);
