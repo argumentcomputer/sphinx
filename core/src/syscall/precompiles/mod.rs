@@ -51,6 +51,7 @@ pub fn create_ec_add_event<E: EllipticCurve>(
 
     let p: Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> =
         (&rt.slice_unsafe(p_ptr, words_len)[..]).try_into().unwrap();
+
     let (q_memory_records_vec, q_vec) = rt.mr_slice(q_ptr, words_len);
     let q_memory_records = (&q_memory_records_vec[..]).try_into().unwrap();
     let q: Array<u32, WORDS_CURVEPOINT<BaseLimbWidth<E>>> = (&q_vec[..]).try_into().unwrap();

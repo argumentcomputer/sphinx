@@ -4,6 +4,7 @@ use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
+use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parameters};
 use crate::StarkGenericConfig;
@@ -107,6 +108,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Fp2Mul(QuadFieldMulChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
+    /// A precompile for adding two G2Affine points on the BLS12-381 curve.
+    Bls12381G2Add(Bls12381G2AffineAddChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -166,6 +169,10 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
         let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
         chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
+
+        let bls12381_g2_add = Bls12381G2AffineAddChip::new();
+        chips.push(RiscvAir::Bls12381G2Add(bls12381_g2_add));
+
         let add = AddSubChip;
         chips.push(RiscvAir::Add(add));
         let bitwise = BitwiseChip;

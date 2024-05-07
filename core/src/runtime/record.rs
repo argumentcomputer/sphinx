@@ -8,8 +8,7 @@ use itertools::Itertools;
 use p3_field::AbstractField;
 use serde::{Deserialize, Serialize};
 
-use super::program::Program;
-use super::Opcode;
+use super::{program::Program, Opcode};
 use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
@@ -18,6 +17,7 @@ use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
+use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddEvent;
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
@@ -110,6 +110,7 @@ pub struct ExecutionRecord {
     pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
     pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
+    pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -284,6 +285,10 @@ impl MachineRecord for ExecutionRecord {
             "bls12381_fp2_mul_events".to_string(),
             self.bls12381_fp2_mul_events.len(),
         );
+        stats.insert(
+            "bls12381_g2_add_events".to_string(),
+            self.bls12381_g2_add_events.len(),
+        );
         stats
     }
 
@@ -335,6 +340,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_fp2_mul_events);
         self.bls12381_g1_decompress_events
             .append(&mut other.bls12381_g1_decompress_events);
+        self.bls12381_g2_add_events
+            .append(&mut other.bls12381_g2_add_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -600,6 +607,8 @@ impl MachineRecord for ExecutionRecord {
 
         // Put the precompile events in the first shard.
         let first = shards.first_mut().unwrap();
+
+        first.bls12381_g2_add_events = take(&mut self.bls12381_g2_add_events);
 
         // Bls12-381 decompress events .
         first.bls12381_g1_decompress_events = take(&mut self.bls12381_g1_decompress_events);

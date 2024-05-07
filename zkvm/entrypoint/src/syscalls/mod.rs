@@ -82,6 +82,7 @@ pub const BLS12381_FP_MUL: u32 = 0x00_01_01_75;
 pub const BLS12381_FP2_ADD: u32 = 0x00_01_01_77;
 pub const BLS12381_FP2_SUB: u32 = 0x00_01_01_78;
 pub const BLS12381_FP2_MUL: u32 = 0x00_01_01_79;
+pub const BLS12381_G2_ADD: u32 = 0x00_01_01_80;
 
 /// Executes the `COMMIT` precompile.
 pub const COMMIT: u32 = 0x00_00_00_10;

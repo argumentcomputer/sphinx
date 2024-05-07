@@ -1,4 +1,5 @@
 pub mod g1_decompress;
+pub mod g2_add;
 
 use super::{
     field::{

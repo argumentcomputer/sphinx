@@ -1,7 +1,11 @@
-use bls12_381::{fp::Fp, fp2::Fp2};
+use bls12_381::{fp::Fp, fp2::Fp2, G2Affine};
+use elliptic_curve::group::prime::PrimeCurveAffine;
+use elliptic_curve::group::Curve;
+use elliptic_curve::subtle::Choice;
 use hybrid_array::{typenum::U48, Array};
-use num::{BigUint, Num, Zero};
+use num::{BigUint, Num, One, Zero};
 use serde::{Deserialize, Serialize};
+use std::ops::Neg;
 
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::FieldParameters;
@@ -59,12 +63,12 @@ impl FieldParameters for Bls12381BaseField {
     }
 }
 
-fn fp_to_biguint(val: &Fp) -> BigUint {
+pub fn fp_to_biguint(val: &Fp) -> BigUint {
     let bytes: [u8; 48] = val.to_bytes();
     BigUint::from_bytes_be(&bytes)
 }
 
-fn biguint_to_fp(val: &BigUint) -> Fp {
+pub fn biguint_to_fp(val: &BigUint) -> Fp {
     assert!(val < &Bls12381BaseField::modulus());
     let be_bytes = BigUint::to_bytes_le(val);
     let mut bytes: Vec<u8> = be_bytes;
@@ -82,6 +86,67 @@ pub fn bls12381_fp2_sqrt(a: &[BigUint; 2]) -> [BigUint; 2] {
     };
     let a_sqrt = a.sqrt().unwrap();
     [fp_to_biguint(&a_sqrt.c0), fp_to_biguint(&a_sqrt.c1)]
+}
+
+pub fn bls12381_g2_add(a: &[BigUint; 4], b: &[BigUint; 4]) -> [BigUint; 4] {
+    fn is_identity(input: &[BigUint; 4]) -> Choice {
+        if input[0] == BigUint::zero()
+            && input[1] == BigUint::zero()
+            && input[2] == BigUint::one()
+            && input[3] == BigUint::zero()
+        {
+            return Choice::from(1u8);
+        }
+        Choice::from(0u8)
+    }
+
+    let a_identity = is_identity(a);
+    let b_identity = is_identity(b);
+
+    assert!(
+        !bool::from(a_identity),
+        "[bls12381_g2_add] point A is identity"
+    );
+    assert!(
+        !bool::from(b_identity),
+        "[bls12381_g2_add] point B is identity"
+    );
+    let a_equals_b = a.iter().zip(b.iter()).all(|(a, b)| a == b);
+    assert!(!a_equals_b, "[bls12381_g2_add] A and B points are equal");
+
+    let a = G2Affine {
+        x: Fp2 {
+            c0: biguint_to_fp(&a[0]),
+            c1: biguint_to_fp(&a[1]),
+        },
+        y: Fp2 {
+            c0: biguint_to_fp(&a[2]),
+            c1: biguint_to_fp(&a[3]),
+        },
+        infinity: a_identity,
+    };
+
+    let b = G2Affine {
+        x: Fp2 {
+            c0: biguint_to_fp(&b[0]),
+            c1: biguint_to_fp(&b[1]),
+        },
+        y: Fp2 {
+            c0: biguint_to_fp(&b[2]),
+            c1: biguint_to_fp(&b[3]),
+        },
+        infinity: b_identity,
+    };
+
+    let neg_b = b.neg();
+    assert_ne!(a, neg_b, "[bls12381_g2_add] A equals -B | B equals -A");
+
+    let expected = (a.to_curve() + b.to_curve()).to_affine();
+    let out_x_c0 = fp_to_biguint(&expected.x.c0);
+    let out_x_c1 = fp_to_biguint(&expected.x.c1);
+    let out_y_c0 = fp_to_biguint(&expected.y.c0);
+    let out_y_c1 = fp_to_biguint(&expected.y.c1);
+    [out_x_c0, out_x_c1, out_y_c0, out_y_c1]
 }
 
 impl WithFieldAddition for Bls12381BaseField {

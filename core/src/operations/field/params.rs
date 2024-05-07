@@ -56,6 +56,14 @@ pub type WORDS_QUAD_EXT_FIELD_ELEMENT<N> = Shright<N, B1>;
 #[allow(non_camel_case_types)]
 pub type BYTES_FIELD_ELEMENT<N> = <WORDS_FIELD_ELEMENT<N> as Mul<WORD_SIZE>>::Output;
 
+/// Number of words needed to represent a point on an elliptic curve with coordinates on a quadratic
+/// extension field. This is twice the number of words needed to represent a field element as a point
+/// consists of the x and y coordinates, each a quadratic field extension element.
+/// This is also equal to twice the value of `WORDS_CURVEPOINT`
+// Can also be seen as a type-level function N -> N
+#[allow(non_camel_case_types)]
+pub type WORDS_QUAD_EXT_CURVEPOINT<N> = N;
+
 /// Number of bytes needed to represent a curve point in compressed form.
 /// This is the number of bytes needed to represent a single field element (since we only represent the x-coordinate).
 /// Can also be seen as a type-level function N -> WORDS_FIELD_ELEMENT(N) * WORD_SIZE
