@@ -93,7 +93,7 @@ impl ProverClient {
 
             match status.status() {
                 ProofStatus::ProofFulfilled => {
-                    maybe_proof.unwrap();
+                    return Ok(maybe_proof.unwrap());
                 }
                 ProofStatus::ProofClaimed => {
                     if !is_claimed {
