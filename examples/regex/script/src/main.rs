@@ -19,7 +19,7 @@ fn main() {
 
     // Generate the proof for the given program and input.
     let client = ProverClient::new();
-    let mut proof = client.prove(REGEX_IO_ELF, stdin).expect("proving failed");
+    let mut proof = client.prove(REGEX_IO_ELF, &stdin).expect("proving failed");
 
     // Read the output.
     let res = proof.public_values.read::<bool>();

@@ -46,7 +46,7 @@ fn main() {
     stdin.write(&transactions);
 
     let client = ProverClient::new();
-    let mut proof = client.prove(JSON_ELF, stdin).expect("proving failed");
+    let mut proof = client.prove(JSON_ELF, &stdin).expect("proving failed");
 
     // Read output.
     let val = proof.public_values.read::<String>();
