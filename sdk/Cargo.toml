@@ -24,7 +24,6 @@ tokio = { workspace = true, features = ["full"] }
 p3-matrix = { workspace = true }
 p3-commit = { workspace = true }
 p3-field = { workspace = true }
-indicatif = { workspace = true }
 tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }

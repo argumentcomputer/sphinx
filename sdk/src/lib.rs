@@ -18,7 +18,6 @@ use wp1_core::utils::run_and_prove;
 pub use wp1_prover::{CoreSC, SP1CoreProof, SP1Prover, SP1PublicValues, SP1Stdin};
 
 use crate::client::NetworkClient;
-use crate::utils::StageProgressBar;
 
 /// A client that can prove RISCV ELFs and verify those proofs.
 pub struct ProverClient {
@@ -83,36 +82,29 @@ impl ProverClient {
 
         // Execute the runtime before creating the proof request.
         let _ = ProverClient::execute(elf, stdin);
-        println!("Simulation complete.");
+        println!("Simulation complete");
 
         let proof_id = client.create_proof(elf, stdin).await?;
-        println!("proof_id: {:?}", proof_id);
+        println!("Proof request ID: {:?}", proof_id);
 
-        let mut pb = StageProgressBar::new();
+        let mut is_claimed = false;
         loop {
             let (status, maybe_proof) = client.get_proof_status(&proof_id).await?;
 
             match status.status() {
-                ProofStatus::ProofSucceeded => {
-                    println!("Proof succeeded");
-                    pb.finish();
-                    if let Some(proof) = maybe_proof {
-                        return Ok(proof);
-                    } else {
-                        return Err(anyhow::anyhow!("Proof succeeded but no proof available"));
+                ProofStatus::ProofFulfilled => {
+                    maybe_proof.unwrap();
+                }
+                ProofStatus::ProofClaimed => {
+                    if !is_claimed {
+                        println!("Proof request claimed");
+                        is_claimed = true;
                     }
                 }
                 ProofStatus::ProofFailed => {
-                    pb.finish();
                     return Err(anyhow::anyhow!("Proof generation failed"));
                 }
                 _ => {
-                    pb.update(
-                        status.stage,
-                        status.total_stages,
-                        &status.stage_name,
-                        status.stage_progress.map(|p| (p, status.stage_total())),
-                    );
                     sleep(Duration::from_secs(1)).await;
                 }
             }
