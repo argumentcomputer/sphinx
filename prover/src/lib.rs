@@ -6,10 +6,6 @@
 //! 2. Reduce shard proofs into a single shard proof.
 //! 3. Wrap the shard proof into a SNARK-friendly field.
 //! 4. Wrap the last shard proof, proven over the SNARK-friendly field, into a Groth16/PLONK proof.
-
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
-#![allow(deprecated)]
 #![allow(clippy::new_without_default)]
 
 mod utils;
@@ -36,13 +32,13 @@ use wp1_core::{
 };
 use wp1_recursion_circuit::stark::build_wrap_circuit;
 use wp1_recursion_circuit::witness::Witnessable;
-use wp1_recursion_compiler::constraints::groth16_ffi;
 use wp1_recursion_compiler::ir::Witness;
 use wp1_recursion_core::runtime::RecursionProgram;
 use wp1_recursion_core::{
     runtime::Runtime as RecursionRuntime,
     stark::{config::BabyBearPoseidon2Outer, RecursionAir},
 };
+use wp1_recursion_groth16_ffi::Groth16Prover;
 use wp1_recursion_program::reduce::ReduceProgram;
 use wp1_recursion_program::{hints::Hintable, stark::EMPTY};
 
@@ -421,7 +417,7 @@ impl SP1Prover {
         let mut witness = Witness::default();
         proof.write(&mut witness);
         let constraints = build_wrap_circuit(&self.reduce_vk_outer, proof);
-        groth16_ffi::test_prove(&constraints, witness);
+        Groth16Prover::test(&constraints, witness);
     }
 
     // TODO: Get rid of this method by reading it from public values.

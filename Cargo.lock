@@ -5046,11 +5046,11 @@ dependencies = [
  "p3-util",
  "rand",
  "serde",
- "serial_test",
  "wp1-core",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
  "wp1-recursion-derive",
+ "wp1-recursion-groth16-ffi",
  "wp1-recursion-program",
  "zkhash",
 ]
