@@ -12,10 +12,13 @@ use p3_field::PrimeField32;
 use serde::{de::DeserializeOwned, Serialize};
 use size::Size;
 
-use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
 use crate::stark::MachineRecord;
 use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, UniConfig};
 use crate::utils::env::shard_batch_size;
+use crate::{
+    runtime::{ExecutionRecord, MemoryRecord, ShardingConfig},
+    stark::MachineProof,
+};
 use crate::{
     runtime::{Program, Runtime},
     stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
@@ -52,7 +55,7 @@ pub fn run_test_io(
 pub fn run_test_with_memory_inspection(
     program: Program,
 ) -> (
-    crate::stark::Proof<BabyBearBlake3>,
+    MachineProof<BabyBearBlake3>,
     HashMap<u32, MemoryRecord, BuildNoHashHasher<u32>>,
 ) {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
@@ -68,7 +71,7 @@ pub fn run_test_with_memory_inspection(
 
 pub fn run_test(
     program: Program,
-) -> Result<crate::stark::Proof<BabyBearBlake3>, crate::stark::ProgramVerificationError> {
+) -> Result<MachineProof<BabyBearBlake3>, crate::stark::ProgramVerificationError> {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
         let mut runtime = Runtime::new(program);
         runtime.run();
@@ -80,7 +83,7 @@ pub fn run_test(
 #[allow(unused_variables)]
 pub fn run_test_core(
     runtime: Runtime,
-) -> Result<crate::stark::Proof<BabyBearBlake3>, crate::stark::ProgramVerificationError> {
+) -> Result<MachineProof<BabyBearBlake3>, crate::stark::ProgramVerificationError> {
     let config = BabyBearBlake3::new();
     let machine = RiscvAir::machine(config);
     let (pk, vk) = machine.setup(runtime.program.as_ref());
@@ -132,7 +135,7 @@ pub fn run_and_prove<SC: StarkGenericConfig + Send + Sync>(
     program: &Program,
     stdin: &[Vec<u8>],
     config: SC,
-) -> (crate::stark::Proof<SC>, Vec<u8>)
+) -> (MachineProof<SC>, Vec<u8>)
 where
     SC::Challenger: Clone,
     OpeningProof<SC>: Send + Sync,
@@ -240,7 +243,7 @@ where
         shard_proofs.append(&mut new_proofs);
     }
 
-    let proof = crate::stark::Proof::<SC> { shard_proofs };
+    let proof = MachineProof::<SC> { shard_proofs };
 
     // Prove the program.
     let nb_bytes = bincode::serialize(&proof).unwrap().len();
@@ -256,7 +259,7 @@ where
     (proof, public_values_stream)
 }
 
-pub fn prove_core<SC: StarkGenericConfig>(config: SC, runtime: Runtime) -> crate::stark::Proof<SC>
+pub fn prove_core<SC: StarkGenericConfig>(config: SC, runtime: Runtime) -> MachineProof<SC>
 where
     SC::Challenger: Clone,
     OpeningProof<SC>: Send + Sync,

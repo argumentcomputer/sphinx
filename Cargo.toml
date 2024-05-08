@@ -119,6 +119,7 @@ web-time = "1.1.0"
 yansi = "1.0.1"
 zkhash = { git = "https://github.com/HorizenLabs/poseidon2" }
 bls12_381 = { git = "https://github.com/lurk-lab/bls12_381.git", branch = "zkvm" }
+tracing-appender = "0.2.3"
 
 
 [profile.dev-ci]

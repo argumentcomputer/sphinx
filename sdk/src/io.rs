@@ -113,10 +113,10 @@ impl SP1PublicValues {
 
 pub(crate) mod proof_serde {
     use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
-    use wp1_core::stark::{Proof, StarkGenericConfig};
+    use wp1_core::stark::{MachineProof, StarkGenericConfig};
 
     pub(crate) fn serialize<S, SC: StarkGenericConfig + Serialize>(
-        proof: &Proof<SC>,
+        proof: &MachineProof<SC>,
         serializer: S,
     ) -> Result<S::Ok, S::Error>
     where
@@ -133,7 +133,7 @@ pub(crate) mod proof_serde {
 
     pub(crate) fn deserialize<'de, D, SC: StarkGenericConfig + DeserializeOwned>(
         deserializer: D,
-    ) -> Result<Proof<SC>, D::Error>
+    ) -> Result<MachineProof<SC>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -143,7 +143,7 @@ pub(crate) mod proof_serde {
             let proof = bincode::deserialize(&bytes).map_err(serde::de::Error::custom)?;
             Ok(proof)
         } else {
-            Proof::<SC>::deserialize(deserializer)
+            MachineProof::<SC>::deserialize(deserializer)
         }
     }
 

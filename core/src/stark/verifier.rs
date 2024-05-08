@@ -7,10 +7,14 @@ use p3_challenger::{CanObserve, FieldChallenger};
 use p3_commit::{LagrangeSelectors, Pcs, PolynomialSpace};
 use p3_field::{AbstractExtensionField, AbstractField};
 
-use super::{
-    folder::VerifierConstraintFolder, types::*, Domain, StarkGenericConfig, Val, VerifyingKey,
-};
-use crate::{air::MachineAir, stark::MachineChip};
+use super::folder::VerifierConstraintFolder;
+use super::types::*;
+use super::Domain;
+use super::StarkGenericConfig;
+use super::StarkVerifyingKey;
+use super::Val;
+use crate::air::MachineAir;
+use crate::stark::MachineChip;
 
 pub struct Verifier<SC, A>(PhantomData<SC>, PhantomData<A>);
 
@@ -18,7 +22,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
     /// Verify a proof for a collection of air chips.
     pub fn verify_shard(
         config: &SC,
-        vk: &VerifyingKey<SC>,
+        vk: &StarkVerifyingKey<SC>,
         chips: &[&MachineChip<SC, A>],
         challenger: &mut SC::Challenger,
         proof: &ShardProof<SC>,
