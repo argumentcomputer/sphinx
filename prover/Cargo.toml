@@ -12,6 +12,7 @@ wp1-recursion-program = { path = "../recursion/program" }
 wp1-recursion-circuit = { path = "../recursion/circuit" }
 wp1-recursion-compiler = { path = "../recursion/compiler" }
 wp1-recursion-core = { path = "../recursion/core" }
+wp1-recursion-groth16-ffi = { path = "../recursion/groth16-ffi" }
 wp1-core = { path = "../core" }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
@@ -26,8 +27,10 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-appender = { workspace = true }
 serde_json = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
 sha2 = { workspace = true }
 hex = { workspace = true }
+anyhow = { workspace = true }
 
 [[bin]]
 name = "fibonacci_sweep"
@@ -40,6 +43,10 @@ path = "scripts/tendermint_sweep.rs"
 [[bin]]
 name = "fibonacci_groth16"
 path = "scripts/fibonacci_groth16.rs"
+
+[[bin]]
+name = "e2e"
+path = "scripts/e2e.rs"
 
 [features]
 neon = ["wp1-core/neon"]

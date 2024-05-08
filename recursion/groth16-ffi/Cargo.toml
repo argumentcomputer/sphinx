@@ -1,0 +1,11 @@
+[package]
+name = "wp1-recursion-groth16-ffi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+p3-field = { workspace = true }
+wp1-recursion-compiler = { path = "../compiler" }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["alloc"] }
+tempfile = { workspace = true }

@@ -4999,8 +4999,10 @@ dependencies = [
 name = "wp1-prover"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "backtrace",
  "bincode",
+ "clap",
  "hex",
  "itertools 0.12.1",
  "p3-baby-bear",
@@ -5018,6 +5020,7 @@ dependencies = [
  "wp1-recursion-circuit",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
+ "wp1-recursion-groth16-ffi",
  "wp1-recursion-program",
 ]
 
@@ -5075,6 +5078,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
+ "tracing",
  "wp1-core",
  "wp1-recursion-core",
  "wp1-recursion-derive",
@@ -5121,6 +5125,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "wp1-recursion-groth16-ffi"
+version = "0.1.0"
+dependencies = [
+ "p3-field",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "wp1-recursion-compiler",
+]
+
+[[package]]
 name = "wp1-recursion-program"
 version = "0.1.0"
 dependencies = [
@@ -5139,6 +5154,7 @@ dependencies = [
  "p3-util",
  "rand",
  "serde",
+ "tracing",
  "wp1-core",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
