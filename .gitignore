@@ -18,10 +18,5 @@ benchmark.csv
 # Environment
 .env
 
-# Jetbrain config
-./.idea
-
-# VSCode config
-**/.vscode
-
-.idea
+# Groth16 FFI
+recursion/groth16-ffi/build
