@@ -31,7 +31,7 @@ pub enum FieldOperation {
 /// * When `op` is `FieldOperation::Add`, then `result = a + b mod M`.
 /// * When `op` is `FieldOperation::Mul`, then `result = a * b mod M`.
 /// * When `op` is `FieldOperation::Sub`, then `result = a - b mod M`.
-/// * When `op` is `FieldOperation::Div`, then `result * b = a  mod M`.
+/// * When `op` is `FieldOperation::Div`, then `result * b = a mod M`.
 ///
 /// **Warning**: The constraints do not check for division by zero. The caller is responsible for
 /// ensuring that the division operation is valid.

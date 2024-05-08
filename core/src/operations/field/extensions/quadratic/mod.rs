@@ -8,14 +8,13 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, PrimeField32};
 use wp1_derive::AlignedBorrow;
 
-use crate::{
-    air::{Polynomial, SP1AirBuilder},
-    operations::field::{
-        params::{FieldParameters, Limbs, WITNESS_LIMBS},
-        util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs},
-        util_air::eval_field_operation,
-    },
+use crate::air::{Polynomial, SP1AirBuilder};
+use crate::bytes::event::ByteRecord;
+use crate::operations::field::params::{FieldParameters, Limbs, WITNESS_LIMBS};
+use crate::operations::field::util::{
+    compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs,
 };
+use crate::operations::field::util_air::eval_field_operation;
 
 /// Quadratic field operation for a field extension where `\beta = -1`, i.e. over
 /// `(1 + u)` where `u^2 + 1 = 0`
@@ -37,6 +36,19 @@ pub enum QuadFieldOperation {
 /// This can be checked by adding the field parameter to the `test_check_fields()` test below.
 /// If the field does not pass the `check_quad_extension_preconditions` check, it is currently
 /// unsafe to use with this implementation.
+///
+/// *Safety* The input operands (a, b) (not included in the operation columns) are assumed to be
+/// a pair of elements within the range `[0, 2^{P::nb_bits()})`, with the pair interpreted as
+/// a quadratic extension field element. The result is also assumed to be within the
+/// same range. Let `M = P:modulus()`. The constraints of the function [`FieldOpCols::eval`] assert
+/// that:
+/// * When `op` is `FieldOperation::Add`, then `result = a + b mod M`.
+/// * When `op` is `FieldOperation::Mul`, then `result = a * b mod M`.
+/// * When `op` is `FieldOperation::Sub`, then `result = a - b mod M`.
+/// * When `op` is `FieldOperation::Div`, then `result * b = a mod M`.
+///
+/// **Warning**: The constraints do not check for division by zero. The caller is responsible for
+/// ensuring that the division operation is valid.
 #[derive(Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct QuadFieldOpCols<T, P: FieldParameters> {
@@ -62,84 +74,14 @@ impl<T: Debug, P: FieldParameters> Debug for QuadFieldOpCols<T, P> {
 //               ideally by adding a proper trait encapsulating the quadratic field parameters
 
 impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
-    pub fn populate(
+    fn populate_carry_and_witness(
         &mut self,
         a: &[BigUint; 2],
         b: &[BigUint; 2],
         op: QuadFieldOperation,
     ) -> [BigUint; 2] {
-        if b[0] == BigUint::zero() && b[1] == BigUint::zero() && op == QuadFieldOperation::Div {
-            // Division by 0 is allowed only when dividing 0 so that padded rows can be all 0.
-            assert!(
-                a[0].is_zero() && a[1].is_zero(),
-                "division by zero is allowed only when dividing zero"
-            );
-        }
-
         let modulus = &P::modulus();
-
-        // If doing the subtraction operation, a - b = result, equivalent to a = result + b.
-        if op == QuadFieldOperation::Sub {
-            let result = [
-                (modulus + &a[0] - &b[0]) % modulus,
-                (modulus + &a[1] - &b[1]) % modulus,
-            ];
-            // We populate the carry, witness_low, witness_high as if we were doing an addition with result + b.
-            // But we populate `result` with the actual result of the subtraction because those columns are expected
-            // to contain the result by the user.
-            // Note that this reversal means we have to flip result, a correspondingly in
-            // the `eval` function.
-            self.populate(&result, b, QuadFieldOperation::Add);
-            self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
-            return result;
-        }
-
         let modulus_minus_one = modulus - BigUint::one();
-
-        // a / b = result is equivalent to a = result * b.
-        if op == QuadFieldOperation::Div {
-            // a / b = result => result = a * (1/b)
-            // We wish to find the multiplicative inverse of a nonzero
-            // element b0 + b1u in Fp2. We leverage an identity
-            //
-            // (b0 + b1u)(b0 - b1u) = b0^2 + b1^2
-            //
-            // which holds because u^2 = -1. This can be rewritten as
-            //
-            // (b0 + b1u)(b0 - b1u)/(b0^2 + b1^2) = 1
-            //
-            // because b0^2 + b1^2 = 0 has no nonzero solutions for (b0, b1).
-            // This gives that (b0 - b1u)/(b0^2 + b1^2) is the inverse
-            // of (b0 + b1u). Importantly, this can be computing using
-            // only a single inversion in Fp.
-            // Inversions in Fp can be calculated as x^-1 = x^(p-2)
-            // Negations in Fp can be calculated as -x = p - x
-            let x = &b[0] * &b[0] + &b[1] * &b[1];
-            let inv = x.modpow(&(&modulus_minus_one - BigUint::one()), modulus);
-            let b_inv = [
-                (&b[0] * &inv) % modulus,
-                (&b[1] * (modulus - &inv)) % modulus,
-            ];
-            // Here we manually calculate a*b_inv
-            let result = {
-                let v0 = &a[0] * &b_inv[0];
-                let v1 = &a[1] * &b_inv[1];
-                let t0 = &a[0] + &a[1];
-                let t1 = &b_inv[0] + &b_inv[1];
-                let c0 = modulus * modulus_minus_one + &v0 - &v1;
-                let c1 = (t0 * t1) - (v0 + v1);
-                [c0 % modulus, c1 % modulus]
-            };
-
-            // We populate the carry, witness_low, witness_high as if we were doing a multiplication
-            // with result * b. But we populate `result` with the actual result of the
-            // multiplication because those columns are expected to contain the result by the user.
-            // Note that this reversal means we have to flip result, a correspondingly in the `eval`
-            // function.
-            self.populate(&result, b, QuadFieldOperation::Mul);
-            self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
-            return result;
-        }
 
         let unreduced_result = match op {
             // Compute field addition in the integers.
@@ -227,12 +169,109 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
 
         result
     }
+
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        a: &[BigUint; 2],
+        b: &[BigUint; 2],
+        op: QuadFieldOperation,
+    ) -> [BigUint; 2] {
+        if b[0] == BigUint::zero() && b[1] == BigUint::zero() && op == QuadFieldOperation::Div {
+            // Division by 0 is allowed only when dividing 0 so that padded rows can be all 0.
+            assert!(
+                a[0].is_zero() && a[1].is_zero(),
+                "division by zero is allowed only when dividing zero"
+            );
+        }
+
+        let modulus = &P::modulus();
+
+        let result = match op {
+            QuadFieldOperation::Sub => {
+                // If doing the subtraction operation, a - b = result, equivalent to a = result + b.
+                let result = [
+                    (modulus + &a[0] - &b[0]) % modulus,
+                    (modulus + &a[1] - &b[1]) % modulus,
+                ];
+                // We populate the carry, witness_low, witness_high as if we were doing an addition with result + b.
+                // But we populate `result` with the actual result of the subtraction because those columns are expected
+                // to contain the result by the user.
+                // Note that this reversal means we have to flip result, a correspondingly in
+                // the `eval` function.
+                self.populate_carry_and_witness(&result, b, QuadFieldOperation::Add);
+                self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
+                result
+            }
+            QuadFieldOperation::Div => {
+                // a / b = result is equivalent to a = result * b.
+                let modulus_minus_one = modulus - BigUint::one();
+
+                // a / b = result => result = a * (1/b)
+                // We wish to find the multiplicative inverse of a nonzero
+                // element b0 + b1u in Fp2. We leverage an identity
+                //
+                // (b0 + b1u)(b0 - b1u) = b0^2 + b1^2
+                //
+                // which holds because u^2 = -1. This can be rewritten as
+                //
+                // (b0 + b1u)(b0 - b1u)/(b0^2 + b1^2) = 1
+                //
+                // because b0^2 + b1^2 = 0 has no nonzero solutions for (b0, b1).
+                // This gives that (b0 - b1u)/(b0^2 + b1^2) is the inverse
+                // of (b0 + b1u). Importantly, this can be computing using
+                // only a single inversion in Fp.
+                // Inversions in Fp can be calculated as x^-1 = x^(p-2)
+                // Negations in Fp can be calculated as -x = p - x
+                let x = &b[0] * &b[0] + &b[1] * &b[1];
+                let inv = x.modpow(&(&modulus_minus_one - BigUint::one()), modulus);
+                let b_inv = [
+                    (&b[0] * &inv) % modulus,
+                    (&b[1] * (modulus - &inv)) % modulus,
+                ];
+                // Here we manually calculate a*b_inv
+                let result = {
+                    let v0 = &a[0] * &b_inv[0];
+                    let v1 = &a[1] * &b_inv[1];
+                    let t0 = &a[0] + &a[1];
+                    let t1 = &b_inv[0] + &b_inv[1];
+                    let c0 = modulus * modulus_minus_one + &v0 - &v1;
+                    let c1 = (t0 * t1) - (v0 + v1);
+                    [c0 % modulus, c1 % modulus]
+                };
+
+                // We populate the carry, witness_low, witness_high as if we were doing a multiplication
+                // with result * b. But we populate `result` with the actual result of the
+                // multiplication because those columns are expected to contain the result by the user.
+                // Note that this reversal means we have to flip result, a correspondingly in the `eval`
+                // function.
+                self.populate_carry_and_witness(&result, b, QuadFieldOperation::Mul);
+                self.result = result.each_ref().map(|r| P::to_limbs_field::<F>(r));
+                result
+            }
+            _ => self.populate_carry_and_witness(a, b, op),
+        };
+
+        record.add_u8_range_checks_field(shard, &self.result[0]);
+        record.add_u8_range_checks_field(shard, &self.result[1]);
+        record.add_u8_range_checks_field(shard, &self.carry[0]);
+        record.add_u8_range_checks_field(shard, &self.carry[1]);
+        record.add_u8_range_checks_field(shard, &self.witness_low[0]);
+        record.add_u8_range_checks_field(shard, &self.witness_low[1]);
+        record.add_u8_range_checks_field(shard, &self.witness_high[0]);
+        record.add_u8_range_checks_field(shard, &self.witness_high[1]);
+
+        result
+    }
 }
 
 impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     pub fn eval<
         AB: SP1AirBuilder<Var = V>,
         A: Into<Polynomial<AB::Expr>> + Clone,
+        EShard: Into<AB::Expr> + Clone,
+        ER: Into<AB::Expr> + Clone,
         B: Into<Polynomial<AB::Expr>> + Clone,
     >(
         &self,
@@ -240,6 +279,8 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
         a: &[A; 2],
         b: &[B; 2],
         op: QuadFieldOperation,
+        shard: EShard,
+        is_real: ER,
     ) where
         V: Into<AB::Expr>,
     {
@@ -276,8 +317,8 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
             ],
         };
         let p_op_minus_result: [Polynomial<AB::Expr>; 2] = [
-            p_op[0].clone() - p_result[0].clone(),
-            p_op[1].clone() - p_result[1].clone(),
+            p_op[0].clone() - &p_result[0],
+            p_op[1].clone() - &p_result[1],
         ];
         let p_vanishing = [
             p_op_minus_result[0].clone() - &(&p_carry[0] * &p_modulus),
@@ -297,35 +338,55 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
             &p_witness_low[1],
             &p_witness_high[1],
         );
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(&self.result[0], shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.result[1], shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.carry[0], shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.carry[1], shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(
+            p_witness_low[0].coefficients(),
+            shard.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            p_witness_low[1].coefficients(),
+            shard.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            p_witness_high[0].coefficients(),
+            shard.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(p_witness_high[1].coefficients(), shard, is_real);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use core::{
-        borrow::{Borrow, BorrowMut},
-        mem::size_of,
-    };
+    use core::borrow::{Borrow, BorrowMut};
+    use core::mem::size_of;
 
     use hybrid_array::typenum::Unsigned;
     use num::{bigint::RandBigInt, BigUint, One, Zero};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
-    use p3_field::{Field, PrimeField32};
+    use p3_field::{AbstractField, Field, PrimeField32};
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use rand::thread_rng;
     use wp1_derive::AlignedBorrow;
 
     use super::{QuadFieldOpCols, QuadFieldOperation};
-    use crate::{
-        air::{MachineAir, SP1AirBuilder},
-        operations::field::params::{FieldParameters, Limbs},
-        runtime::{ExecutionRecord, Program},
-        stark::StarkGenericConfig,
-        utils::{
-            ec::weierstrass::bls12_381::Bls12381BaseField, pad_to_power_of_two_nongeneric,
-            uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
-        },
+    use crate::air::{MachineAir, SP1AirBuilder};
+    use crate::bytes::event::ByteRecord;
+    use crate::operations::field::params::{FieldParameters, Limbs};
+    use crate::runtime::{ExecutionRecord, Program};
+    use crate::stark::StarkGenericConfig;
+    use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
+    use crate::utils::{
+        pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
+        BabyBearPoseidon2,
     };
 
     #[derive(AlignedBorrow, Debug, Clone)]
@@ -361,7 +422,7 @@ mod tests {
         fn generate_trace(
             &self,
             _: &ExecutionRecord,
-            _: &mut ExecutionRecord,
+            output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             // Hardcoded edge cases. We purposely include 0 / 0. While mathematically, that is not
@@ -429,11 +490,14 @@ mod tests {
             let rows = operands
                 .into_iter()
                 .map(|(a, b)| {
+                    let mut blu_events = Vec::new();
                     let mut row = vec![F::zero(); num_test_cols];
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
                     cols.b = [P::to_limbs_field::<F>(&b[0]), P::to_limbs_field::<F>(&b[1])];
-                    cols.a_op_b.populate(&a, &b, self.operation);
+                    cols.a_op_b
+                        .populate(&mut blu_events, 1, &a, &b, self.operation);
+                    output.add_byte_lookup_events(blu_events);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -468,9 +532,14 @@ mod tests {
             let main = builder.main();
             let local = main.row_slice(0);
             let local: &TestCols<AB::Var, P> = (*local).borrow();
-            local
-                .a_op_b
-                .eval(builder, &local.a, &local.b, self.operation);
+            local.a_op_b.eval(
+                builder,
+                &local.a,
+                &local.b,
+                self.operation,
+                AB::F::one(),
+                AB::F::one(),
+            );
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]

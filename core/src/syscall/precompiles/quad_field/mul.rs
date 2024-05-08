@@ -194,14 +194,17 @@ impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldMultiplication> Machine
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
+                let mut new_byte_lookup_events = Vec::new();
+
                 cols.p_mul_q.populate(
+                    &mut new_byte_lookup_events,
+                    event.shard,
                     &[p0_int, p1_int],
                     &[q0_int, q1_int],
                     QuadFieldOperation::Mul,
                 );
 
                 // Populate the memory access columns.
-                let mut new_byte_lookup_events = Vec::new();
                 for i in 0..(2 * words_len) {
                     cols.q_access[i]
                         .populate(event.q_memory_records[i], &mut new_byte_lookup_events);
@@ -223,7 +226,8 @@ impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldMultiplication> Machine
             let mut row = vec![F::zero(); size_of::<QuadFieldMulCols<u8, FP>>()];
             let cols: &mut QuadFieldMulCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = [BigUint::zero(), BigUint::zero()];
-            cols.p_mul_q.populate(&zero, &zero, QuadFieldOperation::Mul);
+            cols.p_mul_q
+                .populate(&mut vec![], 0, &zero, &zero, QuadFieldOperation::Mul);
             row
         });
 
@@ -263,8 +267,14 @@ where
         let q0: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[..words_len]);
         let q1: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[words_len..]);
 
-        row.p_mul_q
-            .eval(builder, &[p0, p1], &[q0, q1], QuadFieldOperation::Mul);
+        row.p_mul_q.eval(
+            builder,
+            &[p0, p1],
+            &[q0, q1],
+            QuadFieldOperation::Mul,
+            row.shard,
+            row.is_real,
+        );
 
         // Constraint self.p_access.value = [self.p_mul_q.result]
         // This is to ensure that p_access is updated with the new value.

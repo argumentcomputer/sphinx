@@ -43,6 +43,8 @@ impl Bls12381G2AffineAddChip {
     }
 
     fn populate_cols<F: PrimeField32>(
+        record: &mut impl ByteRecord,
+        shard: u32,
         cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField>,
         a_x: &[BigUint; 2],
         a_y: &[BigUint; 2],
@@ -51,18 +53,24 @@ impl Bls12381G2AffineAddChip {
     ) {
         let slope = {
             let slope_numerator = cols.slope_numerator.populate(
+                record,
+                shard,
                 &[b_y[0].clone(), b_y[1].clone()],
                 &[a_y[0].clone(), a_y[1].clone()],
                 QuadFieldOperation::Sub,
             );
 
             let slope_denominator = cols.slope_denominator.populate(
+                record,
+                shard,
                 &[b_x[0].clone(), b_x[1].clone()],
                 &[a_x[0].clone(), a_x[1].clone()],
                 QuadFieldOperation::Sub,
             );
 
             cols.slope.populate(
+                record,
+                shard,
                 &slope_numerator,
                 &slope_denominator,
                 QuadFieldOperation::Div,
@@ -72,28 +80,41 @@ impl Bls12381G2AffineAddChip {
         let x = {
             let slope_squared =
                 cols.slope_squared
-                    .populate(&slope, &slope, QuadFieldOperation::Mul);
+                    .populate(record, shard, &slope, &slope, QuadFieldOperation::Mul);
             let p_x_plus_q_x = cols.p_x_plus_q_x.populate(
+                record,
+                shard,
                 &[a_x[0].clone(), a_x[1].clone()],
                 &[b_x[0].clone(), b_x[1].clone()],
                 QuadFieldOperation::Add,
             );
-            cols.x3_ins
-                .populate(&slope_squared, &p_x_plus_q_x, QuadFieldOperation::Sub)
+            cols.x3_ins.populate(
+                record,
+                shard,
+                &slope_squared,
+                &p_x_plus_q_x,
+                QuadFieldOperation::Sub,
+            )
         };
 
         {
             let p_x_minus_x = cols.p_x_minus_x.populate(
+                record,
+                shard,
                 &[a_x[0].clone(), a_x[1].clone()],
                 &x,
                 QuadFieldOperation::Sub,
             );
             let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate(
+                record,
+                shard,
                 &slope,
                 &p_x_minus_x,
                 QuadFieldOperation::Mul,
             );
             cols.y3_ins.populate(
+                record,
+                shard,
                 &slope_times_p_x_minus_x,
                 &[a_y[0].clone(), a_y[1].clone()],
                 QuadFieldOperation::Sub,
@@ -303,6 +324,8 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             }
 
             Self::populate_cols(
+                &mut new_byte_lookup_events,
+                event.shard,
                 cols,
                 &[a_x_c0, a_x_c1],
                 &[a_y_c0, a_y_c1],
@@ -326,6 +349,8 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
 
             let zero = BigUint::zero();
             Self::populate_cols(
+                &mut vec![],
+                0,
                 cols,
                 &[zero.clone(), zero.clone()],
                 &[zero.clone(), zero.clone()],
@@ -371,72 +396,93 @@ where
             limbs_from_access(&local.b_access[36..48]);
 
         let slope = {
-            local.slope_numerator.eval::<AB, _, _>(
+            local.slope_numerator.eval(
                 builder,
                 &[q_y_c0, q_y_c1],
                 &[p_y_c0, p_y_c1],
                 QuadFieldOperation::Sub,
+                local.shard,
+                local.is_real,
             );
 
-            local.slope_denominator.eval::<AB, _, _>(
+            local.slope_denominator.eval(
                 builder,
                 &[q_x_c0, q_x_c1],
                 &[p_x_c0, p_x_c1],
                 QuadFieldOperation::Sub,
+                local.shard,
+                local.is_real,
             );
 
-            local.slope.eval::<AB, _, _>(
+            local.slope.eval(
                 builder,
                 &local.slope_numerator.result,
                 &local.slope_denominator.result,
                 QuadFieldOperation::Div,
+                local.shard,
+                local.is_real,
             );
 
             local.slope.result
         };
 
         let x = {
-            local
-                .slope_squared
-                .eval::<AB, _, _>(builder, &slope, &slope, QuadFieldOperation::Mul);
+            local.slope_squared.eval(
+                builder,
+                &slope,
+                &slope,
+                QuadFieldOperation::Mul,
+                local.shard,
+                local.is_real,
+            );
 
-            local.p_x_plus_q_x.eval::<AB, _, _>(
+            local.p_x_plus_q_x.eval(
                 builder,
                 &[p_x_c0, p_x_c1],
                 &[q_x_c0, q_x_c1],
                 QuadFieldOperation::Add,
+                local.shard,
+                local.is_real,
             );
 
-            local.x3_ins.eval::<AB, _, _>(
+            local.x3_ins.eval(
                 builder,
                 &local.slope_squared.result,
                 &local.p_x_plus_q_x.result,
                 QuadFieldOperation::Sub,
+                local.shard,
+                local.is_real,
             );
 
             local.x3_ins.result
         };
 
         {
-            local.p_x_minus_x.eval::<AB, _, _>(
+            local.p_x_minus_x.eval(
                 builder,
                 &[p_x_c0, p_x_c1],
                 &x,
                 QuadFieldOperation::Sub,
+                local.shard,
+                local.is_real,
             );
 
-            local.slope_times_p_x_minus_x.eval::<AB, _, _>(
+            local.slope_times_p_x_minus_x.eval(
                 builder,
                 &slope,
                 &local.p_x_minus_x.result,
                 QuadFieldOperation::Mul,
+                local.shard,
+                local.is_real,
             );
 
-            local.y3_ins.eval::<AB, _, _>(
+            local.y3_ins.eval(
                 builder,
                 &local.slope_times_p_x_minus_x.result,
                 &[p_y_c0, p_y_c1],
                 QuadFieldOperation::Sub,
+                local.shard,
+                local.is_real,
             );
         }
 

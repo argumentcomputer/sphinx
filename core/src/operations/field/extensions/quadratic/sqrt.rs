@@ -1,6 +1,8 @@
 use crate::air::SP1AirBuilder;
+use crate::bytes::event::ByteRecord;
 use crate::operations::field::extensions::quadratic::QuadFieldOperation;
 use crate::operations::field::params::{FieldParameters, Limbs};
+use crate::operations::field::range::FieldRangeCols;
 use num::BigUint;
 use p3_field::PrimeField32;
 use std::fmt::Debug;
@@ -11,6 +13,9 @@ use super::QuadFieldOpCols;
 /// A set of columns to compute the square root in some quadratic extension field. `T` is the field in which each
 /// limb lives, while `U` is how many limbs are necessary to represent a quadratic extension field element.
 /// See additional comments on `QuadFieldOpCols` to determine which specific field extensions are supported.
+///
+/// *Safety*: The `FieldSqrtCols` asserts that `multiplication.result` is a square root of the given
+/// input lying within the range `[0, modulus)`
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct QuadFieldSqrtCols<T, P: FieldParameters> {
@@ -19,6 +24,8 @@ pub struct QuadFieldSqrtCols<T, P: FieldParameters> {
     /// In order to save space, we actually store the sqrt of the input in `multiplication.result`
     /// since we'll receive the input again in the `eval` function.
     pub multiplication: QuadFieldOpCols<T, P>,
+
+    pub range: [FieldRangeCols<T, P>; 2],
 }
 
 impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
@@ -27,15 +34,19 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
     /// `P` is the parameter of the field that each limb lives in.
     pub fn populate(
         &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
         a: &[BigUint; 2],
         sqrt_fn: impl Fn(&[BigUint; 2]) -> [BigUint; 2],
     ) -> [BigUint; 2] {
+        let modulus = P::modulus();
+        assert!(a[0] < modulus && a[1] < modulus);
         let sqrt = sqrt_fn(a);
 
         // Use QuadFieldOpCols to compute result * result.
-        let sqrt_squared = self
-            .multiplication
-            .populate(&sqrt, &sqrt, QuadFieldOperation::Mul);
+        let sqrt_squared =
+            self.multiplication
+                .populate(record, shard, &sqrt, &sqrt, QuadFieldOperation::Mul);
 
         // If the result is indeed the square root of a, then result * result = a.
         assert_eq!(sqrt_squared, *a);
@@ -47,16 +58,25 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
             P::to_limbs_field::<F>(&sqrt[1]),
         ];
 
+        self.range[0].populate(record, shard, &sqrt[0]);
+        self.range[1].populate(record, shard, &sqrt[1]);
+
         sqrt
     }
 }
 
 impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
-    pub fn eval<AB: SP1AirBuilder<Var = V>>(
+    pub fn eval<
+        AB: SP1AirBuilder<Var = V>,
+        ER: Into<AB::Expr> + Clone,
+        EShard: Into<AB::Expr> + Clone,
+    >(
         &self,
         builder: &mut AB,
         a: &[Limbs<AB::Var, P::NB_LIMBS>; 2],
+        shard: &EShard,
+        is_real: &ER,
     ) where
         V: Into<AB::Expr>,
     {
@@ -68,7 +88,17 @@ impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
         multiplication.result.clone_from(a);
 
         // Compute sqrt * sqrt. We pass in P since we want its BaseField to be the mod.
-        multiplication.eval(builder, &sqrt, &sqrt, QuadFieldOperation::Mul);
+        multiplication.eval(
+            builder,
+            &sqrt,
+            &sqrt,
+            QuadFieldOperation::Mul,
+            shard.clone(),
+            is_real.clone(),
+        );
+
+        self.range[0].eval(builder, &sqrt[0], shard.clone(), is_real.clone());
+        self.range[1].eval(builder, &sqrt[1], shard.clone(), is_real.clone());
     }
 }
 
@@ -76,12 +106,13 @@ impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
 mod tests {
     use num::{BigUint, One, Zero};
     use p3_air::BaseAir;
-    use p3_field::{Field, PrimeField32};
+    use p3_field::{AbstractField, Field, PrimeField32};
 
     use super::QuadFieldSqrtCols;
 
     use crate::air::MachineAir;
 
+    use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
@@ -131,7 +162,7 @@ mod tests {
         fn generate_trace(
             &self,
             _: &ExecutionRecord,
-            _: &mut ExecutionRecord,
+            output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let num_test_cols = size_of::<TestCols<u8, P>>();
             let mut rng = thread_rng();
@@ -169,10 +200,12 @@ mod tests {
             let rows = operands
                 .iter()
                 .map(|a| {
+                    let mut blu_events = Vec::new();
                     let mut row = vec![F::zero(); num_test_cols];
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
-                    cols.sqrt.populate(a, self.sqrt_fn);
+                    cols.sqrt.populate(&mut blu_events, 1, a, self.sqrt_fn);
+                    output.add_byte_lookup_events(blu_events);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -209,7 +242,9 @@ mod tests {
             let local: &TestCols<AB::Var, P> = (*local).borrow();
 
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
-            local.sqrt.eval(builder, &local.a);
+            local
+                .sqrt
+                .eval(builder, &local.a, &AB::F::one(), &AB::F::one());
 
             // A dummy constraint to keep the degree 3.
             #[allow(clippy::eq_op)]
