@@ -15,10 +15,10 @@ use p3_maybe_rayon::prelude::*;
 use p3_util::{log2_ceil_usize, log2_strict_usize};
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{quotient_values, MachineStark, PcsProverData, Val};
+use super::{quotient_values, PcsProverData, StarkMachine, Val};
 use super::{types::*, StarkGenericConfig};
 use super::{Com, OpeningProof};
-use super::{ProvingKey, VerifierConstraintFolder};
+use super::{StarkProvingKey, VerifierConstraintFolder};
 use crate::air::MachineAir;
 use crate::lookup::InteractionBuilder;
 use crate::stark::record::MachineRecord;
@@ -39,11 +39,11 @@ fn chunk_vec<T>(mut vec: Vec<T>, chunk_size: usize) -> Vec<Vec<T>> {
 
 pub trait Prover<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> {
     fn prove_shards(
-        machine: &MachineStark<SC, A>,
-        pk: &ProvingKey<SC>,
+        machine: &StarkMachine<SC, A>,
+        pk: &StarkProvingKey<SC>,
         shards: Vec<A::Record>,
         challenger: &mut SC::Challenger,
-    ) -> Proof<SC>
+    ) -> MachineProof<SC>
     where
         A: for<'a> Air<ProverConstraintFolder<'a, SC>>
             + Air<InteractionBuilder<Val<SC>>>
@@ -62,11 +62,11 @@ where
     A: MachineAir<Val<SC>>,
 {
     fn prove_shards(
-        machine: &MachineStark<SC, A>,
-        pk: &ProvingKey<SC>,
+        machine: &StarkMachine<SC, A>,
+        pk: &StarkProvingKey<SC>,
         shards: Vec<A::Record>,
         challenger: &mut SC::Challenger,
-    ) -> Proof<SC>
+    ) -> MachineProof<SC>
     where
         A: for<'a> Air<ProverConstraintFolder<'a, SC>>
             + Air<InteractionBuilder<Val<SC>>>
@@ -143,7 +143,7 @@ where
                 .collect::<Vec<_>>()
         });
 
-        Proof { shard_proofs }
+        MachineProof { shard_proofs }
     }
 }
 
@@ -160,7 +160,7 @@ where
 {
     pub fn commit_main(
         config: &SC,
-        machine: &MachineStark<SC, A>,
+        machine: &StarkMachine<SC, A>,
         shard: &A::Record,
         index: usize,
     ) -> ShardMainData<SC> {
@@ -219,7 +219,7 @@ where
     /// Prove the program for the given shard and given a commitment to the main data.
     pub fn prove_shard(
         config: &SC,
-        pk: &ProvingKey<SC>,
+        pk: &StarkProvingKey<SC>,
         chips: &[&MachineChip<SC, A>],
         mut shard_data: ShardMainData<SC>,
         challenger: &mut SC::Challenger,
@@ -519,7 +519,7 @@ where
     }
 
     pub fn commit_shards<F, EF>(
-        machine: &MachineStark<SC, A>,
+        machine: &StarkMachine<SC, A>,
         shards: &[A::Record],
     ) -> (Vec<Com<SC>>, Vec<ShardMainDataWrapper<SC>>)
     where

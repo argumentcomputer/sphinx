@@ -1,11 +1,15 @@
 use p3_air::Air;
 use p3_commit::TwoAdicMultiplicativeCoset;
-use p3_field::{AbstractField, TwoAdicField};
-use wp1_core::{
-    air::MachineAir,
-    stark::{Com, MachineStark, StarkGenericConfig},
-};
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Usize, Var};
+use p3_field::AbstractField;
+use p3_field::TwoAdicField;
+use wp1_core::air::MachineAir;
+use wp1_core::stark::Com;
+use wp1_core::stark::StarkGenericConfig;
+use wp1_core::stark::StarkMachine;
+use wp1_recursion_compiler::ir::Array;
+use wp1_recursion_compiler::ir::Ext;
+use wp1_recursion_compiler::ir::Var;
+use wp1_recursion_compiler::ir::{Builder, Config, Usize};
 use wp1_recursion_core::runtime::DIGEST_SIZE;
 
 use crate::{
@@ -39,7 +43,7 @@ where
         builder: &mut Builder<C>,
         vk: &VerifyingKeyVariable<C>,
         pcs: &TwoAdicFriPcsVariable<C>,
-        machine: &MachineStark<SC, A>,
+        machine: &StarkMachine<SC, A>,
         challenger: &mut DuplexChallengerVariable<C>,
         proof: &ShardProofVariable<C>,
         chip_sorted_idxs: &Array<C, Var<C::N>>,

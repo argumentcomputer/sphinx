@@ -29,14 +29,13 @@ use utils::*;
 use wp1_core::{
     runtime::{Program, Runtime},
     stark::{
-        Com, OpeningProof, PcsProverData, ProgramVerificationError, Proof, RiscvAir, ShardMainData,
-        StarkGenericConfig,
+        Com, MachineProof, OpeningProof, PcsProverData, ProgramVerificationError, RiscvAir,
+        ShardMainData, StarkGenericConfig,
     },
     utils::run_and_prove,
 };
 
 use crate::client::NetworkClient;
-
 use std::env;
 use std::fs;
 use std::time::Duration;
@@ -46,7 +45,7 @@ use wp1_core::stark::DeferredDigest;
 #[derive(Serialize, Deserialize)]
 pub struct SP1ProofWithIO<SC: StarkGenericConfig + Serialize + DeserializeOwned> {
     #[serde(with = "proof_serde")]
-    pub proof: Proof<SC>,
+    pub proof: MachineProof<SC>,
     pub stdin: SP1Stdin,
     pub public_values: SP1PublicValues,
 }
