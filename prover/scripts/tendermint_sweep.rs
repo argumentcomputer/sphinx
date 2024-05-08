@@ -5,8 +5,8 @@ use std::{fs::File, io::BufWriter, io::Write, time::Instant};
 use itertools::iproduct;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{fmt::format::FmtSpan, util::SubscriberInitExt};
+use wp1_core::io::SP1Stdin;
 use wp1_prover::SP1Prover;
-use wp1_sdk::SP1Stdin;
 
 fn main() {
     // Setup tracer.

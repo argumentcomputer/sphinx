@@ -7,9 +7,9 @@ use p3_merkle_tree::FieldMerkleTreeMmcs;
 use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
 use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
 use wp1_core::stark::StarkGenericConfig;
+use wp1_core::utils::BabyBearPoseidon2;
 use wp1_recursion_compiler::asm::AsmConfig;
 use wp1_recursion_compiler::ir::{Builder, Felt, MemVariable, Var};
-use wp1_sdk::utils::BabyBearPoseidon2;
 
 use crate::fri::types::FriConfigVariable;
 use crate::fri::TwoAdicMultiplicativeCosetVariable;

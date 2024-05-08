@@ -393,8 +393,9 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
+        io::SP1Stdin,
         utils::{self, run_test_io, tests::SECP256K1_DECOMPRESS_ELF},
-        Program, SP1Stdin,
+        Program,
     };
     use elliptic_curve::sec1::ToEncodedPoint;
     use rand::{rngs::StdRng, SeedableRng};
@@ -413,9 +414,9 @@ mod tests {
 
         let inputs = SP1Stdin::from(&compressed);
 
-        let mut proof = run_test_io(Program::from(SECP256K1_DECOMPRESS_ELF), inputs).unwrap();
+        let mut proof = run_test_io(Program::from(SECP256K1_DECOMPRESS_ELF), &inputs).unwrap();
         let mut result = [0; 65];
-        proof.public_values.read_slice(&mut result);
+        proof.buffer.read_slice(&mut result);
         assert_eq!(result, decompressed);
     }
 }

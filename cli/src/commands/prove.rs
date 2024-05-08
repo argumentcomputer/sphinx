@@ -3,7 +3,9 @@ use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr, time::Instant};
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
+use wp1_core::utils::{setup_logger, setup_tracer};
+use wp1_prover::SP1Stdin;
+use wp1_sdk::ProverClient;
 
 use crate::{
     build::{build_program, BuildArgs},
@@ -80,13 +82,13 @@ impl ProveCmd {
                 Ok(_) => {}
                 Err(_) => env::set_var("RUST_LOG", "info"),
             }
-            utils::setup_logger();
+            setup_logger();
         } else {
             match env::var("RUST_TRACER") {
                 Ok(_) => {}
                 Err(_) => env::set_var("RUST_TRACER", "info"),
             }
-            utils::setup_tracer();
+            setup_tracer();
         }
 
         let mut elf = Vec::new();
@@ -112,7 +114,7 @@ impl ProveCmd {
 
         let start_time = Instant::now();
         let client = ProverClient::new();
-        let proof = client.prove(&elf, stdin).unwrap();
+        let proof = client.prove(&elf, &stdin).unwrap();
 
         if let Some(ref path) = self.output {
             proof
