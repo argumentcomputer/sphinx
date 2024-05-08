@@ -473,6 +473,7 @@ where
 mod tests {
     use super::bls12_381_g1_decompress;
     use crate::{
+        io::SP1Stdin,
         operations::field::params::FieldParameters,
         runtime::{Instruction, Opcode, SyscallCode},
         stark::SwCurve,
@@ -490,7 +491,7 @@ mod tests {
             tests::BLS12381_G1_DECOMPRESS_ELF,
             words_to_bytes_le_vec,
         },
-        Program, SP1Stdin,
+        Program,
     };
     use bls12_381::G1Affine;
     use elliptic_curve::{group::Curve, Group as _};
@@ -645,9 +646,9 @@ mod tests {
 
         let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-        let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), inputs).unwrap();
+        let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
         let mut result = [0; 96];
-        proof.public_values.read_slice(&mut result);
+        proof.buffer.read_slice(&mut result);
         assert_eq!(result, pt_uncompressed);
     }
 
@@ -662,9 +663,10 @@ mod tests {
 
             let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-            let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), inputs).unwrap();
+            let mut proof =
+                run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
             let mut result = [0; 96];
-            proof.public_values.read_slice(&mut result);
+            proof.buffer.read_slice(&mut result);
             assert_eq!(result, pt_uncompressed);
         }
     }
@@ -680,11 +682,11 @@ mod tests {
 
         let mut proof = run_test_io(
             Program::from(BLS12381_G1_DECOMPRESS_ELF),
-            SP1Stdin::from(&compressed),
+            &SP1Stdin::from(&compressed),
         )
         .unwrap();
         let mut result = [0; 96];
-        proof.public_values.read_slice(&mut result);
+        proof.buffer.read_slice(&mut result);
 
         assert_eq!(expected, result);
     }

@@ -23,7 +23,6 @@ p3-poseidon2 = { workspace = true }
 wp1-recursion-core = { path = "../core" }
 wp1-recursion-compiler = { path = "../compiler" }
 wp1-core = { path = "../../core" }
-wp1-sdk = { path = "../../sdk" }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }

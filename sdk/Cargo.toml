@@ -14,7 +14,9 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns"] }
 anyhow = { workspace = true }
+wp1-prover = { path = "../prover" }
 wp1-core = { path = "../core" }
 futures = { workspace = true }
 bincode = { workspace = true }
@@ -26,11 +28,7 @@ indicatif = { workspace = true }
 tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
-axum = { workspace = true }
+axum = "=0.7.4"
 alloy = { workspace = true, features = ["contract", "signer-wallet"] }
 dotenv = { workspace = true }
 sha2 = { workspace = true }
-
-
-[features]
-neon = ["wp1-core/neon"]

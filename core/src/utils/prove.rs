@@ -6,6 +6,7 @@ use std::{
     time::Instant,
 };
 
+use crate::io::{SP1PublicValues, SP1Stdin};
 pub use baby_bear_blake3::BabyBearBlake3;
 use p3_challenger::CanObserve;
 use p3_field::PrimeField32;
@@ -22,7 +23,6 @@ use crate::{
 use crate::{
     runtime::{Program, Runtime},
     stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
-    SP1ProofWithIO, SP1PublicValues, SP1Stdin,
 };
 
 const LOG_DEGREE_BOUND: usize = 31;
@@ -33,10 +33,11 @@ pub fn get_cycles(program: Program) -> u64 {
     runtime.state.global_clk
 }
 
+/// Runs a program and returns the public values stream.
 pub fn run_test_io(
     program: Program,
-    inputs: SP1Stdin,
-) -> Result<SP1ProofWithIO<BabyBearBlake3>, crate::stark::ProgramVerificationError> {
+    inputs: &SP1Stdin,
+) -> Result<SP1PublicValues, crate::stark::ProgramVerificationError> {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
         let mut runtime = Runtime::new(program);
         runtime.write_vecs(&inputs.buffer);
@@ -44,12 +45,8 @@ pub fn run_test_io(
         runtime
     });
     let public_values = SP1PublicValues::from(&runtime.state.public_values_stream);
-    let proof = run_test_core(runtime)?;
-    Ok(SP1ProofWithIO {
-        proof,
-        stdin: inputs,
-        public_values,
-    })
+    let _ = run_test_core(runtime)?;
+    Ok(public_values)
 }
 
 pub fn run_test_with_memory_inspection(

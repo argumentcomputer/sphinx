@@ -7,8 +7,8 @@ use wp1_core::stark::{
 };
 use wp1_core::stark::{StarkGenericConfig, StarkVerifyingKey};
 use wp1_core::utils::{
-    BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm,
-    InnerVal,
+    BabyBearPoseidon2, BabyBearPoseidon2Inner, InnerChallenge, InnerDigest, InnerDigestHash,
+    InnerPcsProof, InnerPerm, InnerVal,
 };
 use wp1_recursion_compiler::{
     config::InnerConfig,
@@ -16,7 +16,6 @@ use wp1_recursion_compiler::{
 };
 use wp1_recursion_core::air::Block;
 use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
-use wp1_sdk::utils::BabyBearPoseidon2;
 
 use crate::challenger::DuplexChallengerVariable;
 use crate::fri::TwoAdicMultiplicativeCosetVariable;

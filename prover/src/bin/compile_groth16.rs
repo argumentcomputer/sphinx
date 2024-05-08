@@ -1,9 +1,10 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 
+use wp1_core::io::SP1Stdin;
+use wp1_core::utils::setup_logger;
 use wp1_prover::SP1Prover;
 use wp1_recursion_circuit::stark::build_wrap_circuit;
-use wp1_sdk::{utils::setup_logger, SP1Stdin};
 
 pub fn main() {
     setup_logger();
