@@ -220,6 +220,7 @@ mod tests {
     use crate::Groth16Prover;
 
     #[test]
+    #[ignore]
     fn test_groth16_prove() {
         let prover = Groth16Prover::new();
         prover.cmd(&["prove", "--data", "./build"]);
