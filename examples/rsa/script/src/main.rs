@@ -53,7 +53,7 @@ fn main() {
 
     // Generate the proof for the given program and input.
     let client = ProverClient::new();
-    let proof = client.prove(REGEX_IO_ELF, stdin).expect("proving failed");
+    let proof = client.prove(REGEX_IO_ELF, &stdin).expect("proving failed");
 
     // Verify proof.
     client

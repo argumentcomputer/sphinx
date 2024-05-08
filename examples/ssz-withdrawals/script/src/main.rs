@@ -9,7 +9,7 @@ fn main() {
 
     let stdin = SP1Stdin::new();
     let client = ProverClient::new();
-    let proof = client.prove(ELF, stdin).expect("proving failed");
+    let proof = client.prove(ELF, &stdin).expect("proving failed");
 
     // Verify proof.
     client.verify(ELF, &proof).expect("verification failed");

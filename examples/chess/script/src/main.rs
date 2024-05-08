@@ -14,7 +14,7 @@ fn main() {
     stdin.write(&san);
 
     let client = ProverClient::new();
-    let mut proof = client.prove(ELF, stdin).unwrap();
+    let mut proof = client.prove(ELF, &stdin).unwrap();
 
     // Read output.
     let is_valid_move = proof.public_values.read::<bool>();

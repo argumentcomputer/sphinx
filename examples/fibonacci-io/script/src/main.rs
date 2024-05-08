@@ -1,4 +1,3 @@
-use sha2::{Digest, Sha256};
 use wp1_sdk::{utils, ProverClient, SP1PublicValues, SP1Stdin};
 
 /// The ELF we want to execute inside the zkVM.
@@ -20,7 +19,7 @@ fn main() {
 
     // Generate the proof for the given program and input.
     let client = ProverClient::new();
-    let mut proof = client.prove(ELF, stdin).unwrap();
+    let mut proof = client.prove(ELF, &stdin).unwrap();
 
     println!("generated proof");
 

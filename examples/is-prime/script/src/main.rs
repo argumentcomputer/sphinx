@@ -15,7 +15,7 @@ fn main() {
 
     // Generate and verify the proof
     let client = ProverClient::new();
-    let mut proof = client.prove(ELF, stdin).unwrap();
+    let mut proof = client.prove(ELF, &stdin).unwrap();
 
     let is_prime = proof.public_values.read::<bool>();
     println!("Is 29 prime? {}", is_prime);
