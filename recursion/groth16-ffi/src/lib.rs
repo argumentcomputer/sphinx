@@ -65,6 +65,16 @@ impl Groth16Prover {
         let serialized = serde_json::to_string(&gnark_witness).unwrap();
         witness_file.write_all(serialized.as_bytes()).unwrap();
 
+        // Run `make`.
+        let make = Command::new("make")
+            .current_dir(&groth16_dir)
+            .stderr(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stdin(Stdio::inherit())
+            .output()
+            .unwrap();
+        assert!(make.status.success(), "failed to run make");
+
         let result = Command::new("go")
             .args([
                 "test",
