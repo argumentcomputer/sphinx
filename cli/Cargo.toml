@@ -21,7 +21,7 @@ wp1-core = { path = "../core" }
 reqwest = { workspace = true, features = [
     "stream",
     "json",
-    "rustls-tls",
+    "default-tls",
 ], default-features = false }
 futures-util = { workspace = true }
 indicatif = { workspace = true }

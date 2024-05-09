@@ -14,7 +14,7 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
-reqwest = { workspace = true, features = ["rustls-tls", "trust-dns"] }
+reqwest = { workspace = true, features = ["default-tls", "trust-dns"] }
 anyhow = { workspace = true }
 wp1-prover = { path = "../prover" }
 wp1-core = { path = "../core" }

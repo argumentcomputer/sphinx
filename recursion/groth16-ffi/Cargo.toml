@@ -1,7 +1,9 @@
 [package]
 name = "wp1-recursion-groth16-ffi"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 p3-field = { workspace = true }
