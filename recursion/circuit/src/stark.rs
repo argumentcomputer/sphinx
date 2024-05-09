@@ -306,7 +306,7 @@ pub(crate) mod tests {
         runtime::{Opcode, RecursionProgram, Runtime},
         stark::{config::BabyBearPoseidon2Outer, RecursionAir},
     };
-    use wp1_recursion_groth16_ffi::Groth16Prover;
+    use wp1_recursion_gnark_ffi::Groth16Prover;
 
     use crate::{stark::build_wrap_circuit, witness::Witnessable};
 

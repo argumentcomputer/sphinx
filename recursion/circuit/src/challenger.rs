@@ -157,7 +157,7 @@ mod tests {
     use wp1_recursion_compiler::ir::SymbolicExt;
     use wp1_recursion_compiler::ir::{Builder, Witness};
     use wp1_recursion_core::stark::config::{outer_perm, OuterChallenger};
-    use wp1_recursion_groth16_ffi::Groth16Prover;
+    use wp1_recursion_gnark_ffi::Groth16Prover;
 
     use super::{reduce_32, split_32};
     use crate::{challenger::MultiField32ChallengerVariable, DIGEST_SIZE};

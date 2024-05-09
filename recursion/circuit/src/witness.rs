@@ -336,7 +336,7 @@ mod tests {
         ir::{Builder, ExtConst, Witness},
     };
     use wp1_recursion_core::stark::config::OuterChallenge;
-    use wp1_recursion_groth16_ffi::Groth16Prover;
+    use wp1_recursion_gnark_ffi::Groth16Prover;
 
     #[test]
     fn test_witness_simple() {

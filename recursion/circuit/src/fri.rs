@@ -252,7 +252,7 @@ pub mod tests {
         outer_perm, test_fri_config, OuterChallenge, OuterChallengeMmcs, OuterChallenger,
         OuterCompress, OuterDft, OuterFriProof, OuterHash, OuterPcs, OuterVal, OuterValMmcs,
     };
-    use wp1_recursion_groth16_ffi::Groth16Prover;
+    use wp1_recursion_gnark_ffi::Groth16Prover;
 
     use super::{verify_shape_and_sample_challenges, verify_two_adic_pcs, TwoAdicPcsRoundVariable};
     use crate::{

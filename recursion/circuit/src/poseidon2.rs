@@ -56,7 +56,7 @@ pub mod tests {
     use wp1_recursion_compiler::constraints::ConstraintCompiler;
     use wp1_recursion_compiler::ir::{Builder, Felt, Var, Witness};
     use wp1_recursion_core::stark::config::{outer_perm, OuterCompress, OuterHash};
-    use wp1_recursion_groth16_ffi::Groth16Prover;
+    use wp1_recursion_gnark_ffi::Groth16Prover;
 
     use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigestVariable};
 
