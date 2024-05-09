@@ -2,16 +2,18 @@ pub mod config;
 pub mod poseidon2;
 
 use p3_field::{extension::BinomiallyExtendable, PrimeField32};
-use wp1_core::stark::{Chip, StarkGenericConfig, StarkMachine};
+use wp1_core::stark::{Chip, StarkGenericConfig, StarkMachine, PROOF_MAX_NUM_PVS};
 use wp1_derive::MachineAir;
 
 use crate::runtime::D;
 use crate::{
     cpu::CpuChip,
+    fri_fold::FriFoldChip,
     memory::{MemoryChipKind, MemoryGlobalChip},
+    poseidon2_wide::Poseidon2WideChip,
     program::ProgramChip,
 };
-use wp1_core::stark::PROOF_MAX_NUM_PVS;
+use core::iter::once;
 
 #[derive(MachineAir)]
 #[wp1_core_path = "wp1_core"]
@@ -23,7 +25,8 @@ pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>> {
     Cpu(CpuChip<F>),
     MemoryInit(MemoryGlobalChip),
     MemoryFinalize(MemoryGlobalChip),
-    // Poseidon2(Poseidon2WideChip),
+    Poseidon2(Poseidon2WideChip),
+    FriFold(FriFoldChip),
     // Poseidon2(Poseidon2Chip),
 }
 
@@ -37,23 +40,16 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>> RecursionAir<F> {
     }
 
     pub fn get_all() -> Vec<Self> {
-        let mut chips = vec![];
-        let program = ProgramChip;
-        chips.push(RecursionAir::Program(program));
-        let cpu = CpuChip::default();
-        chips.push(RecursionAir::Cpu(cpu));
-        let memory_init = MemoryGlobalChip {
-            kind: MemoryChipKind::Init,
-        };
-        chips.push(RecursionAir::MemoryInit(memory_init));
-        let memory_finalize = MemoryGlobalChip {
-            kind: MemoryChipKind::Finalize,
-        };
-        chips.push(RecursionAir::MemoryFinalize(memory_finalize));
-        // let poseidon_wide2 = Poseidon2WideChip {};
-        // chips.push(RecursionAir::Poseidon2(poseidon_wide2));
-        // let poseidon2 = Poseidon2Chip {};
-        // chips.push(RecursionAir::Poseidon2(poseidon2));
-        chips
+        once(RecursionAir::Program(ProgramChip))
+            .chain(once(RecursionAir::Cpu(CpuChip::default())))
+            .chain(once(RecursionAir::MemoryInit(MemoryGlobalChip {
+                kind: MemoryChipKind::Init,
+            })))
+            .chain(once(RecursionAir::MemoryFinalize(MemoryGlobalChip {
+                kind: MemoryChipKind::Finalize,
+            })))
+            .chain(once(RecursionAir::Poseidon2(Poseidon2WideChip {})))
+            .chain(once(RecursionAir::FriFold(FriFoldChip {})))
+            .collect()
     }
 }
