@@ -34,4 +34,4 @@ p3-merkle-tree = { workspace = true }
 p3-poseidon2 = { workspace = true }
 zkhash = { workspace = true }
 rand = { workspace = true }
-wp1-recursion-groth16-ffi = { path = "../groth16-ffi" }
+wp1-recursion-gnark-ffi = { path = "../gnark-ffi" }

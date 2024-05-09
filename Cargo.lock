@@ -4887,7 +4887,7 @@ dependencies = [
  "wp1-recursion-circuit",
  "wp1-recursion-compiler",
  "wp1-recursion-core",
- "wp1-recursion-groth16-ffi",
+ "wp1-recursion-gnark-ffi",
  "wp1-recursion-program",
 ]
 
@@ -4917,7 +4917,7 @@ dependencies = [
  "wp1-recursion-compiler",
  "wp1-recursion-core",
  "wp1-recursion-derive",
- "wp1-recursion-groth16-ffi",
+ "wp1-recursion-gnark-ffi",
  "wp1-recursion-program",
  "zkhash",
 ]
@@ -4991,7 +4991,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp1-recursion-groth16-ffi"
+name = "wp1-recursion-gnark-ffi"
 version = "0.1.0"
 dependencies = [
  "p3-field",
