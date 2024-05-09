@@ -6,7 +6,7 @@
 //! 2. Reduce shard proofs into a single shard proof.
 //! 3. Wrap the shard proof into a SNARK-friendly field.
 //! 4. Wrap the last shard proof, proven over the SNARK-friendly field, into a Groth16/PLONK proof.
-#![allow(clippy::new_without_default)]
+#![allow(deprecated)]
 
 mod types;
 mod utils;
@@ -496,6 +496,12 @@ impl SP1Prover {
             );
         }
         core_challenger
+    }
+}
+
+impl Default for SP1Prover {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
