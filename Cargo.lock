@@ -4829,6 +4829,7 @@ dependencies = [
  "csv",
  "serde",
  "wp1-core",
+ "wp1-prover",
 ]
 
 [[package]]

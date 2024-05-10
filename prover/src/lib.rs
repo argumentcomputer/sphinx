@@ -7,7 +7,7 @@
 //! 3. Wrap the shard proof into a SNARK-friendly field.
 //! 4. Wrap the last shard proof, proven over the SNARK-friendly field, into a Groth16/PLONK proof.
 mod types;
-mod utils;
+pub mod utils;
 mod verify;
 
 use std::time::Instant;
