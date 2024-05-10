@@ -334,7 +334,7 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "num-bigint",
  "p3-field",
@@ -348,7 +348,7 @@ dependencies = [
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -360,7 +360,7 @@ dependencies = [
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "itertools",
  "num-bigint",
@@ -373,7 +373,7 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "itertools",
  "p3-field",
@@ -387,12 +387,12 @@ dependencies = [
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "itertools",
  "p3-dft",
@@ -406,7 +406,7 @@ dependencies = [
 [[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "gcd",
  "p3-field",
@@ -418,7 +418,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "itertools",
  "p3-field",
@@ -428,7 +428,7 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+https://github.com/Plonky3/Plonky3.git?branch=sp1#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
+source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1-new#aef4f8f03f960925f7088d757aeeb956a7f4b30c"
 dependencies = [
  "serde",
 ]
@@ -584,63 +584,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "snowbridge-amcl"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "460a9ed63cdf03c1b9847e8a12a5f5ba19c4efd5869e4a737e05be25d7c427e5"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "sp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "hex",
- "k256",
- "num",
- "rand",
- "serde",
- "snowbridge-amcl",
-]
-
-[[package]]
-name = "sp1-primitives"
-version = "0.1.0"
-dependencies = [
- "itertools",
- "lazy_static",
- "p3-baby-bear",
- "p3-field",
- "p3-poseidon2",
- "p3-symmetric",
-]
-
-[[package]]
-name = "sp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "once_cell",
- "p3-baby-bear",
- "p3-field",
- "rand",
- "serde",
- "sha2",
- "sp1-precompiles",
- "sp1-primitives",
-]
-
-[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -746,7 +689,7 @@ dependencies = [
 name = "wp1-primitives"
 version = "0.1.0"
 dependencies = [
- "itertools 0.12.1",
+ "itertools",
  "lazy_static",
  "p3-baby-bear",
  "p3-field",
