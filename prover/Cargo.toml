@@ -18,6 +18,7 @@ wp1-primitives = { path = "../primitives" }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
 p3-baby-bear = { workspace = true }
+p3-bn254-fr = { workspace = true }
 p3-commit = { workspace = true }
 bincode = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
