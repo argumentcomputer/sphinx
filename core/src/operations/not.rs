@@ -1,5 +1,5 @@
 use p3_air::AirBuilder;
-use p3_field::{AbstractField, Field};
+use p3_field::Field;
 use wp1_derive::AlignedBorrow;
 
 use crate::air::SP1AirBuilder;
@@ -51,7 +51,7 @@ impl<F: Field> NotOperation<F> {
         for i in 0..WORD_SIZE {
             builder
                 .when(is_real)
-                .assert_eq(cols.value[i] + a[i], AB::Expr::from_canonical_u8(u8::MAX));
+                .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));
         }
 
         // A dummy constraint to keep the degree 3.

@@ -185,7 +185,7 @@ where
 
         // Receive C.
         builder.receive(AirInteraction::new(
-            [
+            vec![
                 local.c.addr.into(),
                 local.c.prev_timestamp.into(),
                 local.c.prev_value.0[0].into(),
@@ -197,7 +197,7 @@ where
             InteractionKind::Memory,
         ));
         builder.send(AirInteraction::new(
-            [
+            vec![
                 local.c.addr.into(),
                 local.c.timestamp.into(),
                 local.c.value.0[0].into(),
@@ -211,7 +211,7 @@ where
 
         // Receive B.
         builder.receive(AirInteraction::new(
-            [
+            vec![
                 local.b.addr.into(),
                 local.b.prev_timestamp.into(),
                 local.b.prev_value.0[0].into(),
@@ -223,7 +223,7 @@ where
             InteractionKind::Memory,
         ));
         builder.send(AirInteraction::new(
-            [
+            vec![
                 local.b.addr.into(),
                 local.b.timestamp.into(),
                 local.b.value.0[0].into(),
@@ -237,7 +237,7 @@ where
 
         // Receive A.
         builder.receive(AirInteraction::new(
-            [
+            vec![
                 local.a.addr.into(),
                 local.a.prev_timestamp.into(),
                 local.a.prev_value.0[0].into(),
@@ -249,7 +249,7 @@ where
             InteractionKind::Memory,
         ));
         builder.send(AirInteraction::new(
-            [
+            vec![
                 local.a.addr.into(),
                 local.a.timestamp.into(),
                 local.a.value.0[0].into(),
@@ -261,7 +261,19 @@ where
             InteractionKind::Memory,
         ));
 
-        // let  prog_interaction_vals = local.instruction.into_iter().chain(local.selectors.into_iter());
+        // let mut prog_interaction_vals: Vec<AB::Expr> = vec![local.instruction.opcode.into()];
+        // prog_interaction_vals.push(local.instruction.op_a.into());
+        // prog_interaction_vals.extend_from_slice(&local.instruction.op_b.map(|x| x.into()).0);
+        // prog_interaction_vals.extend_from_slice(&local.instruction.op_c.map(|x| x.into()).0);
+        // prog_interaction_vals.push(local.instruction.imm_b.into());
+        // prog_interaction_vals.push(local.instruction.imm_c.into());
+        // prog_interaction_vals.extend_from_slice(
+        //     &local
+        //         .selectors
+        //         .into_iter()
+        //         .map(|x| x.into())
+        //         .collect::<Vec<_>>(),
+        // );
         // builder.send(AirInteraction::new(
         //     prog_interaction_vals,
         //     local.is_real.into(),

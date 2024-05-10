@@ -76,18 +76,7 @@ impl PublicValues<u32, u32> {
 impl<T: Clone + Debug> PublicValues<Word<T>, T> {
     /// Convert a vector of field elements into a PublicValues struct.
     pub fn from_vec(data: &[T]) -> Self {
-        data.iter().cloned().collect::<Self>()
-    }
-}
-
-impl<T, IT> FromIterator<IT> for PublicValues<Word<T>, T>
-where
-    T: Debug + Clone,
-    IT: Into<T>,
-{
-    /// Construct a PublicValues struct by reading the first elements from an iterator
-    fn from_iter<I: IntoIterator<Item = IT>>(iter: I) -> Self {
-        let mut iter = iter.into_iter().map(IT::into);
+        let mut iter = data.iter().cloned();
         let mut committed_value_digest = Vec::new();
         for _ in 0..PV_DIGEST_NUM_WORDS {
             committed_value_digest.push((&mut iter).collect());

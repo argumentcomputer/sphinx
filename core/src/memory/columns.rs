@@ -55,16 +55,16 @@ pub trait MemoryCols<T> {
 
     fn access_mut(&mut self) -> &mut MemoryAccessCols<T>;
 
-    fn prev_value(&self) -> Word<T>;
+    fn prev_value(&self) -> &Word<T>;
 
     fn prev_value_mut(&mut self) -> &mut Word<T>;
 
-    fn value(&self) -> Word<T>;
+    fn value(&self) -> &Word<T>;
 
     fn value_mut(&mut self) -> &mut Word<T>;
 }
 
-impl<T: Copy> MemoryCols<T> for MemoryReadCols<T> {
+impl<T> MemoryCols<T> for MemoryReadCols<T> {
     fn access(&self) -> &MemoryAccessCols<T> {
         &self.access
     }
@@ -73,16 +73,16 @@ impl<T: Copy> MemoryCols<T> for MemoryReadCols<T> {
         &mut self.access
     }
 
-    fn prev_value(&self) -> Word<T> {
-        self.access.value
+    fn prev_value(&self) -> &Word<T> {
+        &self.access.value
     }
 
     fn prev_value_mut(&mut self) -> &mut Word<T> {
         &mut self.access.value
     }
 
-    fn value(&self) -> Word<T> {
-        self.access.value
+    fn value(&self) -> &Word<T> {
+        &self.access.value
     }
 
     fn value_mut(&mut self) -> &mut Word<T> {
@@ -90,7 +90,7 @@ impl<T: Copy> MemoryCols<T> for MemoryReadCols<T> {
     }
 }
 
-impl<T: Copy> MemoryCols<T> for MemoryWriteCols<T> {
+impl<T> MemoryCols<T> for MemoryWriteCols<T> {
     fn access(&self) -> &MemoryAccessCols<T> {
         &self.access
     }
@@ -99,16 +99,16 @@ impl<T: Copy> MemoryCols<T> for MemoryWriteCols<T> {
         &mut self.access
     }
 
-    fn prev_value(&self) -> Word<T> {
-        self.prev_value
+    fn prev_value(&self) -> &Word<T> {
+        &self.prev_value
     }
 
     fn prev_value_mut(&mut self) -> &mut Word<T> {
         &mut self.prev_value
     }
 
-    fn value(&self) -> Word<T> {
-        self.access.value
+    fn value(&self) -> &Word<T> {
+        &self.access.value
     }
 
     fn value_mut(&mut self) -> &mut Word<T> {
@@ -116,7 +116,7 @@ impl<T: Copy> MemoryCols<T> for MemoryWriteCols<T> {
     }
 }
 
-impl<T: Copy> MemoryCols<T> for MemoryReadWriteCols<T> {
+impl<T> MemoryCols<T> for MemoryReadWriteCols<T> {
     fn access(&self) -> &MemoryAccessCols<T> {
         &self.access
     }
@@ -125,16 +125,16 @@ impl<T: Copy> MemoryCols<T> for MemoryReadWriteCols<T> {
         &mut self.access
     }
 
-    fn prev_value(&self) -> Word<T> {
-        self.prev_value
+    fn prev_value(&self) -> &Word<T> {
+        &self.prev_value
     }
 
     fn prev_value_mut(&mut self) -> &mut Word<T> {
         &mut self.prev_value
     }
 
-    fn value(&self) -> Word<T> {
-        self.access.value
+    fn value(&self) -> &Word<T> {
+        &self.access.value
     }
 
     fn value_mut(&mut self) -> &mut Word<T> {

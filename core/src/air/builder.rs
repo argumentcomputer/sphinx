@@ -129,7 +129,7 @@ pub trait ByteAirBuilder: BaseAirBuilder {
         EMult: Into<Self::Expr>,
     {
         self.send(AirInteraction::new(
-            [
+            vec![
                 opcode.into(),
                 a1.into(),
                 a2.into(),
@@ -183,7 +183,7 @@ pub trait ByteAirBuilder: BaseAirBuilder {
         EMult: Into<Self::Expr>,
     {
         self.receive(AirInteraction::new(
-            [
+            vec![
                 opcode.into(),
                 a1.into(),
                 a2.into(),
@@ -338,7 +338,8 @@ pub trait AluAirBuilder: BaseAirBuilder {
             .chain(a.0.into_iter().map(Into::into))
             .chain(b.0.into_iter().map(Into::into))
             .chain(c.0.into_iter().map(Into::into))
-            .chain(once(shard.into()));
+            .chain(once(shard.into()))
+            .collect();
 
         self.send(AirInteraction::new(
             values,
@@ -368,7 +369,8 @@ pub trait AluAirBuilder: BaseAirBuilder {
             .chain(a.0.into_iter().map(Into::into))
             .chain(b.0.into_iter().map(Into::into))
             .chain(c.0.into_iter().map(Into::into))
-            .chain(once(shard.into()));
+            .chain(once(shard.into()))
+            .collect();
 
         self.receive(AirInteraction::new(
             values,
@@ -387,20 +389,20 @@ pub trait AluAirBuilder: BaseAirBuilder {
         arg2: Ec,
         multiplicity: EMult,
     ) where
-        EShard: Into<Self::Expr>,
-        EClk: Into<Self::Expr>,
-        Ea: Into<Self::Expr>,
-        Eb: Into<Self::Expr>,
-        Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr> + Clone,
+        EClk: Into<Self::Expr> + Clone,
+        Ea: Into<Self::Expr> + Clone,
+        Eb: Into<Self::Expr> + Clone,
+        Ec: Into<Self::Expr> + Clone,
         EMult: Into<Self::Expr>,
     {
         self.send(AirInteraction::new(
-            [
-                shard.into(),
-                clk.into(),
-                syscall_id.into(),
-                arg1.into(),
-                arg2.into(),
+            vec![
+                shard.clone().into(),
+                clk.clone().into(),
+                syscall_id.clone().into(),
+                arg1.clone().into(),
+                arg2.clone().into(),
             ],
             multiplicity.into(),
             InteractionKind::Syscall,
@@ -417,20 +419,20 @@ pub trait AluAirBuilder: BaseAirBuilder {
         arg2: Ec,
         multiplicity: EMult,
     ) where
-        EShard: Into<Self::Expr>,
-        EClk: Into<Self::Expr>,
-        Ea: Into<Self::Expr>,
-        Eb: Into<Self::Expr>,
-        Ec: Into<Self::Expr>,
+        EShard: Into<Self::Expr> + Clone,
+        EClk: Into<Self::Expr> + Clone,
+        Ea: Into<Self::Expr> + Clone,
+        Eb: Into<Self::Expr> + Clone,
+        Ec: Into<Self::Expr> + Clone,
         EMult: Into<Self::Expr>,
     {
         self.receive(AirInteraction::new(
-            [
-                shard.into(),
-                clk.into(),
-                syscall_id.into(),
-                arg1.into(),
-                arg2.into(),
+            vec![
+                shard.clone().into(),
+                clk.clone().into(),
+                syscall_id.clone().into(),
+                arg1.clone().into(),
+                arg2.clone().into(),
             ],
             multiplicity.into(),
             InteractionKind::Syscall,
@@ -444,7 +446,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
     ///
     /// This method verifies that a memory access timestamp (shard, clk) is greater than the
     /// previous access's timestamp.  It will also add to the memory argument.
-    fn eval_memory_access<EClk, EShard, Ea, EVerify, M>(
+    fn eval_memory_access<EClk, EShard, Ea, Eb, EVerify, M>(
         &mut self,
         shard: EShard,
         clk: EClk,
@@ -455,13 +457,13 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
         EShard: Into<Self::Expr>,
         EClk: Into<Self::Expr>,
         Ea: Into<Self::Expr>,
+        Eb: Into<Self::Expr> + Clone,
         EVerify: Into<Self::Expr>,
-        M: MemoryCols<Self::Var>,
+        M: MemoryCols<Eb>,
     {
         let do_check: Self::Expr = do_check.into();
         let shard: Self::Expr = shard.into();
         let clk: Self::Expr = clk.into();
-
         let mem_access = memory_access.access();
 
         self.assert_bool(do_check.clone());
@@ -471,16 +473,18 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
 
         // Add to the memory argument.
         let addr = addr.into();
-        let prev_addr = addr.clone();
-        let prev_shard = mem_access.prev_shard.into();
-        let prev_clk = mem_access.prev_clk.into();
-
-        let prev_values = [prev_shard, prev_clk, prev_addr]
-            .into_iter()
-            .chain(memory_access.prev_value().map(Into::into));
-        let current_values = [shard, clk, addr]
-            .into_iter()
-            .chain(memory_access.value().map(Into::into));
+        let prev_shard = mem_access.prev_shard.clone().into();
+        let prev_clk = mem_access.prev_clk.clone().into();
+        let prev_values = once(prev_shard)
+            .chain(once(prev_clk))
+            .chain(once(addr.clone()))
+            .chain(memory_access.prev_value().clone().map(Into::into))
+            .collect();
+        let current_values = once(shard)
+            .chain(once(clk))
+            .chain(once(addr.clone()))
+            .chain(memory_access.value().clone().map(Into::into))
+            .collect();
 
         // The previous values get sent with multiplicity * 1, for "read".
         self.send(AirInteraction::new(
@@ -498,7 +502,7 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
     }
 
     /// Constraints a memory read or write to a slice of `MemoryAccessCols`.
-    fn eval_memory_access_slice<EShard, Ea, EVerify, M>(
+    fn eval_memory_access_slice<EShard, Ea, Eb, EVerify, M>(
         &mut self,
         shard: EShard,
         clk: Self::Expr,
@@ -506,21 +510,19 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
         memory_access_slice: &[M],
         verify_memory_access: EVerify,
     ) where
-        EShard: Into<Self::Expr>,
-        Ea: Into<Self::Expr>,
-        EVerify: Into<Self::Expr>,
-        M: MemoryCols<Self::Var>,
+        EShard: Into<Self::Expr> + Copy,
+        Ea: Into<Self::Expr> + Copy,
+        Eb: Into<Self::Expr> + Copy,
+        EVerify: Into<Self::Expr> + Copy,
+        M: MemoryCols<Eb>,
     {
-        let shard = shard.into();
-        let initial_addr = initial_addr.into();
-        let verify_memory_access = verify_memory_access.into();
         for (i, access_slice) in memory_access_slice.iter().enumerate() {
             self.eval_memory_access(
-                shard.clone(),
+                shard,
                 clk.clone(),
-                initial_addr.clone() + Self::Expr::from_canonical_usize(i * 4),
+                initial_addr.into() + Self::Expr::from_canonical_usize(i * 4),
                 access_slice,
-                verify_memory_access.clone(),
+                verify_memory_access,
             );
         }
     }
@@ -531,21 +533,22 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
     /// Specifically it will ensure that if the current and previous access are in the same shard,
     /// then the current's clk val is greater than the previous's.  If they are not in the same
     /// shard, then it will ensure that the current's shard val is greater than the previous's.
-    fn eval_memory_access_timestamp<EVerify, EShard, EClk>(
+    fn eval_memory_access_timestamp<Eb, EVerify, EShard, EClk>(
         &mut self,
-        mem_access: &MemoryAccessCols<Self::Var>,
+        mem_access: &MemoryAccessCols<Eb>,
         do_check: EVerify,
         shard: EShard,
         clk: EClk,
     ) where
+        Eb: Into<Self::Expr> + Clone,
         EVerify: Into<Self::Expr>,
-        EShard: Into<Self::Expr>,
+        EShard: Into<Self::Expr> + Clone,
         EClk: Into<Self::Expr>,
     {
         let do_check: Self::Expr = do_check.into();
-        let compare_clk: Self::Expr = mem_access.compare_clk.into();
-        let shard: Self::Expr = shard.into();
-        let prev_shard: Self::Expr = mem_access.prev_shard.into();
+        let compare_clk: Self::Expr = mem_access.compare_clk.clone().into();
+        let shard: Self::Expr = shard.clone().into();
+        let prev_shard: Self::Expr = mem_access.prev_shard.clone().into();
 
         // First verify that compare_clk's value is correct.
         self.when(do_check.clone()).assert_bool(compare_clk.clone());
@@ -555,9 +558,9 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
 
         // Get the comparison timestamp values for the current and previous memory access.
         let prev_comp_value = self.if_else(
-            mem_access.compare_clk,
-            mem_access.prev_clk,
-            mem_access.prev_shard,
+            mem_access.compare_clk.clone(),
+            mem_access.prev_clk.clone(),
+            mem_access.prev_shard.clone(),
         );
 
         let current_comp_val = self.if_else(compare_clk.clone(), clk.into(), shard.clone());
@@ -577,8 +580,8 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
         // + mem_access.ts_diff_8bit_limb * 2^16.
         self.eval_range_check_24bits(
             diff_minus_one,
-            mem_access.diff_16bit_limb,
-            mem_access.diff_8bit_limb,
+            mem_access.diff_16bit_limb.clone(),
+            mem_access.diff_8bit_limb.clone(),
             shard.clone(),
             do_check,
         );
@@ -634,22 +637,26 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
 /// A trait which contains methods related to program interactions in an AIR.
 pub trait ProgramAirBuilder: BaseAirBuilder {
     /// Sends an instruction.
-    fn send_program<EPc, EShard, EMult>(
+    fn send_program<EPc, EInst, ESel, EShard, EMult>(
         &mut self,
         pc: EPc,
-        instruction: InstructionCols<Self::Var>,
-        selectors: OpcodeSelectorCols<Self::Var>,
+        instruction: InstructionCols<EInst>,
+        selectors: OpcodeSelectorCols<ESel>,
         shard: EShard,
         multiplicity: EMult,
     ) where
         EPc: Into<Self::Expr>,
-        EShard: Into<Self::Expr>,
+        EInst: Into<Self::Expr> + Copy,
+        ESel: Into<Self::Expr> + Copy,
+        EShard: Into<Self::Expr> + Copy,
         EMult: Into<Self::Expr>,
     {
         let values = once(pc.into())
+            .chain(once(instruction.opcode.into()))
             .chain(instruction.into_iter().map(|x| x.into()))
             .chain(selectors.into_iter().map(|x| x.into()))
-            .chain(once(shard.into()));
+            .chain(once(shard.into()))
+            .collect();
 
         self.send(AirInteraction::new(
             values,
@@ -659,22 +666,26 @@ pub trait ProgramAirBuilder: BaseAirBuilder {
     }
 
     /// Receives an instruction.
-    fn receive_program<EPc, EShard, EMult>(
+    fn receive_program<EPc, EInst, ESel, EShard, EMult>(
         &mut self,
         pc: EPc,
-        instruction: InstructionCols<Self::Var>,
-        selectors: OpcodeSelectorCols<Self::Var>,
+        instruction: InstructionCols<EInst>,
+        selectors: OpcodeSelectorCols<ESel>,
         shard: EShard,
         multiplicity: EMult,
     ) where
         EPc: Into<Self::Expr>,
-        EShard: Into<Self::Expr>,
+        EInst: Into<Self::Expr> + Copy,
+        ESel: Into<Self::Expr> + Copy,
+        EShard: Into<Self::Expr> + Copy,
         EMult: Into<Self::Expr>,
     {
-        let values = once(pc.into())
+        let values: Vec<<Self as AirBuilder>::Expr> = once(pc.into())
+            .chain(once(instruction.opcode.into()))
             .chain(instruction.into_iter().map(|x| x.into()))
             .chain(selectors.into_iter().map(|x| x.into()))
-            .chain(once(shard.into()));
+            .chain(once(shard.into()))
+            .collect();
 
         self.receive(AirInteraction::new(
             values,
