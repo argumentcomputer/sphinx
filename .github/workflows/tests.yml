@@ -118,8 +118,13 @@ jobs:
       - name: Run cargo prove new
         run: |
           cargo prove new cargo-prove-test
-          cd cargo-prove-test
-          cd script
+          cd cargo-prove-test/script
+          cat << EOF | tee -a Cargo.toml
+
+          [patch.'ssh://git@github.com/wormhole-foundation/wp1.git']
+          wp1-sdk = { path = "../../sdk" }
+          wp1-helper = { path = "../../helper" }
+          EOF
           cargo run --release
 
   mac-m1:
