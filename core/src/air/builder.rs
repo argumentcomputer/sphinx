@@ -45,10 +45,7 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
         left: impl IntoIterator<Item = I1>,
         right: impl IntoIterator<Item = I2>,
     ) {
-        let left = left.into_iter();
-        let right = right.into_iter();
-        debug_assert_eq!(left.size_hint(), right.size_hint());
-        for (left, right) in left.zip(right) {
+        for (left, right) in left.into_iter().zip_eq(right) {
             self.assert_eq(left, right);
         }
     }
