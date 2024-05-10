@@ -11,11 +11,9 @@ use wp1_core::{
 };
 
 use super::columns::MemoryInitCols;
-use crate::{
-    air::Block,
-    memory::{MemoryChipKind, MemoryGlobalChip},
-    runtime::{ExecutionRecord, RecursionProgram},
-};
+use crate::memory::MemoryChipKind;
+use crate::memory::MemoryGlobalChip;
+use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 
@@ -48,12 +46,12 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip {
                 let addresses = &input.first_memory_record;
                 addresses
                     .iter()
-                    .map(|addr| {
+                    .map(|(addr, value)| {
                         let mut row = [F::zero(); NUM_MEMORY_INIT_COLS];
                         let cols: &mut MemoryInitCols<F> = row.as_mut_slice().borrow_mut();
                         cols.addr = *addr;
                         cols.timestamp = F::zero();
-                        cols.value = Block::from(F::zero());
+                        cols.value = *value;
                         cols.is_real = F::one();
                         row
                     })
@@ -111,8 +109,8 @@ where
             MemoryChipKind::Init => {
                 builder.send(AirInteraction::new(
                     vec![
-                        local.addr.into(),
                         local.timestamp.into(),
+                        local.addr.into(),
                         local.value[0].into(),
                         local.value[1].into(),
                         local.value[2].into(),
@@ -125,8 +123,8 @@ where
             MemoryChipKind::Finalize => {
                 builder.receive(AirInteraction::new(
                     vec![
-                        local.addr.into(),
                         local.timestamp.into(),
+                        local.addr.into(),
                         local.value[0].into(),
                         local.value[1].into(),
                         local.value[2].into(),
