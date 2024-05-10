@@ -10,7 +10,7 @@ fn main() {
     let n = 186u32;
     stdin.write(&n);
     let client = ProverClient::new();
-    let mut proof = client.prove(ELF, stdin).expect("proving failed");
+    let mut proof = client.prove(ELF, &stdin).expect("proving failed");
 
     // Read output.
     let a = proof.public_values.read::<u128>();
