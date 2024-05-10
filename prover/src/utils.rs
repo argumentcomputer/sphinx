@@ -9,7 +9,7 @@ use wp1_core::{
     runtime::{Program, Runtime},
     stark::{Dom, ShardProof, StarkGenericConfig, StarkMachine, StarkVerifyingKey, Val},
 };
-use wp1_recursion_program::stark::EMPTY;
+use wp1_recursion_program::{stark::EMPTY, types::QuotientDataValues};
 
 use crate::SP1CoreProof;
 
@@ -19,6 +19,22 @@ impl SP1CoreProof {
         fs::write(path, data).unwrap();
         Ok(())
     }
+}
+
+pub fn get_chip_quotient_data<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
+    machine: &StarkMachine<SC, A>,
+    proof: &ShardProof<SC>,
+) -> Vec<QuotientDataValues> {
+    machine
+        .shard_chips_ordered(&proof.chip_ordering)
+        .map(|chip| {
+            let log_quotient_degree = chip.log_quotient_degree();
+            QuotientDataValues {
+                log_quotient_degree,
+                quotient_size: 1 << log_quotient_degree,
+            }
+        })
+        .collect()
 }
 
 /// Get the number of cycles for a given program.

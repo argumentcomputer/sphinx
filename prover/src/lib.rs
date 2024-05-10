@@ -11,6 +11,7 @@ pub mod utils;
 mod verify;
 
 use std::time::Instant;
+use wp1_recursion_program::types::QuotientDataValues;
 
 pub use types::*;
 pub use wp1_core::io::{SP1PublicValues, SP1Stdin};
@@ -52,6 +53,7 @@ use wp1_recursion_program::hints::Hintable;
 use wp1_recursion_program::reduce::ReduceProgram;
 
 use crate::types::ReduceState;
+use crate::utils::get_chip_quotient_data;
 use crate::utils::get_preprocessed_data;
 use crate::utils::get_sorted_indices;
 
@@ -413,6 +415,17 @@ impl SP1Prover {
                 SP1ReduceProofWrapper::Recursive(_) => 1,
             })
             .collect();
+        let chip_quotient_data: Vec<Vec<QuotientDataValues>> = reduce_proofs
+            .iter()
+            .map(|p| match p {
+                SP1ReduceProofWrapper::Core(reduce_proof) => {
+                    get_chip_quotient_data(&self.core_machine, &reduce_proof.proof)
+                }
+                SP1ReduceProofWrapper::Recursive(reduce_proof) => {
+                    get_chip_quotient_data(&self.reduce_machine, &reduce_proof.proof)
+                }
+            })
+            .collect();
         let sorted_indices: Vec<Vec<usize>> = reduce_proofs
             .iter()
             .map(|p| match p {
@@ -448,6 +461,7 @@ impl SP1Prover {
         // Convert the inputs into a witness stream.
         let mut witness_stream = Vec::new();
         witness_stream.extend(is_recursive_flags.write());
+        witness_stream.extend(chip_quotient_data.write());
         witness_stream.extend(sorted_indices.write());
         witness_stream.extend(core_challenger.write());
         witness_stream.extend(reconstruct_challenger.write());
