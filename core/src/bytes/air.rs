@@ -72,9 +72,5 @@ impl<AB: SP1AirBuilder + PairBuilder> Air<AB> for ByteChip<AB::F> {
                 ),
             }
         }
-
-        // Dummy constraint for normalizing to degree 3.
-        #[allow(clippy::eq_op)]
-        builder.assert_zero(local.b * local.b * local.b - local.b * local.b * local.b);
     }
 }

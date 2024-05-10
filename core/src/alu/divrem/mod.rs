@@ -505,7 +505,7 @@ where
                 &local.b.map(|x| x.into()),
                 &Word::from(i32::MIN as u32).map(|x: AB::F| x.into()),
                 local.is_overflow_b,
-                local.is_real.into(),
+                &local.is_real.into(),
             );
 
             IsEqualWordOperation::<AB::F>::eval(
@@ -513,7 +513,7 @@ where
                 &local.c.map(|x| x.into()),
                 &Word::from(-1i32 as u32).map(|x: AB::F| x.into()),
                 local.is_overflow_c,
-                local.is_real.into(),
+                &local.is_real.into(),
             );
 
             let is_signed = local.is_div + local.is_rem;
@@ -768,12 +768,6 @@ where
                 local.is_real,
             );
         }
-
-        // A dummy constraint to keep the degree 3.
-        #[allow(clippy::eq_op)]
-        builder.assert_zero(
-            local.a[0] * local.b[0] * local.c[0] - local.a[0] * local.b[0] * local.c[0],
-        )
     }
 }
 

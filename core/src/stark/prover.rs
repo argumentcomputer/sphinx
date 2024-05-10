@@ -2,7 +2,6 @@ use std::{
     cmp::Reverse,
     marker::PhantomData,
     sync::atomic::{AtomicU32, Ordering},
-    time::Instant,
 };
 
 use itertools::Itertools;
@@ -12,8 +11,9 @@ use p3_commit::{Pcs, PolynomialSpace};
 use p3_field::{AbstractField, ExtensionField, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::*;
-use p3_util::{log2_ceil_usize, log2_strict_usize};
+use p3_util::log2_strict_usize;
 use serde::{de::DeserializeOwned, Serialize};
+use web_time::Instant;
 
 use super::{quotient_values, PcsProverData, StarkMachine, Val};
 use super::{types::*, StarkGenericConfig};
@@ -245,10 +245,10 @@ where
             .map(|degree| log2_strict_usize(*degree))
             .collect::<Vec<_>>();
 
-        // TODO: read dynamically from Chip.
-        let max_constraint_degree = 3;
-        let log_quotient_degree = log2_ceil_usize(max_constraint_degree - 1);
-        let quotient_degree = 1 << log_quotient_degree;
+        let log_quotient_degrees = chips
+            .iter()
+            .map(|chip| chip.log_quotient_degree())
+            .collect::<Vec<_>>();
 
         let pcs = config.pcs();
         let trace_domains = degrees
@@ -332,8 +332,9 @@ where
 
         let quotient_domains = trace_domains
             .iter()
-            .zip(log_degrees.iter())
-            .map(|(domain, log_degree)| {
+            .zip_eq(log_degrees.iter())
+            .zip_eq(log_quotient_degrees.iter())
+            .map(|((domain, log_degree), log_quotient_degree)| {
                 domain.create_disjoint_domain(1 << (log_degree + log_quotient_degree))
             })
             .collect::<Vec<_>>();
@@ -384,16 +385,27 @@ where
         let quotient_domains_and_chunks = quotient_domains
             .into_iter()
             .zip_eq(quotient_values)
-            .flat_map(|(quotient_domain, quotient_values)| {
-                let quotient_flat = RowMajorMatrix::new_col(quotient_values).flatten_to_base();
-                let quotient_chunks = quotient_domain.split_evals(quotient_degree, quotient_flat);
-                let qc_domains = quotient_domain.split_domains(quotient_degree);
-                qc_domains.into_iter().zip_eq(quotient_chunks)
-            })
+            .zip_eq(log_quotient_degrees.iter())
+            .flat_map(
+                |((quotient_domain, quotient_values), log_quotient_degree)| {
+                    let quotient_degree = 1 << *log_quotient_degree;
+                    let quotient_flat = RowMajorMatrix::new_col(quotient_values).flatten_to_base();
+                    let quotient_chunks =
+                        quotient_domain.split_evals(quotient_degree, quotient_flat);
+                    let qc_domains = quotient_domain.split_domains(quotient_degree);
+                    qc_domains.into_iter().zip_eq(quotient_chunks)
+                },
+            )
             .collect::<Vec<_>>();
 
         let num_quotient_chunks = quotient_domains_and_chunks.len();
-        assert_eq!(num_quotient_chunks, chips.len() * quotient_degree);
+        assert_eq!(
+            num_quotient_chunks,
+            chips
+                .iter()
+                .map(|c| 1 << c.log_quotient_degree())
+                .sum::<usize>()
+        );
 
         let (quotient_commit, quotient_data) = tracing::debug_span!("commit to quotient traces")
             .in_scope(|| pcs.commit(quotient_domains_and_chunks));
@@ -464,15 +476,12 @@ where
                 AirOpenedValues { local, next }
             })
             .collect::<Vec<_>>();
-        let quotient_opened_values = quotient_values
-            .chunks_exact_mut(quotient_degree)
-            .map(|slice| {
-                slice
-                    .iter_mut()
-                    .map(|op| op.pop().unwrap())
-                    .collect::<Vec<_>>()
-            })
-            .collect::<Vec<_>>();
+        let mut quotient_opened_values = Vec::with_capacity(log_quotient_degrees.len());
+        for log_quotient_degree in log_quotient_degrees.iter() {
+            let degree = 1 << *log_quotient_degree;
+            let slice = quotient_values.drain(0..degree);
+            quotient_opened_values.push(slice.map(|mut op| op.pop().unwrap()).collect::<Vec<_>>());
+        }
 
         let opened_values = main_opened_values
             .into_iter()
