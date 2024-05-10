@@ -27,8 +27,8 @@ pub fn verify_two_adic_pcs<C: Config>(
     C::F: TwoAdicField,
     C::EF: TwoAdicField,
 {
-    let log_blowup = C::N::from_canonical_usize(config.log_blowup);
-    let blowup = C::N::from_canonical_usize(1 << config.log_blowup);
+    let log_blowup = config.log_blowup;
+    let blowup = config.log_blowup;
     let alpha = challenger.sample_ext(builder);
 
     builder.cycle_tracker("stage-d-1-verify-shape-and-sample-challenges");
@@ -219,6 +219,7 @@ where
     }
 }
 
+#[derive(DslVariable, Clone)]
 pub struct TwoAdicFriPcsVariable<C: Config> {
     pub config: FriConfigVariable<C>,
 }
@@ -259,6 +260,13 @@ pub mod tests {
     use std::cmp::Reverse;
     use std::collections::VecDeque;
 
+    use crate::challenger::CanObserveVariable;
+    use crate::challenger::DuplexChallengerVariable;
+    use crate::challenger::FeltChallenger;
+    use crate::fri::types::TwoAdicPcsRoundVariable;
+    use crate::fri::TwoAdicMultiplicativeCosetVariable;
+    use crate::hints::Hintable;
+    use crate::utils::const_fri_config;
     use itertools::Itertools;
     use p3_baby_bear::BabyBear;
     use p3_challenger::CanObserve;
@@ -266,14 +274,11 @@ pub mod tests {
     use p3_commit::Pcs;
     use p3_commit::TwoAdicMultiplicativeCoset;
     use p3_field::AbstractField;
-    use p3_field::TwoAdicField;
-    use p3_fri::FriConfig;
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
-    use wp1_core::utils::inner_fri_config;
+    use wp1_core::utils::baby_bear_poseidon2::compressed_fri_config;
     use wp1_core::utils::inner_perm;
     use wp1_core::utils::InnerChallenge;
-    use wp1_core::utils::InnerChallengeMmcs;
     use wp1_core::utils::InnerChallenger;
     use wp1_core::utils::InnerCompress;
     use wp1_core::utils::InnerDft;
@@ -291,43 +296,7 @@ pub mod tests {
     use wp1_recursion_core::runtime::RecursionProgram;
     use wp1_recursion_core::runtime::DIGEST_SIZE;
 
-    use crate::{
-        challenger::{CanObserveVariable, DuplexChallengerVariable, FeltChallenger},
-        commit::PcsVariable,
-        fri::{
-            types::{FriConfigVariable, TwoAdicPcsRoundVariable},
-            TwoAdicFriPcsVariable, TwoAdicMultiplicativeCosetVariable,
-        },
-        hints::Hintable,
-    };
-
-    pub(crate) fn const_fri_config(
-        builder: &mut Builder<InnerConfig>,
-        config: &FriConfig<InnerChallengeMmcs>,
-    ) -> FriConfigVariable<InnerConfig> {
-        let two_addicity = InnerVal::TWO_ADICITY;
-        let mut generators = builder.dyn_array(two_addicity);
-        let mut subgroups = builder.dyn_array(two_addicity);
-        for i in 0..two_addicity {
-            let constant_generator = InnerVal::two_adic_generator(i);
-            builder.set(&mut generators, i, constant_generator);
-
-            let constant_domain = TwoAdicMultiplicativeCoset {
-                log_n: i,
-                shift: InnerVal::one(),
-            };
-            let domain_value: TwoAdicMultiplicativeCosetVariable<_> =
-                builder.constant(constant_domain);
-            builder.set(&mut subgroups, i, domain_value);
-        }
-        FriConfigVariable {
-            log_blowup: config.log_blowup,
-            num_queries: config.num_queries,
-            proof_of_work_bits: config.proof_of_work_bits,
-            subgroups,
-            generators,
-        }
-    }
+    use crate::{commit::PcsVariable, fri::TwoAdicFriPcsVariable};
 
     pub fn build_test_fri_with_cols_and_log2_rows(
         nb_cols: usize,
@@ -336,7 +305,7 @@ pub mod tests {
         let mut rng = &mut OsRng;
         let log_degrees = &[nb_log2_rows];
         let perm = inner_perm();
-        let fri_config = inner_fri_config();
+        let fri_config = compressed_fri_config();
         let hash = InnerHash::new(perm.clone());
         let compress = InnerCompress::new(perm.clone());
         let val_mmcs = InnerValMmcs::new(hash, compress);
@@ -393,7 +362,7 @@ pub mod tests {
 
         // Test the recursive Pcs.
         let mut builder = Builder::<InnerConfig>::default();
-        let config = const_fri_config(&mut builder, &inner_fri_config());
+        let config = const_fri_config(&mut builder, &compressed_fri_config());
         let pcs = TwoAdicFriPcsVariable { config };
         let rounds =
             builder.constant::<Array<_, TwoAdicPcsRoundVariable<_>>>(vec![(commit, os.clone())]);

@@ -119,7 +119,6 @@ impl Groth16Prover {
                 "build-groth16",
                 "--data",
                 cwd.join(build_dir).to_str().unwrap(),
-                "--profile",
             ])
             .current_dir(gnark_dir)
             .stderr(Stdio::inherit())
