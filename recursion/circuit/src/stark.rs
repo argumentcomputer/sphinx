@@ -18,7 +18,7 @@ use wp1_recursion_compiler::ir::{Builder, Config, Felt};
 use wp1_recursion_compiler::ir::{Usize, Witness};
 use wp1_recursion_compiler::prelude::SymbolicVar;
 use wp1_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
-use wp1_recursion_core::stark::RecursionAir;
+use wp1_recursion_core::stark::RecursionAirSkinnyDeg7;
 use wp1_recursion_program::commit::PolynomialSpaceVariable;
 use wp1_recursion_program::stark::RecursiveVerifierConstraintFolder;
 
@@ -238,7 +238,7 @@ pub fn build_wrap_circuit(
     dummy_proof: &ShardProof<OuterSC>,
 ) -> Vec<Constraint> {
     let outer_config = OuterSC::new();
-    let outer_machine = RecursionAir::<OuterF>::machine(outer_config);
+    let outer_machine = RecursionAirSkinnyDeg7::<OuterF>::machine(outer_config);
 
     let mut builder = Builder::<OuterConfig>::default();
     let mut challenger = MultiField32ChallengerVariable::new(&mut builder);
@@ -304,7 +304,7 @@ pub(crate) mod tests {
     use wp1_recursion_core::{
         cpu::Instruction,
         runtime::{Opcode, RecursionProgram, Runtime},
-        stark::{config::BabyBearPoseidon2Outer, RecursionAir},
+        stark::{config::BabyBearPoseidon2Outer, RecursionAirWideDeg3},
     };
     use wp1_recursion_gnark_ffi::Groth16Prover;
 
@@ -349,7 +349,7 @@ pub(crate) mod tests {
         type SC = BabyBearPoseidon2Outer;
         type F = <SC as StarkGenericConfig>::Val;
         type EF = <SC as StarkGenericConfig>::Challenge;
-        type A = RecursionAir<F>;
+        type A = RecursionAirWideDeg3<F>;
 
         wp1_core::utils::setup_logger();
         let program = basic_program::<F>();

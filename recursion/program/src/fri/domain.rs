@@ -131,7 +131,7 @@ pub(crate) mod tests {
     use wp1_core::utils::inner_fri_config;
     use wp1_recursion_compiler::asm::AsmBuilder;
 
-    use crate::fri::const_fri_config;
+    use crate::utils::const_fri_config;
 
     use super::*;
     use p3_commit::{Pcs, PolynomialSpace};
