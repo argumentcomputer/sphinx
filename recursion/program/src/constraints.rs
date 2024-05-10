@@ -172,7 +172,7 @@ mod tests {
         utils::BabyBearPoseidon2,
     };
     use wp1_recursion_compiler::{asm::AsmBuilder, prelude::ExtConst};
-    use wp1_recursion_core::runtime::Runtime;
+    use wp1_recursion_core::{runtime::Runtime, stark::utils::debug_constraints};
 
     #[allow(clippy::type_complexity)]
     fn get_shard_data<'a, SC>(
@@ -352,5 +352,7 @@ mod tests {
             "The program executed successfully, number of cycles: {}",
             runtime.clk.as_canonical_u32() / 4
         );
+
+        debug_constraints(&program, runtime.record);
     }
 }
