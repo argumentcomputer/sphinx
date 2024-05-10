@@ -161,12 +161,19 @@ where
             prep_local.pc * prep_local.pc * prep_local.pc,
         );
 
-        let interaction_vals = prep_local
-            .instruction
-            .into_iter()
-            .chain(prep_local.selectors)
-            .map(|x| x.into());
-
+        let mut interaction_vals: Vec<AB::Expr> = vec![prep_local.instruction.opcode.into()];
+        interaction_vals.push(prep_local.instruction.op_a.into());
+        interaction_vals.extend_from_slice(&prep_local.instruction.op_b.map(|x| x.into()).0);
+        interaction_vals.extend_from_slice(&prep_local.instruction.op_c.map(|x| x.into()).0);
+        interaction_vals.push(prep_local.instruction.imm_b.into());
+        interaction_vals.push(prep_local.instruction.imm_c.into());
+        interaction_vals.extend_from_slice(
+            &prep_local
+                .selectors
+                .into_iter()
+                .map(|x| x.into())
+                .collect::<Vec<_>>(),
+        );
         builder.receive(AirInteraction::new(
             interaction_vals,
             mult_local.multiplicity.into(),

@@ -88,34 +88,34 @@ where
 
         // Compute `s0`.
         // w[i-15] rightrotate 7.
-        FixedRotateRightOperation::eval(
+        FixedRotateRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_15.value(),
+            *local.w_i_minus_15.value(),
             7,
             local.w_i_minus_15_rr_7,
             local.shard,
             local.is_real,
         );
         // w[i-15] rightrotate 18.
-        FixedRotateRightOperation::eval(
+        FixedRotateRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_15.value(),
+            *local.w_i_minus_15.value(),
             18,
             local.w_i_minus_15_rr_18,
             local.shard,
             local.is_real,
         );
         // w[i-15] rightshift 3.
-        FixedShiftRightOperation::eval(
+        FixedShiftRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_15.value(),
+            *local.w_i_minus_15.value(),
             3,
             local.w_i_minus_15_rs_3,
             local.shard,
             local.is_real,
         );
         // (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18)
-        XorOperation::eval(
+        XorOperation::<AB::F>::eval(
             builder,
             local.w_i_minus_15_rr_7.value,
             local.w_i_minus_15_rr_18.value,
@@ -124,7 +124,7 @@ where
             local.is_real,
         );
         // s0 := (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18) xor (w[i-15] rightshift 3)
-        XorOperation::eval(
+        XorOperation::<AB::F>::eval(
             builder,
             local.s0_intermediate.value,
             local.w_i_minus_15_rs_3.value,
@@ -135,34 +135,34 @@ where
 
         // Compute `s1`.
         // w[i-2] rightrotate 17.
-        FixedRotateRightOperation::eval(
+        FixedRotateRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_2.value(),
+            *local.w_i_minus_2.value(),
             17,
             local.w_i_minus_2_rr_17,
             local.shard,
             local.is_real,
         );
         // w[i-2] rightrotate 19.
-        FixedRotateRightOperation::eval(
+        FixedRotateRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_2.value(),
+            *local.w_i_minus_2.value(),
             19,
             local.w_i_minus_2_rr_19,
             local.shard,
             local.is_real,
         );
         // w[i-2] rightshift 10.
-        FixedShiftRightOperation::eval(
+        FixedShiftRightOperation::<AB::F>::eval(
             builder,
-            local.w_i_minus_2.value(),
+            *local.w_i_minus_2.value(),
             10,
             local.w_i_minus_2_rs_10,
             local.shard,
             local.is_real,
         );
         // (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19)
-        XorOperation::eval(
+        XorOperation::<AB::F>::eval(
             builder,
             local.w_i_minus_2_rr_17.value,
             local.w_i_minus_2_rr_19.value,
@@ -171,7 +171,7 @@ where
             local.is_real,
         );
         // s1 := (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19) xor (w[i-2] rightshift 10)
-        XorOperation::eval(
+        XorOperation::<AB::F>::eval(
             builder,
             local.s1_intermediate.value,
             local.w_i_minus_2_rs_10.value,
@@ -181,11 +181,11 @@ where
         );
 
         // s2 := w[i-16] + s0 + w[i-7] + s1.
-        Add4Operation::eval(
+        Add4Operation::<AB::F>::eval(
             builder,
-            local.w_i_minus_16.value(),
+            *local.w_i_minus_16.value(),
             local.s0.value,
-            local.w_i_minus_7.value(),
+            *local.w_i_minus_7.value(),
             local.s1.value,
             local.shard,
             local.is_real,

@@ -147,7 +147,7 @@ where
         let local: &AddSubCols<AB::Var> = (*local).borrow();
 
         // Evaluate the addition operation.
-        AddOperation::eval(
+        AddOperation::<AB::F>::eval(
             builder,
             local.operand_1,
             local.operand_2,

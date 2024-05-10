@@ -113,7 +113,7 @@ impl<T> IntoIterator for Word<T> {
     }
 }
 
-impl<T> FromIterator<T> for Word<T> {
+impl<T: Clone> FromIterator<T> for Word<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut iter = iter.into_iter();
         let elements = std::array::from_fn(|_| iter.next().unwrap());
