@@ -296,7 +296,9 @@ pub fn build_wrap_circuit(
 #[cfg(test)]
 pub(crate) mod tests {
 
-    use p3_baby_bear::DiffusionMatrixBabybear;
+    use crate::stark::build_wrap_circuit;
+    use crate::witness::Witnessable;
+    use p3_baby_bear::DiffusionMatrixBabyBear;
     use p3_field::PrimeField32;
     use wp1_core::stark::{LocalProver, StarkGenericConfig};
     use wp1_recursion_compiler::config::OuterConfig;
@@ -307,8 +309,6 @@ pub(crate) mod tests {
         stark::{config::BabyBearPoseidon2Outer, RecursionAirWideDeg3},
     };
     use wp1_recursion_gnark_ffi::Groth16Prover;
-
-    use crate::{stark::build_wrap_circuit, witness::Witnessable};
 
     pub(crate) fn basic_program<F: PrimeField32>() -> RecursionProgram<F> {
         let zero = [F::zero(); 4];
@@ -354,7 +354,7 @@ pub(crate) mod tests {
         wp1_core::utils::setup_logger();
         let program = basic_program::<F>();
         let config = SC::new();
-        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabybear>::new_no_perm(&program);
+        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);
         runtime.run();
         let machine = A::machine(config);
         let (pk, vk) = machine.setup(&program);
@@ -362,7 +362,7 @@ pub(crate) mod tests {
         let proof = machine.prove::<LocalProver<_, _>>(&pk, runtime.record, &mut challenger);
         let mut proofs = proof.shard_proofs.clone();
 
-        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabybear>::new_no_perm(&program);
+        let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);
         runtime.run();
 
         // Uncomment these lines to verify the proof for debugging purposes.

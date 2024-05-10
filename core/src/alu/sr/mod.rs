@@ -464,12 +464,6 @@ where
             }
         }
 
-        #[allow(clippy::eq_op)]
-        // A dummy constraint to keep the degree at least 3.
-        builder.assert_zero(
-            local.a[0] * local.b[0] * local.c[0] - local.a[0] * local.b[0] * local.c[0],
-        );
-
         // Check that the operation flags are boolean.
         builder.assert_bool(local.is_srl);
         builder.assert_bool(local.is_sra);

@@ -53,9 +53,5 @@ impl<F: Field> NotOperation<F> {
                 .when(is_real)
                 .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));
         }
-
-        // A dummy constraint to keep the degree 3.
-        #[allow(clippy::eq_op)]
-        builder.assert_zero(a[0] * a[0] * a[0] - a[0] * a[0] * a[0]);
     }
 }

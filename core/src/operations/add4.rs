@@ -148,9 +148,5 @@ impl<F: Field> Add4Operation<F> {
                 builder_is_real.assert_eq(cols.carry[i] * base, overflow.clone());
             }
         }
-
-        // Degree 3 constraint to avoid "OodEvaluationMismatch".
-        #[allow(clippy::eq_op)]
-        builder.assert_zero(a[0] * b[0] * cols.value[0] - a[0] * b[0] * cols.value[0]);
     }
 }

@@ -33,7 +33,7 @@ impl<F: Field> IsEqualWordOperation<F> {
         a: &Word<AB::Expr>,
         b: &Word<AB::Expr>,
         cols: IsEqualWordOperation<AB::Var>,
-        is_real: AB::Expr,
+        is_real: &AB::Expr,
     ) {
         // Calculate differences in limbs.
         let diff = Word([
@@ -45,11 +45,5 @@ impl<F: Field> IsEqualWordOperation<F> {
 
         // Check if the difference is 0.
         IsZeroWordOperation::<AB::F>::eval(builder, &diff, cols.is_diff_zero, is_real.clone());
-
-        // Degree 3 constraint to avoid "OodEvaluationMismatch".
-        builder.assert_zero(
-            is_real.clone() * is_real.clone() * is_real.clone()
-                - is_real.clone() * is_real.clone() * is_real,
-        );
     }
 }
