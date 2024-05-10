@@ -407,5 +407,7 @@ pub mod tests {
         runtime.witness_stream = witness;
         runtime.run();
         runtime.print_stats();
+        use wp1_recursion_core::stark::utils::debug_constraints;
+        debug_constraints(&program, runtime.record);
     }
 }
