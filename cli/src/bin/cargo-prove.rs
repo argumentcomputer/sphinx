@@ -6,7 +6,7 @@ use wp1_cli::commands::{
 };
 
 const VERSION_MESSAGE: &str = concat!(
-    "sp1",
+    "wp1",
     " (",
     env!("VERGEN_GIT_SHA"),
     " ",
