@@ -125,11 +125,7 @@ tracing-appender = "0.2.3"
 static_assertions = "1.1.0"
 crossbeam = "0.8"
 dialoguer = "0.11.0"
-amcl = { version = "1.0.2", default-features = false }
 subtle-encoding = "0.5.1"
-blake3-zkvm = { git = "https://github.com/sp1-patches/BLAKE3.git", branch = "patch-blake3_zkvm/v.1.0.0" }
-generic-array = "1.0.0"
-typenum = "1.17.0"
 
 [profile.dev-ci]
 inherits = "dev"

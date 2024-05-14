@@ -265,12 +265,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae743338b92ff9146ce83992f766a31066a91a8c84a45e0e9f21e7cf6de6d346"
 
 [[package]]
-name = "libm"
-version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
-
-[[package]]
 name = "num"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -280,16 +274,6 @@ dependencies = [
  "num-integer",
  "num-iter",
  "num-rational",
- "num-traits",
-]
-
-[[package]]
-name = "num-bigint"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
-dependencies = [
- "num-integer",
  "num-traits",
 ]
 
@@ -349,8 +333,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
-name = "parity-scale-codec"
-version = "3.6.9"
+name = "pairing"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
 dependencies = [
@@ -493,58 +477,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "snowbridge-amcl"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "460a9ed63cdf03c1b9847e8a12a5f5ba19c4efd5869e4a737e05be25d7c427e5"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "sp1-derive"
-version = "0.1.0"
-source = "git+https://github.com/succinctlabs/sp1.git#7ce13033a0557f964cd349393d367aa1bcf8fbe7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "sp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "cfg-if",
- "getrandom",
- "hex",
- "k256",
- "num",
- "rand",
- "serde",
- "snowbridge-amcl",
-]
-
-[[package]]
-name = "sp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "libm",
- "once_cell",
- "rand",
- "serde",
- "sha2",
- "sp1-precompiles",
-]
-
-[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -576,34 +508,6 @@ name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
-
-[[package]]
-name = "toml_datetime"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cda73e2f1397b1262d6dfdcef8aafae14d1de7748d66822d3bfeeb6d03e5e4b"
-
-[[package]]
-name = "toml_edit"
-version = "0.19.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
-dependencies = [
- "indexmap",
- "toml_datetime",
- "winnow",
-]
-
-[[package]]
-name = "toml_edit"
-version = "0.20.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "396e4d48bbb2b7554c944bde63101b5ae446cff6ec4a24227428f15eb72ef338"
-dependencies = [
- "indexmap",
- "toml_datetime",
- "winnow",
-]
 
 [[package]]
 name = "typenum"
@@ -644,18 +548,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp1-primitives"
-version = "0.1.0"
-dependencies = [
- "itertools 0.12.1",
- "lazy_static",
- "p3-baby-bear",
- "p3-field",
- "p3-poseidon2",
- "p3-symmetric",
-]
-
-[[package]]
 name = "wp1-zkvm"
 version = "0.1.0"
 dependencies = [
@@ -663,15 +555,10 @@ dependencies = [
  "cfg-if",
  "getrandom",
  "k256",
- "libm",
  "once_cell",
- "p3-baby-bear",
- "p3-field",
  "rand",
- "serde",
  "sha2",
  "wp1-precompiles",
- "wp1-primitives",
 ]
 
 [[package]]
