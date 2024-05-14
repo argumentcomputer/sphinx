@@ -32,7 +32,6 @@ serde_json = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 sha2 = { workspace = true }
 hex = { workspace = true }
-anyhow = { workspace = true }
 size = { workspace = true }
 subtle-encoding = { workspace = true }
 tempfile = { workspace = true }
