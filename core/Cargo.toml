@@ -40,10 +40,7 @@ wp1-primitives = { path = "../primitives" }
 anyhow = { workspace = true }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
-blake3-zkvm = { workspace = true }
 cfg-if = { workspace = true }
-generic-array = { workspace = true, features = ["alloc", "serde"] }
-typenum = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
 hex = { workspace = true }
@@ -57,7 +54,6 @@ tracing-forest = { workspace = true, features = ["ansi", "smallvec"] }
 tracing-subscriber = { workspace = true, features = ["std", "env-filter"] }
 strum_macros = { workspace = true }
 strum = { workspace = true }
-web-time = { workspace = true }
 rayon-scan = { workspace = true }
 serial_test = { workspace = true }
 

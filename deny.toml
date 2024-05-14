@@ -188,6 +188,14 @@ license-files = [
 ]
 
 [[licenses.clarify]]
+name = "blake3-zkvm"
+expression = "CC0-1.0"
+license-files = [
+    { path = "../LICENSE", hash = 0xcecda6c2 },
+]
+
+
+[[licenses.clarify]]
 name = "halo2"
 expression = "MIT OR Apache-2.0"
 license-files = [
