@@ -113,7 +113,6 @@ allow = [
     "Apache-2.0 WITH LLVM-exception",
     "Unicode-DFS-2016",
     "ISC",
-    "OpenSSL",
 ]
 # List of explicitly disallowed licenses
 # See https://spdx.org/licenses/ for list of possible licenses

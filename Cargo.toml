@@ -125,10 +125,6 @@ tracing-appender = "0.2.3"
 static_assertions = "1.1.0"
 crossbeam = "0.8"
 dialoguer = "0.11.0"
-downloader = { version = "0.2", default-features = false }
-flate2 = "1.0"
-prost-types = "0.12"
-tar = "0.4"
 
 [profile.dev-ci]
 inherits = "dev"
