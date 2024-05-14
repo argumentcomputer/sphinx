@@ -6,18 +6,14 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-amcl = { package = "snowbridge-amcl", version="1.0.2", default-features = false, features = ["bls381"]}
 anyhow = { workspace = true }
 bincode = { workspace = true }
 bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
 hybrid-array = { workspace = true }
-hex = { workspace = true }
 k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
-rand = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-num = { workspace = true }
 
 [features]
 verify = []
