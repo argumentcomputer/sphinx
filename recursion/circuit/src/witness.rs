@@ -371,7 +371,7 @@ mod tests {
                 felts: vec![BabyBear::one(), BabyBear::two()],
                 exts: vec![OuterChallenge::one(), OuterChallenge::two()],
                 vkey_hash: Bn254Fr::one(),
-                commited_values_digest: Bn254Fr::one(),
+                committed_values_digest: Bn254Fr::one(),
             },
         );
     }

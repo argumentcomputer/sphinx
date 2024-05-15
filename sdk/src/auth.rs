@@ -77,7 +77,7 @@ impl NetworkAuth {
         Ok(signature.as_bytes().to_vec())
     }
 
-    /// Signs a message to to request ot create a proof.
+    /// Signs a message to request to create a proof.
     pub async fn sign_create_proof_message(&self, nonce: u64, deadline: u64) -> Result<Vec<u8>> {
         let type_struct = CreateProof { nonce, deadline };
         self.sign_message(type_struct).await

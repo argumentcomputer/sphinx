@@ -46,6 +46,6 @@ func NewCircuitFromWitness(witnessInput WitnessInput) Circuit {
 		Felts:                felts,
 		Exts:                 exts,
 		VkeyHash:             witnessInput.VkeyHash,
-		CommitedValuesDigest: witnessInput.CommitedValuesDigest,
+		CommittedValuesDigest: witnessInput.CommittedValuesDigest,
 	}
 }

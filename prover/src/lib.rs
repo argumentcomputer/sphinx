@@ -1,6 +1,6 @@
 //! An end-to-end-prover implementation for SP1.
 //!
-//! Seperates the proof generation process into multiple stages:
+//! Separates the proof generation process into multiple stages:
 //!
 //! 1. Generate shard proofs which split up and prove the valid execution of a RISC-V program.
 //! 2. Reduce shard proofs into a single shard proof.
@@ -698,7 +698,7 @@ impl SP1Prover {
 
         let mut witness = Witness::default();
         proof.write(&mut witness);
-        witness.commited_values_digest = committed_values_digest;
+        witness.committed_values_digest = committed_values_digest;
         witness.vkey_hash = vkey_hash;
 
         let prover = Groth16Prover::new(build_dir);

@@ -31,18 +31,18 @@ mod tests {
     fn test_commit() {
         let mut builder = Builder::<OuterConfig>::default();
         let vkey_hash_bn254 = Bn254Fr::from_canonical_u32(1345237507);
-        let commited_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
+        let committed_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
         let vkey_hash = builder.eval(vkey_hash_bn254);
-        let commited_values_digest = builder.eval(commited_values_digest_bn254);
+        let committed_values_digest = builder.eval(committed_values_digest_bn254);
         builder.commit_vkey_hash_circuit(vkey_hash);
-        builder.commit_commited_values_digest_circuit(commited_values_digest);
+        builder.commit_committed_values_digest_circuit(committed_values_digest);
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
 
         let mut witness = Witness::default();
         witness.set_vkey_hash(vkey_hash_bn254);
-        witness.set_commited_values_digest(commited_values_digest_bn254);
+        witness.set_committed_values_digest(committed_values_digest_bn254);
 
         Groth16Prover::test::<OuterConfig>(&constraints, witness);
     }
@@ -52,31 +52,31 @@ mod tests {
     fn test_commit_vkey_fail() {
         let mut builder = Builder::<OuterConfig>::default();
         let vkey_hash_bn254 = Bn254Fr::from_canonical_u32(1345237507);
-        let commited_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
+        let committed_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
         let vkey_hash = builder.eval(vkey_hash_bn254);
-        let commited_values_digest = builder.eval(commited_values_digest_bn254);
+        let committed_values_digest = builder.eval(committed_values_digest_bn254);
         builder.commit_vkey_hash_circuit(vkey_hash);
-        builder.commit_commited_values_digest_circuit(commited_values_digest);
+        builder.commit_committed_values_digest_circuit(committed_values_digest);
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
 
         let mut witness = Witness::default();
-        witness.set_commited_values_digest(commited_values_digest_bn254);
+        witness.set_committed_values_digest(committed_values_digest_bn254);
 
         Groth16Prover::test::<OuterConfig>(&constraints, witness);
     }
 
     #[test]
     #[should_panic]
-    fn test_commit_commited_values_digest_fail() {
+    fn test_commit_committed_values_digest_fail() {
         let mut builder = Builder::<OuterConfig>::default();
         let vkey_hash_bn254 = Bn254Fr::from_canonical_u32(1345237507);
-        let commited_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
+        let committed_values_digest_bn254 = Bn254Fr::from_canonical_u32(102);
         let vkey_hash = builder.eval(vkey_hash_bn254);
-        let commited_values_digest = builder.eval(commited_values_digest_bn254);
+        let committed_values_digest = builder.eval(committed_values_digest_bn254);
         builder.commit_vkey_hash_circuit(vkey_hash);
-        builder.commit_commited_values_digest_circuit(commited_values_digest);
+        builder.commit_committed_values_digest_circuit(committed_values_digest);
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);

@@ -208,7 +208,7 @@ impl ReduceProgram {
             &reduce_prep_sorted_indices,
         );
 
-        // Global variables that will be commmitted to at the end.
+        // Global variables that will be committed to at the end.
         let global_committed_values_digest: Sha256DigestVariable<_> =
             initial_committed_values_digest;
         let global_deferred_proofs_digest: DigestVariable<_> = initial_deferred_proofs_digest;
@@ -519,7 +519,7 @@ impl ReduceProgram {
             builder.assign(&global_next_pc, global_start_pc);
         });
 
-        // Verify deferred proofs and acculumate to deferred proofs digest.
+        // Verify deferred proofs and accumulate to deferred proofs digest.
         builder
             .range(0, num_deferred_proofs)
             .for_each(|i, builder| {

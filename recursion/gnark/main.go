@@ -288,7 +288,7 @@ func main() {
 		c[0] = new(big.Int).SetBytes(proofBytes[fpSize*6 : fpSize*7]).String()
 		c[1] = new(big.Int).SetBytes(proofBytes[fpSize*7 : fpSize*8]).String()
 		publicInputs[0] = witnessInput.VkeyHash
-		publicInputs[1] = witnessInput.CommitedValuesDigest
+		publicInputs[1] = witnessInput.CommittedValuesDigest
 
 		groth16Proof := sp1.Groth16Proof{
 			A:            a,
@@ -364,7 +364,7 @@ func main() {
 			Proof: "0x" + hex.EncodeToString(plonkBn254ProofRaw.MarshalSolidity()),
 			PublicInputs: [2]string{
 				witnessInput.VkeyHash,
-				witnessInput.CommitedValuesDigest,
+				witnessInput.CommittedValuesDigest,
 			},
 		}
 
