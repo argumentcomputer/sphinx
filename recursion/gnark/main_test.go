@@ -55,7 +55,7 @@ func TestMain(t *testing.T) {
 		Felts:                felts,
 		Exts:                 exts,
 		VkeyHash:             inputs.VkeyHash,
-		CommittedValuesDigest: inputs.CommittedValuesDigest,
+		CommitedValuesDigest: inputs.CommitedValuesDigest,
 	}
 
 	// Compile the circuit.
@@ -91,7 +91,7 @@ func TestMain(t *testing.T) {
 		Felts:                felts,
 		Exts:                 exts,
 		VkeyHash:             inputs.VkeyHash,
-		CommittedValuesDigest: inputs.CommittedValuesDigest,
+		CommitedValuesDigest: inputs.CommitedValuesDigest,
 	}
 	witness, err := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
 	if err != nil {

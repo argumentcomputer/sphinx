@@ -79,7 +79,7 @@ impl NetworkProver {
         proof_id: &str,
         chain_ids: &[u32],
         callbacks: &[[u8; 20]],
-        callback_data: &[Vec<u8>],
+        callback_datas: &[Vec<u8>],
     ) -> Result<Vec<String>> {
         let rt = runtime::Runtime::new()?;
         rt.block_on(async {
@@ -89,7 +89,7 @@ impl NetworkProver {
 
             let mut tx_details = Vec::new();
             for ((i, callback), callback_data) in
-                callbacks.iter().enumerate().zip(callback_data.iter())
+                callbacks.iter().enumerate().zip(callback_datas.iter())
             {
                 if let Some(&chain_id) = chain_ids.get(i) {
                     let tx_id = client

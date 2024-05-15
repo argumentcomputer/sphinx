@@ -16,7 +16,7 @@ type Circuit struct {
 	Felts                []*babybear.Variable
 	Exts                 []*babybear.ExtensionVariable
 	VkeyHash             frontend.Variable `gnark:",public"`
-	CommittedValuesDigest frontend.Variable `gnark:",public"`
+	CommitedValuesDigest frontend.Variable `gnark:",public"`
 }
 
 type Constraint struct {
@@ -29,7 +29,7 @@ type WitnessInput struct {
 	Felts                []string   `json:"felts"`
 	Exts                 [][]string `json:"exts"`
 	VkeyHash             string     `json:"vkey_hash"`
-	CommittedValuesDigest string     `json:"committed_values_digest"`
+	CommitedValuesDigest string     `json:"commited_values_digest"`
 }
 
 type Groth16Proof struct {
@@ -169,9 +169,9 @@ func (circuit *Circuit) Define(api frontend.API) error {
 		case "CommitVkeyHash":
 			element := vars[cs.Args[0][0]]
 			api.AssertIsEqual(circuit.VkeyHash, element)
-		case "CommitCommittedValuesDigest":
+		case "CommitCommitedValuesDigest":
 			element := vars[cs.Args[0][0]]
-			api.AssertIsEqual(circuit.CommittedValuesDigest, element)
+			api.AssertIsEqual(circuit.CommitedValuesDigest, element)
 		case "CircuitFelts2Ext":
 			exts[cs.Args[0][0]] = babybear.Felts2Ext(felts[cs.Args[1][0]], felts[cs.Args[2][0]], felts[cs.Args[3][0]], felts[cs.Args[4][0]])
 		default:
