@@ -11,7 +11,9 @@ pub use network::NetworkProver;
 use sha2::{Digest, Sha256};
 use wp1_core::air::PublicValues;
 use wp1_core::stark::MachineProof;
+use wp1_core::stark::MachineVerificationError;
 use wp1_core::stark::StarkGenericConfig;
+use wp1_prover::CoreSC;
 use wp1_prover::SP1Prover;
 use wp1_prover::{SP1ProvingKey, SP1Stdin, SP1VerifyingKey};
 
@@ -36,20 +38,24 @@ pub trait Prover: Send + Sync {
     fn prove_plonk(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1PlonkProof>;
 
     /// Verify that an SP1 proof is valid given its vkey and metadata.
-    fn verify(&self, proof: &SP1Proof, vkey: &SP1VerifyingKey) -> Result<()> {
+    fn verify(
+        &self,
+        proof: &SP1Proof,
+        vkey: &SP1VerifyingKey,
+    ) -> Result<(), MachineVerificationError<CoreSC>> {
         let pv = PublicValues::from_vec(&proof.proof[0].public_values);
         let pv_digest: [u8; 32] = Sha256::digest(proof.public_values.as_slice()).into();
         if pv_digest != *pv.commit_digest_bytes() {
-            return Err(anyhow::anyhow!("Public values digest mismatch"));
+            return Err(MachineVerificationError::InvalidPublicValuesDigest);
         }
         let machine_proof = MachineProof {
             shard_proofs: proof.proof.clone(),
         };
         let wp1_prover = self.wp1_prover();
         let mut challenger = wp1_prover.core_machine.config().challenger();
-        Ok(wp1_prover
+        wp1_prover
             .core_machine
-            .verify(&vkey.vk, &machine_proof, &mut challenger)?)
+            .verify(&vkey.vk, &machine_proof, &mut challenger)
     }
 
     /// Verify that a compressed SP1 proof is valid given its vkey and metadata.
