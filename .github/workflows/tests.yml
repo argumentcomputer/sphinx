@@ -22,26 +22,160 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PULL_TOKEN }}
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Run cargo test on wp1 except the prove_sp1 recursion test
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --exclude wp1-recursion-circuit -E 'all() - test(test_prove_sp1)'
+      - name: Run cargo test with no default features
+        run: |
+          cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+        working-directory: ${{ github.workspace }}/examples
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
+      - name: Run fibonacci-io example
+        run: |
+          cargo run --release --manifest-path examples/fibonacci-io/script/Cargo.toml
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
+  test-recursion-circuit:
+    name: Test recursion circuit
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
         with:
-          command: test
-          args: -p sp1-core -p sp1-recursion-compiler -p sp1-recursion-program -p sp1-recursion-circuit -p sp1-sdk --release
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
-          CARGO_INCREMENTAL: 1
-          FRI_QUERIES: 1
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
+      - name: Run cargo test on the recursion circuit
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci -p wp1-recursion-circuit
 
-  lints:
-    name: Formatting & Clippy
-    runs-on: warp-ubuntu-latest-arm64-8x
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
-    env:
-      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+  clippy:
+    runs-on: warp-ubuntu-latest-x64-16x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Check Rustfmt Code Style
+        run: cargo fmt --all --check
+      - name: check *everything* compiles
+        run: cargo check --all-targets --all-features --all --examples --tests --benches
+      # See '.cargo/config' for list of enabled/disabled clippy lints
+      - name: Check clippy warnings
+        run: cargo xclippy -D warnings
+      - name: Doctests
+        run: cargo test --doc --workspace
+      - name: Cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@v1
+
+  integration-tests-examples:
+    name: Build integration tests and examples
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+          perf: false
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
+      - name: Check examples
+        run: |
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i/script"
+            cargo check
+            cd ../../
+          done
+        working-directory: ${{ github.workspace }}/examples
+      - name: Check integration tests
+        run: |
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i"
+            cargo check
+            cd ../
+          done
+        working-directory: ${{ github.workspace }}/tests
+      - name: Run cargo prove new
+        run: |
+          cargo prove new cargo-prove-test
+          cd cargo-prove-test/script
+          cat << EOF | tee -a Cargo.toml
+
+          [patch.'ssh://git@github.com/wormhole-foundation/wp1.git']
+          wp1-sdk = { path = "../../sdk" }
+          wp1-helper = { path = "../../helper" }
+          EOF
+          cargo run --release
+
+  mac-m1:
+    name: CI Tests on OSX ARM
+    runs-on: warp-macos-latest-arm64-6x
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Install `cargo prove` CLI
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}
+      - name: Run cargo test on wp1 except the prove_sp1 recursion test
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
+      - name: Run cargo test with no default features
+        run: |
+          cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+      - name: check examples compile
+        run: |
+          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
+            cd "$i/script"
+            cargo check
+            cd ../../
+          done
+        working-directory: ${{ github.workspace }}/examples
+      - name: Set env
+        if: failure()
+        run: |
+          echo "WORKFLOW_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" | tee -a $GITHUB_ENV
+      - name: Open an issue on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_COMMIT: ${{ github.sha }}
+          WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
+        with:
+          filename: .github/templates/M1_MAC.md
+
+  check-aptos-lc-compiles:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
