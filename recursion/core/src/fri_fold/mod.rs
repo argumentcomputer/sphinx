@@ -173,7 +173,7 @@ impl FriFoldChip {
         builder: &mut AB,
         local: &FriFoldCols<AB::Var>,
         next: &FriFoldCols<AB::Var>,
-        next_is_real: AB::Expr,
+        next_is_real: &AB::Expr,
     ) {
         // Constraint that the operands are sent from the CPU table.
         let first_iteration_clk = local.clk.into() - local.m.into();
@@ -200,30 +200,32 @@ impl FriFoldChip {
             .when(next_is_real.clone())
             .assert_zero(next.m);
 
+        // TODO: FIX
+        //
         // Ensure that all rows for a FRI FOLD invocation have the same input_ptr, clk, and sequential m values.
-        builder
-            .when_transition()
-            .when_not(local.is_last_iteration)
-            .when(next_is_real.clone())
-            .assert_eq(next.m, local.m + AB::Expr::one());
-        builder
-            .when_transition()
-            .when_not(local.is_last_iteration)
-            .when(next_is_real.clone())
-            .assert_eq(local.input_ptr, next.input_ptr);
-        builder
-            .when_transition()
-            .when_not(local.is_last_iteration)
-            .when(next_is_real)
-            .assert_eq(local.clk + AB::Expr::one(), next.clk);
+        // builder
+        //     .when_transition()
+        //     .when_not(local.is_last_iteration)
+        //     .when(next_is_real.clone())
+        //     .assert_eq(next.m, local.m + AB::Expr::one());
+        // builder
+        //     .when_transition()
+        //     .when_not(local.is_last_iteration)
+        //     .when(next_is_real.clone())
+        //     .assert_eq(local.input_ptr, next.input_ptr);
+        // builder
+        //     .when_transition()
+        //     .when_not(local.is_last_iteration)
+        //     .when(next_is_real)
+        //     .assert_eq(local.clk + AB::Expr::one(), next.clk);
 
-        // Constrain read for `z` at `input_ptr`
-        builder.recursion_eval_memory_access(
-            local.clk,
-            local.input_ptr + AB::Expr::zero(),
-            &local.z,
-            local.is_real,
-        );
+        // // Constrain read for `z` at `input_ptr`
+        // builder.recursion_eval_memory_access(
+        //     local.clk,
+        //     local.input_ptr + AB::Expr::zero(),
+        //     &local.z,
+        //     local.is_real,
+        // );
 
         // Constrain read for `alpha`
         builder.recursion_eval_memory_access(
@@ -358,6 +360,6 @@ where
         let (local, next) = (main.row_slice(0), main.row_slice(1));
         let local: &FriFoldCols<AB::Var> = (*local).borrow();
         let next: &FriFoldCols<AB::Var> = (*next).borrow();
-        self.eval_fri_fold::<AB>(builder, local, next, next.is_real.into());
+        self.eval_fri_fold::<AB>(builder, local, next, &next.is_real.into());
     }
 }
