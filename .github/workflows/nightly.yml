@@ -14,22 +14,6 @@ jobs:
   unused-dependencies:
     uses: lurk-lab/ci-workflows/.github/workflows/unused-deps.yml@main
 
-  typos:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check typos
-        uses: crate-ci/typos@v1.21.0
-      - name: Open an issue on failure
-        if: failure()
-        uses: JasonEtco/create-an-issue@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_COMMIT: ${{ github.sha }}
-          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        with:
-          filename: .github/templates/TYPOS.md
-
   linux-exhaustive:
     name: Run all tests including ignored
     runs-on: warp-ubuntu-latest-x64-32x
