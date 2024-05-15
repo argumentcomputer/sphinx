@@ -4330,6 +4330,7 @@ dependencies = [
  "p3-field",
  "p3-matrix",
  "p3-maybe-rayon",
+ "p3-uni-stark",
  "wp1-core",
  "wp1-derive",
 ]

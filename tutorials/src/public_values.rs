@@ -116,21 +116,16 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
+    use p3_uni_stark::{prove, verify};
     use wp1_core::{
-        stark::StarkGenericConfig,
-        utils::{
-            uni_stark_prove_with_public_values as prove,
-            uni_stark_verify_with_public_values as verify, BabyBearPoseidon2,
-        },
+        stark::{StarkGenericConfig, UniConfig},
+        utils::BabyBearPoseidon2,
     };
 
     use super::*;
 
     #[test]
     fn prove_trace() {
-        let config = BabyBearPoseidon2::new();
-        let mut challenger = config.challenger();
-
         let f = BabyBear::from_canonical_usize;
 
         let trace: RowMajorMatrix<BabyBear> = Chip::generate_trace(5);
@@ -158,9 +153,14 @@ mod tests {
 
         let chip = Chip;
 
-        let proof =
-            prove::<BabyBearPoseidon2, _>(&config, &chip, &mut challenger, trace, &public_values);
+        let config = BabyBearPoseidon2::new();
+
         let mut challenger = config.challenger();
-        verify(&config, &chip, &mut challenger, &proof, &public_values).unwrap();
+        let uni_config = UniConfig(config.clone());
+        let proof = prove(&uni_config, &chip, &mut challenger, trace, &public_values);
+
+        let mut challenger = config.challenger();
+        let uni_config = UniConfig(config);
+        verify(&uni_config, &chip, &mut challenger, &proof, &public_values).unwrap();
     }
 }
