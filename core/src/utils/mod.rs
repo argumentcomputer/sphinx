@@ -74,8 +74,8 @@ pub fn limbs_from_access<T: Copy, M: MemoryCols<T>, U: LimbWidth>(cols: &[M]) ->
 pub fn pad_rows<T: Clone, const N: usize>(rows: &mut Vec<[T; N]>, row_fn: impl Fn() -> [T; N]) {
     let nb_rows = rows.len();
     let mut padded_nb_rows = nb_rows.next_power_of_two();
-    if padded_nb_rows == 2 || padded_nb_rows == 1 {
-        padded_nb_rows = 4;
+    if padded_nb_rows < 8 {
+        padded_nb_rows = 8;
     }
     if padded_nb_rows == nb_rows {
         return;
@@ -91,8 +91,8 @@ pub fn pad_rows<T: Clone, const N: usize>(rows: &mut Vec<[T; N]>, row_fn: impl F
 pub fn pad_vec_rows<T: Clone>(rows: &mut Vec<Vec<T>>, row_fn: impl Fn() -> Vec<T>) {
     let nb_rows = rows.len();
     let mut padded_nb_rows = nb_rows.next_power_of_two();
-    if padded_nb_rows == 2 || padded_nb_rows == 1 {
-        padded_nb_rows = 4;
+    if padded_nb_rows < 8 {
+        padded_nb_rows = 8;
     }
     if padded_nb_rows == nb_rows {
         return;
@@ -126,8 +126,8 @@ pub fn pad_rows_fixed<R: Clone>(
         rows.resize(padded_nb_rows, dummy_row);
     } else {
         let mut padded_nb_rows = nb_rows.next_power_of_two();
-        if padded_nb_rows == 2 || padded_nb_rows == 1 {
-            padded_nb_rows = 4;
+        if padded_nb_rows < 8 {
+            padded_nb_rows = 8;
         }
         if padded_nb_rows == nb_rows {
             return;
