@@ -13,8 +13,10 @@ fn main() {
     let mut stdin = SP1Stdin::new();
     stdin.write(&n);
 
+    let client = ProverClient::new();
+
     // Only execute the program and get a `SP1PublicValues` object.
-    let mut public_values = ProverClient::execute(&ELF, &stdin).unwrap();
+    let mut public_values = client.execute(&ELF, &stdin).unwrap();
 
     println!("generated proof");
 
