@@ -16,7 +16,7 @@ use core::iter::once;
 use std::marker::PhantomData;
 
 pub type RecursionAirWideDeg3<F> = RecursionAir<F, 3>;
-pub type RecursionAirSkinnyDeg7<F> = RecursionAir<F, 5>;
+pub type RecursionAirSkinnyDeg7<F> = RecursionAir<F, 7>;
 
 #[derive(MachineAir)]
 #[wp1_core_path = "wp1_core"]
