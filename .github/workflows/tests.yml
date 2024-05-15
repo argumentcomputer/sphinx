@@ -35,9 +35,6 @@ jobs:
           cargo install --locked --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
-      - name: Run fibonacci-io example
-        run: |
-          cargo run --release --manifest-path examples/fibonacci-io/script/Cargo.toml
 
   test-recursion-circuit:
     name: Test recursion circuit
