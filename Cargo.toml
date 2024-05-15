@@ -126,6 +126,7 @@ static_assertions = "1.1.0"
 crossbeam = "0.8"
 dialoguer = "0.11.0"
 subtle-encoding = "0.5.1"
+dirs = "5.0.1"
 
 [profile.dev-ci]
 inherits = "dev"

@@ -646,9 +646,10 @@ mod tests {
 
         let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-        let mut proof = run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
+        let mut public_values =
+            run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
         let mut result = [0; 96];
-        proof.buffer.read_slice(&mut result);
+        public_values.read_slice(&mut result);
         assert_eq!(result, pt_uncompressed);
     }
 
@@ -663,10 +664,10 @@ mod tests {
 
             let inputs = SP1Stdin::from(&pt_compressed[..]);
 
-            let mut proof =
+            let mut public_values =
                 run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
             let mut result = [0; 96];
-            proof.buffer.read_slice(&mut result);
+            public_values.read_slice(&mut result);
             assert_eq!(result, pt_uncompressed);
         }
     }
@@ -680,13 +681,13 @@ mod tests {
             .unwrap()
             .to_uncompressed();
 
-        let mut proof = run_test_io(
+        let mut public_values = run_test_io(
             Program::from(BLS12381_G1_DECOMPRESS_ELF),
             &SP1Stdin::from(&compressed),
         )
         .unwrap();
         let mut result = [0; 96];
-        proof.buffer.read_slice(&mut result);
+        public_values.read_slice(&mut result);
 
         assert_eq!(expected, result);
     }
