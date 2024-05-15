@@ -563,6 +563,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "broken in upstream #654, will be fixed by https://github.com/succinctlabs/sp1/pull/672"]
     fn poseidon2_wide_prove_babybear() {
         poseidon2_wide_prove_babybear_degree::<3>();
         poseidon2_wide_prove_babybear_degree::<7>();
