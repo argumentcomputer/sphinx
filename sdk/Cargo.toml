@@ -35,5 +35,8 @@ dotenv = { workspace = true }
 sha2 = { workspace = true }
 tempfile = { workspace = true }
 
+[features]
+neon = ["wp1-core/neon"]
+
 [build-dependencies]
 vergen = { workspace = true, features = ["build", "git", "git2"] }
