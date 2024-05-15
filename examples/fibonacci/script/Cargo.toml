@@ -10,3 +10,15 @@ wp1-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
 wp1-helper = { path = "../../../helper" }
+
+[[bin]]
+name = "groth16"
+path = "bin/groth16.rs"
+
+[[bin]]
+name = "compressed"
+path = "bin/compressed.rs"
+
+[[bin]]
+name = "execute"
+path = "bin/execute.rs"
