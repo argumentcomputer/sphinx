@@ -279,14 +279,19 @@ impl<C: Config> FeltChallenger<C> for DuplexChallengerVariable<C> {
 
 #[cfg(test)]
 mod tests {
-    use p3_challenger::{CanObserve, CanSample};
-    use p3_field::{AbstractField, PrimeField32};
-    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-    use wp1_recursion_compiler::{
-        asm::{AsmBuilder, AsmConfig},
-        ir::{Felt, Usize, Var},
-    };
-    use wp1_recursion_core::runtime::{Runtime, PERMUTATION_WIDTH};
+    use p3_challenger::CanObserve;
+    use p3_challenger::CanSample;
+    use p3_field::AbstractField;
+    use wp1_core::stark::StarkGenericConfig;
+    use wp1_core::utils::BabyBearPoseidon2;
+    use wp1_recursion_compiler::asm::AsmBuilder;
+    use wp1_recursion_compiler::asm::AsmConfig;
+    use wp1_recursion_compiler::ir::Felt;
+    use wp1_recursion_compiler::ir::Usize;
+    use wp1_recursion_compiler::ir::Var;
+    use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
+    use wp1_recursion_core::stark::utils::run_test_recursion;
+    use wp1_recursion_core::stark::utils::TestConfig;
 
     use crate::challenger::DuplexChallengerVariable;
 
@@ -327,12 +332,6 @@ mod tests {
         builder.assert_felt_eq(expected_result, element);
 
         let program = builder.compile_program();
-
-        let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-        runtime.run();
-        println!(
-            "The program executed successfully, number of cycles: {}",
-            runtime.clk.as_canonical_u32() / 4
-        );
+        run_test_recursion(&program, None, TestConfig::All);
     }
 }
