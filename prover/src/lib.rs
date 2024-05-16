@@ -41,6 +41,7 @@ use wp1_core::{
 };
 use wp1_primitives::hash_deferred_proof;
 use wp1_recursion_circuit::witness::Witnessable;
+use wp1_recursion_compiler::config::OuterConfig;
 use wp1_recursion_compiler::ir::Witness;
 use wp1_recursion_core::runtime::RecursionProgram;
 use wp1_recursion_core::stark::RecursionAirSkinnyDeg7;
@@ -677,9 +678,17 @@ impl SP1Prover {
         witness.write_commited_values_digest(commited_values_digest);
         witness.write_vkey_hash(vkey_digest);
 
-        let mut prover = Groth16Prover::new(build_dir);
-        let proof = prover.prove(witness);
-        prover.shutdown();
+        let prover = Groth16Prover::new();
+        let proof = prover.prove(witness, build_dir.clone());
+
+        // Verify the proof.
+        prover.verify::<OuterConfig>(
+            proof.clone(),
+            vkey_digest,
+            commited_values_digest,
+            build_dir,
+        );
+
         proof
     }
 
@@ -723,6 +732,8 @@ mod tests {
 
     use std::fs::File;
     use std::io::{Read, Write};
+
+    use crate::build::{build_groth16_artifacts, get_groth16_artifacts_dir};
 
     use super::*;
     use p3_field::PrimeField32;
@@ -807,11 +818,11 @@ mod tests {
         let vk_digest_bn254 = wrapped_bn254_proof.wp1_vkey_digest_bn254();
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
-        // tracing::info!("generate groth16 proof");
-        // let artifacts_dir = get_groth16_artifacts_dir();
-        // build_groth16_artifacts(&prover.wrap_vk, &wrapped_bn254_proof.proof, &artifacts_dir);
-        // let groth16_proof = prover.wrap_groth16(wrapped_bn254_proof, artifacts_dir);
-        // println!("{:?}", groth16_proof);
+        tracing::info!("generate groth16 proof");
+        let artifacts_dir = get_groth16_artifacts_dir();
+        build_groth16_artifacts(&prover.wrap_vk, &wrapped_bn254_proof.proof, &artifacts_dir);
+        let groth16_proof = prover.wrap_groth16(wrapped_bn254_proof, artifacts_dir);
+        println!("{:?}", groth16_proof);
     }
 
     /// Tests an end-to-end workflow of proving a program across the entire proof generation
