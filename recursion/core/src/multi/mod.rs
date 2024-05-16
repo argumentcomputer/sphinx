@@ -194,7 +194,7 @@ where
             &mut sub_builder,
             local.poseidon2(),
             local.poseidon2_receive_table,
-            local.poseidon2_memory_access.into(),
+            &local.poseidon2_memory_access.into(),
         );
     }
 }

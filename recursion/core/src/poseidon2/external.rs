@@ -38,7 +38,7 @@ impl Poseidon2Chip {
         builder: &mut AB,
         local: &Poseidon2Cols<AB::Var>,
         receive_table: AB::Var,
-        memory_access: AB::Expr,
+        memory_access: &AB::Expr,
     ) {
         let rounds_f = 8;
         let rounds_p = 13;
@@ -67,7 +67,7 @@ impl Poseidon2Chip {
             local,
             is_memory_read,
             is_memory_write,
-            &memory_access,
+            memory_access,
         );
 
         self.eval_computation(
@@ -295,7 +295,7 @@ where
             builder,
             local,
             Self::do_receive_table::<AB::Var>(local),
-            Self::do_memory_access::<AB::Var, AB::Expr>(local),
+            &Self::do_memory_access::<AB::Var, AB::Expr>(local),
         );
     }
 }

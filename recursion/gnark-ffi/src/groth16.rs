@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::File,
+    fs::{File, OpenOptions},
     io::{Read, Write},
     panic,
     path::PathBuf,
@@ -185,7 +185,7 @@ impl Groth16Prover {
         let result = Command::new("go")
             .args([
                 "test",
-                "-tags=prover_checks",
+                "-tags=release_checks",
                 "-v",
                 "-timeout",
                 "100000s",
@@ -208,7 +208,7 @@ impl Groth16Prover {
         assert!(result.status.success(), "failed to run test circuit");
     }
 
-    pub fn build<C: Config>(constraints: &[Constraint], witness: Witness<C>, build_dir: PathBuf) {
+    pub fn build<C: Config>(constraints: &[Constraint], witness: Witness<C>, build_dir: &PathBuf) {
         let serialized = serde_json::to_string(&constraints).unwrap();
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let gnark_dir = manifest_dir.join("../gnark");
@@ -237,7 +237,22 @@ impl Groth16Prover {
                 "--data".to_string(),
                 cwd.join(build_dir).to_str().unwrap().to_string(),
             ],
-        )
+        );
+
+        // Extend the built verifier with the sp1 verifier contract.
+        let groth16_verifier_path = build_dir.join("Groth16Verifier.sol");
+
+        // Open the file in append mode.
+        let mut groth16_verifier_file = OpenOptions::new()
+            .append(true)
+            .open(groth16_verifier_path)
+            .expect("failed to open file");
+
+        // Write the string to the file
+        let wp1_verifier_str = include_str!("../assets/SP1Verifier.txt");
+        groth16_verifier_file
+            .write_all(wp1_verifier_str.as_bytes())
+            .expect("Failed to write to file");
     }
 
     /// Generates a Groth16 proof by sending a request to the Gnark server.
@@ -360,7 +375,6 @@ fn make_go_bindings(gnark_dir: &PathBuf) {
     let make = Command::new("make")
         .current_dir(gnark_dir)
         .stderr(Stdio::inherit())
-        .stdout(Stdio::inherit())
         .stdin(Stdio::inherit())
         .output()
         .unwrap();

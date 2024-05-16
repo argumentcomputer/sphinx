@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use wp1_core::utils::setup_logger;
-use wp1_prover::build::build_groth16_artifacts;
+use wp1_prover::build::build_groth16_artifacts_with_dummy;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -14,5 +14,5 @@ struct Args {
 pub fn main() {
     setup_logger();
     let args = Args::parse();
-    build_groth16_artifacts(&args.build_dir);
+    build_groth16_artifacts_with_dummy(args.build_dir);
 }
