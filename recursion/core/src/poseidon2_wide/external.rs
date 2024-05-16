@@ -500,7 +500,6 @@ mod tests {
 
     /// A test generating a trace for a single permutation that checks that the output is correct
     #[test]
-    #[ignore = "broken in upstream, will be fixed by https://github.com/succinctlabs/sp1/pull/672"]
     fn generate_trace() {
         generate_trace_degree::<3>();
         generate_trace_degree::<7>();
@@ -562,7 +561,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "broken in upstream #654, will be fixed by https://github.com/succinctlabs/sp1/pull/672"]
     fn poseidon2_wide_prove_babybear() {
         poseidon2_wide_prove_babybear_degree::<3>();
         poseidon2_wide_prove_babybear_degree::<7>();
