@@ -36,23 +36,23 @@ jobs:
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
+  test-recursion-circuit:
+    name: Test recursion circuit
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
         with:
-          command: test
-          args: -p sp1-prover --release
-        env:
-          RUSTFLAGS: -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -C target-cpu=native
-          RUST_LOG: 1
-          RUST_BACKTRACE: 1
-          CARGO_INCREMENTAL: 1
-          FRI_QUERIES: 1
-          SP1_DEV: true
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
+      - name: Run cargo test on the recursion circuit
+        run: |
+          cargo nextest run --cargo-profile dev-ci --profile ci -p wp1-recursion-circuit
 
-  test-main:
-    name: SP1 Tests
-    runs-on: warp-ubuntu-latest-arm64-32x
-    if: github.ref == 'refs/heads/main'
   clippy:
     runs-on: warp-ubuntu-latest-x64-16x
     steps:

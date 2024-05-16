@@ -24,7 +24,6 @@ bincode = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 backtrace = { workspace = true }
 rayon = { workspace = true }
-home = { workspace = true }
 itertools = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
@@ -35,12 +34,14 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 anyhow = { workspace = true }
 size = { workspace = true }
+home = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 indicatif = { workspace = true }
 futures = { workspace = true }
 subtle-encoding = { workspace = true }
+serial_test = { workspace = true }
 
 [[bin]]
 name = "fibonacci_sweep"
