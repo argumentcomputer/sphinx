@@ -32,3 +32,6 @@ serde_with = { workspace = true }
 backtrace = { workspace = true, features = ["serde"] }
 arrayref = { workspace = true }
 static_assertions = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true }

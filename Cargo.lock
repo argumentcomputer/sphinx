@@ -5147,6 +5147,7 @@ dependencies = [
  "p3-merkle-tree",
  "p3-poseidon2",
  "p3-symmetric",
+ "rand",
  "serde",
  "serde_with",
  "static_assertions",
