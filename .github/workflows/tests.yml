@@ -23,9 +23,9 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
-      - name: Run cargo test on wp1 except the prove_sp1 recursion test
+      - name: Run cargo test on wp1 except the test_e2e_prove_groth16 recursion test
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --exclude wp1-recursion-circuit -E 'all() - test(test_prove_sp1)'
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --exclude wp1-recursion-circuit -E 'all() - test(test_e2e_prove_groth16)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
@@ -153,7 +153,7 @@ jobs:
         working-directory: ${{ github.workspace }}
       - name: Run cargo test on wp1 except the prove_sp1 recursion test
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_prove_sp1)'
+          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_e2e_prove_groth16)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace

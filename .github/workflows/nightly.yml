@@ -29,7 +29,7 @@ jobs:
           pull_token: ${{ secrets.REPO_TOKEN }}
       - name: Run exhaustive tests
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --run-ignored all -E 'all() - test(test_prove_sp1)'
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --run-ignored all -E 'all()'
       - name: Open an issue on failure
         if: failure()
         uses: JasonEtco/create-an-issue@v2

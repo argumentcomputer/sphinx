@@ -13,7 +13,13 @@ retries = 1
 
 [test-groups]
 limited = { max-threads = 4 }
+very-limited = { max-threads = 1 }
 
 [[profile.ci.overrides]]
-filter = '(test(syscall::precompiles) | test(stark::machine) | test(test_e2e))'
+filter = '(test(syscall::precompiles) | test(stark::machine) | package(wp1-recursion-program) | package(wp1-recursion-circuit))'
 test-group = 'limited'
+
+[[profile.ci.overrides]]
+filter = '(test(test_e2e))'
+slow-timeout = { period = "1500s", terminate-after = 4 }
+test-group = 'very-limited'
