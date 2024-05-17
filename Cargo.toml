@@ -74,7 +74,7 @@ elliptic-curve = "0.13.8"
 ff = "0.13"
 futures = "0.3.30"
 futures-util = "0.3.14"
-getrandom = "0.2.15"
+getrandom = "=0.2.14" # 0.2.15 depends on yanked libc 0.2.154
 hashbrown = "0.14.5"
 hex = "0.4.3"
 home = "0.5.9"
