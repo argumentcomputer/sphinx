@@ -115,6 +115,14 @@ jobs:
       - name: Run cargo prove new
         run: |
           cargo prove new cargo-prove-test
+          cd cargo-prove-test/program
+          cat << EOF | tee -a Cargo.toml
+
+          [patch.'ssh://git@github.com/wormhole-foundation/wp1.git']
+          wp1-zkvm = { path = "../../zkvm/entrypoint" }
+          EOF
+          cd ../..
+
           cd cargo-prove-test/script
           cat << EOF | tee -a Cargo.toml
 
