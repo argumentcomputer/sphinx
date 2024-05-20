@@ -7,12 +7,12 @@ use anyhow::Result;
 pub use local::LocalProver;
 pub use mock::MockProver;
 pub use network::NetworkProver;
-use sp1_core::stark::MachineVerificationError;
-use sp1_prover::CoreSC;
-use sp1_prover::SP1CoreProofData;
-use sp1_prover::SP1Prover;
-use sp1_prover::SP1ReduceProof;
-use sp1_prover::{SP1ProvingKey, SP1Stdin, SP1VerifyingKey};
+use wp1_core::stark::MachineVerificationError;
+use wp1_prover::CoreSC;
+use wp1_prover::SP1CoreProofData;
+use wp1_prover::SP1Prover;
+use wp1_prover::SP1ReduceProof;
+use wp1_prover::{SP1ProvingKey, SP1Stdin, SP1VerifyingKey};
 
 /// An implementation of [crate::ProverClient].
 pub trait Prover: Send + Sync {
@@ -40,13 +40,13 @@ pub trait Prover: Send + Sync {
         proof: &SP1Proof,
         vkey: &SP1VerifyingKey,
     ) -> Result<(), MachineVerificationError<CoreSC>> {
-        self.sp1_prover()
+        self.wp1_prover()
             .verify(&SP1CoreProofData(proof.proof.clone()), vkey)
     }
 
     /// Verify that a compressed SP1 proof is valid given its vkey and metadata.
     fn verify_compressed(&self, proof: &SP1CompressedProof, vkey: &SP1VerifyingKey) -> Result<()> {
-        self.sp1_prover()
+        self.wp1_prover()
             .verify_compressed(
                 &SP1ReduceProof {
                     proof: proof.proof.clone(),
