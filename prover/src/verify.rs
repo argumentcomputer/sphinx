@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use anyhow::Result;
 use p3_baby_bear::BabyBear;
 use p3_field::AbstractField;
@@ -98,7 +100,8 @@ impl SP1Prover {
             .verify(&self.compress_vk, &machine_proof, &mut challenger)?;
 
         // Validate public values
-        let public_values = RecursionPublicValues::from_vec(&proof.proof.public_values);
+        let public_values: &RecursionPublicValues<_> =
+            proof.proof.public_values.as_slice().borrow();
 
         // `is_complete` should be 1. In the reduce program, this ensures that the proof is fully reduced.
         if public_values.is_complete != BabyBear::one() {
@@ -117,7 +120,7 @@ impl SP1Prover {
 
         // Verify that the reduce program is the one we are expecting.
         let recursion_vkey_hash = self.compress_vk.hash_babybear();
-        if public_values.recursion_vk_digest != recursion_vkey_hash {
+        if public_values.compress_vk_digest != recursion_vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "recursion vk hash mismatch",
             ));
@@ -140,7 +143,8 @@ impl SP1Prover {
             .verify(&self.shrink_vk, &machine_proof, &mut challenger)?;
 
         // Validate public values
-        let public_values = RecursionPublicValues::from_vec(&proof.proof.public_values);
+        let public_values: &RecursionPublicValues<_> =
+            proof.proof.public_values.as_slice().borrow();
 
         // `is_complete` should be 1. In the reduce program, this ensures that the proof is fully reduced.
         if public_values.is_complete != BabyBear::one() {
@@ -154,14 +158,6 @@ impl SP1Prover {
         if public_values.wp1_vk_digest != vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "sp1 vk hash mismatch",
-            ));
-        }
-
-        // Verify that the reduce program is the one we are expecting.
-        let recursion_vkey_hash = self.shrink_vk.hash_babybear();
-        if public_values.recursion_vk_digest != recursion_vkey_hash {
-            return Err(MachineVerificationError::InvalidPublicValues(
-                "recursion vk hash mismatch",
             ));
         }
 
@@ -182,7 +178,8 @@ impl SP1Prover {
             .verify(&self.wrap_vk, &machine_proof, &mut challenger)?;
 
         // Validate public values
-        let public_values = RecursionPublicValues::from_vec(&proof.proof.public_values);
+        let public_values: &RecursionPublicValues<_> =
+            proof.proof.public_values.as_slice().borrow();
 
         // `is_complete` should be 1. In the reduce program, this ensures that the proof is fully reduced.
         if public_values.is_complete != BabyBear::one() {
@@ -196,14 +193,6 @@ impl SP1Prover {
         if public_values.wp1_vk_digest != vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "sp1 vk hash mismatch",
-            ));
-        }
-
-        // Verify that the reduce program is the one we are expecting.
-        let recursion_vkey_hash = self.shrink_vk.hash_babybear();
-        if public_values.recursion_vk_digest != recursion_vkey_hash {
-            return Err(MachineVerificationError::InvalidPublicValues(
-                "recursion vk hash mismatch",
             ));
         }
 
