@@ -341,6 +341,7 @@ mod tests {
             }
             break;
         }
+        builder.halt();
 
         let program = builder.compile_program();
         run_test_recursion(&program, None, TestConfig::All);
