@@ -180,7 +180,7 @@ jobs:
           filename: .github/templates/M1_MAC.md
 
   check-aptos-lc-compiles:
-    runs-on: ubuntu-latest
+    runs-on: warp-ubuntu-latest-x64-16x
     steps:
       - uses: actions/checkout@v4
         with:
@@ -198,16 +198,16 @@ jobs:
         with:
           path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
           submodules: recursive
-      - name: Install cargo prove
-        run: |
-          cargo install --locked --path ./cli
-          cargo prove install-toolchain
-        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
       - name: Setup CI
         uses: ./wp1/.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
+      - name: Install cargo prove
+        run: |
+          cargo install --locked --path ./cli
+          cargo prove install-toolchain
+        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
       - uses: actions/checkout@v4
         with:
           repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
