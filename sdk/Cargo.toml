@@ -31,7 +31,6 @@ log = { workspace = true }
 axum = { workspace = true }
 home = { workspace = true }
 alloy = { workspace = true, features = ["contract", "signer-wallet"] }
-dotenv = { workspace = true }
 sha2 = { workspace = true }
 tempfile = { workspace = true }
 

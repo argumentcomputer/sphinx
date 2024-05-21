@@ -27,5 +27,4 @@ wp1-core = { path = "../../core" }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }
-array-macro = { workspace = true }
 tracing = { workspace = true }
