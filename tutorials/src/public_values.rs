@@ -154,13 +154,11 @@ mod tests {
         let chip = Chip;
 
         let config = BabyBearPoseidon2::new();
-
-        let mut challenger = config.challenger();
-        let uni_config = UniConfig(config.clone());
-        let proof = prove(&uni_config, &chip, &mut challenger, trace, &public_values);
-
-        let mut challenger = config.challenger();
+        let chllngr_p = &mut config.challenger();
+        let chllngr_v = &mut config.challenger();
         let uni_config = UniConfig(config);
-        verify(&uni_config, &chip, &mut challenger, &proof, &public_values).unwrap();
+
+        let proof = prove(&uni_config, &chip, chllngr_p, trace, &public_values);
+        verify(&uni_config, &chip, chllngr_v, &proof, &public_values).unwrap();
     }
 }
