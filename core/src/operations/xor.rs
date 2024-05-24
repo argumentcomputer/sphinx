@@ -39,7 +39,7 @@ impl<F: Field> XorOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
+    pub fn eval<AB: ByteAirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,
         b: Word<AB::Var>,
