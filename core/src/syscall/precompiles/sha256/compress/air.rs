@@ -273,7 +273,7 @@ impl ShaCompressChip {
             .assert_word_eq(*local.mem.value(), local.finalize_add.value);
     }
 
-    fn eval_compression_ops<AB: SP1AirBuilder>(
+    fn eval_compression_ops<AB: WordAirBuilder>(
         &self,
         builder: &mut AB,
         local: &ShaCompressCols<AB::Var>,
@@ -553,7 +553,7 @@ impl ShaCompressChip {
             .assert_word_eq(next.a, local.temp1_add_temp2.value);
     }
 
-    fn eval_finalize_ops<AB: SP1AirBuilder>(
+    fn eval_finalize_ops<AB: WordAirBuilder>(
         &self,
         builder: &mut AB,
         local: &ShaCompressCols<AB::Var>,
