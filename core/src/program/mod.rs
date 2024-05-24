@@ -156,7 +156,7 @@ impl<F> BaseAir<F> for ProgramChip {
 
 impl<AB> Air<AB> for ProgramChip
 where
-    AB: SP1AirBuilder + PairBuilder,
+    AB: ProgramAirBuilder + PairBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
