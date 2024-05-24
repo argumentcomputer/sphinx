@@ -97,7 +97,7 @@ impl<F: Field> GOperation<F> {
         result
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
+    pub fn eval<AB: WordAirBuilder<F = F>>(
         builder: &mut AB,
         input: [Word<AB::Var>; 6],
         cols: GOperation<AB::Var>,
