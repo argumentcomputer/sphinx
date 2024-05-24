@@ -55,7 +55,7 @@ pub(crate) fn eval_abs_value<AB>(
     abs_value: &Word<AB::Var>,
     is_negative: &AB::Var,
 ) where
-    AB: SP1AirBuilder,
+    AB: BaseAirBuilder,
 {
     for i in 0..WORD_SIZE {
         let exp_sum_if_negative = AB::Expr::from_canonical_u32({
