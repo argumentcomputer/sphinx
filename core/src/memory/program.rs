@@ -151,7 +151,7 @@ impl<F> BaseAir<F> for MemoryProgramChip {
 
 impl<AB> Air<AB> for MemoryProgramChip
 where
-    AB: SP1AirBuilder + PairBuilder + AirBuilderWithPublicValues,
+    AB: BaseAirBuilder + PairBuilder + AirBuilderWithPublicValues,
 {
     fn eval(&self, builder: &mut AB) {
         let preprocessed = builder.preprocessed();
