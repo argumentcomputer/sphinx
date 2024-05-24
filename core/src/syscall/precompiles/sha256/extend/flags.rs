@@ -36,7 +36,7 @@ impl<F: Field> ShaExtendCols<F> {
 }
 
 impl ShaExtendChip {
-    pub fn eval_flags<AB: SP1AirBuilder>(&self, builder: &mut AB) {
+    pub fn eval_flags<AB: BaseAirBuilder>(&self, builder: &mut AB) {
         let main = builder.main();
         let (local, next) = (main.row_slice(0), main.row_slice(1));
         let local: &ShaExtendCols<AB::Var> = (*local).borrow();
