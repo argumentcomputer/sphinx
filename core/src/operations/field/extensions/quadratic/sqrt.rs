@@ -68,7 +68,7 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
 impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
     pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
+        AB: WordAirBuilder<Var = V>,
         ER: Into<AB::Expr> + Clone,
         EShard: Into<AB::Expr> + Clone,
     >(
@@ -234,7 +234,7 @@ mod tests {
 
     impl<AB, P: FieldParameters> Air<AB> for QuadSqrtChip<P>
     where
-        AB: SP1AirBuilder,
+        AB: WordAirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
