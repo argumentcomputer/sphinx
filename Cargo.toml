@@ -54,7 +54,7 @@ p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp
 p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
 alloy = { git = "https://github.com/alloy-rs/alloy", rev = "bfd0fda" }
 anstyle = "1.0.7"
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 arrayref = "0.3.6"
 async-trait = "0.1.77"
 axum = "=0.7.5"
@@ -98,7 +98,7 @@ rayon-scan = "0.1.1"
 reqwest = { version = "0.12.3", default-features = false }
 reqwest-middleware = "0.3.0"
 rrs-lib = { git = "https://github.com/GregAC/rrs.git" }
-serde = "1.0.201"
+serde = "1.0.202"
 serde_json = { version = "1.0.117", default-features = false, features = ["alloc"] }
 serde_with = "3.8.1"
 serial_test = "3.1.1"
@@ -109,7 +109,7 @@ strum_macros = "0.26.2"
 syn = "1.0"
 target-lexicon = "0.12.13"
 tempfile = "3.9.0"
-thiserror = "1.0.60"
+thiserror = "1.0.61"
 tiny-keccak = "2.0.2"
 tokio = "1.37.0"
 tracing = "0.1.40"
