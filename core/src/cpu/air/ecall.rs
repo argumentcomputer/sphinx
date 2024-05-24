@@ -185,7 +185,7 @@ impl CpuChip {
     }
 
     /// Returns a boolean expression indicating whether the instruction is a HALT instruction.
-    pub(crate) fn get_is_halt_syscall<AB: SP1AirBuilder>(
+    pub(crate) fn get_is_halt_syscall<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
@@ -213,7 +213,7 @@ impl CpuChip {
     }
 
     /// Returns two boolean expression indicating whether the instruction is a COMMIT or COMMIT_DEFERRED_PROOFS instruction.
-    pub(crate) fn get_is_commit_related_syscall<AB: SP1AirBuilder>(
+    pub(crate) fn get_is_commit_related_syscall<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
