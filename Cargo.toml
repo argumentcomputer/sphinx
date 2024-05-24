@@ -131,6 +131,7 @@ blake3-zkvm = { git = "https://github.com/sp1-patches/BLAKE3.git", branch = "pat
 dirs = "5.0.1"
 generic-array = "1.0.0"
 typenum = "1.17.0"
+num-bigint = { version = "0.4.3", default-features = false }
 
 [profile.dev-ci]
 inherits = "dev"

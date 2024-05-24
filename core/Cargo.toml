@@ -42,7 +42,6 @@ blake3-zkvm = { workspace = true }
 bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
 hybrid-array = { workspace = true }
-typenum = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
 hex = { workspace = true }
@@ -60,6 +59,7 @@ web-time = { workspace = true }
 rayon-scan = { workspace = true }
 serial_test = { workspace = true }
 thiserror = { workspace = true }
+num-bigint = { workspace = true }
 
 [dev-dependencies]
 tiny-keccak = { workspace = true, features = ["keccak"] }

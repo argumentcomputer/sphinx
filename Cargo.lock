@@ -3926,15 +3926,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
 
 [[package]]
-name = "subtle-encoding"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dcb1ed7b8330c5eed5441052651dd7a12c75e2ed88f2ec024ae1fa3a5e59945"
-dependencies = [
- "zeroize",
-]
-
-[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4856,6 +4847,7 @@ dependencies = [
  "log",
  "nohash-hasher",
  "num",
+ "num-bigint 0.4.5",
  "num_cpus",
  "p3-air",
  "p3-baby-bear",
@@ -4889,7 +4881,6 @@ dependencies = [
  "tracing",
  "tracing-forest",
  "tracing-subscriber",
- "typenum",
  "web-time",
  "wp1-derive",
  "wp1-primitives",
@@ -4976,7 +4967,6 @@ dependencies = [
  "serial_test",
  "sha2",
  "size",
- "subtle-encoding",
  "tempfile",
  "thiserror",
  "tokio",
