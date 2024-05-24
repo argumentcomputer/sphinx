@@ -29,9 +29,7 @@ fn main() {
         ])
         .status()
         .expect("Failed to build Go library");
-    if !status.success() {
-        panic!("Go build failed");
-    }
+    assert!(status.success(), "Go build failed");
 
     // Copy go/babybear.h to OUT_DIR/babybear.h
     let header_src = PathBuf::from("go/babybear.h");

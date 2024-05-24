@@ -1,8 +1,4 @@
-use std::{
-    fs::File,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{fs::File, io::Write, path::Path};
 
 use crate::{
     ffi::{build_groth16, prove_groth16, test_groth16, verify_groth16},
@@ -72,7 +68,7 @@ impl Groth16Prover {
     }
 
     /// Generates a Groth16 proof by sending a request to the Gnark server.
-    pub fn prove<C: Config>(&self, witness: Witness<C>, build_dir: PathBuf) -> Groth16Proof {
+    pub fn prove<C: Config>(&self, witness: Witness<C>, build_dir: &Path) -> Groth16Proof {
         // Write witness.
         let mut witness_file = tempfile::NamedTempFile::new().unwrap();
         let gnark_witness = GnarkWitness::new(witness);

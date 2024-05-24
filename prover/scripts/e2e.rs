@@ -75,7 +75,7 @@ pub fn main() {
     let groth16_prover = Groth16Prover::new();
 
     tracing::info!("gnark prove");
-    let proof = groth16_prover.prove(witness.clone(), build_dir.clone());
+    let proof = groth16_prover.prove(witness.clone(), &build_dir);
 
     tracing::info!("verify gnark proof");
     groth16_prover.verify(

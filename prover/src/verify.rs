@@ -15,7 +15,8 @@ use wp1_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPose
 use wp1_recursion_gnark_ffi::{Groth16Proof, Groth16Prover};
 
 use crate::{
-    CoreSC, HashableKey, OuterSC, SP1CoreProofData, SP1Prover, SP1ReduceProof, SP1VerifyingKey,
+    types::HashableKey, CoreSC, OuterSC, SP1CoreProofData, SP1Prover, SP1ReduceProof,
+    SP1VerifyingKey,
 };
 
 #[derive(Error, Debug)]

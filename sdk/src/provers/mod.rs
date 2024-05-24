@@ -8,11 +8,11 @@ pub use local::LocalProver;
 pub use mock::MockProver;
 pub use network::NetworkProver;
 use wp1_core::stark::MachineVerificationError;
+use wp1_prover::types::SP1CoreProofData;
+use wp1_prover::types::SP1ReduceProof;
 use wp1_prover::CoreSC;
-use wp1_prover::SP1CoreProofData;
 use wp1_prover::SP1Prover;
-use wp1_prover::SP1ReduceProof;
-use wp1_prover::{SP1ProvingKey, SP1Stdin, SP1VerifyingKey};
+use wp1_prover::{types::SP1ProvingKey, types::SP1VerifyingKey, SP1Stdin};
 
 /// An implementation of [crate::ProverClient].
 pub trait Prover: Send + Sync {

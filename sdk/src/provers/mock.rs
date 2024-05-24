@@ -6,7 +6,7 @@ use crate::{
 use anyhow::Result;
 use p3_field::PrimeField;
 use wp1_prover::{
-    verify::verify_groth16_public_inputs, Groth16Proof, HashableKey, SP1Prover, SP1Stdin,
+    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SP1Prover, SP1Stdin,
 };
 
 /// An implementation of [crate::ProverClient] that can generate mock proofs.
