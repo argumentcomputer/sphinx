@@ -4,11 +4,12 @@ use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
 
+use crate::air::ByteAirBuilder;
+
 use super::{
     columns::{ByteMultCols, BytePreprocessedCols, NUM_BYTE_MULT_COLS},
     ByteChip, ByteOpcode,
 };
-use crate::air::SP1AirBuilder;
 
 impl<F: Field> BaseAir<F> for ByteChip<F> {
     fn width(&self) -> usize {

@@ -1,7 +1,7 @@
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::SP1AirBuilder;
+use crate::air::ByteAirBuilder;
 use crate::air::Word;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::utils::shr_carry;
@@ -104,8 +104,8 @@ impl<F: Field> FixedRotateRightOperation<F> {
         expected
     }
 
-    pub fn eval<AB: crate::air::ByteAirBuilder<F = F>>(
     pub fn eval<AB: ByteAirBuilder<F = F>>(
+        builder: &mut AB,
         input: Word<AB::Var>,
         rotation: usize,
         cols: FixedRotateRightOperation<AB::Var>,

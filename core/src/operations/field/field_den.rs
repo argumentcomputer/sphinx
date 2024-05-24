@@ -9,7 +9,7 @@ use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
-use crate::air::SP1AirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 
 /// A set of columns to compute `FieldDen(a, b)` where `a`, `b` are field elements.
@@ -95,8 +95,8 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
     pub fn eval<
-        AB: crate::air::WordAirBuilder<Var = V>,
         AB: WordAirBuilder<Var = V>,
+        EShard: Into<AB::Expr> + Clone,
         ER: Into<AB::Expr> + Clone,
     >(
         &self,
@@ -152,6 +152,7 @@ mod tests {
         mem::size_of,
     };
 
+    use crate::air::WordAirBuilder;
     use num::{bigint::RandBigInt, BigUint};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
@@ -168,12 +169,12 @@ mod tests {
     };
 
     use crate::operations::field::params::FieldParameters;
+    use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::BabyBearPoseidon2;
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use p3_field::AbstractField;
     #[derive(Debug, Clone, AlignedBorrow)]
     pub struct TestCols<T, P: FieldParameters> {

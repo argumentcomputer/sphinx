@@ -2,7 +2,7 @@ use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
 use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder},
+    air::{AluAirBuilder, BaseAirBuilder, Word, WordAirBuilder},
     cpu::{
         columns::{CpuCols, OpcodeSelectorCols},
         CpuChip,

@@ -1,4 +1,4 @@
-use crate::air::SP1AirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 use crate::operations::field::extensions::quadratic::QuadFieldOperation;
 use crate::operations::field::params::{FieldParameters, Limbs};
@@ -111,15 +111,16 @@ mod tests {
     use super::QuadFieldSqrtCols;
 
     use crate::air::MachineAir;
+    use crate::air::WordAirBuilder;
 
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, Limbs};
+    use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::weierstrass::bls12_381::{bls12381_fp2_sqrt, Bls12381BaseField};
     use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use core::borrow::{Borrow, BorrowMut};
     use core::mem::size_of;
     use num::bigint::RandBigInt;

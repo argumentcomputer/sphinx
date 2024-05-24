@@ -11,7 +11,7 @@ use super::{
     NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,
 };
 use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder, WORD_SIZE},
+    air::{BaseAirBuilder, SP1AirBuilder, WordAirBuilder, WORD_SIZE},
     runtime::SyscallCode,
 };
 

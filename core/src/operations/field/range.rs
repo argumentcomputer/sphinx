@@ -11,9 +11,9 @@ use std::fmt::Debug;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
+    air::ByteAirBuilder,
     air::Polynomial,
     bytes::{event::ByteRecord, ByteLookupEvent, ByteOpcode},
-    stark::SP1AirBuilder,
 };
 
 use super::params::FieldParameters;

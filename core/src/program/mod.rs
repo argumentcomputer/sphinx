@@ -10,7 +10,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use wp1_derive::AlignedBorrow;
 
 use crate::{
-    air::{MachineAir, SP1AirBuilder},
+    air::{MachineAir, ProgramAirBuilder},
     cpu::columns::{InstructionCols, OpcodeSelectorCols},
     runtime::{ExecutionRecord, Program},
     utils::pad_to_power_of_two,

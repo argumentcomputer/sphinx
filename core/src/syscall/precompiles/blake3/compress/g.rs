@@ -3,7 +3,7 @@ use wp1_derive::AlignedBorrow;
 
 use super::g_func;
 use crate::{
-    air::{SP1AirBuilder, Word, WORD_SIZE},
+    air::{Word, WordAirBuilder, WORD_SIZE},
     operations::{AddOperation, FixedRotateRightOperation, XorOperation},
     runtime::ExecutionRecord,
 };

@@ -201,7 +201,7 @@ mod tests {
     use p3_matrix::Matrix;
 
     use super::*;
-    use crate::{air::SP1AirBuilder, lookup::InteractionKind};
+    use crate::{air::BaseAirBuilder, lookup::InteractionKind};
 
     #[test]
     fn test_symbolic_to_virtual_pair_col() {

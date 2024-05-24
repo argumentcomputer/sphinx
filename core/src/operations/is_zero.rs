@@ -4,11 +4,10 @@
 //!
 //! The idea is that 1 - input * inverse is exactly the boolean value indicating whether the input
 //! is 0.
+use crate::air::BaseAirBuilder;
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
-
-use crate::air::SP1AirBuilder;
 
 /// A set of columns needed to compute whether the given word is 0.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
@@ -38,8 +37,8 @@ impl<F: Field> IsZeroOperation<F> {
         debug_assert!(prod == F::one() || prod == F::zero());
         u32::from(a == F::zero())
     }
+
     pub fn eval<AB: BaseAirBuilder<F = F>, Ea, Ereal>(
-    pub fn eval<AB: crate::air::BaseAirBuilder<F = F>, Ea, Ereal>(
         builder: &mut AB,
         a: Ea,
         cols: IsZeroOperation<AB::Var>,

@@ -8,7 +8,7 @@ use p3_matrix::Matrix;
 
 use wp1_derive::AlignedBorrow;
 
-use crate::air::{AirInteraction, PublicValues, SP1AirBuilder};
+use crate::air::{AirInteraction, BaseAirBuilder, PublicValues};
 use crate::air::{MachineAir, Word};
 use crate::operations::IsZeroOperation;
 use crate::runtime::{ExecutionRecord, Program};

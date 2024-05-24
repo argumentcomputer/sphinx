@@ -7,7 +7,7 @@ use p3_uni_stark::{get_max_constraint_degree, SymbolicAirBuilder};
 use p3_util::log2_ceil_usize;
 
 use crate::{
-    air::{MachineAir, MultiTableAirBuilder, SP1AirBuilder},
+    air::{BaseAirBuilder, MachineAir, MultiTableAirBuilder},
     lookup::{Interaction, InteractionBuilder, InteractionKind},
 };
 

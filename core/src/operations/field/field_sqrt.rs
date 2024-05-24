@@ -7,7 +7,7 @@ use wp1_derive::AlignedBorrow;
 use super::field_op::FieldOpCols;
 use super::params::Limbs;
 use super::range::FieldRangeCols;
-use crate::air::SP1AirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 use crate::operations::field::params::FieldParameters;
 
@@ -120,15 +120,15 @@ mod tests {
     use super::{FieldSqrtCols, Limbs};
 
     use crate::air::MachineAir;
-
+    use crate::air::WordAirBuilder;
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, DEFAULT_NUM_LIMBS_T};
+    use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::{ed25519_sqrt, Ed25519BaseField};
     use crate::utils::{pad_to_power_of_two, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use p3_field::AbstractField;
 
     #[derive(AlignedBorrow, Debug)]

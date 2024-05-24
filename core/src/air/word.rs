@@ -9,7 +9,7 @@ use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use super::SP1AirBuilder;
+use super::BaseAirBuilder;
 
 /// The size of a word in bytes.
 pub const WORD_SIZE: usize = 4;
@@ -31,8 +31,8 @@ impl<T> Word<T> {
     }
 
     /// Extends a variable to a word.
-    pub fn extend_var<AB: crate::air::BaseAirBuilder<Var = T>>(var: T) -> Word<AB::Expr> {
     pub fn extend_var<AB: BaseAirBuilder<Var = T>>(var: T) -> Word<AB::Expr> {
+        Word([
             AB::Expr::zero() + var,
             AB::Expr::zero(),
             AB::Expr::zero(),
@@ -43,8 +43,8 @@ impl<T> Word<T> {
 
 impl<T: AbstractField> Word<T> {
     /// Extends a variable to a word.
-    pub fn extend_expr<AB: crate::air::BaseAirBuilder<Expr = T>>(expr: T) -> Word<AB::Expr> {
     pub fn extend_expr<AB: BaseAirBuilder<Expr = T>>(expr: T) -> Word<AB::Expr> {
+        Word([
             AB::Expr::zero() + expr,
             AB::Expr::zero(),
             AB::Expr::zero(),
@@ -53,8 +53,8 @@ impl<T: AbstractField> Word<T> {
     }
 
     /// Returns a word with all zero expressions.
-    pub fn zero<AB: crate::air::BaseAirBuilder<Expr = T>>() -> Word<T> {
     pub fn zero<AB: BaseAirBuilder<Expr = T>>() -> Word<T> {
+        Word([
             AB::Expr::zero(),
             AB::Expr::zero(),
             AB::Expr::zero(),

@@ -1,13 +1,13 @@
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
-use crate::air::{BaseAirBuilder, WordAirBuilder};
+use crate::air::{AluAirBuilder, BaseAirBuilder, WordAirBuilder};
 use crate::cpu::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
 use crate::cpu::columns::{CpuCols, OpcodeSelectorCols};
 use crate::memory::MemoryCols;
 use crate::operations::IsZeroOperation;
 use crate::runtime::SyscallCode;
-use crate::stark::{CpuChip, SP1AirBuilder};
+use crate::stark::CpuChip;
 
 impl CpuChip {
     /// Whether the instruction is an ECALL instruction.

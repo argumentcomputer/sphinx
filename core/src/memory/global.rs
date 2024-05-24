@@ -10,7 +10,7 @@ use wp1_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
 use crate::{
-    air::{AirInteraction, MachineAir, SP1AirBuilder, Word, WordAirBuilder},
+    air::{AirInteraction, BaseAirBuilder, MachineAir, Word, WordAirBuilder},
     runtime::{ExecutionRecord, Program},
     utils::pad_to_power_of_two,
 };

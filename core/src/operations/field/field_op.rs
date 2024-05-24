@@ -10,7 +10,7 @@ use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
-use crate::air::SP1AirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 
 /// Airthmetic operation for emulating modular arithmetic.
@@ -243,8 +243,10 @@ mod tests {
 
     use crate::{air::MachineAir, utils::ec::weierstrass::bls12_381::Bls12381BaseField};
 
+    use crate::air::WordAirBuilder;
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::FieldParameters;
+    use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
@@ -253,7 +255,6 @@ mod tests {
         pad_to_power_of_two_nongeneric, uni_stark_prove as prove, uni_stark_verify as verify,
         BabyBearPoseidon2,
     };
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use p3_field::AbstractField;
 
     #[derive(AlignedBorrow, Debug, Clone)]

@@ -15,6 +15,7 @@ use wp1_derive::AlignedBorrow;
 
 use crate::air::BaseAirBuilder;
 use crate::air::MachineAir;
+use crate::air::MachineAirBuilder;
 use crate::air::SP1AirBuilder;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;

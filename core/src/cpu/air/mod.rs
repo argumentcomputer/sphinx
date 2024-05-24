@@ -12,6 +12,7 @@ use p3_air::BaseAir;
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
 
+use crate::air::AluAirBuilder;
 use crate::air::BaseAirBuilder;
 use crate::air::PublicValues;
 use crate::air::SP1AirBuilder;

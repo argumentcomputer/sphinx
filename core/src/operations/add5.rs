@@ -2,8 +2,8 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::SP1AirBuilder;
 use crate::air::Word;
+use crate::air::WordAirBuilder;
 use crate::air::WORD_SIZE;
 use crate::bytes::event::ByteRecord;
 use crate::runtime::ExecutionRecord;

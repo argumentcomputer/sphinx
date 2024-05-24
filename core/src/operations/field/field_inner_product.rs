@@ -10,7 +10,7 @@ use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
 use crate::air::Polynomial;
-use crate::air::SP1AirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 
 /// A set of columns to compute `InnerProduct([a], [b])` where a, b are emulated elements.
@@ -92,8 +92,8 @@ impl<F: PrimeField32, P: FieldParameters> FieldInnerProductCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> FieldInnerProductCols<V, P> {
     pub fn eval<
-        AB: crate::air::WordAirBuilder<Var = V>,
         AB: WordAirBuilder<Var = V>,
+        EShard: Into<AB::Expr> + Clone,
         ER: Into<AB::Expr> + Clone,
     >(
         &self,
@@ -152,18 +152,19 @@ mod tests {
 
     use super::{FieldInnerProductCols, Limbs};
 
+    use crate::air::WordAirBuilder;
     use crate::{
         air::MachineAir,
         utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
 
     use crate::operations::field::params::FieldParameters;
+    use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
     use crate::stark::StarkGenericConfig;
     use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
     use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
-    use crate::{air::SP1AirBuilder, runtime::ExecutionRecord};
     use p3_field::AbstractField;
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, P: FieldParameters> {

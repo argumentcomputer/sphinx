@@ -8,7 +8,7 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, PrimeField32};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::{Polynomial, SP1AirBuilder};
+use crate::air::{Polynomial, WordAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::operations::field::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use crate::operations::field::util::{
@@ -365,6 +365,7 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
 
 #[cfg(test)]
 mod tests {
+    use crate::air::WordAirBuilder;
     use core::borrow::{Borrow, BorrowMut};
     use core::mem::size_of;
 
@@ -378,7 +379,7 @@ mod tests {
     use wp1_derive::AlignedBorrow;
 
     use super::{QuadFieldOpCols, QuadFieldOperation};
-    use crate::air::{MachineAir, SP1AirBuilder};
+    use crate::air::MachineAir;
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::{ExecutionRecord, Program};

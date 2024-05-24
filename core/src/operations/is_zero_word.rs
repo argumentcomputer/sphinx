@@ -8,7 +8,7 @@ use wp1_derive::AlignedBorrow;
 
 use super::IsZeroOperation;
 use crate::{
-    air::{SP1AirBuilder, Word},
+    air::{BaseAirBuilder, Word},
     disassembler::WORD_SIZE,
 };
 

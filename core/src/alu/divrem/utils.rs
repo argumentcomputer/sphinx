@@ -2,7 +2,7 @@ use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
 use crate::{
-    air::{SP1AirBuilder, Word, WORD_SIZE},
+    air::{BaseAirBuilder, Word, WORD_SIZE},
     runtime::Opcode,
 };
 
