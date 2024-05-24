@@ -49,7 +49,7 @@ pub fn try_build_groth16_artifacts_dev(
 
 /// Gets the directory where the Groth16 artifacts are installed.
 pub fn groth16_artifacts_dir() -> PathBuf {
-    dirs::home_dir()
+    home::home_dir()
         .unwrap()
         .join(".sp1")
         .join("circuits")
@@ -59,7 +59,7 @@ pub fn groth16_artifacts_dir() -> PathBuf {
 
 /// Gets the directory where the Groth16 artifacts are installed in development mode.
 pub fn groth16_artifacts_dev_dir() -> PathBuf {
-    dirs::home_dir()
+    home::home_dir()
         .unwrap()
         .join(".sp1")
         .join("circuits")
