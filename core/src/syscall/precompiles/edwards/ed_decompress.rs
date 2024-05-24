@@ -380,7 +380,7 @@ impl<F, E: EdwardsParameters> BaseAir<F> for EdDecompressChip<E> {
 
 impl<AB, E: EdwardsParameters> Air<AB> for EdDecompressChip<E>
 where
-    AB: SP1AirBuilder,
+    AB: MachineAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
