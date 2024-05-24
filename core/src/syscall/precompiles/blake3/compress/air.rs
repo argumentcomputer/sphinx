@@ -53,7 +53,7 @@ where
 impl Blake3CompressInnerChip {
     /// Constrains the given index is correct for the given selector. The `selector` is an
     /// `n`-dimensional boolean array whose `i`-th element is true if and only if the index is `i`.
-    fn constrain_index_selector<AB: SP1AirBuilder>(
+    fn constrain_index_selector<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         selector: &[AB::Var],
@@ -76,7 +76,7 @@ impl Blake3CompressInnerChip {
     }
 
     /// Constrains the control flow flags such as the operation index and the round index.
-    fn constrain_control_flow_flags<AB: SP1AirBuilder>(
+    fn constrain_control_flow_flags<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &Blake3CompressInnerCols<AB::Var>,

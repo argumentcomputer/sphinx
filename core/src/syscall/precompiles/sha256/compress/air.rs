@@ -58,7 +58,7 @@ where
 }
 
 impl ShaCompressChip {
-    fn eval_control_flow_flags<AB: SP1AirBuilder>(
+    fn eval_control_flow_flags<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &ShaCompressCols<AB::Var>,
