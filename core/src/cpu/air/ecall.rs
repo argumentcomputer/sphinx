@@ -23,7 +23,7 @@ impl CpuChip {
     /// This method will do the following:
     /// 1. Send the syscall to the precompile table, if needed.
     /// 2. Check for valid op_a values.
-    pub(crate) fn eval_ecall<AB: SP1AirBuilder>(&self, builder: &mut AB, local: &CpuCols<AB::Var>) {
+    pub(crate) fn eval_ecall<AB: AluAirBuilder>(&self, builder: &mut AB, local: &CpuCols<AB::Var>) {
         let ecall_cols = local.opcode_specific_columns.ecall();
         let is_ecall_instruction = self.is_ecall_instruction(&local.selectors);
         builder.assert_bool(is_ecall_instruction);
@@ -86,7 +86,7 @@ impl CpuChip {
     }
 
     /// Constraints related to the COMMIT and COMMIT_DEFERRED_PROOFS instructions.
-    pub(crate) fn eval_commit<AB: SP1AirBuilder>(
+    pub(crate) fn eval_commit<AB: AluAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
@@ -167,7 +167,7 @@ impl CpuChip {
     }
 
     /// Constraint related to the halt and unimpl instruction.
-    pub(crate) fn eval_halt_unimpl<AB: SP1AirBuilder>(
+    pub(crate) fn eval_halt_unimpl<AB: AluAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
