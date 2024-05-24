@@ -6,7 +6,6 @@ use p3_air::AirBuilder;
 use p3_field::AbstractField;
 use p3_field::ExtensionField;
 use p3_field::Field;
-use p3_field::PrimeField32;
 use serde::{Deserialize, Serialize};
 use wp1_core::air::ExtensionAirBuilder;
 use wp1_core::air::{BinomialExtension, SP1AirBuilder};
@@ -75,9 +74,9 @@ impl<T> From<[T; D]> for Block<T> {
     }
 }
 
-impl<F: PrimeField32> From<F> for Block<F> {
-    fn from(value: F) -> Self {
-        Self([value, F::zero(), F::zero(), F::zero()])
+impl<T: AbstractField> From<T> for Block<T> {
+    fn from(value: T) -> Self {
+        Self([value, T::zero(), T::zero(), T::zero()])
     }
 }
 

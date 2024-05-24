@@ -70,6 +70,7 @@ impl<F: Field> OpcodeSelectorCols<F> {
                 self.is_noop = F::one()
             }
             Opcode::Commit => self.is_commit = F::one(),
+            Opcode::RegisterPublicValue => self.is_noop = F::one(),
             _ => {}
         }
 
