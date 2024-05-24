@@ -190,7 +190,7 @@ impl<F, A, AB> Air<AB> for Chip<F, A>
 where
     F: Field,
     A: Air<AB>,
-    AB: SP1AirBuilder<F = F> + MultiTableAirBuilder + PairBuilder,
+    AB: BaseAirBuilder<F = F> + MultiTableAirBuilder + PairBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         // Evaluate the execution trace constraints.
