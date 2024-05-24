@@ -68,7 +68,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
 impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
     pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
+        AB: WordAirBuilder<Var = V>,
         ER: Into<AB::Expr> + Clone,
         EShard: Into<AB::Expr> + Clone,
     >(
