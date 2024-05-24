@@ -219,7 +219,7 @@ mod tests {
 
     impl<AB, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> Air<AB> for EdSqrtChip<P>
     where
-        AB: SP1AirBuilder,
+        AB: WordAirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
