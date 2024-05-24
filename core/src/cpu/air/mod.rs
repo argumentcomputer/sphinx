@@ -121,7 +121,7 @@ impl CpuChip {
     }
 
     /// Constraints related to jump operations.
-    pub(crate) fn eval_jump_ops<AB: SP1AirBuilder>(
+    pub(crate) fn eval_jump_ops<AB: AluAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
@@ -184,7 +184,7 @@ impl CpuChip {
     }
 
     /// Constraints related to the AUIPC opcode.
-    pub(crate) fn eval_auipc<AB: SP1AirBuilder>(&self, builder: &mut AB, local: &CpuCols<AB::Var>) {
+    pub(crate) fn eval_auipc<AB: AluAirBuilder>(&self, builder: &mut AB, local: &CpuCols<AB::Var>) {
         // Get the auipc specific columns.
         let auipc_columns = local.opcode_specific_columns.auipc();
 
