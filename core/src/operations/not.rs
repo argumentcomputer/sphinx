@@ -28,8 +28,8 @@ impl<F: Field> NotOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
-        builder: &mut AB,
+    pub fn eval<AB: crate::air::ByteAirBuilder<F = F>>(
+    pub fn eval<AB: ByteAirBuilder<F = F>>(
         a: Word<AB::Var>,
         cols: NotOperation<AB::Var>,
         shard: AB::Var,
