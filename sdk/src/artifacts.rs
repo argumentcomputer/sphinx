@@ -15,7 +15,7 @@ pub fn export_solidity_groth16_verifier(output_dir: impl Into<PathBuf>) -> Resul
     let artifacts_dir = if wp1_prover::build::wp1_dev_mode() {
         wp1_prover::build::groth16_artifacts_dev_dir()
     } else {
-        wp1_prover::build::try_install_groth16_artifacts()
+        try_install_groth16_artifacts()
     };
     let verifier_path = artifacts_dir.join("SP1Verifier.sol");
 

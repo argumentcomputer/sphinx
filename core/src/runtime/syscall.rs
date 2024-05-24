@@ -1,4 +1,5 @@
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
+use std::sync::Arc;
 
 use strum_macros::EnumIter;
 
@@ -168,7 +169,7 @@ impl SyscallCode {
     }
 }
 
-pub trait Syscall {
+pub trait Syscall: Send + Sync {
     /// Execute the syscall and return the resulting value of register a0. `arg1` and `arg2` are the
     /// values in registers X10 and X11, respectively. While not a hard requirement, the convention
     /// is that the return value is only for system calls such as `HALT`. Most precompiles use `arg1`
@@ -275,103 +276,103 @@ impl<'a> SyscallContext<'a> {
     }
 }
 
-pub fn default_syscall_map() -> HashMap<SyscallCode, Rc<dyn Syscall>> {
-    let mut syscall_map = HashMap::<SyscallCode, Rc<dyn Syscall>>::default();
-    syscall_map.insert(SyscallCode::HALT, Rc::new(SyscallHalt {}));
-    syscall_map.insert(SyscallCode::SHA_EXTEND, Rc::new(ShaExtendChip::new()));
-    syscall_map.insert(SyscallCode::SHA_COMPRESS, Rc::new(ShaCompressChip::new()));
+pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
+    let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>>::default();
+    syscall_map.insert(SyscallCode::HALT, Arc::new(SyscallHalt {}));
+    syscall_map.insert(SyscallCode::SHA_EXTEND, Arc::new(ShaExtendChip::new()));
+    syscall_map.insert(SyscallCode::SHA_COMPRESS, Arc::new(ShaCompressChip::new()));
     syscall_map.insert(
         SyscallCode::ED_ADD,
-        Rc::new(EdAddAssignChip::<Ed25519>::new()),
+        Arc::new(EdAddAssignChip::<Ed25519>::new()),
     );
     syscall_map.insert(
         SyscallCode::ED_DECOMPRESS,
-        Rc::new(EdDecompressChip::<Ed25519Parameters>::new()),
+        Arc::new(EdDecompressChip::<Ed25519Parameters>::new()),
     );
     syscall_map.insert(
         SyscallCode::KECCAK_PERMUTE,
-        Rc::new(KeccakPermuteChip::new()),
+        Arc::new(KeccakPermuteChip::new()),
     );
     syscall_map.insert(
         SyscallCode::SECP256K1_ADD,
-        Rc::new(WeierstrassAddAssignChip::<Secp256k1>::new()),
+        Arc::new(WeierstrassAddAssignChip::<Secp256k1>::new()),
     );
     syscall_map.insert(
         SyscallCode::SECP256K1_DOUBLE,
-        Rc::new(WeierstrassDoubleAssignChip::<Secp256k1>::new()),
+        Arc::new(WeierstrassDoubleAssignChip::<Secp256k1>::new()),
     );
-    syscall_map.insert(SyscallCode::SHA_COMPRESS, Rc::new(ShaCompressChip::new()));
+    syscall_map.insert(SyscallCode::SHA_COMPRESS, Arc::new(ShaCompressChip::new()));
     syscall_map.insert(
         SyscallCode::SECP256K1_DECOMPRESS,
-        Rc::new(Secp256k1DecompressChip::new()),
+        Arc::new(Secp256k1DecompressChip::new()),
     );
     syscall_map.insert(
         SyscallCode::BN254_ADD,
-        Rc::new(WeierstrassAddAssignChip::<Bn254>::new()),
+        Arc::new(WeierstrassAddAssignChip::<Bn254>::new()),
     );
     syscall_map.insert(
         SyscallCode::BN254_DOUBLE,
-        Rc::new(WeierstrassDoubleAssignChip::<Bn254>::new()),
+        Arc::new(WeierstrassDoubleAssignChip::<Bn254>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_G1_ADD,
-        Rc::new(WeierstrassAddAssignChip::<Bls12381>::new()),
+        Arc::new(WeierstrassAddAssignChip::<Bls12381>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_G1_DOUBLE,
-        Rc::new(WeierstrassDoubleAssignChip::<Bls12381>::new()),
+        Arc::new(WeierstrassDoubleAssignChip::<Bls12381>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_ADD,
-        Rc::new(FieldAddChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldAddChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_SUB,
-        Rc::new(FieldSubChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldSubChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_MUL,
-        Rc::new(FieldMulChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldMulChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP2_ADD,
-        Rc::new(QuadFieldAddChip::<Bls12381BaseField>::new()),
+        Arc::new(QuadFieldAddChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP2_SUB,
-        Rc::new(QuadFieldSubChip::<Bls12381BaseField>::new()),
+        Arc::new(QuadFieldSubChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP2_MUL,
-        Rc::new(QuadFieldMulChip::<Bls12381BaseField>::new()),
+        Arc::new(QuadFieldMulChip::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::ENTER_UNCONSTRAINED,
-        Rc::new(SyscallEnterUnconstrained::new()),
+        Arc::new(SyscallEnterUnconstrained::new()),
     );
     syscall_map.insert(
         SyscallCode::EXIT_UNCONSTRAINED,
-        Rc::new(SyscallExitUnconstrained::new()),
+        Arc::new(SyscallExitUnconstrained::new()),
     );
-    syscall_map.insert(SyscallCode::WRITE, Rc::new(SyscallWrite::new()));
-    syscall_map.insert(SyscallCode::COMMIT, Rc::new(SyscallCommit::new()));
+    syscall_map.insert(SyscallCode::WRITE, Arc::new(SyscallWrite::new()));
+    syscall_map.insert(SyscallCode::COMMIT, Arc::new(SyscallCommit::new()));
     syscall_map.insert(
         SyscallCode::COMMIT_DEFERRED_PROOFS,
-        Rc::new(SyscallCommitDeferred::new()),
+        Arc::new(SyscallCommitDeferred::new()),
     );
     syscall_map.insert(
         SyscallCode::VERIFY_SP1_PROOF,
-        Rc::new(SyscallVerifySP1Proof::new()),
+        Arc::new(SyscallVerifySP1Proof::new()),
     );
-    syscall_map.insert(SyscallCode::HINT_LEN, Rc::new(SyscallHintLen::new()));
-    syscall_map.insert(SyscallCode::HINT_READ, Rc::new(SyscallHintRead::new()));
+    syscall_map.insert(SyscallCode::HINT_LEN, Arc::new(SyscallHintLen::new()));
+    syscall_map.insert(SyscallCode::HINT_READ, Arc::new(SyscallHintRead::new()));
     syscall_map.insert(
         SyscallCode::BLS12381_G1_DECOMPRESS,
-        Rc::new(Bls12381G1DecompressChip::new()),
+        Arc::new(Bls12381G1DecompressChip::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_G2_ADD,
-        Rc::new(Bls12381G2AffineAddChip::new()),
+        Arc::new(Bls12381G2AffineAddChip::new()),
     );
 
     syscall_map
