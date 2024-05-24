@@ -113,7 +113,7 @@ where
 
 impl CpuChip {
     /// Whether the instruction is an ALU instruction.
-    pub(crate) fn is_alu_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_alu_instruction<AB: BaseAirBuilder>(
         &self,
         opcode_selectors: &OpcodeSelectorCols<AB::Var>,
     ) -> AB::Expr {
@@ -299,7 +299,7 @@ impl CpuChip {
     }
 
     /// Constraints related to the public values.
-    pub(crate) fn eval_public_values<AB: SP1AirBuilder>(
+    pub(crate) fn eval_public_values<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
@@ -337,7 +337,7 @@ impl CpuChip {
     ///
     /// This method checks that the is_real column is a boolean.  It also checks that the first row
     /// is 1 and once its 0, it never changes value.
-    pub(crate) fn eval_is_real<AB: SP1AirBuilder>(
+    pub(crate) fn eval_is_real<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
