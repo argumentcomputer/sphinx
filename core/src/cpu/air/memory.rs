@@ -9,7 +9,7 @@ use crate::runtime::{MemoryAccessPosition, Opcode};
 
 impl CpuChip {
     /// Computes whether the opcode is a memory instruction.
-    pub(crate) fn is_memory_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_memory_instruction<AB: BaseAirBuilder>(
         &self,
         opcode_selectors: &OpcodeSelectorCols<AB::Var>,
     ) -> AB::Expr {
@@ -24,7 +24,7 @@ impl CpuChip {
     }
 
     /// Computes whether the opcode is a load instruction.
-    pub(crate) fn is_load_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_load_instruction<AB: BaseAirBuilder>(
         &self,
         opcode_selectors: &OpcodeSelectorCols<AB::Var>,
     ) -> AB::Expr {
@@ -36,7 +36,7 @@ impl CpuChip {
     }
 
     /// Computes whether the opcode is a store instruction.
-    pub(crate) fn is_store_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_store_instruction<AB: BaseAirBuilder>(
         &self,
         opcode_selectors: &OpcodeSelectorCols<AB::Var>,
     ) -> AB::Expr {
@@ -262,7 +262,7 @@ impl CpuChip {
     }
 
     /// Evaluates the decomposition of the most significant byte of the memory value.
-    pub(crate) fn eval_most_sig_byte_bit_decomp<AB: SP1AirBuilder>(
+    pub(crate) fn eval_most_sig_byte_bit_decomp<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         memory_columns: &MemoryColumns<AB::Var>,
@@ -284,7 +284,7 @@ impl CpuChip {
     }
 
     /// Evaluates the offset value flags.
-    pub(crate) fn eval_offset_value_flags<AB: SP1AirBuilder>(
+    pub(crate) fn eval_offset_value_flags<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         memory_columns: &MemoryColumns<AB::Var>,
