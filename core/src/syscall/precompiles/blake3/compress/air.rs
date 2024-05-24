@@ -192,7 +192,7 @@ impl Blake3CompressInnerChip {
     }
 
     /// Constrains the input and the output of the `g` operation.
-    fn constrain_g_operation<AB: SP1AirBuilder>(
+    fn constrain_g_operation<AB: WordAirBuilder>(
         &self,
         builder: &mut AB,
         local: &Blake3CompressInnerCols<AB::Var>,
