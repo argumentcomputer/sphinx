@@ -28,7 +28,7 @@ impl<F: Field> IsEqualWordOperation<F> {
         u32::from(a_u32 == b_u32)
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
+    pub fn eval<AB: BaseAirBuilder<F = F>>(
         builder: &mut AB,
         a: &Word<AB::Expr>,
         b: &Word<AB::Expr>,
