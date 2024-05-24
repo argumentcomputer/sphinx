@@ -1,0 +1,9 @@
+[workspace]
+[package]
+name = "panic-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wp1-zkvm = { path = "../../zkvm/entrypoint" }
+wp1-derive = { path = "../../derive" }

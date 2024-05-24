@@ -8,6 +8,7 @@ use p3_commit::{Pcs, TwoAdicMultiplicativeCoset};
 use p3_field::PrimeField;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use thiserror::Error;
 use wp1_core::{
     io::{SP1PublicValues, SP1Stdin},
     stark::{ShardProof, StarkGenericConfig, StarkProvingKey, StarkVerifyingKey},
@@ -194,3 +195,6 @@ pub enum SP1ReduceProofWrapper {
     Core(SP1ReduceProof<CoreSC>),
     Recursive(SP1ReduceProof<InnerSC>),
 }
+
+#[derive(Error, Debug)]
+pub enum SP1RecursionProverError {}

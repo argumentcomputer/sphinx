@@ -257,9 +257,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
 
         // Display some statistics about the workload.
         let stats = record.stats();
-        for (k, v) in stats {
-            log::info!("{} = {}", k, v);
-        }
+        log::info!("Shard: {:?}", stats);
 
         // For each chip, shard the events into segments.
         record.shard(config)
@@ -523,7 +521,7 @@ pub mod tests {
     use crate::runtime::Instruction;
     use crate::runtime::Opcode;
     use crate::runtime::Program;
-    use crate::utils::run_and_prove;
+    use crate::utils::prove;
     use crate::utils::run_test;
     use crate::utils::setup_logger;
     use crate::utils::BabyBearPoseidon2;
@@ -679,10 +677,7 @@ pub mod tests {
         setup_logger();
         let program = fibonacci_program();
         let stdin = SP1Stdin::new();
-        run_and_prove(&program, &stdin, BabyBearPoseidon2::new());
-
-        std::env::remove_var("SHARD_BATCH_SIZE");
-        std::env::remove_var("SHARD_SIZE");
+        prove(&program, &stdin, BabyBearPoseidon2::new()).unwrap();
     }
 
     #[test]

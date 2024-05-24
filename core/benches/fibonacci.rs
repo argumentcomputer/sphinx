@@ -5,7 +5,7 @@ use wp1_core::{
     io::SP1Stdin,
     runtime::{Program, Runtime},
     stark::RiscvAir,
-    utils::{prove_core, run_and_prove, BabyBearPoseidon2},
+    utils::{prove, prove_simple, BabyBearPoseidon2},
 };
 
 fn elf_path(p: &str) -> String {
@@ -20,7 +20,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         let program = Program::from_elf(&elf_path);
         let cycles = {
             let mut runtime = Runtime::new(program.clone());
-            runtime.run();
+            runtime.run().unwrap();
             runtime.state.global_clk
         };
         cycles_map.insert(p, cycles);
@@ -41,7 +41,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     let mut runtime = Runtime::new(black_box(program.clone()));
-                    runtime.run();
+                    runtime.run().unwrap();
                 })
             },
         );
@@ -66,11 +66,12 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter_batched(
                     || {
                         let mut runtime = Runtime::new(black_box(program.clone()));
-                        runtime.run();
+                        runtime.run().unwrap();
                         runtime
                     },
                     |runtime| {
-                        let _ = prove_core(black_box(machine.config().clone()), black_box(runtime));
+                        let _ =
+                            prove_simple(black_box(machine.config().clone()), black_box(runtime));
                     },
                     criterion::BatchSize::LargeInput,
                 )
@@ -94,7 +95,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             format!("{}:{}", p.split('/').last().unwrap(), cycles),
             |b| {
                 b.iter(|| {
-                    run_and_prove(
+                    prove(
                         black_box(&program),
                         &SP1Stdin::new(),
                         BabyBearPoseidon2::new(),

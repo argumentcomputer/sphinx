@@ -21,6 +21,7 @@ p3-baby-bear = { workspace = true }
 p3-bn254-fr = { workspace = true }
 p3-commit = { workspace = true }
 bincode = { workspace = true }
+home = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 backtrace = { workspace = true }
 rayon = { workspace = true }
@@ -34,25 +35,14 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 anyhow = { workspace = true }
 size = { workspace = true }
-home = { workspace = true }
+dirs = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
 indicatif = { workspace = true }
 futures = { workspace = true }
 serial_test = { workspace = true }
-
-[[bin]]
-name = "fibonacci_sweep"
-path = "scripts/fibonacci_sweep.rs"
-
-[[bin]]
-name = "tendermint_sweep"
-path = "scripts/tendermint_sweep.rs"
-
-[[bin]]
-name = "fibonacci_groth16"
-path = "scripts/fibonacci_groth16.rs"
+thiserror = { workspace = true }
 
 [[bin]]
 name = "build_groth16"

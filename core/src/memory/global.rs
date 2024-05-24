@@ -187,7 +187,7 @@ mod tests {
     fn test_memory_generate_trace() {
         let program = simple_program();
         let mut runtime = Runtime::new(program);
-        runtime.run();
+        runtime.run().unwrap();
         let shard = runtime.record.clone();
 
         let chip: MemoryChip = MemoryChip::new(MemoryChipType::Initialize);
@@ -213,7 +213,7 @@ mod tests {
 
         let program = simple_program();
         let mut runtime = Runtime::new(program);
-        runtime.run();
+        runtime.run().unwrap();
 
         let chip = MemoryChip::new(MemoryChipType::Initialize);
 
@@ -231,7 +231,7 @@ mod tests {
         let program = sha_extend_program();
         let program_clone = program.clone();
         let mut runtime = Runtime::new(program);
-        runtime.run();
+        runtime.run().unwrap();
         let machine: crate::stark::StarkMachine<BabyBearPoseidon2, RiscvAir<BabyBear>> =
             RiscvAir::machine(BabyBearPoseidon2::new());
         let (pkey, _) = machine.setup(&program_clone);
@@ -254,7 +254,7 @@ mod tests {
         let program = sha_extend_program();
         let program_clone = program.clone();
         let mut runtime = Runtime::new(program);
-        runtime.run();
+        runtime.run().unwrap();
         let machine = RiscvAir::machine(BabyBearPoseidon2::new());
         let (pkey, _) = machine.setup(&program_clone);
         let shards = machine.shard(
