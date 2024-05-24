@@ -38,8 +38,8 @@ impl<F: Field> IsZeroOperation<F> {
         debug_assert!(prod == F::one() || prod == F::zero());
         u32::from(a == F::zero())
     }
-
-    pub fn eval<AB: SP1AirBuilder<F = F>, Ea, Ereal>(
+    pub fn eval<AB: BaseAirBuilder<F = F>, Ea, Ereal>(
+    pub fn eval<AB: crate::air::BaseAirBuilder<F = F>, Ea, Ereal>(
         builder: &mut AB,
         a: Ea,
         cols: IsZeroOperation<AB::Var>,
