@@ -4,7 +4,7 @@ use crate::air::Polynomial;
 use crate::air::SP1AirBuilder;
 use crate::operations::field::params::FieldParameters;
 
-pub fn eval_field_operation<AB: SP1AirBuilder, P: FieldParameters>(
+pub fn eval_field_operation<AB: BaseAirBuilder, P: FieldParameters>(
     builder: &mut AB,
     p_vanishing: &Polynomial<AB::Expr>,
     p_witness_low: &Polynomial<AB::Expr>,
