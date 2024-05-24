@@ -151,7 +151,7 @@ impl CpuChip {
     }
 
     /// Evaluates constraints related to storing to memory.
-    pub(crate) fn eval_memory_store<AB: SP1AirBuilder>(
+    pub(crate) fn eval_memory_store<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
@@ -212,7 +212,7 @@ impl CpuChip {
     }
 
     /// This function is used to evaluate the unsigned memory value for the load memory instructions.
-    pub(crate) fn eval_unsigned_mem_value<AB: SP1AirBuilder>(
+    pub(crate) fn eval_unsigned_mem_value<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         memory_columns: &MemoryColumns<AB::Var>,
