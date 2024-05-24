@@ -124,7 +124,7 @@ pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 
 impl<AB> Air<AB> for MemoryChip
 where
-    AB: SP1AirBuilder,
+    AB: BaseAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
