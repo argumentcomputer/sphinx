@@ -76,7 +76,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldRangeCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> FieldRangeCols<V, P> {
     pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
+        AB: ByteAirBuilder<Var = V>,
         E: Into<Polynomial<AB::Expr>> + Clone,
         EShard: Into<AB::Expr> + Clone,
         ER: Into<AB::Expr> + Clone,
