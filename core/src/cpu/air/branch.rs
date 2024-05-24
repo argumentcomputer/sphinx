@@ -12,7 +12,7 @@ use crate::{
 
 impl CpuChip {
     /// Computes whether the opcode is a branch instruction.
-    pub(crate) fn is_branch_instruction<AB: SP1AirBuilder>(
+    pub(crate) fn is_branch_instruction<AB: BaseAirBuilder>(
         &self,
         opcode_selectors: &OpcodeSelectorCols<AB::Var>,
     ) -> AB::Expr {
