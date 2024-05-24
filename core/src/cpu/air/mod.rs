@@ -263,7 +263,7 @@ impl CpuChip {
     ///
     /// The function will verify that the pc increments by 4 for all instructions except branch, jump
     /// and halt instructions. Also, it ensures that the pc is carried down to the last row for non-real rows.
-    pub(crate) fn eval_pc<AB: SP1AirBuilder>(
+    pub(crate) fn eval_pc<AB: BaseAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
