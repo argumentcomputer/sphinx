@@ -39,8 +39,8 @@ impl<F: Field> AndOperation<F> {
         expected
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
-        builder: &mut AB,
+    pub fn eval<AB: crate::air::ByteAirBuilder<F = F>>(
+    pub fn eval<AB: ByteAirBuilder<F = F>>(
         a: Word<AB::Var>,
         b: Word<AB::Var>,
         cols: AndOperation<AB::Var>,
