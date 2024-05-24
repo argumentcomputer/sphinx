@@ -236,7 +236,7 @@ mod tests {
         }
     }
 
-    impl<AB: SP1AirBuilder> Air<AB> for LookupTestAir {
+    impl<AB: BaseAirBuilder> Air<AB> for LookupTestAir {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
             let local = main.row_slice(0);
