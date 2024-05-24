@@ -48,7 +48,7 @@ impl<F: Field> IsZeroWordOperation<F> {
         u32::from(is_zero)
     }
 
-    pub fn eval<AB: SP1AirBuilder<F = F>>(
+    pub fn eval<AB: BaseAirBuilder<F = F>>(
         builder: &mut AB,
         a: &Word<AB::Expr>,
         cols: IsZeroWordOperation<AB::Var>,
