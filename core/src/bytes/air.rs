@@ -16,7 +16,7 @@ impl<F: Field> BaseAir<F> for ByteChip<F> {
     }
 }
 
-impl<AB: SP1AirBuilder + PairBuilder> Air<AB> for ByteChip<AB::F> {
+impl<AB: ByteAirBuilder + PairBuilder> Air<AB> for ByteChip<AB::F> {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let local_mult = main.row_slice(0);
