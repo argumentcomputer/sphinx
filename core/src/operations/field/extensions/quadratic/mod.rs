@@ -268,7 +268,7 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
+        AB: WordAirBuilder<Var = V>,
         A: Into<Polynomial<AB::Expr>> + Clone,
         EShard: Into<AB::Expr> + Clone,
         ER: Into<AB::Expr> + Clone,
@@ -526,7 +526,7 @@ mod tests {
 
     impl<AB, P: FieldParameters> Air<AB> for QuadFieldOpChip<P>
     where
-        AB: SP1AirBuilder,
+        AB: WordAirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
