@@ -256,7 +256,7 @@ impl CpuChip {
     }
 
     /// Returns the number of extra cycles from an ECALL instruction.
-    pub(crate) fn get_num_extra_ecall_cycles<AB: SP1AirBuilder>(
+    pub(crate) fn get_num_extra_ecall_cycles<AB: BaseAirBuilder>(
         &self,
         local: &CpuCols<AB::Var>,
     ) -> AB::Expr {
