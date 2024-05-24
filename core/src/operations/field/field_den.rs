@@ -95,8 +95,8 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
     pub fn eval<
-        AB: SP1AirBuilder<Var = V>,
-        EShard: Into<AB::Expr> + Clone,
+        AB: crate::air::WordAirBuilder<Var = V>,
+        AB: WordAirBuilder<Var = V>,
         ER: Into<AB::Expr> + Clone,
     >(
         &self,
@@ -266,7 +266,7 @@ mod tests {
 
     impl<AB, P: FieldParameters> Air<AB> for FieldDenChip<P>
     where
-        AB: SP1AirBuilder,
+        AB: WordAirBuilder,
     {
         fn eval(&self, builder: &mut AB) {
             let main = builder.main();
