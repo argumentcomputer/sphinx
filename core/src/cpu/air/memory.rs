@@ -98,7 +98,7 @@ impl CpuChip {
     }
 
     /// Evaluates constraints related to loading from memory.
-    pub(crate) fn eval_memory_load<AB: SP1AirBuilder>(
+    pub(crate) fn eval_memory_load<AB: AluAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,
