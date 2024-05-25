@@ -15,14 +15,15 @@ use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    bytes::event::ByteRecord,
-    bytes::ByteLookupEvent,
+    air::{AluAirBuilder, MachineAir, MemoryAirBuilder},
+    bytes::{event::ByteRecord, ByteLookupEvent},
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation},
-        params::{FieldParameters, FieldType, WithQuadFieldMultiplication},
-        params::{Limbs, WORDS_FIELD_ELEMENT, WORDS_QUAD_EXT_FIELD_ELEMENT},
+        params::{
+            FieldParameters, FieldType, Limbs, WithQuadFieldMultiplication, WORDS_FIELD_ELEMENT,
+            WORDS_QUAD_EXT_FIELD_ELEMENT,
+        },
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
@@ -254,7 +255,7 @@ impl<F, FP: FieldParameters> BaseAir<F> for QuadFieldMulChip<FP> {
 
 impl<AB, FP: FieldParameters> Air<AB> for QuadFieldMulChip<FP>
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder + MemoryAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;

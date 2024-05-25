@@ -11,11 +11,12 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
+use crate::air::{AluAirBuilder, ByteAirBuilder, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::range::FieldRangeCols;
 use crate::{
-    air::{BaseAirBuilder, MachineAir, SP1AirBuilder},
+    air::{BaseAirBuilder, MachineAir},
     memory::{MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
@@ -289,7 +290,7 @@ impl<F> BaseAir<F> for Secp256k1DecompressChip {
 
 impl<AB> Air<AB> for Secp256k1DecompressChip
 where
-    AB: SP1AirBuilder,
+    AB: MemoryAirBuilder + ByteAirBuilder + AluAirBuilder,
     Limbs<AB::Var>: Copy,
 {
     fn eval(&self, builder: &mut AB) {

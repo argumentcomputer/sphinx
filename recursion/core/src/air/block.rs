@@ -7,8 +7,9 @@ use p3_field::AbstractField;
 use p3_field::ExtensionField;
 use p3_field::Field;
 use serde::{Deserialize, Serialize};
+use wp1_core::air::BaseAirBuilder;
+use wp1_core::air::BinomialExtension;
 use wp1_core::air::ExtensionAirBuilder;
-use wp1_core::air::{BinomialExtension, SP1AirBuilder};
 use wp1_derive::AlignedBorrow;
 
 use crate::runtime::D;
@@ -57,7 +58,7 @@ impl<T: Clone> Block<T> {
         BinomialExtension(arr)
     }
 
-    pub fn as_extension_from_base<AB: SP1AirBuilder<Var = T>>(
+    pub fn as_extension_from_base<AB: BaseAirBuilder<Var = T>>(
         &self,
         base: AB::Expr,
     ) -> BinomialExtension<AB::Expr> {

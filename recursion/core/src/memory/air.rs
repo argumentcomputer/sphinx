@@ -6,7 +6,7 @@ use p3_field::PrimeField32;
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
 use wp1_core::{
-    air::{AirInteraction, MachineAir, SP1AirBuilder},
+    air::{AirInteraction, MachineAir, MemoryAirBuilder},
     lookup::InteractionKind,
     utils::pad_rows_fixed,
 };
@@ -106,7 +106,7 @@ impl<F> BaseAir<F> for MemoryGlobalChip {
 
 impl<AB> Air<AB> for MemoryGlobalChip
 where
-    AB: SP1AirBuilder,
+    AB: MemoryAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

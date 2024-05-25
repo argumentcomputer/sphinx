@@ -6,7 +6,7 @@ use p3_matrix::Matrix;
 
 use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
 use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder},
+    air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder},
     memory::MemoryCols,
     operations::{
         Add4Operation, FixedRotateRightOperation, FixedShiftRightOperation, XorOperation,
@@ -22,7 +22,7 @@ impl<F> BaseAir<F> for ShaExtendChip {
 
 impl<AB> Air<AB> for ShaExtendChip
 where
-    AB: SP1AirBuilder,
+    AB: MemoryAirBuilder + AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         // Initialize columns.

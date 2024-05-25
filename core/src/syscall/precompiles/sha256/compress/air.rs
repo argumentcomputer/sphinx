@@ -9,7 +9,7 @@ use super::{
     ShaCompressChip, SHA_COMPRESS_K,
 };
 use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder},
+    air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder, Word, WordAirBuilder},
     memory::MemoryCols,
     operations::{
         Add5Operation, AddOperation, AndOperation, FixedRotateRightOperation, NotOperation,
@@ -26,7 +26,7 @@ impl<F> BaseAir<F> for ShaCompressChip {
 
 impl<AB> Air<AB> for ShaCompressChip
 where
-    AB: SP1AirBuilder,
+    AB: BaseAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
@@ -202,7 +202,11 @@ impl ShaCompressChip {
     }
 
     /// Constrains that memory address is correct and that memory is correctly written/read.
-    fn eval_memory<AB: SP1AirBuilder>(&self, builder: &mut AB, local: &ShaCompressCols<AB::Var>) {
+    fn eval_memory<AB: MemoryAirBuilder>(
+        &self,
+        builder: &mut AB,
+        local: &ShaCompressCols<AB::Var>,
+    ) {
         let is_initialize = local.octet_num[0];
         let is_finalize = local.octet_num[9];
         builder.eval_memory_access(

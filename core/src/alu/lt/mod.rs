@@ -12,8 +12,8 @@ use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::{BaseAirBuilder, MachineAir};
-use crate::air::{SP1AirBuilder, Word};
+use crate::air::Word;
+use crate::air::{AluAirBuilder, BaseAirBuilder, ByteAirBuilder, MachineAir};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::runtime::{ExecutionRecord, Opcode, Program};
@@ -231,7 +231,7 @@ impl<F> BaseAir<F> for LtChip {
 
 impl<AB> Air<AB> for LtChip
 where
-    AB: SP1AirBuilder,
+    AB: ByteAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

@@ -75,8 +75,8 @@ use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
 use self::utils::eval_abs_value;
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
+use crate::air::Word;
+use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
 use crate::alu::divrem::utils::{get_msb, get_quotient_and_remainder, is_signed_operation};
 use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
@@ -425,7 +425,7 @@ impl<F> BaseAir<F> for DivRemChip {
 
 impl<AB> Air<AB> for DivRemChip
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder + ByteAirBuilder + WordAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

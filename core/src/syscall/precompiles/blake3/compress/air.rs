@@ -11,7 +11,7 @@ use super::{
     NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,
 };
 use crate::{
-    air::{BaseAirBuilder, SP1AirBuilder, WordAirBuilder, WORD_SIZE},
+    air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder, WordAirBuilder, WORD_SIZE},
     runtime::SyscallCode,
 };
 
@@ -23,7 +23,7 @@ impl<F> BaseAir<F> for Blake3CompressInnerChip {
 
 impl<AB> Air<AB> for Blake3CompressInnerChip
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
@@ -118,7 +118,7 @@ impl Blake3CompressInnerChip {
     }
 
     /// Constrain the memory access for the state and the message.
-    fn constrain_memory<AB: SP1AirBuilder>(
+    fn constrain_memory<AB: MemoryAirBuilder>(
         &self,
         builder: &mut AB,
         local: &Blake3CompressInnerCols<AB::Var>,

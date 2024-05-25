@@ -12,7 +12,7 @@ use p3_maybe_rayon::prelude::ParallelSlice;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
-    air::{MachineAir, SP1AirBuilder, Word},
+    air::{AluAirBuilder, MachineAir, Word},
     operations::AddOperation,
     runtime::{ExecutionRecord, Opcode, Program},
     stark::MachineRecord,
@@ -139,7 +139,7 @@ impl<F> BaseAir<F> for AddSubChip {
 
 impl<AB> Air<AB> for AddSubChip
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

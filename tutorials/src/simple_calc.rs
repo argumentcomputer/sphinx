@@ -5,7 +5,7 @@ use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_core::stark::SP1AirBuilder;
+use wp1_core::air::AluAirBuilder;
 use wp1_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default)]
@@ -109,7 +109,7 @@ impl<F: Send + Sync> BaseAir<F> for CpuChip {
     }
 }
 
-impl<AB: SP1AirBuilder> Air<AB> for CpuChip {
+impl<AB: AluAirBuilder> Air<AB> for CpuChip {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let local = main.row_slice(0);

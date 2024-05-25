@@ -5,7 +5,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
 use std::ops::Add;
-use wp1_core::air::{BaseAirBuilder, ExtensionAirBuilder, SP1AirBuilder};
+use wp1_core::air::{BaseAirBuilder, ExtensionAirBuilder};
 use wp1_primitives::RC_16_30_U32;
 
 use crate::air::{RecursionInteractionAirBuilder, RecursionMemoryAirBuilder};
@@ -320,7 +320,7 @@ impl Poseidon2Chip {
 
 impl<AB> Air<AB> for Poseidon2Chip
 where
-    AB: SP1AirBuilder,
+    AB: BaseAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

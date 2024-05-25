@@ -13,10 +13,9 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use wp1_derive::AlignedBorrow;
 
-use crate::air::BaseAirBuilder;
 use crate::air::MachineAir;
 use crate::air::MachineAirBuilder;
-use crate::air::SP1AirBuilder;
+use crate::air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryReadCols;
@@ -146,7 +145,10 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
 }
 
 impl<V: Copy, P: FieldParameters> EdDecompressCols<V, P> {
-    pub fn eval<AB: SP1AirBuilder<Var = V>, E: EdwardsParameters<BaseField = P>>(
+    pub fn eval<
+        AB: AluAirBuilder + MemoryAirBuilder<Var = V>,
+        E: EdwardsParameters<BaseField = P>,
+    >(
         &self,
         builder: &mut AB,
     ) where

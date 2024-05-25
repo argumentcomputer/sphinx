@@ -17,7 +17,7 @@ use p3_maybe_rayon::prelude::IntoParallelRefIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::SP1AirBuilder;
+use crate::air::{AluAirBuilder, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -233,7 +233,7 @@ impl<F, E: EllipticCurve + EdwardsParameters> BaseAir<F> for EdAddAssignChip<E> 
 
 impl<AB, E: EllipticCurve + EdwardsParameters> Air<AB> for EdAddAssignChip<E>
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

@@ -10,7 +10,7 @@ use super::{
     KeccakPermuteChip, STATE_NUM_WORDS, STATE_SIZE,
 };
 use crate::{
-    air::{SP1AirBuilder, SubAirBuilder, WordAirBuilder},
+    air::{AluAirBuilder, MemoryAirBuilder, SubAirBuilder, WordAirBuilder},
     memory::MemoryCols,
     runtime::SyscallCode,
 };
@@ -23,7 +23,7 @@ impl<F> BaseAir<F> for KeccakPermuteChip {
 
 impl<AB> Air<AB> for KeccakPermuteChip
 where
-    AB: SP1AirBuilder,
+    AB: MemoryAirBuilder + AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

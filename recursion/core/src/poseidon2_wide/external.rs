@@ -10,7 +10,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::borrow::BorrowMut;
 use tracing::instrument;
-use wp1_core::air::{BaseAirBuilder, MachineAir, SP1AirBuilder};
+use wp1_core::air::{BaseAirBuilder, MachineAir};
 use wp1_core::utils::pad_rows_fixed;
 use wp1_primitives::RC_16_30_U32;
 
@@ -238,7 +238,7 @@ fn populate_internal_rounds<F: PrimeField32>(
     ret_state
 }
 
-fn eval_external_round<AB: SP1AirBuilder>(
+fn eval_external_round<AB: BaseAirBuilder>(
     builder: &mut AB,
     cols: &Poseidon2ColType<AB::Var>,
     r: usize,
@@ -289,7 +289,7 @@ fn eval_external_round<AB: SP1AirBuilder>(
     }
 }
 
-fn eval_internal_rounds<AB: SP1AirBuilder>(
+fn eval_internal_rounds<AB: BaseAirBuilder>(
     builder: &mut AB,
     cols: &Poseidon2ColType<AB::Var>,
     is_real: AB::Var,

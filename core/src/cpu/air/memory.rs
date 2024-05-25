@@ -1,7 +1,7 @@
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
-use crate::air::{AluAirBuilder, BaseAirBuilder, SP1AirBuilder, Word, WordAirBuilder};
+use crate::air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder, Word, WordAirBuilder};
 use crate::cpu::columns::{CpuCols, MemoryColumns, OpcodeSelectorCols};
 use crate::cpu::CpuChip;
 use crate::memory::MemoryCols;
@@ -49,7 +49,7 @@ impl CpuChip {
     /// 1. Calculate that the unaligned address is correctly computed to be op_b.value + op_c.value.
     /// 2. Calculate that the address offset is address % 4.
     /// 3. Assert the validity of the aligned address given the address offset and the unaligned address.
-    pub(crate) fn eval_memory_address_and_access<AB: SP1AirBuilder>(
+    pub(crate) fn eval_memory_address_and_access<AB: MemoryAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,

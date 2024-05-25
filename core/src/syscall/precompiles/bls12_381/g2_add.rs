@@ -1,4 +1,4 @@
-use crate::air::MachineAir;
+use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
 use crate::operations::field::extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation};
@@ -7,7 +7,6 @@ use crate::operations::field::params::{Limbs, WORDS_QUAD_EXT_FIELD_ELEMENT};
 use crate::runtime::{
     ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Syscall, SyscallCode, SyscallContext,
 };
-use crate::stark::SP1AirBuilder;
 use crate::utils::ec::weierstrass::bls12_381::{bls12381_g2_add, Bls12381BaseField};
 use crate::utils::ec::AffinePoint;
 use crate::utils::{limbs_from_access, limbs_from_prev_access, pad_vec_rows};
@@ -368,8 +367,9 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
     }
 }
 
-impl<AB: SP1AirBuilder> Air<AB> for Bls12381G2AffineAddChip
+impl<AB> Air<AB> for Bls12381G2AffineAddChip
 where
+    AB: MemoryAirBuilder,
     AB::F: PrimeField32,
 {
     fn eval(&self, builder: &mut AB) {

@@ -9,8 +9,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
+use crate::air::Word;
+use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::runtime::{ExecutionRecord, Opcode, Program};
@@ -124,7 +124,7 @@ impl<F> BaseAir<F> for BitwiseChip {
 
 impl<AB> Air<AB> for BitwiseChip
 where
-    AB: SP1AirBuilder,
+    AB: ByteAirBuilder + AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

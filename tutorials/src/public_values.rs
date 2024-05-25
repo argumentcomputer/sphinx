@@ -3,7 +3,7 @@ use std::{borrow::Borrow, mem::size_of};
 use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_core::air::SP1AirBuilder;
+use wp1_core::air::BaseAirBuilder;
 use wp1_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default)]
@@ -52,7 +52,7 @@ impl<F: Send + Sync> BaseAir<F> for Chip {
     }
 }
 
-impl<AB: SP1AirBuilder + AirBuilderWithPublicValues> Air<AB> for Chip {
+impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> Air<AB> for Chip {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
 

@@ -1,14 +1,14 @@
 use p3_field::AbstractField;
 
-use crate::air::WordAirBuilder;
+use crate::air::{MemoryAirBuilder, WordAirBuilder};
 use crate::cpu::columns::CpuCols;
 use crate::memory::MemoryCols;
 use crate::runtime::MemoryAccessPosition;
-use crate::stark::{CpuChip, SP1AirBuilder};
+use crate::stark::CpuChip;
 
 impl CpuChip {
     /// Computes whether the opcode is a branch instruction.
-    pub(crate) fn eval_registers<AB: SP1AirBuilder>(
+    pub(crate) fn eval_registers<AB: MemoryAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,

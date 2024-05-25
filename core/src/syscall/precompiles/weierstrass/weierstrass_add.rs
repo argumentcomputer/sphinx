@@ -16,8 +16,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::SP1AirBuilder;
+use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -253,7 +252,7 @@ impl<F, E: EllipticCurve> BaseAir<F> for WeierstrassAddAssignChip<E> {
 
 impl<AB, E: EllipticCurve> Air<AB> for WeierstrassAddAssignChip<E>
 where
-    AB: SP1AirBuilder,
+    AB: MemoryAirBuilder + AluAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

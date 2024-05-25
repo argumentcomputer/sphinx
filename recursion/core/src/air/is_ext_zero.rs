@@ -9,7 +9,7 @@ use p3_field::{
     extension::{BinomialExtensionField, BinomiallyExtendable},
     AbstractField, Field,
 };
-use wp1_core::air::{BinomialExtension, SP1AirBuilder};
+use wp1_core::air::{BaseAirBuilder, BinomialExtension};
 use wp1_derive::AlignedBorrow;
 
 use crate::{
@@ -49,7 +49,7 @@ impl<F: Field + BinomiallyExtendable<D>> IsExtZeroOperation<F> {
 }
 
 impl<F: Field> IsExtZeroOperation<F> {
-    pub fn eval<AB: SP1AirBuilder>(
+    pub fn eval<AB: BaseAirBuilder>(
         builder: &mut AB,
         a: BinomialExtension<AB::Expr>,
         cols: IsExtZeroOperation<AB::Var>,

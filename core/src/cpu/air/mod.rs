@@ -14,8 +14,10 @@ use p3_matrix::Matrix;
 
 use crate::air::AluAirBuilder;
 use crate::air::BaseAirBuilder;
+use crate::air::ByteAirBuilder;
+use crate::air::MemoryAirBuilder;
+use crate::air::ProgramAirBuilder;
 use crate::air::PublicValues;
-use crate::air::SP1AirBuilder;
 use crate::air::Word;
 use crate::air::POSEIDON_NUM_WORDS;
 use crate::air::PV_DIGEST_NUM_WORDS;
@@ -27,7 +29,7 @@ use crate::runtime::Opcode;
 
 impl<AB> Air<AB> for CpuChip
 where
-    AB: SP1AirBuilder + AirBuilderWithPublicValues,
+    AB: ProgramAirBuilder + AirBuilderWithPublicValues,
 {
     #[inline(never)]
     fn eval(&self, builder: &mut AB) {
@@ -211,7 +213,7 @@ impl CpuChip {
     /// and is transitioned appropriately.  It will also check that shard values are within 16 bits
     /// and clk values are within 24 bits.  Those range checks are needed for the memory access
     /// timestamp check, which assumes those values are within 2^24.  See [`MemoryAirBuilder::verify_mem_access_ts`].
-    pub(crate) fn eval_shard_clk<AB: SP1AirBuilder>(
+    pub(crate) fn eval_shard_clk<AB: ByteAirBuilder + MemoryAirBuilder>(
         &self,
         builder: &mut AB,
         local: &CpuCols<AB::Var>,

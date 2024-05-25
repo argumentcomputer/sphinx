@@ -15,14 +15,12 @@ use tracing::instrument;
 use wp1_derive::AlignedBorrow;
 
 use crate::{
-    air::{MachineAir, SP1AirBuilder},
-    bytes::event::ByteRecord,
-    bytes::ByteLookupEvent,
+    air::{AluAirBuilder, MachineAir, MemoryAirBuilder},
+    bytes::{event::ByteRecord, ByteLookupEvent},
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
-        params::{FieldParameters, FieldType, WithFieldAddition},
-        params::{Limbs, WORDS_FIELD_ELEMENT},
+        params::{FieldParameters, FieldType, Limbs, WithFieldAddition, WORDS_FIELD_ELEMENT},
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
@@ -214,7 +212,7 @@ impl<F, FP: FieldParameters> BaseAir<F> for FieldAddChip<FP> {
 
 impl<AB, FP: FieldParameters> Air<AB> for FieldAddChip<FP>
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder + MemoryAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;

@@ -44,8 +44,8 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
 use wp1_derive::AlignedBorrow;
 
-use crate::air::MachineAir;
-use crate::air::{SP1AirBuilder, Word};
+use crate::air::Word;
+use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
 use crate::alu::mul::utils::get_msb;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
@@ -279,7 +279,7 @@ impl<F> BaseAir<F> for MulChip {
 
 impl<AB> Air<AB> for MulChip
 where
-    AB: SP1AirBuilder,
+    AB: AluAirBuilder + ByteAirBuilder + WordAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
