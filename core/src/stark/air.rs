@@ -171,10 +171,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
         let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
         chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
-
-        // TODO(#193): This chip causes a stack overflow in `ReduceProgram::build()`
-        // let bls12381_g2_add = Bls12381G2AffineAddChip::new();
-        // chips.push(RiscvAir::Bls12381G2Add(bls12381_g2_add));
+        let bls12381_g2_add = Bls12381G2AffineAddChip::new();
+        chips.push(RiscvAir::Bls12381G2Add(bls12381_g2_add));
 
         let add = AddSubChip;
         chips.push(RiscvAir::Add(add));
