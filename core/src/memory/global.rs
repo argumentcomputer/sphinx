@@ -93,6 +93,10 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
         trace
     }
 
+    fn generate_dependencies(&self, _input: &ExecutionRecord, _output: &mut ExecutionRecord) {
+        // Do nothing since this chip has no dependencies.
+    }
+
     fn included(&self, shard: &Self::Record) -> bool {
         match self.kind {
             MemoryChipType::Initialize => !shard.memory_initialize_events.is_empty(),
