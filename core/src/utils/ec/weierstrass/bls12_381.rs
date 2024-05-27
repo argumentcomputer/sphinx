@@ -149,6 +149,45 @@ pub fn bls12381_g2_add(a: &[BigUint; 4], b: &[BigUint; 4]) -> [BigUint; 4] {
     [out_x_c0, out_x_c1, out_y_c0, out_y_c1]
 }
 
+pub fn bls12381_double(p: &[BigUint; 4]) -> [BigUint; 4] {
+    fn is_identity(p: &[BigUint; 4]) -> Choice {
+        if p[0] == BigUint::zero()
+            && p[1] == BigUint::zero()
+            && p[2] == BigUint::one()
+            && p[3] == BigUint::zero()
+        {
+            return Choice::from(1u8);
+        }
+        Choice::from(0u8)
+    }
+    let p_identity = is_identity(p);
+    assert!(
+        !bool::from(p_identity),
+        "[bls12381_double] P is infinity point"
+    );
+
+    let p = G2Affine {
+        x: Fp2 {
+            c0: biguint_to_fp(&p[0]),
+            c1: biguint_to_fp(&p[1]),
+        },
+        y: Fp2 {
+            c0: biguint_to_fp(&p[2]),
+            c1: biguint_to_fp(&p[3]),
+        },
+        infinity: p_identity,
+    };
+
+    let double: G2Affine = p.to_curve().double().to_affine();
+
+    [
+        fp_to_biguint(&double.x.c0),
+        fp_to_biguint(&double.x.c1),
+        fp_to_biguint(&double.y.c0),
+        fp_to_biguint(&double.y.c1),
+    ]
+}
+
 impl WithFieldAddition for Bls12381BaseField {
     fn add_events(
         record: &crate::runtime::ExecutionRecord,

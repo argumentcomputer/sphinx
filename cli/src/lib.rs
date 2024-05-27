@@ -10,7 +10,7 @@ use reqwest::Client;
 pub const RUSTUP_TOOLCHAIN_NAME: &str = "succinct";
 
 pub const SP1_VERSION_MESSAGE: &str = concat!(
-    "sp1",
+    "wp1",
     " (",
     env!("VERGEN_GIT_SHA"),
     " ",

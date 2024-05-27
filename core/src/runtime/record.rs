@@ -18,6 +18,7 @@ use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddEvent;
+use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleEvent;
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
@@ -111,6 +112,7 @@ pub struct ExecutionRecord {
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
     pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
     pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
+    pub bls12381_g2_double_events: Vec<Bls12381G2AffineDoubleEvent>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -289,6 +291,10 @@ impl MachineRecord for ExecutionRecord {
             "bls12381_g2_add_events".to_string(),
             self.bls12381_g2_add_events.len(),
         );
+        stats.insert(
+            "bls12381_g2_double_events".to_string(),
+            self.bls12381_g2_double_events.len(),
+        );
         stats
     }
 
@@ -342,6 +348,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_g1_decompress_events);
         self.bls12381_g2_add_events
             .append(&mut other.bls12381_g2_add_events);
+        self.bls12381_g2_double_events
+            .append(&mut other.bls12381_g2_double_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -603,7 +611,11 @@ impl MachineRecord for ExecutionRecord {
         // Put the precompile events in the first shard.
         let first = shards.first_mut().unwrap();
 
+        // Bls12-381 G2Affine addition events
         first.bls12381_g2_add_events = take(&mut self.bls12381_g2_add_events);
+
+        // Bls12-381 G2Affine doubling events
+        first.bls12381_g2_double_events = take(&mut self.bls12381_g2_double_events);
 
         // Bls12-381 decompress events .
         first.bls12381_g1_decompress_events = take(&mut self.bls12381_g1_decompress_events);

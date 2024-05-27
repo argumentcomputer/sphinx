@@ -10,6 +10,7 @@ use crate::stark::{
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
+use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
 use crate::syscall::precompiles::edwards::EdAddAssignChip;
 use crate::syscall::precompiles::edwards::EdDecompressChip;
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
@@ -99,8 +100,8 @@ pub enum SyscallCode {
     BLS12381_FP2_ADD = 0x00_01_01_77,
     BLS12381_FP2_SUB = 0x00_01_01_78,
     BLS12381_FP2_MUL = 0x00_01_01_79,
-
     BLS12381_G2_ADD = 0x00_01_01_80,
+    BLS12381_G2_DOUBLE = 0x00_00_01_81,
 
     /// Executes the `COMMIT` precompile.
     COMMIT = 0x00_00_00_10,
@@ -152,6 +153,7 @@ impl SyscallCode {
             0x00_00_01_72 => SyscallCode::BLS12381_G1_DOUBLE,
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
             0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
+            0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -373,6 +375,10 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         SyscallCode::BLS12381_G2_ADD,
         Arc::new(Bls12381G2AffineAddChip::new()),
     );
+    syscall_map.insert(
+        SyscallCode::BLS12381_G2_DOUBLE,
+        Arc::new(Bls12381G2AffineDoubleChip::new()),
+    );
 
     syscall_map
 }
@@ -488,6 +494,9 @@ mod tests {
                 SyscallCode::HINT_READ => assert_eq!(code as u32, wp1_zkvm::syscalls::HINT_READ),
                 SyscallCode::BLS12381_G2_ADD => {
                     assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_G2_ADD)
+                }
+                SyscallCode::BLS12381_G2_DOUBLE => {
+                    assert_eq!(code as u32, wp1_zkvm::syscalls::BLS12381_G2_DOUBLE)
                 }
             }
         }

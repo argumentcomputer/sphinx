@@ -121,6 +121,9 @@ pub mod tests {
     pub const BLS12381_G2_ADD_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-g2-add/elf/riscv32im-succinct-zkvm-elf");
 
+    pub const BLS12381_G2_DOUBLE_ELF: &[u8] =
+        include_bytes!("../../../tests/bls12381-g2-double/elf/riscv32im-succinct-zkvm-elf");
+
     pub const PANIC_ELF: &[u8] =
         include_bytes!("../../../tests/panic/elf/riscv32im-succinct-zkvm-elf");
 }
