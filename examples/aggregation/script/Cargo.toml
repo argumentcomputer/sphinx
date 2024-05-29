@@ -1,0 +1,14 @@
+[package]
+version = "0.1.0"
+name = "aggregation-script"
+edition = "2021"
+
+[dependencies]
+hex = "0.4.3"
+sphinx-sdk = { path = "../../../sdk", features = ["plonk"] }
+tracing = "0.1.40"
+
+[build-dependencies]
+sphinx-helper = { path = "../../../helper" }
+
+[workspace]
