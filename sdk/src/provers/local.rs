@@ -89,7 +89,7 @@ impl Prover for LocalProver {
                     public_values,
                 })
             } else {
-                panic!("plonk bn254 feature not enabled")
+                panic!("plonk feature not enabled")
             }
         }
     }
