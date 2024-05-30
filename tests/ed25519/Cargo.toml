@@ -6,5 +6,5 @@ edition = "2021"
 
 [dependencies]
 sphinx-zkvm = { path = "../../zkvm/entrypoint" }
-ed25519-dalek = { git = "https://github.com/sp1-patches/curve25519-dalek", branch = "patch-v4.1.1" }
+ed25519-dalek = { git = "https://github.com/sphinx-patches/curve25519-dalek", branch = "patch-v4.1.1" }
 hex-literal = "0.4.1"

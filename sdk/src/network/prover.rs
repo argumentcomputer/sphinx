@@ -2,7 +2,7 @@ use std::{env, time::Duration};
 
 use crate::proto::network::ProofMode;
 use crate::{
-    client::NetworkClient,
+    network::client::{NetworkClient, DEFAULT_PROVER_NETWORK_RPC},
     proto::network::{ProofStatus, TransactionStatus},
     Prover,
 };
@@ -11,13 +11,12 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
-use sphinx_core::runtime::{Program, Runtime};
-use sphinx_core::utils::SphinxCoreOpts;
+use sphinx_prover::install::PLONK_BN254_ARTIFACTS_COMMIT;
 use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin};
 use tokio::{runtime, time::sleep};
 
-use super::LocalProver;
+use crate::provers::{LocalProver, ProverType};
 
 /// An implementation of [crate::ProverClient] that can generate proofs on a remote RPC server.
 pub struct NetworkProver {
@@ -44,20 +43,33 @@ impl NetworkProver {
         mode: ProofMode,
     ) -> Result<P> {
         let client = &self.client;
-        // Execute the runtime before creating the proof request.
-        let program = Program::from(elf);
-        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
-        runtime.write_vecs(&stdin.buffer);
-        for (proof, vkey) in stdin.proofs.iter() {
-            runtime.write_proof(proof.clone(), vkey.clone());
-        }
-        runtime
-            .run_untraced()
-            .context("Failed to execute program")?;
-        log::info!("Simulation complete, cycles: {}", runtime.state.global_clk);
 
-        let proof_id = client.create_proof(elf, &stdin, mode).await?;
+        let skip_simulation = env::var("SKIP_SIMULATION")
+            .map(|val| val == "true")
+            .unwrap_or(false);
+
+        if !skip_simulation {
+            let (_, report) = SphinxProver::execute(elf, &stdin)?;
+            log::info!(
+                "Simulation complete, cycles: {}",
+                report.total_instruction_count()
+            );
+        } else {
+            log::info!("Skipping simulation");
+        }
+
+        let version = PLONK_BN254_ARTIFACTS_COMMIT;
+        log::info!("Client version {}", version);
+
+        let proof_id = client.create_proof(elf, &stdin, mode, version).await?;
         log::info!("Created {}", proof_id);
+
+        if NetworkClient::rpc_url() == DEFAULT_PROVER_NETWORK_RPC {
+            log::info!(
+                "View in explorer: https://explorer.succinct.xyz/{}",
+                proof_id.split('_').last().unwrap_or(&proof_id)
+            );
+        }
 
         let mut is_claimed = false;
         loop {
@@ -79,10 +91,9 @@ impl NetworkProver {
                         status.unclaim_description()
                     ));
                 }
-                _ => {
-                    sleep(Duration::from_secs(1)).await;
-                }
+                _ => {}
             }
+            sleep(Duration::from_secs(2)).await;
         }
     }
 
@@ -152,8 +163,8 @@ impl NetworkProver {
 }
 
 impl Prover for NetworkProver {
-    fn id(&self) -> String {
-        "remote".to_string()
+    fn id(&self) -> ProverType {
+        ProverType::Network
     }
 
     fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
