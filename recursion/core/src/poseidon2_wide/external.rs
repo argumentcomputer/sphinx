@@ -68,8 +68,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F
         let num_columns = <Self as BaseAir<F>>::width(self);
 
         for event in input.events() {
-            let mut row = Vec::new();
-            row.resize(num_columns, F::zero());
+            let mut row = vec![F::zero(); num_columns];
 
             let mut cols = if use_sbox_3 {
                 let cols: &mut Poseidon2SBoxCols<F> = row.as_mut_slice().borrow_mut();

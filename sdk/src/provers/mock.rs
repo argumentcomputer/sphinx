@@ -11,6 +11,8 @@ use sphinx_prover::{
     SphinxStdin,
 };
 
+use super::ProverType;
+
 /// An implementation of [crate::ProverClient] that can generate mock proofs.
 pub struct MockProver {
     pub(crate) prover: SphinxProver,
@@ -25,8 +27,8 @@ impl MockProver {
 }
 
 impl Prover for MockProver {
-    fn id(&self) -> String {
-        "mock".to_string()
+    fn id(&self) -> ProverType {
+        ProverType::Mock
     }
 
     fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
@@ -38,7 +40,7 @@ impl Prover for MockProver {
     }
 
     fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
-        let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
+        let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin)?;
         Ok(SphinxProofWithPublicValues {
             proof: vec![],
             stdin,
@@ -59,7 +61,7 @@ impl Prover for MockProver {
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
     ) -> Result<SphinxPlonkBn254Proof> {
-        let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
+        let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin)?;
         Ok(SphinxPlonkBn254Proof {
             proof: PlonkBn254Proof {
                 public_inputs: [

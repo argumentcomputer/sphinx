@@ -51,7 +51,5 @@ name = "e2e"
 path = "scripts/e2e.rs"
 
 [features]
-default = ["plonk"]
-
 neon = ["sphinx-core/neon"]
 plonk = ["sphinx-recursion-gnark-ffi/plonk"]
