@@ -225,7 +225,7 @@ pub(crate) fn get_preprocessed_data<SC: StarkGenericConfig, A: MachineAir<SC::Va
         .preprocessed_chip_ids()
         .into_iter()
         .map(|chip_idx| {
-            let name = chips[chip_idx].name().clone();
+            let name = chips[chip_idx].as_ref().name().clone();
             let prep_sorted_idx = vk.chip_ordering[&name];
             (prep_sorted_idx, vk.chip_information[prep_sorted_idx].1)
         })

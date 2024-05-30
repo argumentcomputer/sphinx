@@ -120,7 +120,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
         self.chips
             .iter()
             .enumerate()
-            .filter(|(_, chip)| chip.preprocessed_width() > 0)
+            .filter(|(_, chip)| chip.as_ref().preprocessed_width() > 0)
             .map(|(i, _)| i)
             .collect()
     }
@@ -132,7 +132,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
     where
         'a: 'b,
     {
-        self.chips.iter().filter(|chip| chip.included(shard))
+        self.chips.iter().filter(|chip| chip.as_ref().included(shard))
     }
 
     pub fn shard_chips_ordered<'a, 'b>(
@@ -144,14 +144,14 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
     {
         self.chips
             .iter()
-            .filter(|chip| chip_ordering.contains_key(&chip.name()))
-            .sorted_by_key(|chip| chip_ordering.get(&chip.name()))
+            .filter(|chip| chip_ordering.contains_key(&chip.as_ref().name()))
+            .sorted_by_key(|chip| chip_ordering.get(&chip.as_ref().name()))
     }
 
     pub fn chips_sorted_indices(&self, proof: &ShardProof<SC>) -> Vec<Option<usize>> {
         self.chips()
             .iter()
-            .map(|chip| proof.chip_ordering.get(&chip.name()).cloned())
+            .map(|chip| proof.chip_ordering.get(&chip.as_ref().name()).cloned())
             .collect()
     }
 
@@ -166,17 +166,17 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 self.chips()
                     .iter()
                     .map(|chip| {
-                        let prep_trace = chip.generate_preprocessed_trace(program);
+                        let prep_trace = chip.as_ref().generate_preprocessed_trace(program);
                         // Assert that the chip width data is correct.
                         let expected_width = prep_trace.as_ref().map_or(0, |t| t.width());
                         assert_eq!(
                             expected_width,
-                            chip.preprocessed_width(),
+                            chip.as_ref().preprocessed_width(),
                             "Incorrect number of preprocessed columns for chip {}",
-                            chip.name()
+                            chip.as_ref().name()
                         );
 
-                        (chip.name(), prep_trace)
+                        (chip.as_ref().name(), prep_trace)
                     })
                     .filter(|(_, prep_trace)| prep_trace.is_some())
                     .map(|(name, prep_trace)| {
@@ -251,7 +251,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
             chips.iter().for_each(|chip| {
                 let mut output = A::Record::default();
                 output.set_index(record.index());
-                chip.generate_dependencies(&record, &mut output);
+                chip.as_ref().generate_dependencies(&record, &mut output);
                 record.append(&mut output);
             })
         });
@@ -375,13 +375,13 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 .iter()
                 .map(|chip| {
                     pk.chip_ordering
-                        .get(&chip.name())
+                        .get(&chip.as_ref().name())
                         .map(|index| &pk.traces[*index])
                 })
                 .collect::<Vec<_>>();
             let mut traces = chips
                 .par_iter()
-                .map(|chip| chip.generate_trace(shard, &mut A::Record::default()))
+                .map(|chip| chip.as_ref().generate_trace(shard, &mut A::Record::default()))
                 .zip(pre_traces)
                 .collect::<Vec<_>>();
 
@@ -424,7 +424,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 let total_width = trace_width + permutation_width;
                 tracing::debug!(
                 "{:<11} | Main Cols = {:<5} | Perm Cols = {:<5} | Rows = {:<10} | Cells = {:<10}",
-                chips[i].name(),
+                chips[i].as_ref().name(),
                 trace_width,
                 permutation_width,
                 traces[i].0.height(),
@@ -436,7 +436,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 for i in 0..chips.len() {
                     let permutation_trace = pk
                         .chip_ordering
-                        .get(&chips[i].name())
+                        .get(&chips[i].as_ref().name())
                         .map(|index| &pk.traces[*index]);
                     debug_constraints::<SC, A>(
                         chips[i],

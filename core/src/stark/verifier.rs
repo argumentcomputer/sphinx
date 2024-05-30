@@ -185,7 +185,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
         ) {
             // Verify the shape of the opening arguments matches the expected values.
             Self::verify_opening_shape(chip, values)
-                .map_err(|e| VerificationError::OpeningShapeError(chip.name(), e))?;
+                .map_err(|e| VerificationError::OpeningShapeError(chip.as_ref().name(), e))?;
             // Verify the constraint evaluation.
             Self::verify_constraints(
                 chip,
@@ -197,7 +197,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
                 &permutation_challenges,
                 public_values,
             )
-            .map_err(|_e| VerificationError::OodEvaluationMismatch(chip.name()))?;
+            .map_err(|_e| VerificationError::OodEvaluationMismatch(chip.as_ref().name()))?;
         }
         Ok(())
     }
@@ -207,15 +207,15 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
         opening: &ChipOpenedValues<SC::Challenge>,
     ) -> Result<(), OpeningShapeError> {
         // Verify that the preprocessed width matches the expected value for the chip.
-        if opening.preprocessed.local.len() != chip.preprocessed_width() {
+        if opening.preprocessed.local.len() != chip.as_ref().preprocessed_width() {
             return Err(OpeningShapeError::PreprocessedWidthMismatch(
-                chip.preprocessed_width(),
+                chip.as_ref().preprocessed_width(),
                 opening.preprocessed.local.len(),
             ));
         }
-        if opening.preprocessed.next.len() != chip.preprocessed_width() {
+        if opening.preprocessed.next.len() != chip.as_ref().preprocessed_width() {
             return Err(OpeningShapeError::PreprocessedWidthMismatch(
-                chip.preprocessed_width(),
+                chip.as_ref().preprocessed_width(),
                 opening.preprocessed.next.len(),
             ));
         }

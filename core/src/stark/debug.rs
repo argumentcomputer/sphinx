@@ -101,7 +101,7 @@ pub fn debug_constraints<SC, A>(
         if result.is_err() {
             eprintln!("local: {:?}", main_local);
             eprintln!("next:  {:?}", main_next);
-            eprintln!("failed at row {} of chip {}", i, chip.name());
+            eprintln!("failed at row {} of chip {}", i, chip.as_ref().name());
             exit(1);
         }
     });
