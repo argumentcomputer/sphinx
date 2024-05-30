@@ -14,8 +14,6 @@ use num::BigUint;
 use p3_field::Field;
 
 use crate::air::Polynomial;
-use crate::runtime::ExecutionRecord;
-use crate::syscall::precompiles;
 use crate::utils::ec::utils::biguint_from_limbs;
 
 pub const NB_BITS_PER_LIMB: usize = 8;
@@ -177,36 +175,6 @@ pub trait FieldParameters:
     fn to_limbs_field<F: Field>(x: &BigUint) -> Limbs<F, Self::NB_LIMBS> {
         Self::to_limbs(x).map(|x| F::from_canonical_u8(x))
     }
-}
-
-pub trait WithFieldAddition: FieldParameters {
-    fn add_events(record: &ExecutionRecord) -> &[precompiles::field::add::FieldAddEvent<Self>];
-}
-
-pub trait WithFieldSubtraction: FieldParameters {
-    fn sub_events(record: &ExecutionRecord) -> &[precompiles::field::sub::FieldSubEvent<Self>];
-}
-
-pub trait WithFieldMultiplication: FieldParameters {
-    fn mul_events(record: &ExecutionRecord) -> &[precompiles::field::mul::FieldMulEvent<Self>];
-}
-
-pub trait WithQuadFieldAddition: FieldParameters {
-    fn add_events(
-        record: &ExecutionRecord,
-    ) -> &[precompiles::quad_field::add::QuadFieldAddEvent<Self>];
-}
-
-pub trait WithQuadFieldSubtraction: FieldParameters {
-    fn sub_events(
-        record: &ExecutionRecord,
-    ) -> &[precompiles::quad_field::sub::QuadFieldSubEvent<Self>];
-}
-
-pub trait WithQuadFieldMultiplication: FieldParameters {
-    fn mul_events(
-        record: &ExecutionRecord,
-    ) -> &[precompiles::quad_field::mul::QuadFieldMulEvent<Self>];
 }
 
 #[cfg(test)]

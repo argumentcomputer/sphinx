@@ -16,7 +16,6 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -34,9 +33,12 @@ use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::ec::WithAddition;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
+use crate::{
+    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
+    syscall::precompiles::ECAddEvent,
+};
 
 pub const fn num_weierstrass_add_cols<P: FieldParameters>() -> usize {
     size_of::<WeierstrassAddAssignCols<u8, P>>()
@@ -147,8 +149,13 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithAddition> MachineAir<F>
+impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a> for WeierstrassAddAssignChip<E> {
+    type Events = &'a [ECAddEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+}
+
+impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     for WeierstrassAddAssignChip<E>
+    where ExecutionRecord: EventLens<WeierstrassAddAssignChip<E>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -158,17 +165,17 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithAddition> M
             CurveType::Secp256k1 => "Secp256k1AddAssign".to_string(),
             CurveType::Bn254 => "Bn254AddAssign".to_string(),
             CurveType::Bls12381 => "Bls12381AddAssign".to_string(),
-            _ => panic!("Unsupported curve"),
+            _ => unreachable!("Unsupported curve"),
         }
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
-        let events = E::add_events(input);
+        let events = input.events();
 
         let mut rows = Vec::new();
 

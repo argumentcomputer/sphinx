@@ -119,8 +119,8 @@ mod tests {
 
     use super::{FieldSqrtCols, Limbs};
 
-    use crate::air::MachineAir;
     use crate::air::WordAirBuilder;
+    use crate::air::{EventLens, MachineAir};
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, DEFAULT_NUM_LIMBS_T};
     use crate::runtime::ExecutionRecord;
@@ -151,6 +151,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for EdSqrtChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<EdSqrtChip<P>> for ExecutionRecord {
+        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>> MachineAir<F>
         for EdSqrtChip<P>
     {
@@ -162,9 +172,9 @@ mod tests {
             "EdSqrtChip".to_string()
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();

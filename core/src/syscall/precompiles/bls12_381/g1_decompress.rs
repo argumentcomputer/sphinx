@@ -11,7 +11,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MemoryAirBuilder};
+use crate::air::{AluAirBuilder, ByteAirBuilder, EventLens, MemoryAirBuilder, WithEvents};
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::params::FieldParameters;
 use crate::operations::field::range::FieldRangeCols;
@@ -229,6 +229,10 @@ impl Bls12381G1DecompressChip {
     }
 }
 
+impl<'a> WithEvents<'a> for Bls12381G1DecompressChip {
+    type Events = &'a [Bls12381G1DecompressEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -237,16 +241,16 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
         "Bls12381G1Decompress".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
 
-        for event in input.bls12381_g1_decompress_events.iter() {
+        for event in input.events().iter() {
             let mut row = [F::zero(); size_of::<Bls12381G1DecompressCols<u8>>()];
             let cols: &mut Bls12381G1DecompressCols<F> = row.as_mut_slice().borrow_mut();
 

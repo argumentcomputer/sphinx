@@ -1,8 +1,8 @@
 use std::borrow::BorrowMut;
 
-use p3_field::PrimeField32;
+use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
-use sphinx_core::{air::MachineAir, utils::pad_rows_fixed};
+use sphinx_core::{air::{EventLens, MachineAir, WithEvents}, utils::pad_rows_fixed};
 use sphinx_primitives::RC_16_30_U32;
 use tracing::instrument;
 
@@ -13,10 +13,14 @@ use crate::{
 
 use super::{
     external::{NUM_POSEIDON2_COLS, WIDTH},
-    Poseidon2Chip, Poseidon2Cols,
+    Poseidon2Chip, Poseidon2Cols, Poseidon2Event,
 };
 
-impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip {
+impl<'a, F: Field> WithEvents<'a> for Poseidon2Chip<F> {
+    type Events = &'a [Poseidon2Event<F>];
+}
+
+impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -25,15 +29,13 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip {
         "Poseidon2".to_string()
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // This is a no-op.
     }
 
-    #[instrument(name = "generate poseidon2 trace", level = "debug", skip_all, fields(rows = input.poseidon2_events.len()))]
-    fn generate_trace(
-        &self,
-        input: &ExecutionRecord<F>,
-        _: &mut ExecutionRecord<F>,
+    #[instrument(name = "generate poseidon2 trace", level = "debug", skip_all, fields(rows = input.events().len()))]
+    fn generate_trace<EL: EventLens<Self>>(
+        &self, input: &EL, _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -44,7 +46,7 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip {
         let rounds_p_beginning = 2 + rounds_f / 2;
         let p_end = rounds_p_beginning + rounds_p;
 
-        for poseidon2_event in input.poseidon2_events.iter() {
+        for poseidon2_event in input.events().iter() {
             let mut round_input = Default::default();
             for r in 0..rounds {
                 let mut row = [F::zero(); NUM_POSEIDON2_COLS];

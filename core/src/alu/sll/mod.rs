@@ -42,12 +42,14 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::bytes::event::ByteRecord;
 use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+
+use super::AluEvent;
 
 /// The number of main trace columns for `ShiftLeft`.
 pub const NUM_SHIFT_LEFT_COLS: usize = size_of::<ShiftLeftCols<u8>>();
@@ -96,6 +98,10 @@ pub struct ShiftLeftCols<T> {
     pub is_real: T,
 }
 
+impl<'a> WithEvents<'a> for ShiftLeft {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField> MachineAir<F> for ShiftLeft {
     type Record = ExecutionRecord;
 
@@ -105,14 +111,14 @@ impl<F: PrimeField> MachineAir<F> for ShiftLeft {
         "ShiftLeft".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_SHIFT_LEFT_COLS]> = vec![];
-        let shift_left_events = input.shift_left_events.clone();
+        let shift_left_events = input.events().clone();
         for event in shift_left_events.iter() {
             let mut row = [F::zero(); NUM_SHIFT_LEFT_COLS];
             let cols: &mut ShiftLeftCols<F> = row.as_mut_slice().borrow_mut();
@@ -193,7 +199,7 @@ impl<F: PrimeField> MachineAir<F> for ShiftLeft {
             row
         };
         debug_assert!(padded_row_template.len() == NUM_SHIFT_LEFT_COLS);
-        for i in input.shift_left_events.len() * NUM_SHIFT_LEFT_COLS..trace.values.len() {
+        for i in input.events().len() * NUM_SHIFT_LEFT_COLS..trace.values.len() {
             trace.values[i] = padded_row_template[i % NUM_SHIFT_LEFT_COLS];
         }
 

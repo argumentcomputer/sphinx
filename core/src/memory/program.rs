@@ -5,10 +5,11 @@ use p3_field::AbstractField;
 use p3_field::PrimeField;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
+use std::collections::BTreeMap;
 
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AirInteraction, BaseAirBuilder, PublicValues};
+use crate::air::{AirInteraction, BaseAirBuilder, EventLens, PublicValues, WithEvents};
 use crate::air::{MachineAir, Word};
 use crate::operations::IsZeroOperation;
 use crate::runtime::{ExecutionRecord, Program};
@@ -47,6 +48,10 @@ impl MemoryProgramChip {
     pub fn new() -> Self {
         Self {}
     }
+}
+
+impl<'a> WithEvents<'a> for MemoryProgramChip {
+    type Events = &'a BTreeMap<u32, u32>;
 }
 
 impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
@@ -91,23 +96,22 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
         Some(trace)
     }
 
-    fn generate_dependencies(&self, _input: &ExecutionRecord, _output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>>(
+        &self,
+        _input: &EL,
+        _output: &mut ExecutionRecord,
+    ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let program_memory_addrs = input
-            .program
-            .memory_image
-            .keys()
-            .copied()
-            .collect::<Vec<_>>();
+        let program_memory_addrs = input.events().keys().copied().collect::<Vec<_>>();
 
-        let mult = if input.index == 1 {
+        let mult = if input.index() == 1 {
             F::one()
         } else {
             F::zero()
@@ -120,7 +124,7 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
                 let mut row = [F::zero(); NUM_MEMORY_PROGRAM_MULT_COLS];
                 let cols: &mut MemoryProgramMultCols<F> = row.as_mut_slice().borrow_mut();
                 cols.multiplicity = mult;
-                IsZeroOperation::populate(&mut cols.is_first_shard, input.index - 1);
+                IsZeroOperation::populate(&mut cols.is_first_shard, input.index() - 1);
 
                 row
             })

@@ -19,7 +19,6 @@ use crate::{
     runtime::Syscall,
     stark::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
     syscall::precompiles::{create_ec_add_event, create_ec_double_event},
-    utils::ec::{WithAddition, WithDoubling},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,25 +53,6 @@ impl FieldParameters for Secp256k1BaseField {
 impl EllipticCurveParameters for Secp256k1Parameters {
     type BaseField = Secp256k1BaseField;
     const CURVE_TYPE: CurveType = CurveType::Secp256k1;
-}
-
-impl WithAddition for Secp256k1Parameters {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
-    {
-        &record.secp256k1_add_events
-    }
-}
-
-impl WithDoubling for Secp256k1Parameters {
-    fn double_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
-        <Self::BaseField as FieldParameters>::NB_LIMBS,
-    >] {
-        &record.secp256k1_double_events
-    }
 }
 
 impl WeierstrassParameters for Secp256k1Parameters {

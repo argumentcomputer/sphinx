@@ -24,7 +24,7 @@ use crate::stark::StarkVerifyingKey;
 use crate::stark::Val;
 use crate::stark::VerifierConstraintFolder;
 use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, StarkProvingKey, UniConfig};
-use crate::stark::{MachineRecord, StarkMachine};
+use crate::stark::{Indexable, MachineRecord, StarkMachine};
 use crate::utils::env;
 use crate::{
     runtime::{Program, Runtime},

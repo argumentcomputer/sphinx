@@ -1,4 +1,4 @@
-use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
+use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
 use crate::operations::field::extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation};
@@ -276,6 +276,10 @@ impl<T: PrimeField32> BaseAir<T> for Bls12381G2AffineAddChip {
     }
 }
 
+impl<'a> WithEvents<'a> for Bls12381G2AffineAddChip {
+    type Events = &'a [Bls12381G2AffineAddEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -284,13 +288,17 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
         "G2AffineAdd".to_string()
     }
 
-    fn generate_trace(&self, input: &Self::Record, output: &mut Self::Record) -> RowMajorMatrix<F> {
+    fn generate_trace<EL: EventLens<Self>>(
+        &self,
+        input: &EL,
+        output: &mut Self::Record,
+    ) -> RowMajorMatrix<F> {
         let mut rows = vec![];
 
         let mut new_byte_lookup_events = Vec::new();
 
         let width = <Bls12381G2AffineAddChip as BaseAir<F>>::width(self);
-        for event in &input.bls12381_g2_add_events {
+        for event in input.events() {
             let mut row = vec![F::zero(); width];
             let cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();

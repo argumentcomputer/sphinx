@@ -12,12 +12,14 @@ use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::Word;
 use crate::air::{AluAirBuilder, BaseAirBuilder, ByteAirBuilder, MachineAir};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+
+use super::AluEvent;
 
 /// The number of main trace columns for `LtChip`.
 pub const NUM_LT_COLS: usize = size_of::<LtCols<u8>>();
@@ -91,6 +93,10 @@ impl LtCols<u32> {
     }
 }
 
+impl<'a> WithEvents<'a> for LtChip {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for LtChip {
     type Record = ExecutionRecord;
 
@@ -100,14 +106,14 @@ impl<F: PrimeField32> MachineAir<F> for LtChip {
         "Lt".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let (rows, new_byte_lookup_events): (Vec<_>, Vec<_>) = input
-            .lt_events
+            .events()
             .par_iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_LT_COLS];

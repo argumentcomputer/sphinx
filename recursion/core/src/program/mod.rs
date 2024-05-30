@@ -1,11 +1,13 @@
 use crate::air::SphinxRecursionAirBuilder;
+use crate::cpu::{CpuEvent, Instruction};
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
+use std::marker::PhantomData;
 use p3_air::{Air, BaseAir, PairBuilder};
-use p3_field::PrimeField32;
+use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::MachineAir;
+use sphinx_core::air::{EventLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use std::collections::HashMap;
 use tracing::instrument;
@@ -38,15 +40,24 @@ pub struct ProgramMultiplicityCols<T> {
 
 /// A chip that implements addition for the opcodes ADD and ADDI.
 #[derive(Default)]
-pub struct ProgramChip;
+pub struct ProgramChip<F>(pub PhantomData<F>);
 
-impl ProgramChip {
+impl<F> ProgramChip<F> {
     pub fn new() -> Self {
-        Self {}
+        Self (PhantomData)
     }
 }
 
-impl<F: PrimeField32> MachineAir<F> for ProgramChip {
+impl<'a, F: Field> WithEvents<'a> for ProgramChip<F> {
+    type Events = (
+        // program.instructions
+        &'a [Instruction<F>],
+        // cpu_events
+        &'a [CpuEvent<F>],
+    );
+}
+
+impl<F: PrimeField32> MachineAir<F> for ProgramChip<F> {
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -92,20 +103,18 @@ impl<F: PrimeField32> MachineAir<F> for ProgramChip {
         ))
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // This is a no-op.
     }
 
-    #[instrument(name = "generate program trace", level = "debug", skip_all, fields(rows = input.program.instructions.len()))]
-    fn generate_trace(
-        &self,
-        input: &ExecutionRecord<F>,
-        _output: &mut ExecutionRecord<F>,
+    #[instrument(name = "generate program trace", level = "debug", skip_all, fields(rows = input.events().0.len()))]
+    fn generate_trace<EL: EventLens<Self>>(
+        &self, input: &EL, _output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.
         let mut instruction_counts = HashMap::new();
-        input.cpu_events.iter().for_each(|event| {
+        input.events().1.iter().for_each(|event| {
             let pc = event.pc;
             instruction_counts
                 .entry(pc.as_canonical_u32())
@@ -115,9 +124,9 @@ impl<F: PrimeField32> MachineAir<F> for ProgramChip {
 
         let max_program_size = match std::env::var("MAX_RECURSION_PROGRAM_SIZE") {
             Ok(value) => value.parse().unwrap(),
-            Err(_) => std::cmp::min(1048576, input.program.instructions.len()),
+            Err(_) => std::cmp::min(1048576, input.events().0.len()),
         };
-        let mut rows = input.program.instructions[0..max_program_size]
+        let mut rows = input.events().0[0..max_program_size]
             .iter()
             .enumerate()
             .map(|(i, _)| {
@@ -145,13 +154,13 @@ impl<F: PrimeField32> MachineAir<F> for ProgramChip {
     }
 }
 
-impl<F> BaseAir<F> for ProgramChip {
+impl<F: Field> BaseAir<F> for ProgramChip<F> {
     fn width(&self) -> usize {
         NUM_PROGRAM_MULT_COLS
     }
 }
 
-impl<AB> Air<AB> for ProgramChip
+impl<AB> Air<AB> for ProgramChip<AB::F>
 where
     AB: SphinxRecursionAirBuilder + PairBuilder,
 {

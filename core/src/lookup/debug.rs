@@ -6,7 +6,9 @@ use p3_matrix::Matrix;
 
 use super::InteractionKind;
 use crate::air::MachineAir;
-use crate::stark::{MachineChip, StarkGenericConfig, StarkMachine, StarkProvingKey, Val};
+use crate::stark::{
+    MachineChip, StarkGenericConfig, StarkMachine, StarkProvingKey, Val,
+};
 
 #[derive(Debug)]
 pub struct InteractionData<F: Field> {
@@ -44,7 +46,10 @@ fn field_to_int<F: PrimeField32>(x: F) -> i32 {
     }
 }
 
-pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
+pub fn debug_interactions<
+    SC: StarkGenericConfig,
+    A: MachineAir<Val<SC>>,
+>(
     chip: &MachineChip<SC, A>,
     pkey: &StarkProvingKey<SC>,
     record: &A::Record,
@@ -56,7 +61,9 @@ pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
     let mut key_to_vec_data = BTreeMap::new();
     let mut key_to_count = BTreeMap::new();
 
-    let trace = chip.as_ref().generate_trace(record, &mut A::Record::default());
+    let trace = chip
+        .as_ref()
+        .generate_trace(record, &mut A::Record::default());
     let mut pre_traces = pkey.traces.clone();
     let mut preprocessed_trace = pkey
         .chip_ordering
@@ -150,10 +157,17 @@ where
                     .or_insert((SC::Val::zero(), BTreeMap::new()));
                 entry.0 += *value;
                 total += *value;
-                *entry.1.entry(chip.as_ref().name()).or_insert(SC::Val::zero()) += *value;
+                *entry
+                    .1
+                    .entry(chip.as_ref().name())
+                    .or_insert(SC::Val::zero()) += *value;
             }
         }
-        tracing::info!("{} chip has {} distinct events", chip.as_ref().name(), total_events);
+        tracing::info!(
+            "{} chip has {} distinct events",
+            chip.as_ref().name(),
+            total_events
+        );
     }
 
     tracing::info!("Final counts below.");

@@ -85,6 +85,141 @@ pub fn aligned_borrow_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(methods)
 }
 
+/// Derives WithEvents for an enum which every variant has one field,
+/// each of which implements WithEvents.
+///
+/// The derived implementation is a tuple of the Events of each variant,
+/// in the variant declaration order. That is, because the chip could be *any* variant,
+/// it requires being able to provide for *all* event types consumable by each chip.
+#[proc_macro_derive(WithEvents, attributes(sphinx_core_path))]
+pub fn with_events_air_derive(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+    let generics = &ast.generics;
+    let type_params = generics.type_params();
+    let const_params = generics.const_params();
+
+    let sphinx_core_path = find_sphinx_core_path(&ast.attrs);
+    let (_, ty_generics, where_clause) = generics.split_for_impl();
+
+    match &ast.data {
+        Data::Struct(_) | Data::Union(_) => unimplemented!("Only Enums are supported yet"),
+        Data::Enum(e) => {
+            let fields = e
+                .variants
+                .iter()
+                .map(|variant| {
+                    let mut fields = variant.fields.iter();
+                    let field = fields.next().unwrap();
+                    assert!(
+                        fields.next().is_none(),
+                        "Only one field per variant is supported"
+                    );
+                    field
+                })
+                .collect::<Vec<_>>();
+
+            let field_ty_events = fields.iter().map(|field| {
+                let field_ty = &field.ty;
+                quote! {
+                    <#field_ty as #sphinx_core_path::air::WithEvents<'a>>::Events
+                }
+            });
+            quote!{
+                impl <'a, #(#type_params),*, #(#const_params),*> #sphinx_core_path::air::WithEvents<'a> for #name #ty_generics #where_clause {
+                    type Events = (#(#field_ty_events,)*);
+                }
+            }.into()
+        }
+    }
+}
+
+fn get_type_from_attrs(attrs: &[syn::Attribute], attr_name: &str) -> syn::Result<syn::LitStr> {
+    attrs
+        .iter()
+        .find(|attr| attr.path.is_ident(attr_name))
+        .map_or_else(
+            || {
+                Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!("Could not find attribute {}", attr_name),
+                ))
+            },
+            |attr| match attr.parse_meta()? {
+                syn::Meta::NameValue(meta) => {
+                    if let syn::Lit::Str(lit) = &meta.lit {
+                        Ok(lit.clone())
+                    } else {
+                        Err(syn::Error::new_spanned(
+                            meta,
+                            &format!("Could not parse {} attribute", attr_name)[..],
+                        ))
+                    }
+                }
+                bad => Err(syn::Error::new_spanned(
+                    bad,
+                    &format!("Could not parse {} attribute", attr_name)[..],
+                )),
+            },
+        )
+}
+
+/// Derives EventLens for an enum which every variant has one field,
+/// each of which the input record implements EventLens for.
+///
+/// The derived implementation is a delegation to the events of each variant,
+/// in the variant declaration order.
+///
+/// This makes the strong assumption that the `WithEvents` trait is implemented on `Self`
+/// as a tuple of the `WithEvents` of each variant. This is what the `WithEvents` derive macro does.
+#[proc_macro_derive(EventLens, attributes(sphinx_core_path, record_type))]
+pub fn event_lens_air_derive(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).unwrap();
+
+    let name = &ast.ident;
+    let generics = &ast.generics;
+    let record_type = get_type_from_attrs(&ast.attrs, "record_type").unwrap();
+    let rec_ty: syn::Type = record_type.parse().unwrap();
+
+    let sphinx_core_path = find_sphinx_core_path(&ast.attrs);
+    let (impl_generics, ty_generics, _) = generics.split_for_impl();
+
+    match &ast.data {
+        Data::Struct(_) | Data::Union(_) => unimplemented!("Only Enums are supported yet"),
+        Data::Enum(e) => {
+            let fields = e
+                .variants
+                .iter()
+                .map(|variant| {
+                    let mut fields = variant.fields.iter();
+                    let field = fields.next().unwrap();
+                    assert!(
+                        fields.next().is_none(),
+                        "Only one field per variant is supported"
+                    );
+                    field
+                })
+                .collect::<Vec<_>>();
+
+            let field_events = fields.iter().map(|field| {
+                let field_ty = &field.ty;
+                quote! {
+                    #sphinx_core_path::air::EventLens::<#field_ty>::events(self)
+                }
+            });
+            let res = quote! {
+                impl #impl_generics #sphinx_core_path::air::EventLens<#name #ty_generics> for #rec_ty {
+                    fn events(&self) -> <#name #ty_generics as #sphinx_core_path::air::WithEvents>::Events {
+                        (#(#field_events,)*)
+                    }
+                }
+            };
+            res.into()
+        }
+    }
+}
+
 #[proc_macro_derive(
     MachineAir,
     attributes(sphinx_core_path, execution_record_path, program_path, builder_path)
@@ -94,11 +229,17 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
     let name = &ast.ident;
     let generics = &ast.generics;
+    let type_params = generics.type_params();
+    let ty_params = quote!{ #(#type_params),* };
+    let const_params = generics.const_params();
+    let co_params = quote! { #(#const_params),* };
+
     let sphinx_core_path = find_sphinx_core_path(&ast.attrs);
     let execution_record_path = find_execution_record_path(&ast.attrs);
     let program_path = find_program_path(&ast.attrs);
     let builder_path = find_builder_path(&ast.attrs);
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let turbo_ty = ty_generics.as_turbofish();
 
     match &ast.data {
         Data::Struct(_) => unimplemented!("Structs are not supported yet"),
@@ -111,7 +252,10 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
                     let mut fields = variant.fields.iter();
                     let field = fields.next().unwrap();
-                    assert!(fields.next().is_none(), "Only one field is supported");
+                    assert!(
+                        fields.next().is_none(),
+                        "Only one field per variant is supported"
+                    );
                     (variant_name, field)
                 })
                 .collect::<Vec<_>>();
@@ -158,17 +302,29 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
                 }
             });
 
-            let generate_trace_arms = variants.iter().map(|(variant_name, field)| {
+            let generate_trace_arms = variants.iter().enumerate().map(|(i, (variant_name, field))| {
                 let field_ty = &field.ty;
+                
+                let idx = syn::Index::from(i);
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_trace(x, input, output)
+                    #name::#variant_name(x) => {
+                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::Events, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::Events  { evs.#idx }
+
+                        <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_trace(x, &#sphinx_core_path::air::Proj::new(input, f #turbo_ty), output)
+                    }
                 }
             });
 
-            let generate_dependencies_arms = variants.iter().map(|(variant_name, field)| {
+            let generate_dependencies_arms = variants.iter().enumerate().map(|(i, (variant_name, field))| {
                 let field_ty = &field.ty;
+                let idx = syn::Index::from(i);
+
                 quote! {
-                    #name::#variant_name(x) => <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_dependencies(x, input, output)
+                    #name::#variant_name(x) => {
+                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::Events, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::Events  { evs.#idx }
+
+                        <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_dependencies(x, &#sphinx_core_path::air::Proj::new(input, f #turbo_ty), output)
+                    }
                 }
             });
 
@@ -206,9 +362,9 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn generate_trace(
+                    fn generate_trace<EL: #sphinx_core_path::air::EventLens<Self>>(
                         &self,
-                        input: &#execution_record_path,
+                        input: &EL,
                         output: &mut #execution_record_path,
                     ) -> p3_matrix::dense::RowMajorMatrix<F> {
                         match self {
@@ -216,9 +372,9 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn generate_dependencies(
+                    fn generate_dependencies<EL: #sphinx_core_path::air::EventLens<Self>>(
                         &self,
-                        input: &#execution_record_path,
+                        input: &EL,
                         output: &mut #execution_record_path,
                     ) {
                         match self {

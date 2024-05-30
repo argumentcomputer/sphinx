@@ -13,8 +13,6 @@ use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
-use crate::utils::ec::WithAddition;
-use crate::utils::ec::WithDoubling;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bn254 curve parameter
@@ -56,25 +54,6 @@ impl EllipticCurveParameters for Bn254Parameters {
     type BaseField = Bn254BaseField;
 
     const CURVE_TYPE: CurveType = CurveType::Bn254;
-}
-
-impl WithAddition for Bn254Parameters {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
-    {
-        &record.bn254_add_events
-    }
-}
-
-impl WithDoubling for Bn254Parameters {
-    fn double_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
-        <Self::BaseField as FieldParameters>::NB_LIMBS,
-    >] {
-        &record.bn254_double_events
-    }
 }
 
 impl Syscall for WeierstrassAddAssignChip<Bn254> {

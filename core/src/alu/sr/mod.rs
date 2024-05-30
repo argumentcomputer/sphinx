@@ -55,8 +55,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::sr::utils::{nb_bits_to_shift, nb_bytes_to_shift};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::utils::shr_carry;
@@ -64,6 +64,8 @@ use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+
+use super::AluEvent;
 
 /// The number of main trace columns for `ShiftRightChip`.
 pub const NUM_SHIFT_RIGHT_COLS: usize = size_of::<ShiftRightCols<u8>>();
@@ -128,6 +130,10 @@ pub struct ShiftRightCols<T> {
     pub is_real: T,
 }
 
+impl<'a> WithEvents<'a> for ShiftRightChip {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
     type Record = ExecutionRecord;
 
@@ -137,14 +143,14 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
         "ShiftRight".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_SHIFT_RIGHT_COLS]> = Vec::new();
-        let sr_events = input.shift_right_events.clone();
+        let sr_events = input.events().clone();
         for event in sr_events.iter() {
             assert!(event.opcode == Opcode::SRL || event.opcode == Opcode::SRA);
             let mut row = [F::zero(); NUM_SHIFT_RIGHT_COLS];
@@ -272,7 +278,7 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
             row
         };
         debug_assert!(padded_row_template.len() == NUM_SHIFT_RIGHT_COLS);
-        for i in input.shift_right_events.len() * NUM_SHIFT_RIGHT_COLS..trace.values.len() {
+        for i in input.events().len() * NUM_SHIFT_RIGHT_COLS..trace.values.len() {
             trace.values[i] = padded_row_template[i % NUM_SHIFT_RIGHT_COLS];
         }
 

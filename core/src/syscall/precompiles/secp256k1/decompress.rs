@@ -11,7 +11,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MemoryAirBuilder};
+use crate::air::{AluAirBuilder, ByteAirBuilder, EventLens, MemoryAirBuilder, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::range::FieldRangeCols;
@@ -214,6 +214,10 @@ impl Secp256k1DecompressChip {
     }
 }
 
+impl<'a> WithEvents<'a> for Secp256k1DecompressChip {
+    type Events = &'a [Secp256k1DecompressEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -222,16 +226,16 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
         "Secp256k1Decompress".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
 
-        for event in input.secp256k1_decompress_events.iter() {
+        for event in input.events().iter() {
             let mut row = [F::zero(); size_of::<Secp256k1DecompressCols<u8>>()];
             let cols: &mut Secp256k1DecompressCols<F> = row.as_mut_slice().borrow_mut();
 

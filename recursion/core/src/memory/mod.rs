@@ -1,6 +1,8 @@
 mod air;
 mod columns;
 
+use std::marker::PhantomData;
+
 use p3_field::PrimeField32;
 
 use crate::air::Block;
@@ -109,6 +111,7 @@ impl<F: PrimeField32, TValue> MemoryAccessCols<F, TValue> {
 }
 
 #[derive(Default)]
-pub struct MemoryGlobalChip {
+pub struct MemoryGlobalChip<F> {
     pub fixed_log2_rows: Option<usize>,
+    pub _phantom: PhantomData<F>,
 }

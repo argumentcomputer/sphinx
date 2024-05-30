@@ -75,8 +75,8 @@ use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
 use self::utils::eval_abs_value;
-use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::divrem::utils::{get_msb, get_quotient_and_remainder, is_signed_operation};
 use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
@@ -187,6 +187,10 @@ pub struct DivRemCols<T> {
     pub is_real: T,
 }
 
+impl<'a> WithEvents<'a> for DivRemChip {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField> MachineAir<F> for DivRemChip {
     type Record = ExecutionRecord;
 
@@ -196,13 +200,13 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
         "DivRem".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
-        let divrem_events = &input.divrem_events;
+        let divrem_events = input.events();
         let mut rows: Vec<[F; NUM_DIVREM_COLS]> = Vec::with_capacity(divrem_events.len());
         for event in divrem_events {
             assert!(
@@ -405,7 +409,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
             row
         };
         debug_assert!(padded_row_template.len() == NUM_DIVREM_COLS);
-        for i in input.divrem_events.len() * NUM_DIVREM_COLS..trace.values.len() {
+        for i in input.events().len() * NUM_DIVREM_COLS..trace.values.len() {
             trace.values[i] = padded_row_template[i % NUM_DIVREM_COLS];
         }
 

@@ -5,14 +5,18 @@ use p3_matrix::dense::RowMajorMatrix;
 
 use super::{
     columns::{ShaCompressCols, NUM_SHA_COMPRESS_COLS},
-    ShaCompressChip, SHA_COMPRESS_K,
+    ShaCompressChip, ShaCompressEvent, SHA_COMPRESS_K,
 };
 use crate::{
-    air::{MachineAir, Word},
+    air::{EventLens, MachineAir, WithEvents, Word},
     bytes::event::ByteRecord,
     runtime::{ExecutionRecord, Program},
     utils::pad_rows,
 };
+
+impl<'a> WithEvents<'a> for ShaCompressChip {
+    type Events = &'a [ShaCompressEvent];
+}
 
 impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
     type Record = ExecutionRecord;
@@ -23,16 +27,16 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
         "ShaCompress".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
-        for i in 0..input.sha_compress_events.len() {
-            let mut event = input.sha_compress_events[i].clone();
+        for i in 0..input.events().len() {
+            let mut event = input.events()[i].clone();
             let shard = event.shard;
 
             let og_h = event.h;

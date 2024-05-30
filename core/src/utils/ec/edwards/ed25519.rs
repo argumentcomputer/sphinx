@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::operations::field::params::{FieldParameters, FieldType, DEFAULT_NUM_LIMBS_T};
 use crate::utils::ec::edwards::{EdwardsCurve, EdwardsParameters};
-use crate::utils::ec::{AffinePoint, CurveType, EllipticCurveParameters, WithAddition};
+use crate::utils::ec::{AffinePoint, CurveType, EllipticCurveParameters};
 
 pub type Ed25519 = EdwardsCurve<Ed25519Parameters>;
 
@@ -37,15 +37,6 @@ impl FieldParameters for Ed25519BaseField {
 impl EllipticCurveParameters for Ed25519Parameters {
     type BaseField = Ed25519BaseField;
     const CURVE_TYPE: CurveType = CurveType::Ed25519;
-}
-
-impl WithAddition for Ed25519Parameters {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
-    {
-        &record.ed_add_events
-    }
 }
 
 impl EdwardsParameters for Ed25519Parameters {

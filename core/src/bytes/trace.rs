@@ -1,18 +1,23 @@
-use std::borrow::BorrowMut;
+use std::{borrow::BorrowMut, collections::BTreeMap};
 
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 
 use super::{
     columns::{ByteMultCols, NUM_BYTE_MULT_COLS, NUM_BYTE_PREPROCESSED_COLS},
-    ByteChip,
+    ByteChip, ByteLookupEvent,
 };
 use crate::{
-    air::MachineAir,
+    air::{EventLens, MachineAir, WithEvents},
     runtime::{ExecutionRecord, Program},
 };
 
 pub const NUM_ROWS: usize = 1 << 16;
+
+impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
+    // the byte lookups
+    type Events = &'a BTreeMap<u32, BTreeMap<ByteLookupEvent, usize>>;
+}
 
 impl<F: Field> MachineAir<F> for ByteChip<F> {
     type Record = ExecutionRecord;
@@ -35,16 +40,20 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
         Some(trace)
     }
 
-    fn generate_dependencies(&self, _input: &ExecutionRecord, _output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>>(
+        &self,
+        _input: &EL,
+        _output: &mut ExecutionRecord,
+    ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let shard = input.index;
+        let shard = input.index();
         let (_, event_map) = Self::trace_and_map(shard);
 
         let mut trace = RowMajorMatrix::new(
@@ -52,7 +61,7 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
             NUM_BYTE_MULT_COLS,
         );
 
-        for (lookup, mult) in input.byte_lookups[&shard].iter() {
+        for (lookup, mult) in input.events()[&shard].iter() {
             let (row, index) = event_map[lookup];
             let cols: &mut ByteMultCols<F> = trace.row_mut(row).borrow_mut();
 

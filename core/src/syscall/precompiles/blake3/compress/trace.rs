@@ -3,10 +3,12 @@ use std::borrow::BorrowMut;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 
+use super::Blake3CompressInnerEvent;
 use super::{
     columns::Blake3CompressInnerCols, G_INDEX, G_INPUT_SIZE, MSG_SCHEDULE, NUM_MSG_WORDS_PER_CALL,
     NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT,
 };
+use crate::air::{EventLens, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::{
     air::MachineAir,
@@ -17,6 +19,10 @@ use crate::{
     utils::pad_rows,
 };
 
+impl<'a> WithEvents<'a> for Blake3CompressInnerChip {
+    type Events = &'a [Blake3CompressInnerEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -25,17 +31,17 @@ impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
         "Blake3CompressInner".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
 
-        for i in 0..input.blake3_compress_inner_events.len() {
-            let event = input.blake3_compress_inner_events[i].clone();
+        for i in 0..input.events().len() {
+            let event = input.events()[i].clone();
             let shard = event.shard;
             let mut clk = event.clk;
             for round in 0..ROUND_COUNT {

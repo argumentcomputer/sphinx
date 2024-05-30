@@ -4,7 +4,7 @@ pub mod utils;
 
 use p3_field::{extension::BinomiallyExtendable, PrimeField32};
 use sphinx_core::stark::{Chip, StarkGenericConfig, StarkMachine, PROOF_MAX_NUM_PVS};
-use sphinx_derive::MachineAir;
+use sphinx_derive::{EventLens, MachineAir, WithEvents};
 
 use crate::runtime::D;
 use crate::{
@@ -18,20 +18,21 @@ use std::marker::PhantomData;
 pub type RecursionAirWideDeg3<F> = RecursionAir<F, 3>;
 pub type RecursionAirSkinnyDeg7<F> = RecursionAir<F, 7>;
 
-#[derive(MachineAir)]
+#[derive(WithEvents, EventLens, MachineAir)]
 #[sphinx_core_path = "sphinx_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
 #[program_path = "crate::runtime::RecursionProgram<F>"]
 #[builder_path = "crate::air::SphinxRecursionAirBuilder<F = F>"]
+#[record_type = "crate::runtime::ExecutionRecord<F>"]
 pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> {
-    Program(ProgramChip),
+    Program(ProgramChip<F>),
     Cpu(CpuChip<F>),
-    MemoryGlobal(MemoryGlobalChip),
-    Poseidon2Wide(Poseidon2WideChip<DEGREE>),
-    Poseidon2Skinny(Poseidon2Chip),
-    FriFold(FriFoldChip<DEGREE>),
+    MemoryGlobal(MemoryGlobalChip<F>),
+    Poseidon2Wide(Poseidon2WideChip<F, DEGREE>),
+    Poseidon2Skinny(Poseidon2Chip<F>),
+    FriFold(FriFoldChip<F, DEGREE>),
     RangeCheck(RangeCheckChip<F>),
-    Multi(MultiChip<DEGREE>),
+    Multi(MultiChip<F, DEGREE>),
 }
 
 impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAir<F, DEGREE> {
@@ -54,37 +55,44 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
     }
 
     pub fn get_all() -> Vec<Self> {
-        once(RecursionAir::Program(ProgramChip))
+        once(RecursionAir::Program(ProgramChip(PhantomData)))
             .chain(once(RecursionAir::Cpu(CpuChip {
                 fixed_log2_rows: None,
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::MemoryGlobal(MemoryGlobalChip {
                 fixed_log2_rows: None,
+                _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Poseidon2Wide(Poseidon2WideChip::<
-                DEGREE,
+                F, DEGREE,
             > {
                 fixed_log2_rows: None,
+                _phantom: PhantomData,
             })))
-            .chain(once(RecursionAir::FriFold(FriFoldChip::<DEGREE> {
+            .chain(once(RecursionAir::FriFold(FriFoldChip::<F, DEGREE> {
                 fixed_log2_rows: None,
+                _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
             .collect()
     }
 
     pub fn get_wrap_all() -> Vec<Self> {
-        once(RecursionAir::Program(ProgramChip))
+        once(RecursionAir::Program(ProgramChip (
+            PhantomData,
+        )))
             .chain(once(RecursionAir::Cpu(CpuChip {
                 fixed_log2_rows: Some(20),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::MemoryGlobal(MemoryGlobalChip {
                 fixed_log2_rows: Some(20),
+                _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Multi(MultiChip {
                 fixed_log2_rows: Some(20),
+                _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
             .collect()

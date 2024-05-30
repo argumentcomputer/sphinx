@@ -1,9 +1,9 @@
 use std::borrow::BorrowMut;
 
-use p3_field::{extension::BinomiallyExtendable, PrimeField32};
+use p3_field::{extension::BinomiallyExtendable, Field, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::{
-    air::{BinomialExtension, MachineAir},
+    air::{BinomialExtension, EventLens, MachineAir, WithEvents},
     utils::pad_rows_fixed,
 };
 use tracing::instrument;
@@ -14,9 +14,15 @@ use crate::{
     runtime::{ExecutionRecord, Opcode, RecursionProgram, D},
 };
 
-use super::{CpuChip, CpuCols, CPU_COL_MAP, NUM_CPU_COLS};
+use super::{CpuChip, CpuCols, CpuEvent, CPU_COL_MAP, NUM_CPU_COLS};
 
-impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F> {
+impl<'a, F: Field> WithEvents<'a> for CpuChip<F> {
+    type Events = &'a [CpuEvent<F>];
+}
+
+impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F> 
+    where ExecutionRecord<F>: EventLens<CpuChip<F>>
+{
     type Record = ExecutionRecord<F>;
     type Program = RecursionProgram<F>;
 
@@ -24,18 +30,18 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F> {
         "CPU".to_string()
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // There are no dependencies, since we do it all in the runtime. This is just a placeholder.
     }
 
-    #[instrument(name = "generate cpu trace", level = "debug", skip_all, fields(rows = input.cpu_events.len()))]
-    fn generate_trace(
+    #[instrument(name = "generate cpu trace", level = "debug", skip_all, fields(rows = input.events().len()))]
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord<F>,
+        input: &EL,
         _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = input
-            .cpu_events
+            .events()
             .iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_CPU_COLS];
@@ -124,7 +130,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F> {
         let mut trace =
             RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), NUM_CPU_COLS);
 
-        for i in input.cpu_events.len()..trace.height() {
+        for i in input.events().len()..trace.height() {
             trace.values[i * NUM_CPU_COLS + CPU_COL_MAP.clk] =
                 F::from_canonical_u32(4) * F::from_canonical_usize(i);
             trace.values[i * NUM_CPU_COLS + CPU_COL_MAP.instruction.imm_b] =

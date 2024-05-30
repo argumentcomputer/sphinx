@@ -12,6 +12,7 @@ use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
 use tracing::instrument;
+use sphinx_derive::{EventLens, WithEvents};
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
@@ -42,7 +43,8 @@ pub(crate) mod riscv_chips {
 /// This enum contains all the different AIRs that are used in the Sp1 RISC-V IOP. Each variant is
 /// a different AIR that is used to encode a different part of the RISC-V execution, and the
 /// different AIR variants have a joint lookup argument.
-#[derive(MachineAir)]
+#[derive(WithEvents, EventLens, MachineAir)]
+#[record_type = "crate::runtime::ExecutionRecord"]
 pub enum RiscvAir<F: PrimeField32> {
     /// An AIR that contains a preprocessed program table and a lookup for the instructions.
     Program(ProgramChip),

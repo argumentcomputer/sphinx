@@ -1,14 +1,16 @@
+use crate::poseidon2::Poseidon2Event;
 use crate::poseidon2_wide::columns::{
     Poseidon2ColType, Poseidon2ColTypeMut, Poseidon2Cols, Poseidon2SBoxCols, NUM_POSEIDON2_COLS,
     NUM_POSEIDON2_SBOX_COLS,
 };
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
+use std::marker::PhantomData;
 use p3_air::{Air, BaseAir};
-use p3_field::{AbstractField, PrimeField32};
+use p3_field::{AbstractField, Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, MachineAir};
+use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_primitives::RC_16_30_U32;
 use std::borrow::BorrowMut;
@@ -31,11 +33,17 @@ pub const NUM_ROUNDS: usize = NUM_EXTERNAL_ROUNDS + NUM_INTERNAL_ROUNDS;
 
 /// A chip that implements addition for the opcode ADD.
 #[derive(Default)]
-pub struct Poseidon2WideChip<const DEGREE: usize> {
+pub struct Poseidon2WideChip<F: Field, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
+    pub _phantom: PhantomData<F>,
 }
 
-impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<DEGREE> {
+impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
+    type Events = &'a [Poseidon2Event<F>];
+}
+
+impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F, DEGREE>
+{
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -44,15 +52,13 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<D
         format!("Poseidon2Wide {}", DEGREE)
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // This is a no-op.
     }
 
-    #[instrument(name = "generate poseidon2 wide trace", level = "debug", skip_all, fields(rows = input.poseidon2_events.len()))]
-    fn generate_trace(
-        &self,
-        input: &ExecutionRecord<F>,
-        _: &mut ExecutionRecord<F>,
+    #[instrument(name = "generate poseidon2 wide trace", level = "debug", skip_all, fields(rows = input.events().len()))]
+    fn generate_trace<EL: EventLens<Self>>(
+        &self, input: &EL, _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -60,7 +66,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<D
         let use_sbox_3 = DEGREE < 7;
         let num_columns = <Self as BaseAir<F>>::width(self);
 
-        for event in &input.poseidon2_events {
+        for event in input.events() {
             let mut row = Vec::new();
             row.resize(num_columns, F::zero());
 
@@ -333,7 +339,7 @@ fn eval_internal_rounds<AB: BaseAirBuilder>(
     }
 }
 
-impl<F, const DEGREE: usize> BaseAir<F> for Poseidon2WideChip<DEGREE> {
+impl<F: Field, const DEGREE: usize> BaseAir<F> for Poseidon2WideChip<F, DEGREE> {
     fn width(&self) -> usize {
         match DEGREE {
             d if d < 7 => NUM_POSEIDON2_SBOX_COLS,
@@ -381,7 +387,7 @@ fn eval_mem<AB: SphinxRecursionAirBuilder>(builder: &mut AB, local: &Poseidon2Me
     );
 }
 
-impl<AB, const DEGREE: usize> Air<AB> for Poseidon2WideChip<DEGREE>
+impl<AB, const DEGREE: usize> Air<AB> for Poseidon2WideChip<AB::F, DEGREE>
 where
     AB: SphinxRecursionAirBuilder,
 {
@@ -445,6 +451,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::marker::PhantomData;
     use std::time::Instant;
 
     use crate::poseidon2::Poseidon2Event;
@@ -463,8 +470,9 @@ mod tests {
 
     /// A test generating a trace for a single permutation that checks that the output is correct
     fn generate_trace_degree<const DEGREE: usize>() {
-        let chip = Poseidon2WideChip::<DEGREE> {
+        let chip = Poseidon2WideChip::<BabyBear, DEGREE> {
             fixed_log2_rows: None,
+            _phantom: PhantomData,
         };
 
         let test_inputs = vec![
@@ -509,8 +517,9 @@ mod tests {
         inputs: Vec<[BabyBear; 16]>,
         outputs: Vec<[BabyBear; 16]>,
     ) {
-        let chip = Poseidon2WideChip::<DEGREE> {
+        let chip = Poseidon2WideChip::<BabyBear, DEGREE> {
             fixed_log2_rows: None,
+            _phantom: PhantomData,
         };
         let mut input_exec = ExecutionRecord::<BabyBear>::default();
         for (input, output) in inputs.into_iter().zip_eq(outputs) {
