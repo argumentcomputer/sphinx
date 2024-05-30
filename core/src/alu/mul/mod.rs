@@ -44,8 +44,8 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::mul::utils::get_msb;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
@@ -53,6 +53,8 @@ use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::stark::MachineRecord;
 use crate::utils::pad_to_power_of_two;
+
+use super::AluEvent;
 
 /// The number of main trace columns for `MulChip`.
 pub const NUM_MUL_COLS: usize = size_of::<MulCols<u8>>();
@@ -121,6 +123,10 @@ pub struct MulCols<T> {
     pub is_real: T,
 }
 
+impl<'a> WithEvents<'a> for MulChip {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField> MachineAir<F> for MulChip {
     type Record = ExecutionRecord;
 
@@ -130,12 +136,12 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
         "Mul".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let mul_events = input.mul_events.clone();
+        let mul_events = input.events().clone();
         // Compute the chunk size based on the number of events and the number of CPUs.
         let chunk_size = std::cmp::max(mul_events.len() / num_cpus::get(), 1);
 

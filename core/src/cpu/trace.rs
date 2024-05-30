@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use super::columns::{CPU_COL_MAP, NUM_CPU_COLS};
 use super::{CpuChip, CpuEvent};
-use crate::air::MachineAir;
+use crate::air::{EventLens, MachineAir, WithEvents};
 use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
@@ -18,6 +18,10 @@ use crate::memory::MemoryCols;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
+impl<'a> WithEvents<'a> for CpuChip {
+    type Events = &'a [CpuEvent];
+}
+
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
     type Record = ExecutionRecord;
 
@@ -27,9 +31,9 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         "CPU".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut new_alu_events = HashMap::new();
@@ -37,7 +41,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
 
         // Generate the trace rows for each event.
         let mut rows_with_events = input
-            .cpu_events
+            .events()
             .par_iter()
             .map(|op: &CpuEvent| self.event_to_row::<F>(*op))
             .collect::<Vec<_>>();
@@ -78,11 +82,11 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
     }
 
     #[instrument(name = "generate cpu dependencies", level = "debug", skip_all)]
-    fn generate_dependencies(&self, input: &ExecutionRecord, output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut ExecutionRecord) {
         // Generate the trace rows for each event.
-        let chunk_size = std::cmp::max(input.cpu_events.len() / num_cpus::get(), 1);
+        let chunk_size = std::cmp::max(input.events().len() / num_cpus::get(), 1);
         let events = input
-            .cpu_events
+            .events()
             .par_chunks(chunk_size)
             .map(|ops: &[CpuEvent]| {
                 let mut alu = HashMap::new();

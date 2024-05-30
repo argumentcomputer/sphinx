@@ -2,14 +2,19 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
 use p3_field::{AbstractField, PrimeField32};
-use sphinx_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
+use sphinx_core::air::EventLens;
+use sphinx_core::stark::{Indexable, MachineRecord, PROOF_MAX_NUM_PVS};
 
 use super::RecursionProgram;
 use crate::air::Block;
-use crate::cpu::CpuEvent;
-use crate::fri_fold::FriFoldEvent;
-use crate::poseidon2::Poseidon2Event;
-use crate::range_check::RangeCheckEvent;
+use crate::cpu::{CpuChip, CpuEvent};
+use crate::fri_fold::{FriFoldChip, FriFoldEvent};
+use crate::memory::MemoryGlobalChip;
+use crate::multi::MultiChip;
+use crate::poseidon2::{Poseidon2Chip, Poseidon2Event};
+use crate::poseidon2_wide::Poseidon2WideChip;
+use crate::program::ProgramChip;
+use crate::range_check::{RangeCheckChip, RangeCheckEvent};
 
 #[derive(Default, Debug, Clone)]
 pub struct ExecutionRecord<F: Default> {
@@ -37,12 +42,14 @@ impl<F: Default> ExecutionRecord<F> {
     }
 }
 
-impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
-    type Config = ();
-
+impl<F: PrimeField32> Indexable for ExecutionRecord<F> {
     fn index(&self) -> u32 {
         0
     }
+}
+
+impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
+    type Config = ();
 
     fn set_index(&mut self, _: u32) {}
 
@@ -90,5 +97,53 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
         ret.resize(PROOF_MAX_NUM_PVS, T::zero());
 
         ret
+    }
+}
+
+impl<F: PrimeField32> EventLens<CpuChip<F>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <CpuChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+        &self.cpu_events
+    }
+}
+
+impl<F: PrimeField32, const DEGREE: usize> EventLens<FriFoldChip<F, DEGREE>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <FriFoldChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
+        &self.fri_fold_events
+    }
+}
+
+impl<F: PrimeField32> EventLens<Poseidon2Chip<F>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <Poseidon2Chip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+        &self.poseidon2_events
+    }
+}
+
+impl<F: PrimeField32, const DEGREE: usize> EventLens<Poseidon2WideChip<F, DEGREE>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <Poseidon2WideChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
+        &self.poseidon2_events
+    }
+}
+
+impl<F: PrimeField32> EventLens<MemoryGlobalChip<F>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <MemoryGlobalChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+        (&self.first_memory_record, &self.last_memory_record)
+    }
+}
+
+impl<F: PrimeField32> EventLens<ProgramChip<F>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <ProgramChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+        (&self.program.instructions, &self.cpu_events)
+    }
+}
+
+impl<F: PrimeField32> EventLens<RangeCheckChip<F>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <RangeCheckChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+        &self.range_check_events
+    }
+}
+
+impl<F: PrimeField32, const DEGREE: usize> EventLens<MultiChip<F, DEGREE>> for ExecutionRecord<F> {
+    fn events<'a>(&'a self) -> <MultiChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
+        (<Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self), <Self as EventLens<Poseidon2Chip<F>>>::events(self))
     }
 }

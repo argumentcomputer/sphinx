@@ -4,13 +4,14 @@ use crate::air::RecursionMemoryAirBuilder;
 use crate::memory::{MemoryReadCols, MemoryReadSingleCols, MemoryReadWriteCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
+use std::marker::PhantomData;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
+use p3_field::{AbstractField, Field};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, BinomialExtension, ExtensionAirBuilder, MachineAir};
+use sphinx_core::air::{BaseAirBuilder, BinomialExtension, EventLens, ExtensionAirBuilder, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 use std::borrow::BorrowMut;
@@ -23,8 +24,9 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 pub const NUM_FRI_FOLD_COLS: usize = core::mem::size_of::<FriFoldCols<u8>>();
 
 #[derive(Default)]
-pub struct FriFoldChip<const DEGREE: usize> {
+pub struct FriFoldChip<F: Field, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
+    pub _phantom: PhantomData<F>,
 }
 
 #[derive(Debug, Clone)]
@@ -83,13 +85,17 @@ pub struct FriFoldCols<T: Copy> {
     pub is_real: T,
 }
 
-impl<F, const DEGREE: usize> BaseAir<F> for FriFoldChip<DEGREE> {
+impl<F: Field, const DEGREE: usize> BaseAir<F> for FriFoldChip<F, DEGREE> {
     fn width(&self) -> usize {
         NUM_FRI_FOLD_COLS
     }
 }
 
-impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<DEGREE> {
+impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for FriFoldChip<F, DEGREE> {
+    type Events = &'a [FriFoldEvent<F>];
+}
+
+impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGREE> {
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -98,18 +104,16 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<DEGREE>
         "FriFold".to_string()
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // This is a no-op.
     }
 
-    #[instrument(name = "generate fri fold trace", level = "debug", skip_all, fields(rows = input.fri_fold_events.len()))]
-    fn generate_trace(
-        &self,
-        input: &ExecutionRecord<F>,
-        _: &mut ExecutionRecord<F>,
+    #[instrument(name = "generate fri fold trace", level = "debug", skip_all, fields(rows = input.events().len()))]
+    fn generate_trace<EL: EventLens<Self>>(
+        &self, input: &EL, _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = input
-            .fri_fold_events
+            .events()
             .iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_FRI_FOLD_COLS];
@@ -167,7 +171,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<DEGREE>
     }
 }
 
-impl<const DEGREE: usize> FriFoldChip<DEGREE> {
+impl<F: Field, const DEGREE: usize> FriFoldChip<F, DEGREE> {
     pub fn eval_fri_fold<AB: BaseAirBuilder + ExtensionAirBuilder + RecursionMemoryAirBuilder>(
         &self,
         builder: &mut AB,
@@ -368,7 +372,7 @@ impl<const DEGREE: usize> FriFoldChip<DEGREE> {
     }
 }
 
-impl<AB, const DEGREE: usize> Air<AB> for FriFoldChip<DEGREE>
+impl<AB, const DEGREE: usize> Air<AB> for FriFoldChip<AB::F, DEGREE>
 where
     AB: SphinxRecursionAirBuilder,
 {

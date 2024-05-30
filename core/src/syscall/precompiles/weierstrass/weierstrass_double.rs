@@ -17,7 +17,6 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -37,9 +36,12 @@ use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::ec::WithDoubling;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
+use crate::{
+    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
+    syscall::precompiles::ECDoubleEvent,
+};
 
 pub const fn num_weierstrass_double_cols<P: FieldParameters>() -> usize {
     size_of::<WeierstrassDoubleAssignCols<u8, P>>()
@@ -171,8 +173,15 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDoubleAssignChip<E> {
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDoubling> MachineAir<F>
+impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a>
     for WeierstrassDoubleAssignChip<E>
+{
+    type Events = &'a [ECDoubleEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+}
+
+impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
+    for WeierstrassDoubleAssignChip<E>
+    where ExecutionRecord: EventLens<WeierstrassDoubleAssignChip<E>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -186,13 +195,13 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters + WithDoubling> M
         }
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
-        let events = E::double_events(input);
+        let events = input.events();
 
         let chunk_size = std::cmp::max(events.len() / num_cpus::get(), 1);
 

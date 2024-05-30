@@ -365,7 +365,7 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
 
 #[cfg(test)]
 mod tests {
-    use crate::air::WordAirBuilder;
+    use crate::air::{EventLens, WordAirBuilder};
     use core::borrow::{Borrow, BorrowMut};
     use core::mem::size_of;
 
@@ -411,6 +411,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for QuadFieldOpChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<QuadFieldOpChip<P>> for ExecutionRecord {
+        fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for QuadFieldOpChip<P> {
         type Record = ExecutionRecord;
 
@@ -420,9 +430,9 @@ mod tests {
             format!("QuadFieldOp{:?}", self.operation)
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();

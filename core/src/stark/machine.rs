@@ -25,7 +25,7 @@ use crate::air::MachineProgram;
 use crate::lookup::debug_interactions_with_all_chips;
 use crate::lookup::InteractionBuilder;
 use crate::lookup::InteractionKind;
-use crate::stark::record::MachineRecord;
+use crate::stark::record::{Indexable, MachineRecord};
 use crate::stark::DebugConstraintBuilder;
 use crate::stark::ProverConstraintFolder;
 use crate::stark::ShardProof;
@@ -105,7 +105,8 @@ impl<SC: StarkGenericConfig> Debug for StarkVerifyingKey<SC> {
     }
 }
 
-impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
+impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> 
+{
     /// Get an array containing a `ChipRef` for all the chips of this RISC-V STARK machine.
     pub fn chips(&self) -> &[MachineChip<SC, A>] {
         &self.chips
@@ -132,7 +133,9 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
     where
         'a: 'b,
     {
-        self.chips.iter().filter(|chip| chip.as_ref().included(shard))
+        self.chips
+            .iter()
+            .filter(|chip| chip.as_ref().included(shard))
     }
 
     pub fn shard_chips_ordered<'a, 'b>(
@@ -381,7 +384,10 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
                 .collect::<Vec<_>>();
             let mut traces = chips
                 .par_iter()
-                .map(|chip| chip.as_ref().generate_trace(shard, &mut A::Record::default()))
+                .map(|chip| {
+                    chip.as_ref()
+                        .generate_trace(shard, &mut A::Record::default())
+                })
                 .zip(pre_traces)
                 .collect::<Vec<_>>();
 

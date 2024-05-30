@@ -5,15 +5,21 @@ use p3_keccak_air::{generate_trace_rows, NUM_KECCAK_COLS, NUM_ROUNDS};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 
+use crate::air::{EventLens, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::{runtime::Program, stark::MachineRecord};
 
 use crate::{air::MachineAir, runtime::ExecutionRecord};
 
+use super::KeccakPermuteEvent;
 use super::{
     columns::{KeccakMemCols, NUM_KECCAK_MEM_COLS},
     KeccakPermuteChip, STATE_SIZE,
 };
+
+impl<'a> WithEvents<'a> for KeccakPermuteChip {
+    type Events = &'a [KeccakPermuteEvent];
+}
 
 impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
     type Record = ExecutionRecord;
@@ -23,36 +29,35 @@ impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
         "KeccakPermute".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let num_events = input.keccak_permute_events.len();
+        let num_events = input.events().len();
         let chunk_size = std::cmp::max(num_events / num_cpus::get(), 1);
 
         // Use par_chunks to generate the trace in parallel.
-        let rows_and_records = (0..num_events)
-            .collect::<Vec<_>>()
+        let rows_and_records = input
+            .events()
             .par_chunks(chunk_size)
-            .map(|chunk| {
+            .map(|chunk_events| {
                 let mut record = ExecutionRecord::default();
                 let mut new_byte_lookup_events = Vec::new();
 
                 // First generate all the p3_keccak_air traces at once.
-                let perm_inputs = chunk
+                let perm_inputs = chunk_events
                     .iter()
-                    .map(|event_index| input.keccak_permute_events[*event_index].pre_state)
+                    .map(|event| event.pre_state)
                     .collect::<Vec<_>>();
                 let p3_keccak_trace = generate_trace_rows::<F>(perm_inputs);
 
-                let rows = chunk
+                let rows = chunk_events
                     .iter()
                     .enumerate()
-                    .flat_map(|(index_in_chunk, event_index)| {
+                    .flat_map(|(index_in_chunk, event)| {
                         let mut rows = Vec::new();
 
-                        let event = &input.keccak_permute_events[*event_index];
                         let start_clk = event.clk;
                         let shard = event.shard;
 

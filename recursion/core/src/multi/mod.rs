@@ -1,11 +1,12 @@
 use std::borrow::{Borrow, BorrowMut};
+use std::marker::PhantomData;
 
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::PrimeField32;
+use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, MachineAir};
+use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, Proj, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 
@@ -17,8 +18,9 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 pub const NUM_MULTI_COLS: usize = core::mem::size_of::<MultiCols<u8>>();
 
 #[derive(Default)]
-pub struct MultiChip<const DEGREE: usize> {
+pub struct MultiChip<F, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
+    pub _phantom: PhantomData<F>,
 }
 
 #[derive(AlignedBorrow, Clone, Copy)]
@@ -42,13 +44,17 @@ pub union InstructionSpecificCols<T: Copy> {
     poseidon2: Poseidon2Cols<T>,
 }
 
-impl<F, const DEGREE: usize> BaseAir<F> for MultiChip<DEGREE> {
+impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
     fn width(&self) -> usize {
         NUM_MULTI_COLS
     }
 }
 
-impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<DEGREE> {
+impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
+    type Events = (<FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events, <Poseidon2Chip<F> as WithEvents<'a>>::Events);
+}
+
+impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE> {
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -57,19 +63,32 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<DEGREE> {
         "Multi".to_string()
     }
 
-    fn generate_dependencies(&self, _: &Self::Record, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
         // This is a no-op.
     }
 
-    fn generate_trace(
-        &self,
-        input: &ExecutionRecord<F>,
-        output: &mut ExecutionRecord<F>,
+    fn generate_trace<EL: EventLens<Self>>(
+        &self, input: &EL, output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
-        let fri_fold_chip = FriFoldChip::<3>::default();
+        let fri_fold_chip = FriFoldChip::<F, 3>::default();
         let poseidon2 = Poseidon2Chip::default();
-        let fri_fold_trace = fri_fold_chip.generate_trace(input, output);
-        let mut poseidon2_trace = poseidon2.generate_trace(input, output);
+
+        fn to_fri<'c, F: PrimeField32, const DEGREE: usize>(
+            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::Events,
+            _v: &'c (),
+        ) -> <FriFoldChip<F, DEGREE> as WithEvents<'c>>::Events {
+            evs.0
+        }
+
+        fn to_poseidon<'c, F: PrimeField32, const DEGREE: usize>(
+            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::Events,
+            _v: &'c (),
+        ) -> <Poseidon2Chip<F> as WithEvents<'c>>::Events {
+            evs.1
+        }
+
+        let fri_fold_trace = fri_fold_chip.generate_trace(&Proj::new(input, to_fri::<F, DEGREE>), output);
+        let mut poseidon2_trace = poseidon2.generate_trace(&Proj::new(input, to_poseidon::<F, DEGREE>), output);
 
         let mut rows = fri_fold_trace
             .clone()
@@ -85,15 +104,15 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<DEGREE> {
 
                     let fri_fold_cols = *cols.fri_fold();
                     cols.fri_fold_receive_table =
-                        FriFoldChip::<3>::do_receive_table(&fri_fold_cols);
+                        FriFoldChip::<F, 3>::do_receive_table(&fri_fold_cols);
                     cols.fri_fold_memory_access =
-                        FriFoldChip::<3>::do_memory_access(&fri_fold_cols);
+                        FriFoldChip::<F, 3>::do_memory_access(&fri_fold_cols);
                 } else {
                     cols.is_poseidon2 = F::one();
 
                     let poseidon2_cols = *cols.poseidon2();
-                    cols.poseidon2_receive_table = Poseidon2Chip::do_receive_table(&poseidon2_cols);
-                    cols.poseidon2_memory_access = Poseidon2Chip::do_memory_access(&poseidon2_cols);
+                    cols.poseidon2_receive_table = Poseidon2Chip::<F>::do_receive_table(&poseidon2_cols);
+                    cols.poseidon2_memory_access = Poseidon2Chip::<F>::do_memory_access(&poseidon2_cols);
                 }
                 row
             })
@@ -115,7 +134,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<DEGREE> {
     }
 }
 
-impl<AB, const DEGREE: usize> Air<AB> for MultiChip<DEGREE>
+impl<AB, const DEGREE: usize> Air<AB> for MultiChip<AB::F, DEGREE>
 where
     AB: SphinxRecursionAirBuilder,
 {
@@ -157,15 +176,15 @@ where
 
         let fri_columns_local = local.fri_fold();
         sub_builder.assert_eq(
-            local.is_fri_fold * FriFoldChip::<3>::do_memory_access::<AB::Var>(fri_columns_local),
+            local.is_fri_fold * FriFoldChip::<AB::F, 3>::do_memory_access::<AB::Var>(fri_columns_local),
             local.fri_fold_memory_access,
         );
         sub_builder.assert_eq(
-            local.is_fri_fold * FriFoldChip::<3>::do_receive_table::<AB::Var>(fri_columns_local),
+            local.is_fri_fold * FriFoldChip::<AB::F, 3>::do_receive_table::<AB::Var>(fri_columns_local),
             local.fri_fold_receive_table,
         );
 
-        let fri_fold_chip = FriFoldChip::<3>::default();
+        let fri_fold_chip = FriFoldChip::<AB::F, 3>::default();
         fri_fold_chip.eval_fri_fold(
             &mut sub_builder,
             local.fri_fold(),
@@ -182,16 +201,16 @@ where
 
         let poseidon2_columns = local.poseidon2();
         sub_builder.assert_eq(
-            local.is_poseidon2 * Poseidon2Chip::do_receive_table::<AB::Var>(poseidon2_columns),
+            local.is_poseidon2 * Poseidon2Chip::<AB::F>::do_receive_table::<AB::Var>(poseidon2_columns),
             local.poseidon2_receive_table,
         );
         sub_builder.assert_eq(
             local.is_poseidon2
-                * Poseidon2Chip::do_memory_access::<AB::Var, AB::Expr>(poseidon2_columns),
+                * Poseidon2Chip::<AB::F>::do_memory_access::<AB::Var, AB::Expr>(poseidon2_columns),
             local.poseidon2_memory_access,
         );
 
-        let poseidon2_chip = Poseidon2Chip::default();
+        let poseidon2_chip = Poseidon2Chip::<AB::F>::default();
         poseidon2_chip.eval_poseidon2(
             &mut sub_builder,
             local.poseidon2(),
@@ -215,6 +234,7 @@ impl<T: Copy> MultiCols<T> {
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
+    use std::marker::PhantomData;
     use std::time::Instant;
 
     use p3_baby_bear::BabyBear;
@@ -239,8 +259,9 @@ mod tests {
         let config = BabyBearPoseidon2::compressed();
         let mut challenger = config.challenger();
 
-        let chip = MultiChip::<5> {
+        let chip = MultiChip::<BabyBear, 5> {
             fixed_log2_rows: None,
+            _phantom: PhantomData,
         };
 
         let test_inputs = (0..16)

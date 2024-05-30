@@ -152,7 +152,7 @@ mod tests {
 
     use super::{FieldInnerProductCols, Limbs};
 
-    use crate::air::WordAirBuilder;
+    use crate::air::{EventLens, WordAirBuilder};
     use crate::{
         air::MachineAir,
         utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
@@ -185,6 +185,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldIpChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<FieldIpChip<P>> for ExecutionRecord {
+        fn events(&self) -> <FieldIpChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldIpChip<P> {
         type Record = ExecutionRecord;
 
@@ -194,9 +204,9 @@ mod tests {
             "FieldInnerProduct".to_string()
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();

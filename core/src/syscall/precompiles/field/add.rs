@@ -15,12 +15,12 @@ use sphinx_derive::AlignedBorrow;
 use tracing::instrument;
 
 use crate::{
-    air::{AluAirBuilder, MachineAir, MemoryAirBuilder},
+    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
     bytes::{event::ByteRecord, ByteLookupEvent},
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         field_op::{FieldOpCols, FieldOperation},
-        params::{FieldParameters, FieldType, Limbs, WithFieldAddition, WORDS_FIELD_ELEMENT},
+        params::{FieldParameters, FieldType, Limbs, WORDS_FIELD_ELEMENT},
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
@@ -113,25 +113,31 @@ pub fn create_fp_add_event<FP: FieldParameters>(
     }
 }
 
-impl<F: PrimeField32, FP: FieldParameters + WithFieldAddition> MachineAir<F> for FieldAddChip<FP> {
+impl<'a, FP: FieldParameters> WithEvents<'a> for FieldAddChip<FP> {
+    type Events = &'a [FieldAddEvent<FP>];
+}
+
+impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for FieldAddChip<FP> 
+    where ExecutionRecord: EventLens<FieldAddChip<FP>>
+{
     type Record = ExecutionRecord;
     type Program = Program;
 
     fn name(&self) -> String {
         match FP::FIELD_TYPE {
             FieldType::Bls12381 => "Bls12381FieldAdd".to_string(),
-            _ => panic!("Unsupported field"),
+            _ => unreachable!("Unsupported field"),
         }
     }
 
     #[instrument(name = "generate field add trace", level = "debug", skip_all)]
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the field type.
-        let events = FP::add_events(input);
+        let events = input.events();
 
         let (mut rows, new_byte_lookup_events): (Vec<_>, Vec<Vec<ByteLookupEvent>>) = events
             .par_iter()

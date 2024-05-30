@@ -10,7 +10,9 @@ use sphinx_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
 use crate::{
-    air::{AirInteraction, BaseAirBuilder, MachineAir, Word, WordAirBuilder},
+    air::{
+        AirInteraction, BaseAirBuilder, EventLens, MachineAir, WithEvents, Word, WordAirBuilder,
+    },
     runtime::{ExecutionRecord, Program},
     utils::pad_to_power_of_two,
 };
@@ -40,6 +42,15 @@ impl<F> BaseAir<F> for MemoryChip {
     }
 }
 
+impl<'a> WithEvents<'a> for MemoryChip {
+    type Events = (
+        // initialize events
+        &'a [MemoryInitializeFinalizeEvent],
+        // finalize events
+        &'a [MemoryInitializeFinalizeEvent],
+    );
+}
+
 impl<F: PrimeField> MachineAir<F> for MemoryChip {
     type Record = ExecutionRecord;
 
@@ -52,15 +63,16 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
         }
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let mut memory_events = match self.kind {
-            MemoryChipType::Initialize => input.memory_initialize_events.clone(),
-            MemoryChipType::Finalize => input.memory_finalize_events.clone(),
-        };
+        let mut memory_events: Vec<MemoryInitializeFinalizeEvent> = match self.kind {
+            MemoryChipType::Initialize => input.events().0,
+            MemoryChipType::Finalize => input.events().1,
+        }
+        .to_vec();
         memory_events.sort_by_key(|event| event.addr);
         let rows: Vec<[F; 8]> = (0..memory_events.len()) // TODO: change this back to par_iter
             .map(|i| {
@@ -93,7 +105,11 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
         trace
     }
 
-    fn generate_dependencies(&self, _input: &ExecutionRecord, _output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>>(
+        &self,
+        _input: &EL,
+        _output: &mut ExecutionRecord,
+    ) {
         // Do nothing since this chip has no dependencies.
     }
 

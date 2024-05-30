@@ -15,14 +15,13 @@ use sphinx_derive::AlignedBorrow;
 use tracing::instrument;
 
 use crate::{
-    air::{AluAirBuilder, MachineAir, MemoryAirBuilder},
+    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
     bytes::{event::ByteRecord, ByteLookupEvent},
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation},
         params::{
-            FieldParameters, FieldType, Limbs, WithQuadFieldMultiplication, WORDS_FIELD_ELEMENT,
-            WORDS_QUAD_EXT_FIELD_ELEMENT,
+            FieldParameters, FieldType, Limbs, WORDS_FIELD_ELEMENT, WORDS_QUAD_EXT_FIELD_ELEMENT,
         },
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
@@ -149,8 +148,12 @@ pub fn create_fp2_mul_event<FP: FieldParameters>(
     }
 }
 
-impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldMultiplication> MachineAir<F>
-    for QuadFieldMulChip<FP>
+impl<'a, FP: FieldParameters> WithEvents<'a> for QuadFieldMulChip<FP> {
+    type Events = &'a [QuadFieldMulEvent<FP>];
+}
+
+impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for QuadFieldMulChip<FP> 
+    where ExecutionRecord: EventLens<QuadFieldMulChip<FP>>
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -163,13 +166,13 @@ impl<F: PrimeField32, FP: FieldParameters + WithQuadFieldMultiplication> Machine
     }
 
     #[instrument(name = "generate bls12381 fp2 mul trace", level = "debug", skip_all)]
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the field type.
-        let events = FP::mul_events(input);
+        let events = input.events();
 
         let (mut rows, new_byte_lookup_events): (Vec<_>, Vec<Vec<ByteLookupEvent>>) = events
             .par_iter()

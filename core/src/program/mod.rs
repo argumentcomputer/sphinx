@@ -10,8 +10,11 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_derive::AlignedBorrow;
 
 use crate::{
-    air::{MachineAir, ProgramAirBuilder},
-    cpu::columns::{InstructionCols, OpcodeSelectorCols},
+    air::{EventLens, MachineAir, ProgramAirBuilder, WithEvents},
+    cpu::{
+        columns::{InstructionCols, OpcodeSelectorCols},
+        CpuEvent,
+    },
     runtime::{ExecutionRecord, Program},
     utils::pad_to_power_of_two,
 };
@@ -47,6 +50,15 @@ impl ProgramChip {
     pub fn new() -> Self {
         Self {}
     }
+}
+
+impl<'a> WithEvents<'a> for ProgramChip {
+    type Events = (
+        // CPU events
+        &'a [CpuEvent],
+        // the Program
+        &'a Program,
+    );
 }
 
 impl<F: PrimeField> MachineAir<F> for ProgramChip {
@@ -92,21 +104,26 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
         Some(trace)
     }
 
-    fn generate_dependencies(&self, _input: &ExecutionRecord, _output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>>(
+        &self,
+        _input: &EL,
+        _output: &mut ExecutionRecord,
+    ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
 
+        let (cpu_events, program) = input.events();
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.
         let mut instruction_counts = HashMap::new();
-        input.cpu_events.iter().for_each(|event| {
+        cpu_events.iter().for_each(|event| {
             let pc = event.pc;
             instruction_counts
                 .entry(pc)
@@ -114,17 +131,16 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
                 .or_insert(1);
         });
 
-        let rows = input
-            .program
+        let rows = program
             .instructions
             .clone()
             .into_iter()
             .enumerate()
             .map(|(i, _)| {
-                let pc = input.program.pc_base + (i as u32 * 4);
+                let pc = program.pc_base + (i as u32 * 4);
                 let mut row = [F::zero(); NUM_PROGRAM_MULT_COLS];
                 let cols: &mut ProgramMultiplicityCols<F> = row.as_mut_slice().borrow_mut();
-                cols.shard = F::from_canonical_u32(input.index);
+                cols.shard = F::from_canonical_u32(input.index());
                 cols.multiplicity =
                     F::from_canonical_usize(*instruction_counts.get(&pc).unwrap_or(&0));
                 row

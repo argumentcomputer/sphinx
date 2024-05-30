@@ -152,7 +152,7 @@ mod tests {
         mem::size_of,
     };
 
-    use crate::air::WordAirBuilder;
+    use crate::air::{EventLens, WordAirBuilder};
     use num::{bigint::RandBigInt, BigUint};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
@@ -197,6 +197,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldDenChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<FieldDenChip<P>> for ExecutionRecord {
+        fn events(&self) -> <FieldDenChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldDenChip<P> {
         type Record = ExecutionRecord;
 
@@ -206,9 +216,9 @@ mod tests {
             "FieldDen".to_string()
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();

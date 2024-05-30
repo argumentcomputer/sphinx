@@ -10,12 +10,6 @@ use std::ops::Neg;
 use super::{SwCurve, WeierstrassParameters};
 use crate::operations::field::params::FieldParameters;
 use crate::operations::field::params::FieldType;
-use crate::operations::field::params::WithFieldAddition;
-use crate::operations::field::params::WithFieldMultiplication;
-use crate::operations::field::params::WithFieldSubtraction;
-use crate::operations::field::params::WithQuadFieldAddition;
-use crate::operations::field::params::WithQuadFieldMultiplication;
-use crate::operations::field::params::WithQuadFieldSubtraction;
 use crate::runtime::Syscall;
 use crate::stark::WeierstrassAddAssignChip;
 use crate::stark::WeierstrassDoubleAssignChip;
@@ -23,8 +17,6 @@ use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::create_ec_double_event;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurveParameters;
-use crate::utils::ec::WithAddition;
-use crate::utils::ec::WithDoubling;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 /// Bls12381 curve parameter
@@ -188,76 +180,9 @@ pub fn bls12381_double(p: &[BigUint; 4]) -> [BigUint; 4] {
     ]
 }
 
-impl WithFieldAddition for Bls12381BaseField {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::field::add::FieldAddEvent<Bls12381BaseField>] {
-        &record.bls12381_fp_add_events
-    }
-}
-
-impl WithFieldSubtraction for Bls12381BaseField {
-    fn sub_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::field::sub::FieldSubEvent<Bls12381BaseField>] {
-        &record.bls12381_fp_sub_events
-    }
-}
-
-impl WithFieldMultiplication for Bls12381BaseField {
-    fn mul_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::field::mul::FieldMulEvent<Bls12381BaseField>] {
-        &record.bls12381_fp_mul_events
-    }
-}
-
-impl WithQuadFieldAddition for Bls12381BaseField {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::quad_field::add::QuadFieldAddEvent<Bls12381BaseField>] {
-        &record.bls12381_fp2_add_events
-    }
-}
-
-impl WithQuadFieldSubtraction for Bls12381BaseField {
-    fn sub_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::quad_field::sub::QuadFieldSubEvent<Bls12381BaseField>] {
-        &record.bls12381_fp2_sub_events
-    }
-}
-
-impl WithQuadFieldMultiplication for Bls12381BaseField {
-    fn mul_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::quad_field::mul::QuadFieldMulEvent<Bls12381BaseField>] {
-        &record.bls12381_fp2_mul_events
-    }
-}
-
 impl EllipticCurveParameters for Bls12381Parameters {
     type BaseField = Bls12381BaseField;
     const CURVE_TYPE: CurveType = CurveType::Bls12381;
-}
-
-impl WithAddition for Bls12381Parameters {
-    fn add_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>]
-    {
-        &record.bls12381_g1_add_events
-    }
-}
-
-impl WithDoubling for Bls12381Parameters {
-    fn double_events(
-        record: &crate::runtime::ExecutionRecord,
-    ) -> &[crate::syscall::precompiles::ECDoubleEvent<
-        <Self::BaseField as FieldParameters>::NB_LIMBS,
-    >] {
-        &record.bls12381_g1_double_events
-    }
 }
 
 /// The WeierstrassParameters for BLS12-381 G1

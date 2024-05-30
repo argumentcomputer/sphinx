@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use p3_field::AbstractField;
 
-pub trait MachineRecord: Default + Sized + Send + Sync + Clone {
-    type Config: Default;
-
+pub trait Indexable {
     fn index(&self) -> u32;
+}
+
+pub trait MachineRecord: Default + Sized + Send + Sync + Clone + Indexable {
+    type Config: Default;
 
     fn set_index(&mut self, index: u32);
 

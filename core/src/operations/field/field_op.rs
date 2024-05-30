@@ -243,7 +243,7 @@ mod tests {
 
     use crate::{air::MachineAir, utils::ec::weierstrass::bls12_381::Bls12381BaseField};
 
-    use crate::air::WordAirBuilder;
+    use crate::air::{EventLens, WordAirBuilder};
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::FieldParameters;
     use crate::runtime::ExecutionRecord;
@@ -278,6 +278,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldOpChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<FieldOpChip<P>> for ExecutionRecord {
+        fn events(&self) -> <FieldOpChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for FieldOpChip<P> {
         type Record = ExecutionRecord;
 
@@ -287,9 +297,9 @@ mod tests {
             format!("FieldOp{:?}", self.operation)
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();

@@ -17,7 +17,6 @@ use p3_maybe_rayon::prelude::IntoParallelRefIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -44,6 +43,10 @@ use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use crate::{air::MachineAir, utils::ec::EllipticCurveParameters};
+use crate::{
+    air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents},
+    syscall::precompiles::ECAddEvent,
+};
 
 pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8, Ed25519BaseField>>();
 
@@ -140,7 +143,13 @@ impl<
     }
 }
 
-impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E> {
+impl<'a, E: EllipticCurve + EdwardsParameters> WithEvents<'a> for EdAddAssignChip<E> {
+    type Events = &'a [ECAddEvent];
+}
+
+impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E> 
+    where ExecutionRecord: EventLens<EdAddAssignChip<E>>,
+{
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -149,13 +158,13 @@ impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for Ed
         "EdAddAssign".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let (mut rows, new_byte_lookup_events): (Vec<Vec<F>>, Vec<Vec<ByteLookupEvent>>) = input
-            .ed_add_events
+            .events()
             .par_iter()
             .map(|event| {
                 let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];

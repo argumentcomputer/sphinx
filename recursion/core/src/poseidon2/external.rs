@@ -1,8 +1,9 @@
 use core::borrow::Borrow;
 use core::mem::size_of;
+use std::marker::PhantomData;
 use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
-use p3_field::AbstractField;
+use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, ExtensionAirBuilder};
 use sphinx_primitives::RC_16_30_U32;
@@ -23,17 +24,18 @@ pub(crate) const WIDTH: usize = 16;
 
 /// A chip that implements addition for the opcode ADD.
 #[derive(Default)]
-pub struct Poseidon2Chip {
+pub struct Poseidon2Chip<F> {
     pub fixed_log2_rows: Option<usize>,
+    _phantom: PhantomData<F>,
 }
 
-impl<F> BaseAir<F> for Poseidon2Chip {
+impl<F: Field> BaseAir<F> for Poseidon2Chip<F> {
     fn width(&self) -> usize {
         NUM_POSEIDON2_COLS
     }
 }
 
-impl Poseidon2Chip {
+impl<F: Field> Poseidon2Chip<F> {
     pub fn eval_poseidon2<AB: BaseAirBuilder + ExtensionAirBuilder>(
         &self,
         builder: &mut AB,
@@ -318,7 +320,7 @@ impl Poseidon2Chip {
     }
 }
 
-impl<AB> Air<AB> for Poseidon2Chip
+impl<AB> Air<AB> for Poseidon2Chip<AB::F>
 where
     AB: BaseAirBuilder,
 {
@@ -343,6 +345,7 @@ where
 mod tests {
     use itertools::Itertools;
     use std::borrow::Borrow;
+    use std::marker::PhantomData;
     use std::time::Instant;
     use zkhash::ark_ff::UniformRand;
 
@@ -372,6 +375,7 @@ mod tests {
     fn generate_trace() {
         let chip = Poseidon2Chip {
             fixed_log2_rows: None,
+            _phantom: PhantomData,
         };
 
         let rng = &mut rand::thread_rng();
@@ -421,6 +425,7 @@ mod tests {
 
         let chip = Poseidon2Chip {
             fixed_log2_rows: None,
+            _phantom: PhantomData,
         };
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&input_exec, &mut ExecutionRecord::<BabyBear>::default());

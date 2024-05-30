@@ -3,12 +3,16 @@ use std::borrow::BorrowMut;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 
-use super::{ShaExtendChip, ShaExtendCols, NUM_SHA_EXTEND_COLS};
+use super::{ShaExtendChip, ShaExtendCols, ShaExtendEvent, NUM_SHA_EXTEND_COLS};
 use crate::{
-    air::MachineAir,
+    air::{EventLens, MachineAir, WithEvents},
     bytes::event::ByteRecord,
     runtime::{ExecutionRecord, Program},
 };
+
+impl<'a> WithEvents<'a> for ShaExtendChip {
+    type Events = &'a [ShaExtendEvent];
+}
 
 impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
     type Record = ExecutionRecord;
@@ -19,16 +23,16 @@ impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
         "ShaExtend".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
         let mut new_byte_lookup_events = Vec::new();
-        for i in 0..input.sha_extend_events.len() {
-            let event = input.sha_extend_events[i].clone();
+        for i in 0..input.events().len() {
+            let event = input.events()[i].clone();
             let shard = event.shard;
             for j in 0..48usize {
                 let mut row = [F::zero(); NUM_SHA_EXTEND_COLS];

@@ -9,12 +9,14 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir};
+use crate::air::{EventLens, WithEvents, Word};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+
+use super::AluEvent;
 
 /// The number of main trace columns for `BitwiseChip`.
 pub const NUM_BITWISE_COLS: usize = size_of::<BitwiseCols<u8>>();
@@ -49,6 +51,10 @@ pub struct BitwiseCols<T> {
     pub is_and: T,
 }
 
+impl<'a> WithEvents<'a> for BitwiseChip {
+    type Events = &'a [AluEvent];
+}
+
 impl<F: PrimeField> MachineAir<F> for BitwiseChip {
     type Record = ExecutionRecord;
 
@@ -58,14 +64,14 @@ impl<F: PrimeField> MachineAir<F> for BitwiseChip {
         "Bitwise".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
+        input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let rows = input
-            .bitwise_events
+            .events()
             .iter()
             .map(|event| {
                 let mut row = [F::zero(); NUM_BITWISE_COLS];

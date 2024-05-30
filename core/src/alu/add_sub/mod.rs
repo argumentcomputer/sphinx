@@ -12,12 +12,14 @@ use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
 use crate::{
-    air::{AluAirBuilder, MachineAir, Word},
+    air::{AluAirBuilder, EventLens, MachineAir, WithEvents, Word},
     operations::AddOperation,
     runtime::{ExecutionRecord, Opcode, Program},
     stark::MachineRecord,
     utils::pad_to_power_of_two,
 };
+
+use super::AluEvent;
 
 /// The number of main trace columns for `AddSubChip`.
 pub const NUM_ADD_SUB_COLS: usize = size_of::<AddSubCols<u8>>();
@@ -55,6 +57,15 @@ pub struct AddSubCols<T> {
     pub is_sub: T,
 }
 
+impl<'a> WithEvents<'a> for AddSubChip {
+    type Events = (
+        // add events
+        &'a [AluEvent],
+        // sub events
+        &'a [AluEvent],
+    );
+}
+
 impl<F: PrimeField> MachineAir<F> for AddSubChip {
     type Record = ExecutionRecord;
 
@@ -64,20 +75,17 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
         "AddSub".to_string()
     }
 
-    fn generate_trace(
+    fn generate_trace<EL: EventLens<Self>>(
         &self,
-        input: &ExecutionRecord,
-        output: &mut ExecutionRecord,
+        input: &EL,
+        output: &mut Self::Record,
     ) -> RowMajorMatrix<F> {
+        let (add_events, sub_events) = input.events();
         // Generate the rows for the trace.
-        let chunk_size = std::cmp::max(
-            (input.add_events.len() + input.sub_events.len()) / num_cpus::get(),
-            1,
-        );
-        let merged_events = input
-            .add_events
+        let chunk_size = std::cmp::max((add_events.len() + sub_events.len()) / num_cpus::get(), 1);
+        let merged_events = add_events
             .iter()
-            .chain(input.sub_events.iter())
+            .chain(sub_events.iter())
             .collect::<Vec<_>>();
 
         let rows_and_records = merged_events

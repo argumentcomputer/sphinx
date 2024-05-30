@@ -111,8 +111,7 @@ mod tests {
     use super::QuadFieldSqrtCols;
 
     use crate::air::MachineAir;
-    use crate::air::WordAirBuilder;
-
+    use crate::air::{EventLens, WordAirBuilder};
     use crate::bytes::event::ByteRecord;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::ExecutionRecord;
@@ -151,6 +150,16 @@ mod tests {
         }
     }
 
+    impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for QuadSqrtChip<P> {
+        type Events = &'a ();
+    }
+
+    impl<P: FieldParameters> EventLens<QuadSqrtChip<P>> for ExecutionRecord {
+        fn events(&self) -> <QuadSqrtChip<P> as crate::air::WithEvents>::Events {
+            &()
+        }
+    }
+
     impl<F: PrimeField32, P: FieldParameters> MachineAir<F> for QuadSqrtChip<P> {
         type Record = ExecutionRecord;
 
@@ -160,9 +169,9 @@ mod tests {
             "QuadSqrtChip".to_string()
         }
 
-        fn generate_trace(
+        fn generate_trace<EL: EventLens<Self>>(
             &self,
-            _: &ExecutionRecord,
+            _: &EL,
             output: &mut ExecutionRecord,
         ) -> RowMajorMatrix<F> {
             let num_test_cols = size_of::<TestCols<u8, P>>();
