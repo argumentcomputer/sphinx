@@ -1,24 +1,29 @@
 mod local;
 mod mock;
-mod network;
 
 use crate::{SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof};
 use anyhow::Result;
 pub use local::LocalProver;
 pub use mock::MockProver;
-pub use network::NetworkProver;
 use sphinx_core::stark::MachineVerificationError;
 use sphinx_prover::types::SphinxCoreProofData;
-use sphinx_prover::types::SphinxProvingKey;
 use sphinx_prover::types::SphinxReduceProof;
-use sphinx_prover::types::SphinxVerifyingKey;
 use sphinx_prover::CoreSC;
 use sphinx_prover::SphinxProver;
-use sphinx_prover::SphinxStdin;
+use sphinx_prover::{types::SphinxProvingKey, types::SphinxVerifyingKey, SphinxStdin};
+use strum_macros::EnumString;
+
+/// The type of prover.
+#[derive(Debug, PartialEq, EnumString)]
+pub enum ProverType {
+    Local,
+    Mock,
+    Network,
+}
 
 /// An implementation of [crate::ProverClient].
 pub trait Prover: Send + Sync {
-    fn id(&self) -> String;
+    fn id(&self) -> ProverType;
 
     fn sphinx_prover(&self) -> &SphinxProver;
 

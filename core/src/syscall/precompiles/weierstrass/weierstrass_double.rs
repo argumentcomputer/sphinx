@@ -17,6 +17,7 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
+use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -30,18 +31,13 @@ use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::SyscallCode;
 use crate::stark::MachineRecord;
-use crate::syscall::precompiles::WORDS_CURVEPOINT;
+use crate::syscall::precompiles::{ECDoubleEvent, WORDS_CURVEPOINT};
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
-use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
-    syscall::precompiles::ECDoubleEvent,
-};
+use crate::utils::{limbs_from_prev_access, pad_rows};
 
 pub const fn num_weierstrass_double_cols<P: FieldParameters>() -> usize {
     size_of::<WeierstrassDoubleAssignCols<u8, P>>()
@@ -240,11 +236,8 @@ where
                 let rows = events
                     .iter()
                     .map(|event| {
-                        let mut row = vec![
-                            F::zero();
-                            size_of::<WeierstrassDoubleAssignCols<u8, E::BaseField>>(
-                            )
-                        ];
+                        let mut row =
+                            vec![F::zero(); num_weierstrass_double_cols::<E::BaseField>()];
                         let cols: &mut WeierstrassDoubleAssignCols<F, E::BaseField> =
                             row.as_mut_slice().borrow_mut();
 
@@ -292,9 +285,8 @@ where
             output.append(&mut record);
         }
 
-        pad_vec_rows(&mut rows, || {
-            let mut row =
-                vec![F::zero(); size_of::<WeierstrassDoubleAssignCols<u8, E::BaseField>>()];
+        pad_rows(&mut rows, || {
+            let mut row = vec![F::zero(); num_weierstrass_double_cols::<E::BaseField>()];
             let cols: &mut WeierstrassDoubleAssignCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();

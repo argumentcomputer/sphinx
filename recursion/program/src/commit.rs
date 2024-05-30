@@ -3,6 +3,7 @@ use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, FromConstant, U
 
 use crate::fri::types::{FriConfigVariable, TwoAdicPcsRoundVariable};
 
+/// Reference: [p3_commit::PolynomialSpace]
 pub trait PolynomialSpaceVariable<C: Config>: Sized + FromConstant<C> {
     type Constant: PolynomialSpace<Val = C::F>;
 
@@ -33,6 +34,7 @@ pub trait PolynomialSpaceVariable<C: Config>: Sized + FromConstant<C> {
     ) -> Self;
 }
 
+/// Reference: [p3_commit::Pcs]
 pub trait PcsVariable<C: Config, Challenger> {
     type Domain: PolynomialSpaceVariable<C>;
 

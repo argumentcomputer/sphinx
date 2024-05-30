@@ -12,9 +12,9 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
-sphinx-prover = { path = "../prover", default-features = false }
+sphinx-prover = { path = "../prover" }
 sphinx-core = { path = "../core" }
 futures = { workspace = true }
 bincode = { workspace = true }
@@ -27,17 +27,24 @@ tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
 axum = { workspace = true }
-alloy-primitives = { workspace = true }
-alloy-sol-types = { workspace = true }
+alloy-sol-types = { workspace = true, optional = true }
 sha2 = { workspace = true }
+dirs = { workspace = true }
 tempfile = { workspace = true }
 num-bigint = { workspace = true }
 cfg-if = { workspace = true }
 ethers = { workspace = true }
+strum_macros = { workspace = true }
+strum = { workspace = true }
 
 [features]
+default = ["network"]
+
 neon = ["sphinx-core/neon"]
 plonk = ["sphinx-prover/plonk"]
+# TODO: Once alloy has a 1.* release, we can likely remove this feature flag, as there will be less 
+# dependency resolution issues.
+network = ["dep:alloy-sol-types"]
 
 [build-dependencies]
 vergen = { workspace = true, features = ["build", "git", "git2"] }

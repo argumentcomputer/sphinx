@@ -13,8 +13,8 @@ hex = "0.4.3"
 serde_with = { version = "3.4.0", features = ["hex"] }
 serde = { version = "1.0.195", features = ["derive"] }
 alloy-primitives = "0.6.0"
-sha2 = { git = "https://github.com/sp1-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.9.8" }
+sha2 = { git = "https://github.com/sphinx-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.9.8" }
 
 [patch.crates-io]
 # Patch sha2 so we can use sha precompiles
-sha2-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.10.8" }
+sha2-v0-10-8 = { git = "https://github.com/sphinx-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.10.8" }

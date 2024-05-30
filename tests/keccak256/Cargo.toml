@@ -6,6 +6,6 @@ edition = "2021"
 
 [dependencies]
 sphinx-zkvm = { path = "../../zkvm/entrypoint" }
-tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", branch = "patch-v2.0.2", features = [
+tiny-keccak = { git = "https://github.com/sphinx-patches/tiny-keccak", branch = "patch-v2.0.2", features = [
   "keccak",
 ] }
