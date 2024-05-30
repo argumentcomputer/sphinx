@@ -7,6 +7,9 @@
 //! 3. Wrap the shard proof into a SNARK-friendly field.
 //! 4. Wrap the last shard proof, proven over the SNARK-friendly field, into a PLONK proof.
 
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::new_without_default)]
+
 pub mod build;
 pub mod install;
 pub mod types;
@@ -23,7 +26,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::prelude::*;
 use sphinx_core::air::{PublicValues, Word};
 pub use sphinx_core::io::{SphinxPublicValues, SphinxStdin};
-use sphinx_core::runtime::{ExecutionError, Runtime};
+use sphinx_core::runtime::{ExecutionError, ExecutionReport, Runtime};
 use sphinx_core::stark::{Challenge, StarkProvingKey};
 use sphinx_core::stark::{Challenger, MachineVerificationError};
 use sphinx_core::utils::{SphinxCoreOpts, DIGEST_SIZE};
@@ -213,7 +216,10 @@ impl SphinxProver {
 
     /// Generate a proof of an SP1 program with the specified inputs.
     #[instrument(name = "execute", level = "info", skip_all)]
-    pub fn execute(elf: &[u8], stdin: &SphinxStdin) -> Result<SphinxPublicValues, ExecutionError> {
+    pub fn execute(
+        elf: &[u8],
+        stdin: &SphinxStdin,
+    ) -> Result<(SphinxPublicValues, ExecutionReport), ExecutionError> {
         let program = Program::from(elf);
         let opts = SphinxCoreOpts::default();
         let mut runtime = Runtime::new(program, opts);
@@ -222,8 +228,9 @@ impl SphinxProver {
             runtime.write_proof(proof.clone(), vkey.clone());
         }
         runtime.run_untraced()?;
-        Ok(SphinxPublicValues::from(
-            &runtime.state.public_values_stream,
+        Ok((
+            SphinxPublicValues::from(&runtime.state.public_values_stream),
+            runtime.report,
         ))
     }
 

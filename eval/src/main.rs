@@ -1,10 +1,3 @@
-use std::{
-    fmt,
-    fs::{self, OpenOptions},
-    io,
-    time::Instant,
-};
-
 use clap::{command, Parser};
 use csv::WriterBuilder;
 use serde::Serialize;
@@ -14,6 +7,9 @@ use sphinx_core::utils::{
 };
 use sphinx_prover::utils::get_cycles;
 use sphinx_prover::SphinxStdin;
+use std::fs::OpenOptions;
+use std::time::Instant;
+use std::{fmt, fs, io};
 
 /// An identifier used to select the hash function to evaluate.
 #[derive(clap::ValueEnum, Clone)]

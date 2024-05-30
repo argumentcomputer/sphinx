@@ -16,6 +16,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
+use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -27,18 +28,13 @@ use crate::operations::field::params::{FieldParameters, Limbs, WORDS_FIELD_ELEME
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::WORDS_CURVEPOINT;
+use crate::syscall::precompiles::{ECAddEvent, WORDS_CURVEPOINT};
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::CurveType;
 use crate::utils::ec::EllipticCurve;
-use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
-use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
-    syscall::precompiles::ECAddEvent,
-};
+use crate::utils::{limbs_from_prev_access, pad_rows};
 
 pub const fn num_weierstrass_add_cols<P: FieldParameters>() -> usize {
     size_of::<WeierstrassAddAssignCols<u8, P>>()
@@ -211,8 +207,7 @@ where
 
         for i in 0..events.len() {
             let event = &events[i];
-
-            let mut row = vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, E::BaseField>>()];
+            let mut row = vec![F::zero(); num_weierstrass_add_cols::<E::BaseField>()];
             let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
 
@@ -263,8 +258,8 @@ where
         }
         output.add_byte_lookup_events(new_byte_lookup_events);
 
-        pad_vec_rows(&mut rows, || {
-            let mut row = vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, E::BaseField>>()];
+        pad_rows(&mut rows, || {
+            let mut row = vec![F::zero(); num_weierstrass_add_cols::<E::BaseField>()];
             let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();

@@ -10,4 +10,4 @@ sha2 = "0.10.8"
 sphinx-zkvm = { path = "../../../zkvm/entrypoint", features = ["verify"] }
 
 [patch.crates-io]
-sha2-v0-10-8 = { git = "https://github.com/sp1-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.10.8" }
+sha2-v0-10-8 = { git = "https://github.com/sphinx-patches/RustCrypto-hashes.git", package = "sha2", branch = "patch-v0.10.8" }

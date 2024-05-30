@@ -7,6 +7,8 @@ use crate::{
     SphinxProvingKey, SphinxVerifyingKey,
 };
 
+use super::ProverType;
+
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
 pub struct LocalProver {
     prover: SphinxProver,
@@ -21,8 +23,8 @@ impl LocalProver {
 }
 
 impl Prover for LocalProver {
-    fn id(&self) -> String {
-        "local".to_string()
+    fn id(&self) -> ProverType {
+        ProverType::Local
     }
 
     fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
@@ -58,7 +60,7 @@ impl Prover for LocalProver {
         })
     }
 
-    #[allow(unused_variables)] // only unused w/o feature
+    #[allow(unused)]
     fn prove_plonk(
         &self,
         pk: &SphinxProvingKey,
