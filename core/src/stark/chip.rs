@@ -28,6 +28,12 @@ pub struct Chip<F: Field, A> {
     log_quotient_degree: usize,
 }
 
+impl<F: Field, A> AsRef<A> for Chip<F, A> {
+    fn as_ref(&self) -> &A {
+        &self.air
+    }
+}
+
 impl<F: Field, A> Chip<F, A> {
     /// The send interactions of the chip.
     pub fn sends(&self) -> &[Interaction<F>] {
@@ -148,40 +154,6 @@ where
 
     fn preprocessed_trace(&self) -> Option<RowMajorMatrix<F>> {
         panic!("Chip should not use the `BaseAir` method, but the `MachineAir` method.")
-    }
-}
-
-impl<F, A> MachineAir<F> for Chip<F, A>
-where
-    F: Field,
-    A: MachineAir<F>,
-{
-    type Record = A::Record;
-
-    type Program = A::Program;
-
-    fn name(&self) -> String {
-        self.air.name()
-    }
-
-    fn preprocessed_width(&self) -> usize {
-        <A as MachineAir<F>>::preprocessed_width(&self.air)
-    }
-
-    fn generate_preprocessed_trace(&self, program: &A::Program) -> Option<RowMajorMatrix<F>> {
-        <A as MachineAir<F>>::generate_preprocessed_trace(&self.air, program)
-    }
-
-    fn generate_trace(&self, input: &A::Record, output: &mut A::Record) -> RowMajorMatrix<F> {
-        self.air.generate_trace(input, output)
-    }
-
-    fn generate_dependencies(&self, input: &A::Record, output: &mut A::Record) {
-        self.air.generate_dependencies(input, output)
-    }
-
-    fn included(&self, shard: &Self::Record) -> bool {
-        self.air.included(shard)
     }
 }
 

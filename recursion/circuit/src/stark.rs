@@ -101,7 +101,7 @@ where
             let chip_idx = machine
                 .chips()
                 .iter()
-                .rposition(|chip| &chip.name() == name)
+                .rposition(|chip| &chip.as_ref().name() == name)
                 .unwrap();
             let index = sorted_indices[chip_idx];
             let opening = &opened_values.chips[index];
@@ -211,7 +211,7 @@ where
 
         for (i, sorted_chip) in sorted_chips.iter().enumerate() {
             for chip in machine.chips() {
-                if chip.name() == *sorted_chip {
+                if chip.as_ref().name() == *sorted_chip {
                     let values = &opened_values.chips[i];
                     let trace_domain = &trace_domains[i];
                     let quotient_domain = &quotient_domains[i];
@@ -294,7 +294,7 @@ pub fn build_wrap_circuit(
 
     let chips = outer_machine
         .shard_chips_ordered(&template_proof.chip_ordering)
-        .map(|chip| chip.name())
+        .map(|chip| chip.as_ref().name())
         .collect::<Vec<_>>();
 
     let sorted_indices = outer_machine
@@ -303,7 +303,7 @@ pub fn build_wrap_circuit(
         .map(|chip| {
             template_proof
                 .chip_ordering
-                .get(&chip.name())
+                .get(&chip.as_ref().name())
                 .copied()
                 .unwrap_or(usize::MAX)
         })

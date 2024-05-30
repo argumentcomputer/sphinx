@@ -56,11 +56,11 @@ pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
     let mut key_to_vec_data = BTreeMap::new();
     let mut key_to_count = BTreeMap::new();
 
-    let trace = chip.generate_trace(record, &mut A::Record::default());
+    let trace = chip.as_ref().generate_trace(record, &mut A::Record::default());
     let mut pre_traces = pkey.traces.clone();
     let mut preprocessed_trace = pkey
         .chip_ordering
-        .get(&chip.name())
+        .get(&chip.as_ref().name())
         .map(|&index| pre_traces.get_mut(index).unwrap());
     let mut main = trace.clone();
     let height = trace.clone().height();
@@ -102,7 +102,7 @@ pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
                     .entry(key.clone())
                     .or_insert_with(Vec::new)
                     .push(InteractionData {
-                        chip_name: chip.name(),
+                        chip_name: chip.as_ref().name(),
                         kind: interaction.kind,
                         row,
                         interaction_number: m,
@@ -150,10 +150,10 @@ where
                     .or_insert((SC::Val::zero(), BTreeMap::new()));
                 entry.0 += *value;
                 total += *value;
-                *entry.1.entry(chip.name()).or_insert(SC::Val::zero()) += *value;
+                *entry.1.entry(chip.as_ref().name()).or_insert(SC::Val::zero()) += *value;
             }
         }
-        tracing::info!("{} chip has {} distinct events", chip.name(), total_events);
+        tracing::info!("{} chip has {} distinct events", chip.as_ref().name(), total_events);
     }
 
     tracing::info!("Final counts below.");

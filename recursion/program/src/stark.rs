@@ -346,11 +346,11 @@ where
         // TODO CONSTRAIN: that the preprocessed chips get called with verify_constraints.
         builder.cycle_tracker("stage-e-verify-constraints");
         for (i, chip) in machine.chips().iter().enumerate() {
-            let chip_name = chip.name();
+            let chip_name = chip.as_ref().name();
             tracing::debug!("verifying constraints for chip: {}", chip_name);
             let index = builder.get(&proof.sorted_idxs, i);
 
-            if chip.preprocessed_width() > 0 {
+            if chip.as_ref().preprocessed_width() > 0 {
                 builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
             }
 

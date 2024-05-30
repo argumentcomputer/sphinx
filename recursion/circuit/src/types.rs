@@ -149,7 +149,7 @@ impl<C: Config> ChipOpening<C> {
             local: vec![],
             next: vec![],
         };
-        let preprocess_width = chip.preprocessed_width();
+        let preprocess_width = chip.as_ref().preprocessed_width();
         for i in 0..preprocess_width {
             preprocessed.local.push(opening.preprocessed.local[i]);
             preprocessed.next.push(opening.preprocessed.next[i]);

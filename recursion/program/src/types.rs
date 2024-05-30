@@ -124,7 +124,7 @@ impl<C: Config> ChipOpening<C> {
             local: vec![],
             next: vec![],
         };
-        let preprocessed_width = chip.preprocessed_width();
+        let preprocessed_width = chip.as_ref().preprocessed_width();
         // Assert that the length of the dynamic arrays match the expected length of the vectors.
         builder.assert_usize_eq(preprocessed_width, opening.preprocessed.local.len());
         builder.assert_usize_eq(preprocessed_width, opening.preprocessed.next.len());

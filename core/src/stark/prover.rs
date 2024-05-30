@@ -171,14 +171,14 @@ where
             shard_chips
                 .par_iter()
                 .map(|chip| {
-                    let chip_name = chip.name();
+                    let chip_name = chip.as_ref().name();
 
                     // We need to create an outer span here because, for some reason,
                     // the #[instrument] macro on the chip impl isn't attaching its span to `parent_span`
                     // to avoid the unnecessary span, remove the #[instrument] macro.
                     let trace =
                         tracing::debug_span!(parent: &parent_span, "generate trace for chip", %chip_name)
-                            .in_scope(|| chip.generate_trace(shard, &mut A::Record::default()));
+                            .in_scope(|| chip.as_ref().generate_trace(shard, &mut A::Record::default()));
                     (chip_name, trace)
                 })
                 .collect::<Vec<_>>()
@@ -282,7 +282,7 @@ where
                 .map(|(chip, main_trace)| {
                     let preprocessed_trace = pk
                         .chip_ordering
-                        .get(&chip.name())
+                        .get(&chip.as_ref().name())
                         .map(|&index| &pk.traces[index]);
                     let perm_trace = chip.generate_permutation_trace(
                         preprocessed_trace,
@@ -307,7 +307,7 @@ where
                 + permutation_width * <SC::Challenge as AbstractExtensionField<SC::Val>>::D;
             tracing::debug!(
                 "{:<15} | Main Cols = {:<5} | Perm Cols = {:<5} | Rows = {:<5} | Cells = {:<10}",
-                chips[i].name(),
+                chips[i].as_ref().name(),
                 trace_width,
                 permutation_width * <SC::Challenge as AbstractExtensionField<SC::Val>>::D,
                 traces[i].height(),
@@ -358,7 +358,7 @@ where
                         .in_scope(|| {
                             let preprocessed_trace_on_quotient_domains = pk
                                 .chip_ordering
-                                .get(&chips[i].name())
+                                .get(&chips[i].as_ref().name())
                                 .map_or_else(|| {
                                     RowMajorMatrix::new_col(vec![
                                         SC::Val::zero();
@@ -506,7 +506,7 @@ where
             .enumerate()
             .map(
                 |(i, ((((main, permutation), quotient), cumulative_sum), log_degree))| {
-                    let preprocessed = pk.chip_ordering.get(&chips[i].name()).map_or(
+                    let preprocessed = pk.chip_ordering.get(&chips[i].as_ref().name()).map_or(
                         AirOpenedValues {
                             local: vec![],
                             next: vec![],
