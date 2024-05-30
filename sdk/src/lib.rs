@@ -59,7 +59,7 @@ impl ProverClient {
     /// Setting the `SP1_PROVER` enviroment variable can change the prover used under the hood.
     /// - `local` (default): Uses [LocalProver]. Recommended for proving end-to-end locally.
     /// - `mock`: Uses [MockProver]. Recommended for testing and development.
-    /// - `remote`: Uses [NetworkProver]. Recommended for outsourcing proof generation to an RPC.
+    /// - `network`: Uses [NetworkProver]. Recommended for outsourcing proof generation to an RPC.
     ///
     /// ### Examples
     ///
@@ -85,7 +85,7 @@ impl ProverClient {
                 prover: Box::new(NetworkProver::new()),
             },
             _ => panic!(
-                "invalid value for SP1_PROVER enviroment variable: expected 'local', 'mock', or 'remote'"
+                "invalid value for SP1_PROVER enviroment variable: expected 'local', 'mock', or 'network'"
             ),
         }
     }
@@ -129,6 +129,7 @@ impl ProverClient {
     /// Creates a new [ProverClient] with the network prover.
     ///
     /// Recommended for outsourcing proof generation to an RPC. You can also use [ProverClient::new]
+    /// to set the prover to `network` with the `SP1_PROVER` enviroment variable.
     ///
     /// ### Examples
     ///
