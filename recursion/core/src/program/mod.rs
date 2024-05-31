@@ -2,7 +2,6 @@ use crate::air::SphinxRecursionAirBuilder;
 use crate::cpu::{CpuEvent, Instruction};
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
-use std::marker::PhantomData;
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
@@ -10,6 +9,7 @@ use p3_matrix::Matrix;
 use sphinx_core::air::{EventLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use tracing::instrument;
 
 use sphinx_derive::AlignedBorrow;
@@ -44,7 +44,7 @@ pub struct ProgramChip<F>(pub PhantomData<F>);
 
 impl<F> ProgramChip<F> {
     pub fn new() -> Self {
-        Self (PhantomData)
+        Self(PhantomData)
     }
 }
 
@@ -109,7 +109,9 @@ impl<F: PrimeField32> MachineAir<F> for ProgramChip<F> {
 
     #[instrument(name = "generate program trace", level = "debug", skip_all, fields(rows = input.events().0.len()))]
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _output: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.

@@ -6,9 +6,7 @@ use p3_matrix::Matrix;
 
 use super::InteractionKind;
 use crate::air::MachineAir;
-use crate::stark::{
-    MachineChip, StarkGenericConfig, StarkMachine, StarkProvingKey, Val,
-};
+use crate::stark::{MachineChip, StarkGenericConfig, StarkMachine, StarkProvingKey, Val};
 
 #[derive(Debug)]
 pub struct InteractionData<F: Field> {
@@ -46,10 +44,7 @@ fn field_to_int<F: PrimeField32>(x: F) -> i32 {
     }
 }
 
-pub fn debug_interactions<
-    SC: StarkGenericConfig,
-    A: MachineAir<Val<SC>>,
->(
+pub fn debug_interactions<SC: StarkGenericConfig, A: MachineAir<Val<SC>>>(
     chip: &MachineChip<SC, A>,
     pkey: &StarkProvingKey<SC>,
     record: &A::Record,

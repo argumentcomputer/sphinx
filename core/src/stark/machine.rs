@@ -105,8 +105,7 @@ impl<SC: StarkGenericConfig> Debug for StarkVerifyingKey<SC> {
     }
 }
 
-impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> 
-{
+impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
     /// Get an array containing a `ChipRef` for all the chips of this RISC-V STARK machine.
     pub fn chips(&self) -> &[MachineChip<SC, A>] {
         &self.chips

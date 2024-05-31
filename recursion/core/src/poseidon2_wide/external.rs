@@ -5,7 +5,6 @@ use crate::poseidon2_wide::columns::{
 };
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
-use std::marker::PhantomData;
 use p3_air::{Air, BaseAir};
 use p3_field::{AbstractField, Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
@@ -14,6 +13,7 @@ use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_primitives::RC_16_30_U32;
 use std::borrow::BorrowMut;
+use std::marker::PhantomData;
 use tracing::instrument;
 
 use crate::air::SphinxRecursionAirBuilder;
@@ -42,8 +42,7 @@ impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, 
     type Events = &'a [Poseidon2Event<F>];
 }
 
-impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F, DEGREE>
-{
+impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F, DEGREE> {
     type Record = ExecutionRecord<F>;
 
     type Program = RecursionProgram<F>;
@@ -58,7 +57,9 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F
 
     #[instrument(name = "generate poseidon2 wide trace", level = "debug", skip_all, fields(rows = input.events().len()))]
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 

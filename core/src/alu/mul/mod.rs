@@ -141,7 +141,7 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
         input: &EL,
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let mul_events = input.events().clone();
+        let mul_events = input.events();
         // Compute the chunk size based on the number of events and the number of CPUs.
         let chunk_size = std::cmp::max(mul_events.len() / num_cpus::get(), 1);
 

@@ -4,17 +4,19 @@ use crate::air::RecursionMemoryAirBuilder;
 use crate::memory::{MemoryReadCols, MemoryReadSingleCols, MemoryReadWriteCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
-use std::marker::PhantomData;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, Field};
 use p3_field::PrimeField32;
+use p3_field::{AbstractField, Field};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, BinomialExtension, EventLens, ExtensionAirBuilder, MachineAir, WithEvents};
+use sphinx_core::air::{
+    BaseAirBuilder, BinomialExtension, EventLens, ExtensionAirBuilder, MachineAir, WithEvents,
+};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 use std::borrow::BorrowMut;
+use std::marker::PhantomData;
 use tracing::instrument;
 
 use crate::air::SphinxRecursionAirBuilder;
@@ -110,7 +112,9 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGR
 
     #[instrument(name = "generate fri fold trace", level = "debug", skip_all, fields(rows = input.events().len()))]
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = input
             .events()

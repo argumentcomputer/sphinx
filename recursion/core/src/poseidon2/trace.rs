@@ -2,7 +2,10 @@ use std::borrow::BorrowMut;
 
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
-use sphinx_core::{air::{EventLens, MachineAir, WithEvents}, utils::pad_rows_fixed};
+use sphinx_core::{
+    air::{EventLens, MachineAir, WithEvents},
+    utils::pad_rows_fixed,
+};
 use sphinx_primitives::RC_16_30_U32;
 use tracing::instrument;
 
@@ -35,7 +38,9 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
 
     #[instrument(name = "generate poseidon2 trace", level = "debug", skip_all, fields(rows = input.events().len()))]
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 

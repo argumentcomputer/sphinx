@@ -123,13 +123,13 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.
         let mut instruction_counts = HashMap::new();
-        cpu_events.iter().for_each(|event| {
+        for event in cpu_events.iter() {
             let pc = event.pc;
             instruction_counts
                 .entry(pc)
                 .and_modify(|count| *count += 1)
                 .or_insert(1);
-        });
+        }
 
         let rows = program
             .instructions

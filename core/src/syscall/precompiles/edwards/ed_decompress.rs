@@ -337,8 +337,9 @@ impl<'a, E: EdwardsParameters> WithEvents<'a> for EdDecompressChip<E> {
     type Events = &'a [EdDecompressEvent];
 }
 
-impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E> 
-    where ExecutionRecord: EventLens<EdDecompressChip<E>>
+impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E>
+where
+    ExecutionRecord: EventLens<EdDecompressChip<E>>,
 {
     type Record = ExecutionRecord;
 

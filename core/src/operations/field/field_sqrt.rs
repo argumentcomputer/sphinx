@@ -156,7 +156,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EventLens<EdSqrtChip<P>> for ExecutionRecord {
-        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents>::Events {
+        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents<'_>>::Events {
             &()
         }
     }

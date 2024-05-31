@@ -190,7 +190,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EventLens<FieldIpChip<P>> for ExecutionRecord {
-        fn events(&self) -> <FieldIpChip<P> as crate::air::WithEvents>::Events {
+        fn events(&self) -> <FieldIpChip<P> as crate::air::WithEvents<'_>>::Events {
             &()
         }
     }
