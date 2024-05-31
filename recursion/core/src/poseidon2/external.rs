@@ -1,12 +1,12 @@
 use core::borrow::Borrow;
 use core::mem::size_of;
-use std::marker::PhantomData;
 use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, ExtensionAirBuilder};
 use sphinx_primitives::RC_16_30_U32;
+use std::marker::PhantomData;
 use std::ops::Add;
 
 use crate::air::{RecursionInteractionAirBuilder, RecursionMemoryAirBuilder};

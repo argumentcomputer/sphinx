@@ -283,7 +283,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EventLens<FieldOpChip<P>> for ExecutionRecord {
-        fn events(&self) -> <FieldOpChip<P> as crate::air::WithEvents>::Events {
+        fn events(&self) -> <FieldOpChip<P> as crate::air::WithEvents<'_>>::Events {
             &()
         }
     }

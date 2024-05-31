@@ -202,7 +202,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EventLens<FieldDenChip<P>> for ExecutionRecord {
-        fn events(&self) -> <FieldDenChip<P> as crate::air::WithEvents>::Events {
+        fn events(&self) -> <FieldDenChip<P> as crate::air::WithEvents<'_>>::Events {
             &()
         }
     }

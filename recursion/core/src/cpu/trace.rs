@@ -20,8 +20,9 @@ impl<'a, F: Field> WithEvents<'a> for CpuChip<F> {
     type Events = &'a [CpuEvent<F>];
 }
 
-impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F> 
-    where ExecutionRecord<F>: EventLens<CpuChip<F>>
+impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F>
+where
+    ExecutionRecord<F>: EventLens<CpuChip<F>>,
 {
     type Record = ExecutionRecord<F>;
     type Program = RecursionProgram<F>;

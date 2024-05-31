@@ -416,7 +416,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EventLens<QuadFieldOpChip<P>> for ExecutionRecord {
-        fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents>::Events {
+        fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents<'_>>::Events {
             &()
         }
     }

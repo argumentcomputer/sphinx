@@ -65,7 +65,8 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Poseidon2Wide(Poseidon2WideChip::<
-                F, DEGREE,
+                F,
+                DEGREE,
             > {
                 fixed_log2_rows: None,
                 _phantom: PhantomData,
@@ -79,9 +80,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
     }
 
     pub fn get_wrap_all() -> Vec<Self> {
-        once(RecursionAir::Program(ProgramChip (
-            PhantomData,
-        )))
+        once(RecursionAir::Program(ProgramChip(PhantomData)))
             .chain(once(RecursionAir::Cpu(CpuChip {
                 fixed_log2_rows: Some(20),
                 _phantom: PhantomData,

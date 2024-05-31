@@ -143,8 +143,9 @@ impl<'a, FP: FieldParameters> WithEvents<'a> for QuadFieldAddChip<FP> {
     type Events = &'a [QuadFieldAddEvent<FP>];
 }
 
-impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for QuadFieldAddChip<FP> 
-    where ExecutionRecord: EventLens<QuadFieldAddChip<FP>>
+impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for QuadFieldAddChip<FP>
+where
+    ExecutionRecord: EventLens<QuadFieldAddChip<FP>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;

@@ -101,49 +101,56 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
 }
 
 impl<F: PrimeField32> EventLens<CpuChip<F>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <CpuChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+    fn events(&self) -> <CpuChip<F> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.cpu_events
     }
 }
 
-impl<F: PrimeField32, const DEGREE: usize> EventLens<FriFoldChip<F, DEGREE>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <FriFoldChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
+impl<F: PrimeField32, const DEGREE: usize> EventLens<FriFoldChip<F, DEGREE>>
+    for ExecutionRecord<F>
+{
+    fn events(&self) -> <FriFoldChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.fri_fold_events
     }
 }
 
 impl<F: PrimeField32> EventLens<Poseidon2Chip<F>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <Poseidon2Chip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+    fn events(&self) -> <Poseidon2Chip<F> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.poseidon2_events
     }
 }
 
-impl<F: PrimeField32, const DEGREE: usize> EventLens<Poseidon2WideChip<F, DEGREE>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <Poseidon2WideChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
+impl<F: PrimeField32, const DEGREE: usize> EventLens<Poseidon2WideChip<F, DEGREE>>
+    for ExecutionRecord<F>
+{
+    fn events(&self) -> <Poseidon2WideChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.poseidon2_events
     }
 }
 
 impl<F: PrimeField32> EventLens<MemoryGlobalChip<F>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <MemoryGlobalChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+    fn events(&self) -> <MemoryGlobalChip<F> as sphinx_core::air::WithEvents<'_>>::Events {
         (&self.first_memory_record, &self.last_memory_record)
     }
 }
 
 impl<F: PrimeField32> EventLens<ProgramChip<F>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <ProgramChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+    fn events(&self) -> <ProgramChip<F> as sphinx_core::air::WithEvents<'_>>::Events {
         (&self.program.instructions, &self.cpu_events)
     }
 }
 
 impl<F: PrimeField32> EventLens<RangeCheckChip<F>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <RangeCheckChip<F> as sphinx_core::air::WithEvents<'a>>::Events {
+    fn events(&self) -> <RangeCheckChip<F> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.range_check_events
     }
 }
 
 impl<F: PrimeField32, const DEGREE: usize> EventLens<MultiChip<F, DEGREE>> for ExecutionRecord<F> {
-    fn events<'a>(&'a self) -> <MultiChip<F, DEGREE> as sphinx_core::air::WithEvents<'a>>::Events {
-        (<Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self), <Self as EventLens<Poseidon2Chip<F>>>::events(self))
+    fn events(&self) -> <MultiChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
+        (
+            <Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self),
+            <Self as EventLens<Poseidon2Chip<F>>>::events(self),
+        )
     }
 }

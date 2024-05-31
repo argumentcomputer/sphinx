@@ -1,19 +1,22 @@
 use core::mem::size_of;
-use std::{borrow::{Borrow, BorrowMut}, marker::PhantomData};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    marker::PhantomData,
+};
 
 use p3_air::{Air, BaseAir};
 use p3_field::{Field, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::{
-    air::{AirInteraction, MachineAir, EventLens, WithEvents, MemoryAirBuilder},
+    air::{AirInteraction, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
     lookup::InteractionKind,
     utils::pad_rows_fixed,
 };
 use tracing::instrument;
 
 use super::columns::MemoryInitCols;
-use crate::{air::Block, memory::MemoryGlobalChip};
 use crate::runtime::{ExecutionRecord, RecursionProgram};
+use crate::{air::Block, memory::MemoryGlobalChip};
 
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 
@@ -30,7 +33,7 @@ impl<F> MemoryGlobalChip<F> {
 impl<'a, F: Field> WithEvents<'a> for MemoryGlobalChip<F> {
     type Events = (
         // first memory event
-        &'a [(F, Block<F>)], 
+        &'a [(F, Block<F>)],
         // last memory event
         &'a [(F, F, Block<F>)],
     );
@@ -50,7 +53,9 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip<F> {
 
     #[instrument(name = "generate memory trace", level = "debug", skip_all, fields(first_rows = input.events().0.len(), last_rows = input.events().1.len()))]
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _output: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
         let (first_memory_events, last_memory_events) = input.events();

@@ -11,8 +11,8 @@ use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parame
 use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
-use tracing::instrument;
 use sphinx_derive::{EventLens, WithEvents};
+use tracing::instrument;
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {

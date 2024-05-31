@@ -51,7 +51,10 @@ impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
 }
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
-    type Events = (<FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events, <Poseidon2Chip<F> as WithEvents<'a>>::Events);
+    type Events = (
+        <FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events,
+        <Poseidon2Chip<F> as WithEvents<'a>>::Events,
+    );
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE> {
@@ -68,7 +71,9 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
     }
 
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, output: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let fri_fold_chip = FriFoldChip::<F, 3>::default();
         let poseidon2 = Poseidon2Chip::default();
@@ -87,8 +92,10 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
             evs.1
         }
 
-        let fri_fold_trace = fri_fold_chip.generate_trace(&Proj::new(input, to_fri::<F, DEGREE>), output);
-        let mut poseidon2_trace = poseidon2.generate_trace(&Proj::new(input, to_poseidon::<F, DEGREE>), output);
+        let fri_fold_trace =
+            fri_fold_chip.generate_trace(&Proj::new(input, to_fri::<F, DEGREE>), output);
+        let mut poseidon2_trace =
+            poseidon2.generate_trace(&Proj::new(input, to_poseidon::<F, DEGREE>), output);
 
         let mut rows = fri_fold_trace
             .clone()
@@ -111,8 +118,10 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
                     cols.is_poseidon2 = F::one();
 
                     let poseidon2_cols = *cols.poseidon2();
-                    cols.poseidon2_receive_table = Poseidon2Chip::<F>::do_receive_table(&poseidon2_cols);
-                    cols.poseidon2_memory_access = Poseidon2Chip::<F>::do_memory_access(&poseidon2_cols);
+                    cols.poseidon2_receive_table =
+                        Poseidon2Chip::<F>::do_receive_table(&poseidon2_cols);
+                    cols.poseidon2_memory_access =
+                        Poseidon2Chip::<F>::do_memory_access(&poseidon2_cols);
                 }
                 row
             })
@@ -176,11 +185,13 @@ where
 
         let fri_columns_local = local.fri_fold();
         sub_builder.assert_eq(
-            local.is_fri_fold * FriFoldChip::<AB::F, 3>::do_memory_access::<AB::Var>(fri_columns_local),
+            local.is_fri_fold
+                * FriFoldChip::<AB::F, 3>::do_memory_access::<AB::Var>(fri_columns_local),
             local.fri_fold_memory_access,
         );
         sub_builder.assert_eq(
-            local.is_fri_fold * FriFoldChip::<AB::F, 3>::do_receive_table::<AB::Var>(fri_columns_local),
+            local.is_fri_fold
+                * FriFoldChip::<AB::F, 3>::do_receive_table::<AB::Var>(fri_columns_local),
             local.fri_fold_receive_table,
         );
 
@@ -201,7 +212,8 @@ where
 
         let poseidon2_columns = local.poseidon2();
         sub_builder.assert_eq(
-            local.is_poseidon2 * Poseidon2Chip::<AB::F>::do_receive_table::<AB::Var>(poseidon2_columns),
+            local.is_poseidon2
+                * Poseidon2Chip::<AB::F>::do_receive_table::<AB::Var>(poseidon2_columns),
             local.poseidon2_receive_table,
         );
         sub_builder.assert_eq(

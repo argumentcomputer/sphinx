@@ -16,7 +16,6 @@ impl<'a, F: Field> WithEvents<'a> for RangeCheckChip<F> {
     type Events = &'a BTreeMap<RangeCheckEvent, usize>;
 }
 
-
 impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {
     type Record = ExecutionRecord<F>;
     type Program = RecursionProgram<F>;
@@ -40,7 +39,9 @@ impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {
     }
 
     fn generate_trace<EL: EventLens<Self>>(
-        &self, input: &EL, _output: &mut ExecutionRecord<F>,
+        &self,
+        input: &EL,
+        _output: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
         let (_, event_map) = Self::trace_and_map();
 

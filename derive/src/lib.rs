@@ -230,7 +230,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let generics = &ast.generics;
     let type_params = generics.type_params();
-    let ty_params = quote!{ #(#type_params),* };
+    let ty_params = quote! { #(#type_params),* };
     let const_params = generics.const_params();
     let co_params = quote! { #(#const_params),* };
 
@@ -304,7 +304,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
             let generate_trace_arms = variants.iter().enumerate().map(|(i, (variant_name, field))| {
                 let field_ty = &field.ty;
-                
+
                 let idx = syn::Index::from(i);
                 quote! {
                     #name::#variant_name(x) => {

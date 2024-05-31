@@ -147,8 +147,9 @@ impl<'a, E: EllipticCurve + EdwardsParameters> WithEvents<'a> for EdAddAssignChi
     type Events = &'a [ECAddEvent];
 }
 
-impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E> 
-    where ExecutionRecord: EventLens<EdAddAssignChip<E>>,
+impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E>
+where
+    ExecutionRecord: EventLens<EdAddAssignChip<E>>,
 {
     type Record = ExecutionRecord;
 

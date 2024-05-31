@@ -155,7 +155,8 @@ impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a> for Weierstras
 
 impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     for WeierstrassAddAssignChip<E>
-    where ExecutionRecord: EventLens<WeierstrassAddAssignChip<E>>,
+where
+    ExecutionRecord: EventLens<WeierstrassAddAssignChip<E>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;

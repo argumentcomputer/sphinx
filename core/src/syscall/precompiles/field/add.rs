@@ -117,8 +117,9 @@ impl<'a, FP: FieldParameters> WithEvents<'a> for FieldAddChip<FP> {
     type Events = &'a [FieldAddEvent<FP>];
 }
 
-impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for FieldAddChip<FP> 
-    where ExecutionRecord: EventLens<FieldAddChip<FP>>
+impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for FieldAddChip<FP>
+where
+    ExecutionRecord: EventLens<FieldAddChip<FP>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;

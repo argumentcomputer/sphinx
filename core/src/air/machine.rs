@@ -23,11 +23,11 @@ pub trait WithEvents<'a>: Sized {
 ///
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
 pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexable {
-    fn events<'a>(&'a self) -> <T as WithEvents<'a>>::Events;
+    fn events(&self) -> <T as WithEvents<'_>>::Events;
 }
 
-//////////////// Derive macro shaneanigans ////////////////////////////////////////////////
-// This is *only* useful for the derive macros, you should *not* use this directly.
+//////////////// Derive macro shenanigans ////////////////////////////////////////////////
+// The following is *only* useful for the derive macros, you should *not* use this directly.
 //
 /// Hereafter, Lens composition explained pedantically: all this is saying is that
 /// if I have an EventLens to T::Events, and a way (F) to deduce U::Events from that,
