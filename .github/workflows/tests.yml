@@ -118,7 +118,7 @@ jobs:
           cd cargo-prove-test/program
           cat << EOF | tee -a Cargo.toml
 
-          [patch.'ssh://git@github.com/wormhole-foundation/wp1.git']
+          [patch.'ssh://git@github.com/lurk-lab/wp1.git']
           wp1-zkvm = { path = "../../zkvm/entrypoint" }
           EOF
           cd ../..
@@ -126,7 +126,7 @@ jobs:
           cd cargo-prove-test/script
           cat << EOF | tee -a Cargo.toml
 
-          [patch.'ssh://git@github.com/wormhole-foundation/wp1.git']
+          [patch.'ssh://git@github.com/lurk-lab/sphinx.git']
           wp1-sdk = { path = "../../sdk" }
           wp1-helper = { path = "../../helper" }
           EOF
@@ -193,13 +193,13 @@ jobs:
       - name: Set env
         run: |
           echo "DOWNSTREAM_REPO=$(echo "wormhole-foundation/example-zk-light-clients-internal" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
-          echo "UPSTREAM_REPO=$(echo "wormhole-foundation/wp1" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
+          echo "UPSTREAM_REPO=$(echo "lurk-lab/sphinx" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
           path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
           submodules: recursive
       - name: Setup CI
-        uses: ./wp1/.github/actions/setup
+        uses: ./sphinx/.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
