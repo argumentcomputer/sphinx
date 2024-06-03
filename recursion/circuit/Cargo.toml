@@ -33,3 +33,6 @@ p3-poseidon2 = { workspace = true }
 zkhash = { workspace = true }
 rand = { workspace = true }
 sphinx-recursion-gnark-ffi = { path = "../gnark-ffi" }
+
+[features]
+plonk = ["sphinx-recursion-gnark-ffi/plonk"]

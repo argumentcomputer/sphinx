@@ -16,10 +16,11 @@ pub(crate) struct KeccakMemCols<T> {
     /// Keccak columns from p3_keccak_air. Note it is assumed in trace gen to be the first field.
     pub(crate) keccak: KeccakCols<T>,
 
-    pub(crate) shard: T,
-    pub(crate) channel: T,
-    pub(crate) clk: T,
-    pub(crate) state_addr: T,
+    pub shard: T,
+    pub channel: T,
+    pub clk: T,
+    pub nonce: T,
+    pub state_addr: T,
 
     /// Memory columns for the state.
     pub(crate) state_mem: [MemoryReadWriteCols<T>; STATE_NUM_WORDS],

@@ -7,8 +7,10 @@ license.workspace = true
 
 [dependencies]
 p3-field = { workspace = true }
+p3-symmetric = { workspace = true }
 p3-baby-bear = { workspace = true }
 sphinx-recursion-compiler = { path = "../compiler" }
+sphinx-core = { path = "../../core" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }

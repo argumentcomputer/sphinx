@@ -224,8 +224,7 @@ where
             local.poseidon2_receive_table,
         );
         sub_builder.assert_eq(
-            local.is_poseidon2
-                * Poseidon2Chip::<AB::F>::do_memory_access::<AB::Var, AB::Expr>(poseidon2_columns),
+            local.is_poseidon2 * Poseidon2Chip::do_memory_access::<AB::Var>(poseidon2_columns),
             local.poseidon2_memory_access,
         );
 
@@ -235,7 +234,7 @@ where
             local.poseidon2(),
             next.poseidon2(),
             local.poseidon2_receive_table,
-            &local.poseidon2_memory_access.into(),
+            local.poseidon2_memory_access,
         );
     }
 }
