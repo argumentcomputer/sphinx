@@ -6,7 +6,7 @@
 // Under the hood, we wrap your main function with some extra code so that it behaves properly
 // inside the zkVM.
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 pub fn main() {
     // Read an input to the program.
@@ -23,6 +23,6 @@ pub fn main() {
         a = b;
         b = c;
     }
-    wp1_zkvm::io::commit(&a);
-    wp1_zkvm::io::commit(&b);
+    sphinx_zkvm::io::commit(&a);
+    sphinx_zkvm::io::commit(&b);
 }

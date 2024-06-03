@@ -1,6 +1,6 @@
 //! A simple script to generate and verify the proof of a given program.
 
-use wp1_sdk::{ProverClient, SP1Stdin};
+use sphinx_sdk::{ProverClient, SP1Stdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 

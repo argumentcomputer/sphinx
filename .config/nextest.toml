@@ -16,7 +16,7 @@ limited = { max-threads = 4 }
 very-limited = { max-threads = 1 }
 
 [[profile.ci.overrides]]
-filter = '(test(syscall::precompiles) | test(stark::machine) | package(wp1-recursion-program) | package(wp1-recursion-circuit))'
+filter = '(test(syscall::precompiles) | test(stark::machine) | package(sphinx-recursion-program) | package(sphinx-recursion-circuit))'
 test-group = 'limited'
 
 [[profile.ci.overrides]]

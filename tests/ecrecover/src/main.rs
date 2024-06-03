@@ -1,9 +1,9 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use hex_literal::hex;
-use wp1_zkvm::precompiles::io;
-use wp1_zkvm::precompiles::secp256k1::ecrecover;
+use sphinx_zkvm::precompiles::io;
+use sphinx_zkvm::precompiles::secp256k1::ecrecover;
 
 pub fn main() {
     // recovery param: 1

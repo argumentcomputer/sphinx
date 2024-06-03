@@ -14,7 +14,7 @@ use reqwest::{Client as HttpClient, Url};
 use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
 use serde::de::DeserializeOwned;
 use twirp::Client as TwirpClient;
-use wp1_prover::SP1Stdin;
+use sphinx_prover::SP1Stdin;
 
 use crate::proto::network::{
     ClaimProofRequest, ClaimProofResponse, CreateProofRequest, FulfillProofRequest,
@@ -67,7 +67,7 @@ impl NetworkClient {
     }
 
     // Get the address for the SP1 Verifier contract.
-    pub fn get_wp1_verifier_address() -> [u8; 20] {
+    pub fn get_sphinx_verifier_address() -> [u8; 20] {
         let verifier_hex = env::var("SP1_VERIFIER_ADDRESS")
             .unwrap_or_else(|_| DEFAULT_SP1_VERIFIER_ADDRESS.to_string());
         let verifier_bytes = hex::decode(verifier_hex.trim_start_matches("0x"))

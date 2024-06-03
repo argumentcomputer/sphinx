@@ -3,8 +3,8 @@ use std::{borrow::Borrow, mem::size_of};
 use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_core::air::BaseAirBuilder;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::BaseAirBuilder;
+use sphinx_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default)]
 struct Cols<T> {
@@ -117,7 +117,7 @@ mod tests {
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
     use p3_uni_stark::{prove, verify};
-    use wp1_core::{
+    use sphinx_core::{
         stark::{StarkGenericConfig, UniConfig},
         utils::BabyBearPoseidon2,
     };

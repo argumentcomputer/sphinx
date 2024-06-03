@@ -16,7 +16,7 @@ use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
 use p3_symmetric::{CryptographicPermutation, Permutation};
 pub use program::*;
 pub use record::*;
-use wp1_core::runtime::MemoryAccessPosition;
+use sphinx_core::runtime::MemoryAccessPosition;
 
 use crate::air::Block;
 use crate::cpu::CpuEvent;
@@ -847,7 +847,7 @@ where
 #[cfg(test)]
 mod tests {
     use p3_field::AbstractField;
-    use wp1_core::{
+    use sphinx_core::{
         stark::{RiscvAir, StarkGenericConfig},
         utils::BabyBearPoseidon2,
     };

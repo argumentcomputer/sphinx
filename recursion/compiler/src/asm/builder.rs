@@ -1,5 +1,5 @@
 use p3_field::{ExtensionField, PrimeField32, TwoAdicField};
-use wp1_recursion_core::runtime::RecursionProgram;
+use sphinx_recursion_core::runtime::RecursionProgram;
 
 use super::{config::AsmConfig, AsmCompiler, AssemblyCode};
 use crate::prelude::Builder;

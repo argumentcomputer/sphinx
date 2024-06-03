@@ -6,18 +6,18 @@ use itertools::Itertools;
 use p3_baby_bear::BabyBear;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
-use wp1_core::air::{MachineAir, PublicValues};
-use wp1_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
-use wp1_core::stark::StarkMachine;
-use wp1_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, ExtConst, Felt, Var};
-use wp1_recursion_compiler::prelude::DslVariable;
-use wp1_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
-use wp1_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
+use sphinx_core::air::{MachineAir, PublicValues};
+use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
+use sphinx_core::stark::StarkMachine;
+use sphinx_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, ExtConst, Felt, Var};
+use sphinx_recursion_compiler::prelude::DslVariable;
+use sphinx_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
+use sphinx_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
 
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
 use crate::fri::TwoAdicFriPcsVariable;
@@ -298,7 +298,7 @@ where
         recursion_public_values.next_pc = current_pc;
         recursion_public_values.start_shard = initial_shard;
         recursion_public_values.next_shard = current_shard;
-        recursion_public_values.wp1_vk_digest = vk_digest;
+        recursion_public_values.sphinx_vk_digest = vk_digest;
         recursion_public_values.leaf_challenger = leaf_challenger_public_values;
         recursion_public_values.start_reconstruct_challenger = initial_challenger_public_values;
         recursion_public_values.end_reconstruct_challenger = final_challenger_public_values;

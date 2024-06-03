@@ -5,7 +5,7 @@ name = "chess-script"
 edition = "2021"
 
 [dependencies]
-wp1-sdk = { path = "../../../sdk" }
+sphinx-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
-wp1-helper = { path = "../../../helper" }
+sphinx-helper = { path = "../../../helper" }

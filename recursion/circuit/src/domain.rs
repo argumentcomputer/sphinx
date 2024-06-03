@@ -1,7 +1,7 @@
 use p3_commit::{LagrangeSelectors, TwoAdicMultiplicativeCoset};
 use p3_field::{AbstractExtensionField, AbstractField, Field, TwoAdicField};
-use wp1_recursion_compiler::prelude::*;
-use wp1_recursion_program::{commit::PolynomialSpaceVariable, fri::types::FriConfigVariable};
+use sphinx_recursion_compiler::prelude::*;
+use sphinx_recursion_program::{commit::PolynomialSpaceVariable, fri::types::FriConfigVariable};
 
 #[derive(Clone, Copy)]
 pub struct TwoAdicMultiplicativeCosetVariable<C: Config> {

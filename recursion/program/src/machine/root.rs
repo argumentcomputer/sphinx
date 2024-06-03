@@ -4,17 +4,17 @@ use p3_air::Air;
 use p3_baby_bear::BabyBear;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
-use wp1_core::air::MachineAir;
-use wp1_core::stark::StarkMachine;
-use wp1_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
-use wp1_recursion_compiler::prelude::DslVariable;
-use wp1_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
-use wp1_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
+use sphinx_core::air::MachineAir;
+use sphinx_core::stark::StarkMachine;
+use sphinx_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::prelude::DslVariable;
+use sphinx_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
+use sphinx_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
 
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
 use crate::fri::TwoAdicFriPcsVariable;

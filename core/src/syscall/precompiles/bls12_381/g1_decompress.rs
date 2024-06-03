@@ -9,7 +9,7 @@ use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{AluAirBuilder, ByteAirBuilder, MemoryAirBuilder};
 use crate::bytes::{ByteLookupEvent, ByteOpcode};

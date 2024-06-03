@@ -3,7 +3,7 @@ use std::borrow::BorrowMut;
 use p3_field::{extension::BinomiallyExtendable, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
-use wp1_core::{
+use sphinx_core::{
     air::{BinomialExtension, MachineAir},
     utils::pad_rows_fixed,
 };

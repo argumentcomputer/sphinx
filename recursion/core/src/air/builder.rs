@@ -4,7 +4,7 @@ use crate::range_check::RangeCheckOpcode;
 use core::iter::{once, repeat};
 use p3_air::{AirBuilder, AirBuilderWithPublicValues};
 use p3_field::AbstractField;
-use wp1_core::{
+use sphinx_core::{
     air::{AirInteraction, BaseAirBuilder, MachineAirBuilder},
     lookup::InteractionKind,
 };

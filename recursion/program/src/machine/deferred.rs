@@ -6,18 +6,18 @@ use p3_air::Air;
 use p3_baby_bear::BabyBear;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
-use wp1_core::air::{MachineAir, WORD_SIZE};
-use wp1_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
-use wp1_core::stark::StarkMachine;
-use wp1_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
-use wp1_recursion_compiler::prelude::DslVariable;
-use wp1_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
-use wp1_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
+use sphinx_core::air::{MachineAir, WORD_SIZE};
+use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
+use sphinx_core::stark::StarkMachine;
+use sphinx_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::prelude::DslVariable;
+use sphinx_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
+use sphinx_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
 
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
 use crate::fri::TwoAdicFriPcsVariable;
@@ -47,8 +47,8 @@ where
 
     pub is_complete: bool,
 
-    pub wp1_vk: &'a StarkVerifyingKey<SC>,
-    pub wp1_machine: &'a StarkMachine<SC, RiscvAir<SC::Val>>,
+    pub sphinx_vk: &'a StarkVerifyingKey<SC>,
+    pub sphinx_machine: &'a StarkMachine<SC, RiscvAir<SC::Val>>,
     pub committed_value_digest: Vec<Word<SC::Val>>,
     pub deferred_proofs_digest: Vec<SC::Val>,
     pub leaf_challenger: SC::Challenger,
@@ -67,7 +67,7 @@ pub struct SP1DeferredMemoryLayoutVariable<C: Config> {
 
     pub is_complete: Var<C::N>,
 
-    pub wp1_vk: VerifyingKeyVariable<C>,
+    pub sphinx_vk: VerifyingKeyVariable<C>,
     pub committed_value_digest: Array<C, Array<C, Felt<C::F>>>,
     pub deferred_proofs_digest: Array<C, Felt<C::F>>,
     pub leaf_challenger: DuplexChallengerVariable<C>,
@@ -128,7 +128,7 @@ where
             start_reconstruct_deferred_digest,
             is_complete,
 
-            wp1_vk,
+            sphinx_vk,
             committed_value_digest,
             deferred_proofs_digest,
             leaf_challenger,
@@ -231,7 +231,7 @@ where
                 builder.set(
                     &mut poseidon_inputs,
                     j + DIGEST_SIZE,
-                    current_public_values.wp1_vk_digest[j],
+                    current_public_values.sphinx_vk_digest[j],
                 );
             }
             for j in 0..PV_DIGEST_NUM_WORDS {
@@ -258,8 +258,8 @@ where
         deferred_public_values.next_shard = end_shard;
 
         // Set the sp1_vk_digest to be the hitned value.
-        let wp1_vk_digest = hash_vkey(builder, &wp1_vk);
-        deferred_public_values.wp1_vk_digest = array::from_fn(|i| builder.get(&wp1_vk_digest, i));
+        let sphinx_vk_digest = hash_vkey(builder, &sphinx_vk);
+        deferred_public_values.sphinx_vk_digest = array::from_fn(|i| builder.get(&sphinx_vk_digest, i));
 
         // Set the committed value digest to be the hitned value.
         for (i, public_word) in deferred_public_values

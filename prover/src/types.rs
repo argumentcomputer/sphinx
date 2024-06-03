@@ -9,14 +9,14 @@ use p3_field::PrimeField;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use thiserror::Error;
-use wp1_core::{
+use sphinx_core::{
     io::{SP1PublicValues, SP1Stdin},
     stark::{ShardProof, StarkGenericConfig, StarkProvingKey, StarkVerifyingKey},
     utils::DIGEST_SIZE,
 };
-use wp1_primitives::poseidon2_hash;
-use wp1_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
-use wp1_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
+use sphinx_primitives::poseidon2_hash;
+use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
+use sphinx_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
 
 use crate::utils::words_to_bytes_be;
 use crate::{utils::babybear_bytes_to_bn254, words_to_bytes};
@@ -169,17 +169,17 @@ pub struct SP1ReduceProof<SC: StarkGenericConfig> {
 }
 
 impl SP1ReduceProof<BabyBearPoseidon2Outer> {
-    pub fn wp1_vkey_digest_babybear(&self) -> [BabyBear; 8] {
+    pub fn sphinx_vkey_digest_babybear(&self) -> [BabyBear; 8] {
         let proof = &self.proof;
         let pv: &RecursionPublicValues<BabyBear> = proof.public_values.as_slice().borrow();
-        pv.wp1_vk_digest
+        pv.sphinx_vk_digest
     }
 
-    pub fn wp1_vkey_digest_bn254(&self) -> Bn254Fr {
-        babybears_to_bn254(&self.wp1_vkey_digest_babybear())
+    pub fn sphinx_vkey_digest_bn254(&self) -> Bn254Fr {
+        babybears_to_bn254(&self.sphinx_vkey_digest_babybear())
     }
 
-    pub fn wp1_commited_values_digest_bn254(&self) -> Bn254Fr {
+    pub fn sphinx_commited_values_digest_bn254(&self) -> Bn254Fr {
         let proof = &self.proof;
         let pv: &RecursionPublicValues<BabyBear> = proof.public_values.as_slice().borrow();
         let committed_values_digest_bytes: [BabyBear; 32] =

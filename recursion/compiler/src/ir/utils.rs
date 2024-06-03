@@ -224,8 +224,8 @@ mod tests {
     use p3_field::{AbstractField, PrimeField32};
     use p3_util::reverse_bits_len;
     use rand::{thread_rng, Rng};
-    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-    use wp1_recursion_core::runtime::{Runtime, NUM_BITS};
+    use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+    use sphinx_recursion_core::runtime::{Runtime, NUM_BITS};
 
     use crate::{
         asm::AsmBuilder,

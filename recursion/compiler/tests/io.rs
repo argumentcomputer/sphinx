@@ -1,7 +1,7 @@
 use p3_field::AbstractField;
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_core::runtime::Runtime;
+use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+use sphinx_recursion_compiler::asm::AsmBuilder;
+use sphinx_recursion_core::runtime::Runtime;
 
 #[test]
 fn test_io() {

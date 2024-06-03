@@ -5,14 +5,14 @@ use num_bigint::BigUint;
 use p3_baby_bear::BabyBear;
 use p3_field::{AbstractField, PrimeField};
 use thiserror::Error;
-use wp1_core::{
+use sphinx_core::{
     air::PublicValues,
     io::SP1PublicValues,
     stark::{MachineProof, MachineVerificationError, StarkGenericConfig},
     utils::BabyBearPoseidon2,
 };
-use wp1_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
-use wp1_recursion_gnark_ffi::{Groth16Proof, Groth16Prover};
+use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
+use sphinx_recursion_gnark_ffi::{Groth16Proof, Groth16Prover};
 
 use crate::{
     types::HashableKey, CoreSC, OuterSC, SP1CoreProofData, SP1Prover, SP1ReduceProof,
@@ -125,7 +125,7 @@ impl SP1Prover {
 
         // Verify that the proof is for the sp1 vkey we are expecting.
         let vkey_hash = vk.hash_babybear();
-        if public_values.wp1_vk_digest != vkey_hash {
+        if public_values.sphinx_vk_digest != vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "sp1 vk hash mismatch",
             ));
@@ -168,7 +168,7 @@ impl SP1Prover {
 
         // Verify that the proof is for the sp1 vkey we are expecting.
         let vkey_hash = vk.hash_babybear();
-        if public_values.wp1_vk_digest != vkey_hash {
+        if public_values.sphinx_vk_digest != vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "sp1 vk hash mismatch",
             ));
@@ -203,7 +203,7 @@ impl SP1Prover {
 
         // Verify that the proof is for the sp1 vkey we are expecting.
         let vkey_hash = vk.hash_babybear();
-        if public_values.wp1_vk_digest != vkey_hash {
+        if public_values.sphinx_vk_digest != vkey_hash {
             return Err(MachineVerificationError::InvalidPublicValues(
                 "sp1 vk hash mismatch",
             ));

@@ -18,7 +18,7 @@ use p3_matrix::Matrix;
 use serde::Deserialize;
 use serde::Serialize;
 use std::mem::size_of;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 /// Chip for doubling a BLS12-381 G2Affine point (P).
 ///

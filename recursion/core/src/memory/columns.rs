@@ -1,4 +1,4 @@
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::Block;
 

@@ -1,6 +1,6 @@
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
-use wp1_core::air::{BinomialExtension, ExtensionAirBuilder};
+use sphinx_core::air::{BinomialExtension, ExtensionAirBuilder};
 
 use crate::{
     air::{BinomialExtensionUtils, SP1RecursionAirBuilder},

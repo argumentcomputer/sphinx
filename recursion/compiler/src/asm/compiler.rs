@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 
 use backtrace::Backtrace;
 use p3_field::{ExtensionField, PrimeField32, TwoAdicField};
-use wp1_recursion_core::runtime::{RecursionProgram, STACK_SIZE};
+use sphinx_recursion_core::runtime::{RecursionProgram, STACK_SIZE};
 
 use super::{config::AsmConfig, AssemblyCode, BasicBlock, IndexTriple, ValueOrConst};
 use crate::{

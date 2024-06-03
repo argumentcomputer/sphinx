@@ -2,7 +2,7 @@ use std::time::Duration;
 use tokio::runtime::Runtime;
 
 use reqwest::Client;
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SP1Stdin};
 
 use tendermint_light_client_verifier::options::Options;
 use tendermint_light_client_verifier::types::LightBlock;

@@ -4,12 +4,12 @@ use itertools::Itertools;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractField;
 
-use wp1_core::{
+use sphinx_core::{
     air::MachineAir,
     stark::{Com, StarkGenericConfig, StarkMachine, StarkVerifyingKey},
 };
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
-use wp1_recursion_core::{
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
+use sphinx_recursion_core::{
     air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS},
     runtime::DIGEST_SIZE,
 };

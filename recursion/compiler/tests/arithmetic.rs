@@ -1,11 +1,11 @@
 use p3_field::AbstractField;
 use rand::{thread_rng, Rng};
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::asm::AsmBuilder;
-use wp1_recursion_compiler::ir::{Ext, Felt, SymbolicExt};
-use wp1_recursion_compiler::ir::{ExtConst, Var};
-use wp1_recursion_core::runtime::Runtime;
+use sphinx_core::stark::StarkGenericConfig;
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::asm::AsmBuilder;
+use sphinx_recursion_compiler::ir::{Ext, Felt, SymbolicExt};
+use sphinx_recursion_compiler::ir::{ExtConst, Var};
+use sphinx_recursion_core::runtime::Runtime;
 
 #[test]
 fn test_compiler_arithmetic() {

@@ -3,18 +3,18 @@ use p3_commit::LagrangeSelectors;
 use p3_field::AbstractExtensionField;
 use p3_field::AbstractField;
 use p3_field::TwoAdicField;
-use wp1_core::air::MachineAir;
-use wp1_core::stark::AirOpenedValues;
-use wp1_core::stark::PROOF_MAX_NUM_PVS;
-use wp1_core::stark::{MachineChip, StarkGenericConfig};
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::ExtensionOperand;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::ir::{Builder, Config, Ext};
-use wp1_recursion_compiler::prelude::SymbolicExt;
-use wp1_recursion_program::commit::PolynomialSpaceVariable;
+use sphinx_core::air::MachineAir;
+use sphinx_core::stark::AirOpenedValues;
+use sphinx_core::stark::PROOF_MAX_NUM_PVS;
+use sphinx_core::stark::{MachineChip, StarkGenericConfig};
+use sphinx_recursion_compiler::ir::Array;
+use sphinx_recursion_compiler::ir::ExtensionOperand;
+use sphinx_recursion_compiler::ir::Felt;
+use sphinx_recursion_compiler::ir::{Builder, Config, Ext};
+use sphinx_recursion_compiler::prelude::SymbolicExt;
+use sphinx_recursion_program::commit::PolynomialSpaceVariable;
 
-use wp1_recursion_program::stark::RecursiveVerifierConstraintFolder;
+use sphinx_recursion_program::stark::RecursiveVerifierConstraintFolder;
 
 use crate::{
     domain::TwoAdicMultiplicativeCosetVariable,
@@ -169,21 +169,21 @@ mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, PolynomialSpace};
     use serde::{de::DeserializeOwned, Serialize};
-    use wp1_core::stark::{
+    use sphinx_core::stark::{
         Chip, Com, Dom, LocalProver, OpeningProof, PcsProverData, ShardCommitment, ShardMainData,
         ShardProof, StarkGenericConfig, StarkMachine,
     };
-    use wp1_recursion_compiler::{
+    use sphinx_recursion_compiler::{
         config::OuterConfig,
         constraints::ConstraintCompiler,
         ir::{Builder, Witness},
         prelude::ExtConst,
     };
-    use wp1_recursion_core::{
+    use sphinx_recursion_core::{
         runtime::Runtime,
         stark::{config::BabyBearPoseidon2Outer, RecursionAirWideDeg3},
     };
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     use crate::stark::{tests::basic_program, StarkVerifierCircuit};
 
@@ -287,7 +287,7 @@ mod tests {
         type EF = <SC as StarkGenericConfig>::Challenge;
         type A = RecursionAirWideDeg3<F>;
 
-        wp1_core::utils::setup_logger();
+        sphinx_core::utils::setup_logger();
         let program = basic_program::<F>();
         let config = SC::new();
         let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);

@@ -1,6 +1,6 @@
 use p3_commit::{LagrangeSelectors, TwoAdicMultiplicativeCoset};
 use p3_field::{AbstractField, TwoAdicField};
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use super::types::FriConfigVariable;
 use crate::commit::PolynomialSpaceVariable;
@@ -159,17 +159,17 @@ where
 #[cfg(test)]
 pub(crate) mod tests {
 
-    use wp1_core::utils::inner_fri_config;
-    use wp1_recursion_compiler::asm::AsmBuilder;
-    use wp1_recursion_core::stark::utils::{run_test_recursion, TestConfig};
+    use sphinx_core::utils::inner_fri_config;
+    use sphinx_recursion_compiler::asm::AsmBuilder;
+    use sphinx_recursion_core::stark::utils::{run_test_recursion, TestConfig};
 
     use crate::utils::const_fri_config;
 
     use super::*;
     use p3_commit::{Pcs, PolynomialSpace};
     use rand::{thread_rng, Rng};
-    use wp1_core::stark::Dom;
-    use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+    use sphinx_core::stark::Dom;
+    use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
 
     pub(crate) fn domain_assertions<F: TwoAdicField, C: Config<N = F, F = F>>(
         builder: &mut Builder<C>,

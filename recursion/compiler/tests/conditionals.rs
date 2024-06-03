@@ -1,8 +1,8 @@
 use p3_baby_bear::BabyBear;
 use p3_field::{extension::BinomialExtensionField, AbstractField};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::{asm::AsmBuilder, ir::Var};
-use wp1_recursion_core::runtime::Runtime;
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::{asm::AsmBuilder, ir::Var};
+use sphinx_recursion_core::runtime::Runtime;
 
 #[test]
 fn test_compiler_conditionals() {

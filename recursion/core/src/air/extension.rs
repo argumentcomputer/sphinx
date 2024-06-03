@@ -2,7 +2,7 @@ use p3_field::{
     extension::{BinomialExtensionField, BinomiallyExtendable},
     AbstractExtensionField, Field,
 };
-use wp1_core::air::BinomialExtension;
+use sphinx_core::air::BinomialExtension;
 
 use super::Block;
 use crate::runtime::D;

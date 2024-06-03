@@ -11,7 +11,7 @@ use std::borrow::Borrow;
 use p3_air::{Air, AirBuilder};
 use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
-use wp1_core::air::BaseAirBuilder;
+use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
     air::{RecursionPublicValues, SP1RecursionAirBuilder, RECURSIVE_PROOF_NUM_PV_ELTS},

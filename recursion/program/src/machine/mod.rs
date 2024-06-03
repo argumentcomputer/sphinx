@@ -16,15 +16,15 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_challenger::CanObserve;
     use p3_maybe_rayon::prelude::*;
-    use wp1_core::stark::{MachineVerificationError, RiscvAir, StarkGenericConfig};
-    use wp1_core::utils::BabyBearPoseidon2;
-    use wp1_core::{
+    use sphinx_core::stark::{MachineVerificationError, RiscvAir, StarkGenericConfig};
+    use sphinx_core::utils::BabyBearPoseidon2;
+    use sphinx_core::{
         io::SP1Stdin,
         runtime::Program,
         stark::{Challenge, LocalProver},
     };
-    use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_core::{
+    use sphinx_recursion_compiler::config::InnerConfig;
+    use sphinx_recursion_core::{
         runtime::Runtime,
         stark::{config::BabyBearPoseidon2Outer, RecursionAir},
     };
@@ -41,12 +41,12 @@ mod tests {
         Wrap,
     }
 
-    fn test_wp1_recursive_machine_verify(program: &Program, batch_size: usize, test: Test) {
+    fn test_sphinx_recursive_machine_verify(program: &Program, batch_size: usize, test: Test) {
         type SC = BabyBearPoseidon2;
         type F = BabyBear;
         type EF = Challenge<SC>;
 
-        wp1_core::utils::setup_logger();
+        sphinx_core::utils::setup_logger();
 
         let machine = RiscvAir::machine(SC::default());
         let (_, vk) = machine.setup(program);
@@ -84,7 +84,7 @@ mod tests {
 
         let mut challenger = machine.config().challenger();
         let time = std::time::Instant::now();
-        let (proof, _) = wp1_core::utils::prove(program, &SP1Stdin::new(), SC::default()).unwrap();
+        let (proof, _) = sphinx_core::utils::prove(program, &SP1Stdin::new(), SC::default()).unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
         tracing::info!("Proof generated successfully");
         let elapsed = time.elapsed();
@@ -359,65 +359,65 @@ mod tests {
     }
 
     #[test]
-    fn test_wp1_recursive_machine_verify_fibonacci() {
+    fn test_sphinx_recursive_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Recursion)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Recursion)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_reduce_machine_verify_fibonacci() {
+    fn test_sphinx_reduce_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Reduce)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Reduce)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_compress_machine_verify_fibonacci() {
+    fn test_sphinx_compress_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Compress)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Compress)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_wrap_machine_verify_fibonacci() {
+    fn test_sphinx_wrap_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Wrap)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Wrap)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_reduce_machine_verify_tendermint() {
+    fn test_sphinx_reduce_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Reduce)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Reduce)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_recursive_machine_verify_tendermint() {
+    fn test_sphinx_recursive_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Recursion)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Recursion)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_compress_machine_verify_tendermint() {
+    fn test_sphinx_compress_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Compress)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Compress)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_wrap_machine_verify_tendermint() {
+    fn test_sphinx_wrap_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Wrap)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Wrap)
     }
 }

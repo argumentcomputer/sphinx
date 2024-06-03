@@ -11,7 +11,7 @@ use crate::{
 
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     constraints::Constraint,
     ir::{Config, Witness},
 };
@@ -80,9 +80,9 @@ impl Groth16Prover {
             .expect("failed to open file");
 
         // Write the string to the file
-        let wp1_verifier_str = include_str!("../assets/SP1Verifier.txt");
+        let sphinx_verifier_str = include_str!("../assets/SP1Verifier.txt");
         groth16_verifier_file
-            .write_all(wp1_verifier_str.as_bytes())
+            .write_all(sphinx_verifier_str.as_bytes())
             .expect("Failed to write to file");
     }
 

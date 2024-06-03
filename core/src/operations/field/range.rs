@@ -8,7 +8,7 @@ use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use std::fmt::Debug;
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     air::ByteAirBuilder,

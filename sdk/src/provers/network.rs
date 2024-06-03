@@ -12,9 +12,9 @@ use crate::{
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use tokio::{runtime, time::sleep};
-use wp1_core::runtime::{Program, Runtime};
-use wp1_prover::utils::block_on;
-use wp1_prover::{SP1Prover, SP1Stdin};
+use sphinx_core::runtime::{Program, Runtime};
+use sphinx_prover::utils::block_on;
+use sphinx_prover::{SP1Prover, SP1Stdin};
 
 use super::LocalProver;
 
@@ -98,7 +98,7 @@ impl NetworkProver {
         rt.block_on(async {
             let client = &self.client;
 
-            let verifier = NetworkClient::get_wp1_verifier_address();
+            let verifier = NetworkClient::get_sphinx_verifier_address();
 
             let mut tx_details = Vec::new();
             for ((i, callback), callback_data) in
@@ -159,8 +159,8 @@ impl Prover for NetworkProver {
         self.local_prover.setup(elf)
     }
 
-    fn wp1_prover(&self) -> &SP1Prover {
-        self.local_prover.wp1_prover()
+    fn sphinx_prover(&self) -> &SP1Prover {
+        self.local_prover.sphinx_prover()
     }
 
     fn prove(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Proof> {

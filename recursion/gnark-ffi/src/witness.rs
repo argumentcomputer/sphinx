@@ -6,8 +6,8 @@ use p3_field::AbstractField;
 use p3_field::PrimeField;
 use serde::Deserialize;
 use serde::Serialize;
-use wp1_recursion_compiler::ir::Config;
-use wp1_recursion_compiler::ir::Witness;
+use sphinx_recursion_compiler::ir::Config;
+use sphinx_recursion_compiler::ir::Witness;
 
 /// A witness that can be used to initialize values for witness generation inside Gnark.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

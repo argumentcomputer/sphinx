@@ -1,5 +1,5 @@
 use p3_air::{AirBuilder, ExtensionBuilder, FilteredAirBuilder, PermutationAirBuilder};
-use wp1_core::air::MessageBuilder;
+use sphinx_core::air::MessageBuilder;
 
 /// The MultiBuilder is used for the multi table.  It is used to create a virtual builder for one of
 /// the sub tables in the multi table.

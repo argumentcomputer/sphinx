@@ -1,5 +1,5 @@
 use p3_field::AbstractField;
-use wp1_recursion_core::runtime::NUM_BITS;
+use sphinx_recursion_core::runtime::NUM_BITS;
 
 use super::{Array, Builder, Config, DslIr, Felt, Usize, Var};
 

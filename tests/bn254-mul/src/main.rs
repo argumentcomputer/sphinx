@@ -1,10 +1,10 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
-use wp1_zkvm::precompiles::bn254::Bn254;
-use wp1_zkvm::precompiles::utils::AffinePoint;
+use sphinx_zkvm::precompiles::bn254::Bn254;
+use sphinx_zkvm::precompiles::utils::AffinePoint;
 
-#[wp1_derive::cycle_tracker]
+#[sphinx_derive::cycle_tracker]
 pub fn main() {
     // generator.
     // 1

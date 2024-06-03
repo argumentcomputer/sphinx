@@ -1,10 +1,10 @@
 use p3_field::AbstractField;
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::{
+use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+use sphinx_recursion_compiler::{
     asm::AsmBuilder,
     ir::{Felt, Var},
 };
-use wp1_recursion_core::runtime::Runtime;
+use sphinx_recursion_core::runtime::Runtime;
 
 fn fibonacci(n: u32) -> u32 {
     if n == 0 {

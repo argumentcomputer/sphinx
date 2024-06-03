@@ -15,7 +15,7 @@ use p3_symmetric::Hash;
 use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
 use serde::Deserialize;
 use serde::Serialize;
-use wp1_primitives::poseidon2_init;
+use sphinx_primitives::poseidon2_init;
 
 pub const DIGEST_SIZE: usize = 8;
 
@@ -52,7 +52,7 @@ pub fn inner_perm() -> InnerPerm {
 }
 
 /// The FRI config for sp1 proofs.
-pub fn wp1_fri_config() -> FriConfig<InnerChallengeMmcs> {
+pub fn sphinx_fri_config() -> FriConfig<InnerChallengeMmcs> {
     let perm = inner_perm();
     let hash = InnerHash::new(perm.clone());
     let compress = InnerCompress::new(perm.clone());

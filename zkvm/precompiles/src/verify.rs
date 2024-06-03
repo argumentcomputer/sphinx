@@ -1,10 +1,10 @@
-use crate::syscall_verify_wp1_proof;
+use crate::syscall_verify_sphinx_proof;
 
 /// Verifies the next proof in the proof input stream given a pkey digest and public values digest.
 ///
 /// Note: sp1_zkvm must also have feature `verify` enabled for this function to work.
-pub fn verify_wp1_proof(pkey_digest: &[u32; 8], pv_digest: &[u8; 32]) {
+pub fn verify_sphinx_proof(pkey_digest: &[u32; 8], pv_digest: &[u8; 32]) {
     unsafe {
-        syscall_verify_wp1_proof(pkey_digest, pv_digest);
+        syscall_verify_sphinx_proof(pkey_digest, pv_digest);
     }
 }

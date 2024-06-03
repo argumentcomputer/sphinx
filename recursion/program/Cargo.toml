@@ -1,5 +1,5 @@
 [package]
-name = "wp1-recursion-program"
+name = "sphinx-recursion-program"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
@@ -21,9 +21,9 @@ p3-baby-bear = { workspace = true }
 p3-dft = { workspace = true }
 p3-merkle-tree = { workspace = true }
 p3-poseidon2 = { workspace = true }
-wp1-recursion-core = { path = "../core" }
-wp1-recursion-compiler = { path = "../compiler" }
-wp1-core = { path = "../../core" }
+sphinx-recursion-core = { path = "../core" }
+sphinx-recursion-compiler = { path = "../compiler" }
+sphinx-core = { path = "../../core" }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }

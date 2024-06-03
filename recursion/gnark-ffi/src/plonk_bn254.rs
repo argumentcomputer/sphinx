@@ -6,7 +6,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     constraints::Constraint,
     ir::{Config, Witness},
 };

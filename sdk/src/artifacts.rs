@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
-pub use wp1_prover::build::{build_groth16_artifacts_with_dummy, try_install_groth16_artifacts};
+pub use sphinx_prover::build::{build_groth16_artifacts_with_dummy, try_install_groth16_artifacts};
 
 /// Exports the soliditiy verifier for Groth16 proofs to the specified output directory.
 ///
@@ -12,8 +12,8 @@ pub use wp1_prover::build::{build_groth16_artifacts_with_dummy, try_install_grot
 /// already been built.
 pub fn export_solidity_groth16_verifier(output_dir: impl Into<PathBuf>) -> Result<()> {
     let output_dir: PathBuf = output_dir.into();
-    let artifacts_dir = if wp1_prover::build::wp1_dev_mode() {
-        wp1_prover::build::groth16_artifacts_dev_dir()
+    let artifacts_dir = if sphinx_prover::build::sphinx_dev_mode() {
+        sphinx_prover::build::groth16_artifacts_dev_dir()
     } else {
         try_install_groth16_artifacts()
     };

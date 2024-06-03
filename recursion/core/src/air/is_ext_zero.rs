@@ -9,8 +9,8 @@ use p3_field::{
     extension::{BinomialExtensionField, BinomiallyExtendable},
     AbstractField, Field,
 };
-use wp1_core::air::{BaseAirBuilder, BinomialExtension};
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::{BaseAirBuilder, BinomialExtension};
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     air::{extension::BinomialExtensionUtils, Block},

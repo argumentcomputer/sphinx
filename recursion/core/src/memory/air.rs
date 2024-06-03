@@ -5,7 +5,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::PrimeField32;
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use tracing::instrument;
-use wp1_core::{
+use sphinx_core::{
     air::{AirInteraction, MachineAir, MemoryAirBuilder},
     lookup::InteractionKind,
     utils::pad_rows_fixed,

@@ -1,6 +1,6 @@
 use p3_air::AirBuilder;
 use p3_field::Field;
-use wp1_core::runtime::MemoryAccessPosition;
+use sphinx_core::runtime::MemoryAccessPosition;
 
 use crate::{
     air::{BlockBuilder, SP1RecursionAirBuilder},

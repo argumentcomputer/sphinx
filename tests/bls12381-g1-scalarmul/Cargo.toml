@@ -5,6 +5,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-wp1-zkvm = { path = "../../zkvm/entrypoint" }
-wp1-derive = { path = "../../derive" }
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }
+sphinx-derive = { path = "../../derive" }
 hybrid-array = "0.2.0-rc"

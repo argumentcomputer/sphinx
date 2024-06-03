@@ -1,12 +1,12 @@
 use p3_bn254_fr::Bn254Fr;
-use wp1_core::stark::{
+use sphinx_core::stark::{
     AirOpenedValues, ChipOpenedValues, ShardCommitment, ShardOpenedValues, ShardProof,
 };
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     config::OuterConfig,
     ir::{Builder, Config, Ext, Felt, Var, Witness},
 };
-use wp1_recursion_core::stark::config::{
+use sphinx_recursion_core::stark::config::{
     BabyBearPoseidon2Outer, OuterBatchOpening, OuterChallenge, OuterCommitPhaseStep, OuterDigest,
     OuterFriProof, OuterPcsProof, OuterQueryProof, OuterVal,
 };
@@ -330,13 +330,13 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_bn254_fr::Bn254Fr;
     use p3_field::AbstractField;
-    use wp1_recursion_compiler::{
+    use sphinx_recursion_compiler::{
         config::OuterConfig,
         constraints::ConstraintCompiler,
         ir::{Builder, ExtConst, Witness},
     };
-    use wp1_recursion_core::stark::config::OuterChallenge;
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_core::stark::config::OuterChallenge;
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     #[test]
     fn test_witness_simple() {

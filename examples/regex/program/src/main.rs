@@ -1,7 +1,7 @@
 //! A simple program that takes a regex pattern and a string and returns whether the string
 //! matches the pattern.
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use regex::Regex;
 
@@ -12,8 +12,8 @@ use regex::Regex;
 
 pub fn main() {
     // Read two inputs from the prover: a regex pattern and a target string.
-    let pattern = wp1_zkvm::io::read::<String>();
-    let target_string = wp1_zkvm::io::read::<String>();
+    let pattern = sphinx_zkvm::io::read::<String>();
+    let target_string = sphinx_zkvm::io::read::<String>();
 
     // Try to compile the regex pattern. If it fails, write `false` as output and return.
     let regex = match Regex::new(&pattern) {
@@ -27,5 +27,5 @@ pub fn main() {
     let result = regex.is_match(&target_string);
 
     // Write the result (true or false) to the output.
-    wp1_zkvm::io::commit(&result);
+    sphinx_zkvm::io::commit(&result);
 }

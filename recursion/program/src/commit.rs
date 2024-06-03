@@ -1,5 +1,5 @@
 use p3_commit::{LagrangeSelectors, PolynomialSpace};
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, FromConstant, Usize};
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, FromConstant, Usize};
 
 use crate::fri::types::{FriConfigVariable, TwoAdicPcsRoundVariable};
 

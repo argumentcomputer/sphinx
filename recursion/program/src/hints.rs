@@ -3,21 +3,21 @@ use p3_challenger::DuplexChallenger;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::TwoAdicField;
 use p3_field::{AbstractExtensionField, AbstractField};
-use wp1_core::air::{MachineAir, Word, PV_DIGEST_NUM_WORDS};
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::stark::{
+use sphinx_core::air::{MachineAir, Word, PV_DIGEST_NUM_WORDS};
+use sphinx_core::stark::StarkGenericConfig;
+use sphinx_core::stark::{
     AirOpenedValues, ChipOpenedValues, Com, RiscvAir, ShardCommitment, ShardOpenedValues,
 };
-use wp1_core::utils::{
+use sphinx_core::utils::{
     BabyBearPoseidon2, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm,
     InnerVal,
 };
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     config::InnerConfig,
     ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var},
 };
-use wp1_recursion_core::air::Block;
-use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
+use sphinx_recursion_core::air::Block;
+use sphinx_recursion_core::runtime::PERMUTATION_WIDTH;
 
 use crate::challenger::DuplexChallengerVariable;
 use crate::fri::TwoAdicMultiplicativeCosetVariable;
@@ -623,7 +623,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         let start_reconstruct_deferred_digest = Vec::<BabyBear>::read(builder);
         let is_complete = builder.hint_var();
 
-        let wp1_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, RiscvAir<_>>::read(builder);
+        let sphinx_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, RiscvAir<_>>::read(builder);
         let committed_value_digest = Vec::<Vec<InnerVal>>::read(builder);
         let deferred_proofs_digest = Vec::<InnerVal>::read(builder);
         let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
@@ -635,7 +635,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
             proofs,
             start_reconstruct_deferred_digest,
             is_complete,
-            wp1_vk,
+            sphinx_vk,
             committed_value_digest,
             deferred_proofs_digest,
             leaf_challenger,
@@ -647,8 +647,8 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     fn write(&self) -> Vec<Vec<Block<<C as Config>::F>>> {
         let mut stream = Vec::new();
 
-        let wp1_vk_hint =
-            VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.wp1_machine, self.wp1_vk);
+        let sphinx_vk_hint =
+            VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.sphinx_machine, self.sphinx_vk);
 
         let compress_vk_hint =
             VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.machine, self.compress_vk);
@@ -670,7 +670,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         stream.extend(self.start_reconstruct_deferred_digest.write());
         stream.extend(usize::from(self.is_complete).write());
 
-        stream.extend(wp1_vk_hint.write());
+        stream.extend(sphinx_vk_hint.write());
         stream.extend(committed_value_digest.write());
         stream.extend(self.deferred_proofs_digest.write());
         stream.extend(self.leaf_challenger.write());

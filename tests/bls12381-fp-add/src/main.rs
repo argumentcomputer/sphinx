@@ -1,5 +1,5 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 extern "C" {
     fn syscall_bls12381_fp_add(p: *mut u32, q: *const u32);

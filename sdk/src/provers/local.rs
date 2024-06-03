@@ -1,5 +1,5 @@
 use anyhow::Result;
-use wp1_prover::{SP1Prover, SP1Stdin};
+use sphinx_prover::{SP1Prover, SP1Stdin};
 
 use crate::{
     Prover, SP1CompressedProof, SP1Groth16Proof, SP1PlonkProof, SP1Proof, SP1ProofWithPublicValues,
@@ -28,7 +28,7 @@ impl Prover for LocalProver {
         self.prover.setup(elf)
     }
 
-    fn wp1_prover(&self) -> &SP1Prover {
+    fn sphinx_prover(&self) -> &SP1Prover {
         &self.prover
     }
 
@@ -61,13 +61,13 @@ impl Prover for LocalProver {
         let compress_proof = self.prover.shrink(reduce_proof)?;
         let outer_proof = self.prover.wrap_bn254(compress_proof)?;
 
-        let groth16_aritfacts = if wp1_prover::build::wp1_dev_mode() {
-            wp1_prover::build::try_build_groth16_artifacts_dev(
+        let groth16_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
+            sphinx_prover::build::try_build_groth16_artifacts_dev(
                 &self.prover.wrap_vk,
                 &outer_proof.proof,
             )
         } else {
-            wp1_prover::build::try_install_groth16_artifacts()
+            sphinx_prover::build::try_install_groth16_artifacts()
         };
         let proof = self.prover.wrap_groth16(outer_proof, &groth16_aritfacts);
         Ok(SP1ProofWithPublicValues {

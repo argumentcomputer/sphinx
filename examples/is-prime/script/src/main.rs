@@ -1,5 +1,5 @@
 //! A program that takes a number `n` as input, and writes if `n` is prime as an output.
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SP1Stdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 

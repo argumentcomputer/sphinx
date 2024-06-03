@@ -4,7 +4,7 @@
 //! this operation doesn't do a range check.
 use p3_air::AirBuilder;
 use p3_field::Field;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::IsZeroOperation;
 use crate::{

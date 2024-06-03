@@ -10,9 +10,9 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::borrow::BorrowMut;
 use tracing::instrument;
-use wp1_core::air::{BaseAirBuilder, MachineAir};
-use wp1_core::utils::pad_rows_fixed;
-use wp1_primitives::RC_16_30_U32;
+use sphinx_core::air::{BaseAirBuilder, MachineAir};
+use sphinx_core::utils::pad_rows_fixed;
+use sphinx_primitives::RC_16_30_U32;
 
 use crate::air::SP1RecursionAirBuilder;
 use crate::memory::MemoryCols;
@@ -456,9 +456,9 @@ mod tests {
     use p3_matrix::dense::RowMajorMatrix;
     use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
     use p3_symmetric::Permutation;
-    use wp1_core::air::MachineAir;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::{inner_perm, uni_stark_prove, uni_stark_verify, BabyBearPoseidon2};
+    use sphinx_core::air::MachineAir;
+    use sphinx_core::stark::StarkGenericConfig;
+    use sphinx_core::utils::{inner_perm, uni_stark_prove, uni_stark_verify, BabyBearPoseidon2};
     use zkhash::ark_ff::UniformRand;
 
     /// A test generating a trace for a single permutation that checks that the output is correct

@@ -2,7 +2,7 @@ use std::cmp::Reverse;
 
 use itertools::Itertools;
 use p3_matrix::Dimensions;
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::ir::{Builder, Config, Felt, Var};
 
 use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigestVariable};
 

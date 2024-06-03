@@ -2,8 +2,8 @@ use alloc::{collections::BTreeMap, format};
 use core::fmt;
 
 use p3_field::{ExtensionField, PrimeField32};
-use wp1_recursion_core::cpu::Instruction;
-use wp1_recursion_core::runtime::{Opcode, PERMUTATION_WIDTH};
+use sphinx_recursion_core::cpu::Instruction;
+use sphinx_recursion_core::runtime::{Opcode, PERMUTATION_WIDTH};
 
 use super::A0;
 use crate::util::canonical_i32_to_field;
