@@ -11,15 +11,15 @@ use p3_field::PrimeField32;
 use tokio::{runtime, task::block_in_place};
 use sphinx_core::{
     air::Word,
-    io::SP1Stdin,
+    io::SphinxStdin,
     runtime::{Program, Runtime},
 };
 
-use crate::SP1CoreProofData;
+use crate::SphinxCoreProofData;
 
 pub const RECONSTRUCT_COMMITMENTS_ENV_VAR: &str = "RECONSTRUCT_COMMITMENTS";
 
-impl SP1CoreProofData {
+impl SphinxCoreProofData {
     pub fn save(&self, path: &str) -> Result<(), std::io::Error> {
         let data = serde_json::to_string(self).unwrap();
         fs::write(path, data).unwrap();
@@ -28,7 +28,7 @@ impl SP1CoreProofData {
 }
 
 /// Get the number of cycles for a given program.
-pub fn get_cycles(elf: &[u8], stdin: &SP1Stdin) -> u64 {
+pub fn get_cycles(elf: &[u8], stdin: &SphinxStdin) -> u64 {
     let program = Program::from(elf);
     let mut runtime = Runtime::new(program);
     runtime.write_vecs(&stdin.buffer);

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use sphinx_core::{
-    io::SP1Stdin,
+    io::SphinxStdin,
     runtime::{Program, Runtime},
     stark::RiscvAir,
     utils::{prove, prove_simple, BabyBearPoseidon2},
@@ -97,7 +97,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     prove(
                         black_box(&program),
-                        &SP1Stdin::new(),
+                        &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })

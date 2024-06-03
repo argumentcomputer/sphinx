@@ -474,7 +474,7 @@ where
 mod tests {
     use super::bls12_381_g1_decompress;
     use crate::{
-        io::SP1Stdin,
+        io::SphinxStdin,
         operations::field::params::FieldParameters,
         runtime::{Instruction, Opcode, SyscallCode},
         stark::SwCurve,
@@ -645,7 +645,7 @@ mod tests {
         let pt_compressed = pt_affine.to_compressed();
         let pt_uncompressed = pt_affine.to_uncompressed();
 
-        let inputs = SP1Stdin::from(&pt_compressed[..]);
+        let inputs = SphinxStdin::from(&pt_compressed[..]);
 
         let mut public_values =
             run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
@@ -663,7 +663,7 @@ mod tests {
             let pt_affine = G1Affine::from_compressed(candidate).unwrap();
             let pt_uncompressed = pt_affine.to_uncompressed();
 
-            let inputs = SP1Stdin::from(&pt_compressed[..]);
+            let inputs = SphinxStdin::from(&pt_compressed[..]);
 
             let mut public_values =
                 run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
@@ -684,7 +684,7 @@ mod tests {
 
         let mut public_values = run_test_io(
             Program::from(BLS12381_G1_DECOMPRESS_ELF),
-            &SP1Stdin::from(&compressed),
+            &SphinxStdin::from(&compressed),
         )
         .unwrap();
         let mut result = [0; 96];

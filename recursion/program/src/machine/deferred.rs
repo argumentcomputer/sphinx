@@ -30,12 +30,12 @@ use crate::utils::{const_fri_config, get_challenger_public_values, hash_vkey, va
 use super::utils::{commit_public_values, verify_public_values_hash};
 
 #[derive(Debug, Clone, Copy)]
-pub struct SP1DeferredVerifier<C: Config, SC: StarkGenericConfig, A> {
+pub struct SphinxDeferredVerifier<C: Config, SC: StarkGenericConfig, A> {
     _phantom: PhantomData<(C, SC, A)>,
 }
 
 /// Inputs that are hinted to the [SP1DeferredVerifier] program.
-pub struct SP1DeferredMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>>
+pub struct SphinxDeferredMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>>
 where
     SC::Val: PrimeField32,
 {
@@ -58,7 +58,7 @@ where
 
 /// A variable version of the [SP1DeferredMemoryLayout] struct.
 #[derive(DslVariable, Clone)]
-pub struct SP1DeferredMemoryLayoutVariable<C: Config> {
+pub struct SphinxDeferredMemoryLayoutVariable<C: Config> {
     pub compress_vk: VerifyingKeyVariable<C>,
 
     pub proofs: Array<C, ShardProofVariable<C>>,
@@ -75,27 +75,27 @@ pub struct SP1DeferredMemoryLayoutVariable<C: Config> {
     pub end_shard: Felt<C::F>,
 }
 
-impl<A> SP1DeferredVerifier<InnerConfig, BabyBearPoseidon2, A>
+impl<A> SphinxDeferredVerifier<InnerConfig, BabyBearPoseidon2, A>
 where
     A: MachineAir<BabyBear> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, InnerConfig>>,
 {
     /// Create a new instance of the program for the [BabyBearPoseidon2] config.
     pub fn build(machine: &StarkMachine<BabyBearPoseidon2, A>) -> RecursionProgram<BabyBear> {
         let mut builder = Builder::<InnerConfig>::default();
-        let input: SP1DeferredMemoryLayoutVariable<_> = builder.uninit();
-        SP1DeferredMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
+        let input: SphinxDeferredMemoryLayoutVariable<_> = builder.uninit();
+        SphinxDeferredMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
 
         let pcs = TwoAdicFriPcsVariable {
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
 
-        SP1DeferredVerifier::verify(&mut builder, &pcs, machine, input);
+        SphinxDeferredVerifier::verify(&mut builder, &pcs, machine, input);
 
         builder.compile_program()
     }
 }
 
-impl<C: Config, SC, A> SP1DeferredVerifier<C, SC, A>
+impl<C: Config, SC, A> SphinxDeferredVerifier<C, SC, A>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<
@@ -119,10 +119,10 @@ where
         builder: &mut Builder<C>,
         pcs: &TwoAdicFriPcsVariable<C>,
         machine: &StarkMachine<SC, A>,
-        input: SP1DeferredMemoryLayoutVariable<C>,
+        input: SphinxDeferredMemoryLayoutVariable<C>,
     ) {
         // Read the inputs.
-        let SP1DeferredMemoryLayoutVariable {
+        let SphinxDeferredMemoryLayoutVariable {
             compress_vk,
             proofs,
             start_reconstruct_deferred_digest,

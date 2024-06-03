@@ -355,5 +355,5 @@ fn find_builder_path(attrs: &[syn::Attribute]) -> syn::Path {
             }
         }
     }
-    parse_quote!(crate::air::SP1AirBuilder<F = F>)
+    parse_quote!(crate::air::SphinxAirBuilder<F = F>)
 }

@@ -1,4 +1,4 @@
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const REGEX_IO_ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -8,7 +8,7 @@ fn main() {
     utils::setup_logger();
 
     // Create a new stdin with d the input for the program.
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     let pattern = "a+".to_string();
     let target_string = "an era of truth, not trust".to_string();

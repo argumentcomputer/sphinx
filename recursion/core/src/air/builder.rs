@@ -12,12 +12,12 @@ use sphinx_core::{
 use super::Block;
 
 /// A trait which contains all helper methods for building SP1 recursion machine AIRs.
-pub trait SP1RecursionAirBuilder:
+pub trait SphinxRecursionAirBuilder:
     MachineAirBuilder + RecursionMemoryAirBuilder + RecursionInteractionAirBuilder
 {
 }
 
-impl<AB: AirBuilderWithPublicValues + RecursionMemoryAirBuilder> SP1RecursionAirBuilder for AB {}
+impl<AB: AirBuilderWithPublicValues + RecursionMemoryAirBuilder> SphinxRecursionAirBuilder for AB {}
 impl<AB: BaseAirBuilder> RecursionMemoryAirBuilder for AB {}
 impl<AB: BaseAirBuilder> RecursionInteractionAirBuilder for AB {}
 

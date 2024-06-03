@@ -5,7 +5,7 @@ use sphinx_cli::{
         build::BuildCmd, build_toolchain::BuildToolchainCmd,
         install_toolchain::InstallToolchainCmd, new::NewCmd, prove::ProveCmd,
     },
-    SP1_VERSION_MESSAGE,
+    Sphinx_VERSION_MESSAGE,
 };
 
 #[derive(Parser)]
@@ -15,7 +15,7 @@ pub enum Cargo {
 }
 
 #[derive(clap::Args)]
-#[command(author, about, long_about = None, args_conflicts_with_subcommands = true, version = SP1_VERSION_MESSAGE)]
+#[command(author, about, long_about = None, args_conflicts_with_subcommands = true, version = Sphinx_VERSION_MESSAGE)]
 pub struct ProveCli {
     #[clap(subcommand)]
     pub command: Option<ProveCliCommands>,

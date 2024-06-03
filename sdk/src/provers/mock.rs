@@ -1,23 +1,23 @@
 #![allow(unused_variables)]
 use crate::{
-    Prover, SP1CompressedProof, SP1Groth16Proof, SP1PlonkProof, SP1Proof,
-    SP1ProofVerificationError, SP1ProofWithPublicValues, SP1ProvingKey, SP1VerifyingKey,
+    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
+    SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 use anyhow::Result;
 use p3_field::PrimeField;
 use sphinx_prover::{
-    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SP1Prover, SP1Stdin,
+    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SphinxProver, SphinxStdin,
 };
 
 /// An implementation of [crate::ProverClient] that can generate mock proofs.
 pub struct MockProver {
-    pub(crate) prover: SP1Prover,
+    pub(crate) prover: SphinxProver,
 }
 
 impl MockProver {
     /// Creates a new [MockProver].
     pub fn new() -> Self {
-        let prover = SP1Prover::new();
+        let prover = SphinxProver::new();
         Self { prover }
     }
 }
@@ -27,17 +27,17 @@ impl Prover for MockProver {
         "mock".to_string()
     }
 
-    fn setup(&self, elf: &[u8]) -> (SP1ProvingKey, SP1VerifyingKey) {
+    fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
         self.prover.setup(elf)
     }
 
-    fn sphinx_prover(&self) -> &SP1Prover {
+    fn sphinx_prover(&self) -> &SphinxProver {
         unimplemented!("MockProver does not support SP1Prover")
     }
 
-    fn prove(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Proof> {
-        let public_values = SP1Prover::execute(&pk.elf, &stdin)?;
-        Ok(SP1ProofWithPublicValues {
+    fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
+        let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
+        Ok(SphinxProofWithPublicValues {
             proof: vec![],
             stdin,
             public_values,
@@ -46,15 +46,15 @@ impl Prover for MockProver {
 
     fn prove_compressed(
         &self,
-        _pk: &SP1ProvingKey,
-        _stdin: SP1Stdin,
-    ) -> Result<SP1CompressedProof> {
+        _pk: &SphinxProvingKey,
+        _stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         unimplemented!()
     }
 
-    fn prove_groth16(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Groth16Proof> {
-        let public_values = SP1Prover::execute(&pk.elf, &stdin)?;
-        Ok(SP1Groth16Proof {
+    fn prove_groth16(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxGroth16Proof> {
+        let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
+        Ok(SphinxGroth16Proof {
             proof: Groth16Proof {
                 public_inputs: [
                     pk.vk.hash_bn254().as_canonical_biguint().to_string(),
@@ -68,32 +68,32 @@ impl Prover for MockProver {
         })
     }
 
-    fn prove_plonk(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1PlonkProof> {
+    fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
         todo!()
     }
 
     fn verify(
         &self,
-        _proof: &SP1Proof,
-        _vkey: &SP1VerifyingKey,
-    ) -> Result<(), SP1ProofVerificationError> {
+        _proof: &SphinxProof,
+        _vkey: &SphinxVerifyingKey,
+    ) -> Result<(), SphinxProofVerificationError> {
         Ok(())
     }
 
     fn verify_compressed(
         &self,
-        _proof: &SP1CompressedProof,
-        _vkey: &SP1VerifyingKey,
+        _proof: &SphinxCompressedProof,
+        _vkey: &SphinxVerifyingKey,
     ) -> Result<()> {
         Ok(())
     }
 
-    fn verify_groth16(&self, proof: &SP1Groth16Proof, vkey: &SP1VerifyingKey) -> Result<()> {
+    fn verify_groth16(&self, proof: &SphinxGroth16Proof, vkey: &SphinxVerifyingKey) -> Result<()> {
         verify_groth16_public_inputs(vkey, &proof.public_values, &proof.proof.public_inputs)?;
         Ok(())
     }
 
-    fn verify_plonk(&self, _proof: &SP1PlonkProof, _vkey: &SP1VerifyingKey) -> Result<()> {
+    fn verify_plonk(&self, _proof: &SphinxPlonkProof, _vkey: &SphinxVerifyingKey) -> Result<()> {
         Ok(())
     }
 }

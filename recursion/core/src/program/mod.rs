@@ -1,4 +1,4 @@
-use crate::air::SP1RecursionAirBuilder;
+use crate::air::SphinxRecursionAirBuilder;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use p3_air::{Air, BaseAir, PairBuilder};
@@ -153,7 +153,7 @@ impl<F> BaseAir<F> for ProgramChip {
 
 impl<AB> Air<AB> for ProgramChip
 where
-    AB: SP1RecursionAirBuilder + PairBuilder,
+    AB: SphinxRecursionAirBuilder + PairBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

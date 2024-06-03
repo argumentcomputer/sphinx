@@ -2,7 +2,7 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 
 use crate::{
-    air::{BlockBuilder, SP1RecursionAirBuilder},
+    air::{BlockBuilder, SphinxRecursionAirBuilder},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
     runtime::DIGEST_SIZE,
@@ -18,7 +18,7 @@ impl<F: Field> CpuChip<F> {
         local: &CpuCols<AB::Var>,
         commit_digest: &[AB::Expr; DIGEST_SIZE],
     ) where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         let public_values_cols = local.opcode_specific.public_values();
         let is_commit_instruction = self.is_commit_instruction::<AB>(local);

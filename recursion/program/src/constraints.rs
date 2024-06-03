@@ -161,7 +161,7 @@ mod tests {
     use p3_field::PrimeField32;
     use serde::{de::DeserializeOwned, Serialize};
     use sphinx_core::{
-        io::SP1Stdin,
+        io::SphinxStdin,
         runtime::Program,
         stark::{
             Chip, Com, Dom, OpeningProof, PcsProverData, RiscvAir, ShardCommitment, ShardMainData,
@@ -280,7 +280,7 @@ mod tests {
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
         let (proof, _) =
-            sphinx_core::utils::prove(&Program::from(elf), &SP1Stdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default()).unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
 
         println!("Proof generated and verified successfully");

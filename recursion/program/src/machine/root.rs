@@ -28,23 +28,23 @@ use super::utils::{commit_public_values, verify_public_values_hash};
 
 /// The program that gets a final verifier at the root of the tree.
 #[derive(Debug, Clone, Copy)]
-pub struct SP1RootVerifier<C: Config, SC: StarkGenericConfig, A> {
+pub struct SphinxRootVerifier<C: Config, SC: StarkGenericConfig, A> {
     _phantom: std::marker::PhantomData<(C, SC, A)>,
 }
 
-pub struct SP1RootMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
+pub struct SphinxRootMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
     pub machine: &'a StarkMachine<SC, A>,
     pub proof: ShardProof<SC>,
     pub is_reduce: bool,
 }
 
 #[derive(DslVariable, Clone)]
-pub struct SP1RootMemoryLayoutVariable<C: Config> {
+pub struct SphinxRootMemoryLayoutVariable<C: Config> {
     pub proof: ShardProofVariable<C>,
     pub is_reduce: Var<C::N>,
 }
 
-impl<A> SP1RootVerifier<InnerConfig, BabyBearPoseidon2, A>
+impl<A> SphinxRootVerifier<InnerConfig, BabyBearPoseidon2, A>
 where
     A: MachineAir<BabyBear> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, InnerConfig>>,
 {
@@ -62,13 +62,13 @@ where
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
 
-        SP1RootVerifier::verify(&mut builder, &pcs, machine, vk, &proof, is_compress);
+        SphinxRootVerifier::verify(&mut builder, &pcs, machine, vk, &proof, is_compress);
 
         builder.compile_program()
     }
 }
 
-impl<C: Config, SC, A> SP1RootVerifier<C, SC, A>
+impl<C: Config, SC, A> SphinxRootVerifier<C, SC, A>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<

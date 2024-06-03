@@ -14,14 +14,14 @@ use p3_matrix::Matrix;
 use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
-    air::{RecursionPublicValues, SP1RecursionAirBuilder, RECURSIVE_PROOF_NUM_PV_ELTS},
+    air::{RecursionPublicValues, SphinxRecursionAirBuilder, RECURSIVE_PROOF_NUM_PV_ELTS},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
 };
 
 impl<AB> Air<AB> for CpuChip<AB::F>
 where
-    AB: SP1RecursionAirBuilder,
+    AB: SphinxRecursionAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
@@ -102,7 +102,7 @@ impl<F: Field> CpuChip<F> {
     /// is stored in the `a` operand.
     pub fn eval_clk<AB>(&self, builder: &mut AB, local: &CpuCols<AB::Var>, next: &CpuCols<AB::Var>)
     where
-        AB: SP1RecursionAirBuilder,
+        AB: SphinxRecursionAirBuilder,
     {
         builder
             .when_transition()
@@ -124,7 +124,7 @@ impl<F: Field> CpuChip<F> {
         local: &CpuCols<AB::Var>,
         next: &CpuCols<AB::Var>,
     ) where
-        AB: SP1RecursionAirBuilder,
+        AB: SphinxRecursionAirBuilder,
     {
         builder.assert_bool(local.is_real);
 
@@ -141,7 +141,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for alu instructions.
     pub fn is_alu_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_add
             + local.selectors.is_sub
@@ -152,7 +152,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for branch instructions.
     pub fn is_branch_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_beq + local.selectors.is_bne + local.selectors.is_bneinc
     }
@@ -160,7 +160,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for jump instructions.
     pub fn is_jump_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_jal + local.selectors.is_jalr
     }
@@ -168,7 +168,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for memory instructions.
     pub fn is_memory_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_load + local.selectors.is_store
     }
@@ -176,7 +176,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for instructions that only read from operand `a`.
     pub fn is_op_a_read_only_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_beq
             + local.selectors.is_bne
@@ -188,7 +188,7 @@ impl<F: Field> CpuChip<F> {
     /// Expr to check for instructions that are commit instructions.
     pub fn is_commit_instruction<AB>(&self, local: &CpuCols<AB::Var>) -> AB::Expr
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         local.selectors.is_commit.into()
     }

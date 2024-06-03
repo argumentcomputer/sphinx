@@ -11,7 +11,7 @@ use serde::Serialize;
 use sphinx_core::runtime::{Program, Runtime};
 use sphinx_core::utils::{prove_simple, BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2};
 use sphinx_prover::utils::get_cycles;
-use sphinx_prover::SP1Stdin;
+use sphinx_prover::SphinxStdin;
 
 /// An identifier used to select the hash function to evaluate.
 #[derive(clap::ValueEnum, Clone)]
@@ -90,7 +90,7 @@ fn main() {
     // Load the program.
     let elf_path = &args.elf_path;
     let elf = fs::read(elf_path).expect("Failed to read ELF file");
-    let cycles = get_cycles(&elf, &SP1Stdin::new());
+    let cycles = get_cycles(&elf, &SphinxStdin::new());
 
     // Initialize total duration counters.
     let mut total_execution_duration = 0f64;

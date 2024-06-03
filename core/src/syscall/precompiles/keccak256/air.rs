@@ -131,7 +131,7 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::io::{SP1PublicValues, SP1Stdin};
+    use crate::io::{SphinxPublicValues, SphinxStdin};
     use crate::runtime::Program;
     use crate::stark::{RiscvAir, StarkGenericConfig};
     use crate::utils::{prove, setup_logger, tests::KECCAK256_ELF, BabyBearPoseidon2};
@@ -159,7 +159,7 @@ mod test {
             outputs.push(hash);
         }
 
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&NUM_TEST_CASES);
         for input in inputs.iter() {
             stdin.write(&input);
@@ -169,7 +169,7 @@ mod test {
 
         let program = Program::from(KECCAK256_ELF);
         let (proof, public_values) = prove(&program, &stdin, config).unwrap();
-        let mut public_values = SP1PublicValues::from(&public_values);
+        let mut public_values = SphinxPublicValues::from(&public_values);
 
         let config = BabyBearPoseidon2::new();
         let mut challenger = config.challenger();

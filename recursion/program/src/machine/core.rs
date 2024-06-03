@@ -31,11 +31,11 @@ use super::utils::{assert_complete, commit_public_values};
 
 /// A program for recursively verifying a batch of SP1 proofs.
 #[derive(Debug, Clone, Copy)]
-pub struct SP1RecursiveVerifier<C: Config, SC: StarkGenericConfig> {
+pub struct SphinxRecursiveVerifier<C: Config, SC: StarkGenericConfig> {
     _phantom: PhantomData<(C, SC)>,
 }
 
-pub struct SP1RecursionMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
+pub struct SphinxRecursionMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
     pub vk: &'a StarkVerifyingKey<SC>,
     pub machine: &'a StarkMachine<SC, A>,
     pub shard_proofs: Vec<ShardProof<SC>>,
@@ -45,7 +45,7 @@ pub struct SP1RecursionMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC
 }
 
 #[derive(DslVariable, Clone)]
-pub struct SP1RecursionMemoryLayoutVariable<C: Config> {
+pub struct SphinxRecursionMemoryLayoutVariable<C: Config> {
     pub vk: VerifyingKeyVariable<C>,
 
     pub shard_proofs: Array<C, ShardProofVariable<C>>,
@@ -56,26 +56,26 @@ pub struct SP1RecursionMemoryLayoutVariable<C: Config> {
     pub is_complete: Var<C::N>,
 }
 
-impl SP1RecursiveVerifier<InnerConfig, BabyBearPoseidon2> {
+impl SphinxRecursiveVerifier<InnerConfig, BabyBearPoseidon2> {
     /// Create a new instance of the program for the [BabyBearPoseidon2] config.
     pub fn build(
         machine: &StarkMachine<BabyBearPoseidon2, RiscvAir<BabyBear>>,
     ) -> RecursionProgram<BabyBear> {
         let mut builder = Builder::<InnerConfig>::default();
 
-        let input: SP1RecursionMemoryLayoutVariable<_> = builder.uninit();
-        SP1RecursionMemoryLayout::<BabyBearPoseidon2, RiscvAir<_>>::witness(&input, &mut builder);
+        let input: SphinxRecursionMemoryLayoutVariable<_> = builder.uninit();
+        SphinxRecursionMemoryLayout::<BabyBearPoseidon2, RiscvAir<_>>::witness(&input, &mut builder);
 
         let pcs = TwoAdicFriPcsVariable {
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
-        SP1RecursiveVerifier::verify(&mut builder, &pcs, machine, input);
+        SphinxRecursiveVerifier::verify(&mut builder, &pcs, machine, input);
 
         builder.compile_program()
     }
 }
 
-impl<C: Config, SC> SP1RecursiveVerifier<C, SC>
+impl<C: Config, SC> SphinxRecursiveVerifier<C, SC>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<
@@ -95,9 +95,9 @@ where
         builder: &mut Builder<C>,
         pcs: &TwoAdicFriPcsVariable<C>,
         machine: &StarkMachine<SC, RiscvAir<SC::Val>>,
-        input: SP1RecursionMemoryLayoutVariable<C>,
+        input: SphinxRecursionMemoryLayoutVariable<C>,
     ) {
-        let SP1RecursionMemoryLayoutVariable {
+        let SphinxRecursionMemoryLayoutVariable {
             vk,
             shard_proofs,
             leaf_challenger,

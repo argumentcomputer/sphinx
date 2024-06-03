@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -16,7 +16,7 @@ fn main() {
     utils::setup_logger();
 
     // Create an input stream.
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
     let p = MyPointUnaligned {
         x: 1,
         y: 2,

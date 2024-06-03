@@ -1,4 +1,4 @@
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -10,7 +10,7 @@ fn main() {
     // Create an input stream and write '500' to it.
     let n = 500u32;
 
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
     stdin.write(&n);
 
     let client = ProverClient::new();

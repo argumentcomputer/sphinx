@@ -7,7 +7,7 @@ use p3_matrix::Matrix;
 
 use super::columns::{RangeCheckMultCols, RangeCheckPreprocessedCols, NUM_RANGE_CHECK_MULT_COLS};
 use super::{RangeCheckChip, RangeCheckOpcode};
-use crate::air::SP1RecursionAirBuilder;
+use crate::air::SphinxRecursionAirBuilder;
 
 impl<F: Field> BaseAir<F> for RangeCheckChip<F> {
     fn width(&self) -> usize {
@@ -15,7 +15,7 @@ impl<F: Field> BaseAir<F> for RangeCheckChip<F> {
     }
 }
 
-impl<AB: SP1RecursionAirBuilder + PairBuilder> Air<AB> for RangeCheckChip<AB::F> {
+impl<AB: SphinxRecursionAirBuilder + PairBuilder> Air<AB> for RangeCheckChip<AB::F> {
     /// Eval's the range check chip.
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

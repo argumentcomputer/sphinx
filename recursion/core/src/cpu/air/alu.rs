@@ -3,7 +3,7 @@ use p3_field::{AbstractField, Field};
 use sphinx_core::air::{BinomialExtension, ExtensionAirBuilder};
 
 use crate::{
-    air::{BinomialExtensionUtils, SP1RecursionAirBuilder},
+    air::{BinomialExtensionUtils, SphinxRecursionAirBuilder},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
 };
@@ -12,7 +12,7 @@ impl<F: Field> CpuChip<F> {
     /// Eval the ALU instructions.
     pub fn eval_alu<AB>(&self, builder: &mut AB, local: &CpuCols<AB::Var>)
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         let one = AB::Expr::one();
         let is_alu_instruction = self.is_alu_instruction::<AB>(local);

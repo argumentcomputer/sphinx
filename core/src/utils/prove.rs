@@ -13,7 +13,7 @@ use size::Size;
 use thiserror::Error;
 
 use crate::air::MachineAir;
-use crate::io::{SP1PublicValues, SP1Stdin};
+use crate::io::{SphinxPublicValues, SphinxStdin};
 use crate::lookup::InteractionBuilder;
 use crate::runtime::ExecutionError;
 use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
@@ -34,7 +34,7 @@ use crate::{
 const LOG_DEGREE_BOUND: usize = 31;
 
 #[derive(Error, Debug)]
-pub enum SP1CoreProverError {
+pub enum SphinxCoreProverError {
     #[error("failed to execute program: {0}")]
     ExecutionError(ExecutionError),
     #[error("io error: {0}")]
@@ -46,7 +46,7 @@ pub enum SP1CoreProverError {
 pub fn prove_simple<SC: StarkGenericConfig>(
     config: SC,
     runtime: Runtime,
-) -> Result<MachineProof<SC>, SP1CoreProverError>
+) -> Result<MachineProof<SC>, SphinxCoreProverError>
 where
     SC::Challenger: Clone,
     OpeningProof<SC>: Send + Sync,
@@ -80,9 +80,9 @@ where
 
 pub fn prove<SC: StarkGenericConfig + Send + Sync>(
     program: &Program,
-    stdin: &SP1Stdin,
+    stdin: &SphinxStdin,
     config: SC,
-) -> Result<(MachineProof<SC>, Vec<u8>), SP1CoreProverError>
+) -> Result<(MachineProof<SC>, Vec<u8>), SphinxCoreProverError>
 where
     SC::Challenger: Clone,
     OpeningProof<SC>: Send + Sync,
@@ -107,7 +107,7 @@ where
     // If we don't need to batch, we can just run the program normally and prove it.
     if env::shard_batch_size() == 0 {
         // Execute the runtime and collect all the events..
-        runtime.run().map_err(SP1CoreProverError::ExecutionError)?;
+        runtime.run().map_err(SphinxCoreProverError::ExecutionError)?;
 
         // If debugging is enabled, we will also debug the constraints.
         #[cfg(feature = "debug")]
@@ -128,18 +128,18 @@ where
         // Execute the runtime until we reach a checkpoint.
         let (checkpoint, done) = runtime
             .execute_state()
-            .map_err(SP1CoreProverError::ExecutionError)?;
+            .map_err(SphinxCoreProverError::ExecutionError)?;
 
         // Save the checkpoint to a temp file.
-        let mut tempfile = tempfile::tempfile().map_err(SP1CoreProverError::IoError)?;
+        let mut tempfile = tempfile::tempfile().map_err(SphinxCoreProverError::IoError)?;
         let mut writer = io::BufWriter::new(&mut tempfile);
         bincode::serialize_into(&mut writer, &checkpoint)
-            .map_err(SP1CoreProverError::SerializationError)?;
-        writer.flush().map_err(SP1CoreProverError::IoError)?;
+            .map_err(SphinxCoreProverError::SerializationError)?;
+        writer.flush().map_err(SphinxCoreProverError::IoError)?;
         drop(writer);
         tempfile
             .seek(io::SeekFrom::Start(0))
-            .map_err(SP1CoreProverError::IoError)?;
+            .map_err(SphinxCoreProverError::IoError)?;
         checkpoints.push(tempfile);
 
         // If we've reached the final checkpoint, break out of the loop.
@@ -227,15 +227,15 @@ where
 /// Runs a program and returns the public values stream.
 pub fn run_test_io(
     program: Program,
-    inputs: &SP1Stdin,
-) -> Result<SP1PublicValues, crate::stark::MachineVerificationError<BabyBearPoseidon2>> {
+    inputs: &SphinxStdin,
+) -> Result<SphinxPublicValues, crate::stark::MachineVerificationError<BabyBearPoseidon2>> {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
         let mut runtime = Runtime::new(program);
         runtime.write_vecs(&inputs.buffer);
         runtime.run().unwrap();
         runtime
     });
-    let public_values = SP1PublicValues::from(&runtime.state.public_values_stream);
+    let public_values = SphinxPublicValues::from(&runtime.state.public_values_stream);
     let _ = run_test_core(runtime)?;
     Ok(public_values)
 }

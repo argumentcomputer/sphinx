@@ -87,7 +87,7 @@ mod tests {
     use rand::RngCore;
 
     use crate::{
-        io::SP1Stdin,
+        io::SphinxStdin,
         runtime::Program,
         utils::{prove, setup_logger, BabyBearPoseidon2},
     };
@@ -103,7 +103,7 @@ mod tests {
         let mut data = vec![0u8; 1021];
         rng.fill_bytes(&mut data);
 
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&data);
         stdin.write_vec(data);
 

@@ -14,7 +14,7 @@ use sphinx_core::air::{BaseAirBuilder, MachineAir};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_primitives::RC_16_30_U32;
 
-use crate::air::SP1RecursionAirBuilder;
+use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryCols;
 
 use crate::poseidon2_wide::{external_linear_layer, internal_linear_layer};
@@ -342,7 +342,7 @@ impl<F, const DEGREE: usize> BaseAir<F> for Poseidon2WideChip<DEGREE> {
     }
 }
 
-fn eval_mem<AB: SP1RecursionAirBuilder>(builder: &mut AB, local: &Poseidon2MemCols<AB::Var>) {
+fn eval_mem<AB: SphinxRecursionAirBuilder>(builder: &mut AB, local: &Poseidon2MemCols<AB::Var>) {
     // Evaluate all of the memory.
     for i in 0..WIDTH {
         let input_addr = if i < WIDTH / 2 {
@@ -383,7 +383,7 @@ fn eval_mem<AB: SP1RecursionAirBuilder>(builder: &mut AB, local: &Poseidon2MemCo
 
 impl<AB, const DEGREE: usize> Air<AB> for Poseidon2WideChip<DEGREE>
 where
-    AB: SP1RecursionAirBuilder,
+    AB: SphinxRecursionAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         assert!(DEGREE >= 3, "Minimum supported constraint degree is 3");

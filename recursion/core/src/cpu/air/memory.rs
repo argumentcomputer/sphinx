@@ -3,7 +3,7 @@ use p3_field::Field;
 use sphinx_core::runtime::MemoryAccessPosition;
 
 use crate::{
-    air::{BlockBuilder, SP1RecursionAirBuilder},
+    air::{BlockBuilder, SphinxRecursionAirBuilder},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
 };
@@ -12,7 +12,7 @@ impl<F: Field> CpuChip<F> {
     // Eval the MEMORY instructions.
     pub fn eval_memory<AB>(&self, builder: &mut AB, local: &CpuCols<AB::Var>)
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         let is_memory_instr = self.is_memory_instruction::<AB>(local);
         let index = local.c.value()[0];

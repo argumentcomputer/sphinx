@@ -3,7 +3,7 @@ use p3_field::{AbstractField, Field};
 use sphinx_core::air::{BinomialExtension, ExtensionAirBuilder};
 
 use crate::{
-    air::{BinomialExtensionUtils, IsExtZeroOperation, SP1RecursionAirBuilder},
+    air::{BinomialExtensionUtils, IsExtZeroOperation, SphinxRecursionAirBuilder},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
 };
@@ -16,7 +16,7 @@ impl<F: Field> CpuChip<F> {
         local: &CpuCols<AB::Var>,
         next_pc: &mut AB::Expr,
     ) where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         let branch_cols = local.opcode_specific.branch();
         let is_branch_instruction = self.is_branch_instruction::<AB>(local);
