@@ -7,8 +7,9 @@ use sphinx_derive::AlignedBorrow;
 use super::field_op::FieldOpCols;
 use super::params::Limbs;
 use super::range::FieldRangeCols;
-use crate::air::BaseAirBuilder;
+use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
+use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::params::FieldParameters;
 
 /// A set of columns to compute the square root in emulated arithmetic.
@@ -63,13 +64,26 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
         // Populate the range columns.
         self.range.populate(record, shard, channel, &sqrt);
 
+        // Add the byte range check for `sqrt`.
+        record.add_u8_range_checks(
+            shard,
+            channel,
+            self.multiplication
+                .result
+                .as_slice()
+                .iter()
+                .map(|x| x.as_canonical_u32() as u8)
+                .collect::<Vec<_>>()
+                .as_slice(),
+        );
+
         sqrt
     }
 }
 
 impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
-    pub fn eval<AB: BaseAirBuilder<Var = V>>(
+    pub fn eval<AB: WordAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
@@ -97,7 +111,21 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
             is_real.clone(),
         );
 
-        self.range.eval(builder, &sqrt, shard, channel, is_real);
+        self.range.eval(
+            builder,
+            &sqrt,
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+
+        // Range check that `sqrt` limbs are bytes.
+        builder.slice_range_check_u8(
+            sqrt.as_slice(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
     }
 }
 
