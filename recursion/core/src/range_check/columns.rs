@@ -1,5 +1,5 @@
-use std::mem::size_of;
 use sphinx_derive::AlignedBorrow;
+use std::mem::size_of;
 
 use super::NUM_RANGE_CHECK_OPS;
 

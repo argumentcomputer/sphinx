@@ -9,8 +9,8 @@ use crate::runtime::Runtime;
 use crate::stark::RecursionAir;
 use crate::stark::RecursionAirSkinnyDeg7;
 use p3_field::PrimeField32;
-use std::collections::VecDeque;
 use sphinx_core::utils::run_test_machine;
+use std::collections::VecDeque;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum TestConfig {

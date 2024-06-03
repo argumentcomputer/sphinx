@@ -548,7 +548,9 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     }
 }
 
-impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SphinxReduceMemoryLayout<'a, BabyBearPoseidon2, A> {
+impl<'a, A: MachineAir<BabyBear>> Hintable<C>
+    for SphinxReduceMemoryLayout<'a, BabyBearPoseidon2, A>
+{
     type HintVariable = SphinxReduceMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {

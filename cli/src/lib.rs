@@ -9,7 +9,7 @@ use reqwest::Client;
 
 pub const RUSTUP_TOOLCHAIN_NAME: &str = "succinct";
 
-pub const Sphinx_VERSION_MESSAGE: &str = concat!(
+pub const SPHINX_VERSION_MESSAGE: &str = concat!(
     "sphinx",
     " (",
     env!("VERGEN_GIT_SHA"),

@@ -3,7 +3,9 @@ use sphinx_recursion_compiler::prelude::MemIndex;
 use sphinx_recursion_compiler::prelude::MemVariable;
 use sphinx_recursion_compiler::prelude::Ptr;
 use sphinx_recursion_compiler::prelude::Variable;
-use sphinx_recursion_compiler::prelude::{Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var};
+use sphinx_recursion_compiler::prelude::{
+    Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var,
+};
 use sphinx_recursion_core::runtime::{DIGEST_SIZE, PERMUTATION_WIDTH};
 
 use crate::fri::types::DigestVariable;

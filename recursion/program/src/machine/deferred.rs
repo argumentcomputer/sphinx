@@ -259,7 +259,8 @@ where
 
         // Set the sp1_vk_digest to be the hitned value.
         let sphinx_vk_digest = hash_vkey(builder, &sphinx_vk);
-        deferred_public_values.sphinx_vk_digest = array::from_fn(|i| builder.get(&sphinx_vk_digest, i));
+        deferred_public_values.sphinx_vk_digest =
+            array::from_fn(|i| builder.get(&sphinx_vk_digest, i));
 
         // Set the committed value digest to be the hitned value.
         for (i, public_word) in deferred_public_values

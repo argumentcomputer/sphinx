@@ -280,7 +280,8 @@ mod tests {
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
         let (proof, _) =
-            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default())
+                .unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
 
         println!("Proof generated and verified successfully");

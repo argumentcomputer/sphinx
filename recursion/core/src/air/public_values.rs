@@ -5,15 +5,15 @@ use p3_challenger::DuplexChallenger;
 use p3_field::PrimeField32;
 use p3_symmetric::CryptographicPermutation;
 use serde::{Deserialize, Serialize};
-use static_assertions::const_assert_eq;
-use std::mem::size_of;
-use std::mem::transmute;
 use sphinx_core::{
     air::{Word, POSEIDON_NUM_WORDS},
     stark::PROOF_MAX_NUM_PVS,
     utils::indices_arr,
 };
 use sphinx_derive::AlignedBorrow;
+use static_assertions::const_assert_eq;
+use std::mem::size_of;
+use std::mem::transmute;
 
 pub const PV_DIGEST_NUM_WORDS: usize = 8;
 

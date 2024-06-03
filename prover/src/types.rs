@@ -8,7 +8,6 @@ use p3_commit::{Pcs, TwoAdicMultiplicativeCoset};
 use p3_field::PrimeField;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use thiserror::Error;
 use sphinx_core::{
     io::{SphinxPublicValues, SphinxStdin},
     stark::{ShardProof, StarkGenericConfig, StarkProvingKey, StarkVerifyingKey},
@@ -17,6 +16,7 @@ use sphinx_core::{
 use sphinx_primitives::poseidon2_hash;
 use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
 use sphinx_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
+use thiserror::Error;
 
 use crate::utils::words_to_bytes_be;
 use crate::{utils::babybear_bytes_to_bn254, words_to_bytes};

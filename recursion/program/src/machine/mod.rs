@@ -59,7 +59,8 @@ mod tests {
         let (rec_pk, rec_vk) = recursive_machine.setup(&recursive_program);
 
         // Make the deferred program.
-        let deferred_program = SphinxDeferredVerifier::<InnerConfig, SC, _>::build(&recursive_machine);
+        let deferred_program =
+            SphinxDeferredVerifier::<InnerConfig, SC, _>::build(&recursive_machine);
         let (_, deferred_vk) = recursive_machine.setup(&deferred_program);
 
         // Make the compress program.
@@ -84,7 +85,8 @@ mod tests {
 
         let mut challenger = machine.config().challenger();
         let time = std::time::Instant::now();
-        let (proof, _) = sphinx_core::utils::prove(program, &SphinxStdin::new(), SC::default()).unwrap();
+        let (proof, _) =
+            sphinx_core::utils::prove(program, &SphinxStdin::new(), SC::default()).unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
         tracing::info!("Proof generated successfully");
         let elapsed = time.elapsed();

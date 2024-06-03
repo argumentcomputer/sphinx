@@ -107,7 +107,9 @@ where
     // If we don't need to batch, we can just run the program normally and prove it.
     if env::shard_batch_size() == 0 {
         // Execute the runtime and collect all the events..
-        runtime.run().map_err(SphinxCoreProverError::ExecutionError)?;
+        runtime
+            .run()
+            .map_err(SphinxCoreProverError::ExecutionError)?;
 
         // If debugging is enabled, we will also debug the constraints.
         #[cfg(feature = "debug")]

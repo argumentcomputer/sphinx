@@ -32,7 +32,7 @@ impl Default for SphinxStdin {
 }
 
 impl SphinxStdin {
-    /// Create a new `SP1Stdin`.
+    /// Create a new `SphinxStdin`.
     pub fn new() -> Self {
         Self {
             buffer: Vec::new(),
@@ -41,7 +41,7 @@ impl SphinxStdin {
         }
     }
 
-    /// Create a `SP1Stdin` from a slice of bytes.
+    /// Create a `SphinxStdin` from a slice of bytes.
     pub fn from(data: &[u8]) -> Self {
         Self {
             buffer: vec![data.to_vec()],

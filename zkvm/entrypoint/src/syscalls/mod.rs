@@ -93,8 +93,8 @@ pub const COMMIT: u32 = 0x00_00_00_10;
 /// Executes the `COMMIT_DEFERRED_PROOFS` precompile.
 pub const COMMIT_DEFERRED_PROOFS: u32 = 0x00_00_00_1A;
 
-/// Executes the `VERIFY_SP1_PROOF` precompile.
-pub const VERIFY_Sphinx_PROOF: u32 = 0x00_00_00_1B;
+/// Executes the `VERIFY_SPHINX_PROOF` precompile.
+pub const VERIFY_SPHINX_PROOF: u32 = 0x00_00_00_1B;
 
 /// Executes `HINT_LEN`.
 pub const HINT_LEN: u32 = 0x00_00_00_F0;

@@ -4,10 +4,10 @@ pub mod two_adic_pcs;
 pub mod types;
 
 pub use domain::*;
-pub use two_adic_pcs::*;
 use sphinx_recursion_compiler::ir::ExtensionOperand;
 use sphinx_recursion_compiler::ir::Ptr;
 use sphinx_recursion_core::runtime::DIGEST_SIZE;
+pub use two_adic_pcs::*;
 
 use p3_field::AbstractField;
 use p3_field::Field;

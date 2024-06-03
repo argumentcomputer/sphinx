@@ -459,7 +459,8 @@ pub(crate) mod tests {
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger_val = machine.config().challenger();
         let (proof, _) =
-            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default())
+                .unwrap();
         let proofs = proof.shard_proofs;
         println!("Proof generated successfully");
 
