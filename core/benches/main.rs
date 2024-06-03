@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use sphinx_core::io::SP1Stdin;
+use sphinx_core::io::SphinxStdin;
 use sphinx_core::runtime::{Program, Runtime};
 use sphinx_core::utils::{prove, BabyBearPoseidon2};
 
@@ -22,7 +22,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     prove(
                         black_box(&program),
-                        &SP1Stdin::new(),
+                        &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })

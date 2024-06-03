@@ -411,7 +411,7 @@ pub(crate) mod tests {
     use p3_field::AbstractField;
     use rand::Rng;
     use sphinx_core::air::POSEIDON_NUM_WORDS;
-    use sphinx_core::io::SP1Stdin;
+    use sphinx_core::io::SphinxStdin;
     use sphinx_core::runtime::Program;
     use sphinx_core::stark::LocalProver;
     use sphinx_core::utils::setup_logger;
@@ -459,7 +459,7 @@ pub(crate) mod tests {
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger_val = machine.config().challenger();
         let (proof, _) =
-            sphinx_core::utils::prove(&Program::from(elf), &SP1Stdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default()).unwrap();
         let proofs = proof.shard_proofs;
         println!("Proof generated successfully");
 

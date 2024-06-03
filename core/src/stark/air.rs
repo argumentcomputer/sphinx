@@ -1,6 +1,6 @@
 use super::StarkMachine;
-pub use crate::air::SP1AirBuilder;
-use crate::air::{MachineAir, SP1_PROOF_NUM_PV_ELTS};
+pub use crate::air::SphinxAirBuilder;
+use crate::air::{MachineAir, Sphinx_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
@@ -123,7 +123,7 @@ impl<F: PrimeField32> RiscvAir<F> {
             .into_iter()
             .map(Chip::new)
             .collect::<Vec<_>>();
-        StarkMachine::new(config, chips, SP1_PROOF_NUM_PV_ELTS)
+        StarkMachine::new(config, chips, Sphinx_PROOF_NUM_PV_ELTS)
     }
 
     /// Get all the different RISC-V AIRs.

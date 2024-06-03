@@ -1,4 +1,4 @@
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -8,7 +8,7 @@ fn main() {
     utils::setup_logger();
 
     // Create an input stream.
-    let stdin = SP1Stdin::new();
+    let stdin = SphinxStdin::new();
 
     // Generate the proof for the given program.
     let client = ProverClient::new();

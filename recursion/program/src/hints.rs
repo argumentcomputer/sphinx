@@ -506,9 +506,9 @@ where
 }
 
 impl<'a, A: MachineAir<BabyBear>> Hintable<C>
-    for SP1RecursionMemoryLayout<'a, BabyBearPoseidon2, A>
+    for SphinxRecursionMemoryLayout<'a, BabyBearPoseidon2, A>
 {
-    type HintVariable = SP1RecursionMemoryLayoutVariable<C>;
+    type HintVariable = SphinxRecursionMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -518,7 +518,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
             DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
         let is_complete = builder.hint_var();
 
-        SP1RecursionMemoryLayoutVariable {
+        SphinxRecursionMemoryLayoutVariable {
             vk,
             shard_proofs,
             leaf_challenger,
@@ -548,8 +548,8 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     }
 }
 
-impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, BabyBearPoseidon2, A> {
-    type HintVariable = SP1ReduceMemoryLayoutVariable<C>;
+impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SphinxReduceMemoryLayout<'a, BabyBearPoseidon2, A> {
+    type HintVariable = SphinxReduceMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let compress_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -557,7 +557,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, Baby
         let kinds = Vec::<usize>::read(builder);
         let is_complete = builder.hint_var();
 
-        SP1ReduceMemoryLayoutVariable {
+        SphinxReduceMemoryLayoutVariable {
             compress_vk,
             shard_proofs,
             kinds,
@@ -590,14 +590,14 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, Baby
     }
 }
 
-impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1RootMemoryLayout<'a, BabyBearPoseidon2, A> {
-    type HintVariable = SP1RootMemoryLayoutVariable<C>;
+impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SphinxRootMemoryLayout<'a, BabyBearPoseidon2, A> {
+    type HintVariable = SphinxRootMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let proof = ShardProofHint::<'a, BabyBearPoseidon2, A>::read(builder);
         let is_reduce = builder.hint_var();
 
-        SP1RootMemoryLayoutVariable { proof, is_reduce }
+        SphinxRootMemoryLayoutVariable { proof, is_reduce }
     }
 
     fn write(&self) -> Vec<Vec<Block<<C as Config>::F>>> {
@@ -613,9 +613,9 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1RootMemoryLayout<'a, BabyBe
 }
 
 impl<'a, A: MachineAir<BabyBear>> Hintable<C>
-    for SP1DeferredMemoryLayout<'a, BabyBearPoseidon2, A>
+    for SphinxDeferredMemoryLayout<'a, BabyBearPoseidon2, A>
 {
-    type HintVariable = SP1DeferredMemoryLayoutVariable<C>;
+    type HintVariable = SphinxDeferredMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let compress_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -630,7 +630,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         let end_pc = InnerVal::read(builder);
         let end_shard = InnerVal::read(builder);
 
-        SP1DeferredMemoryLayoutVariable {
+        SphinxDeferredMemoryLayoutVariable {
             compress_vk,
             proofs,
             start_reconstruct_deferred_digest,

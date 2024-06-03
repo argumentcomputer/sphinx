@@ -2,7 +2,7 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 
 use crate::{
-    air::SP1RecursionAirBuilder,
+    air::SphinxRecursionAirBuilder,
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
     runtime::STACK_SIZE,
@@ -19,7 +19,7 @@ impl<F: Field> CpuChip<F> {
         next: &CpuCols<AB::Var>,
         next_pc: &mut AB::Expr,
     ) where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         // Verify the next row's fp.
         builder

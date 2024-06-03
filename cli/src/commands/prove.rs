@@ -4,7 +4,7 @@ use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
 use sphinx_core::utils::{setup_logger, setup_tracer};
-use sphinx_prover::SP1Stdin;
+use sphinx_prover::SphinxStdin;
 use sphinx_sdk::ProverClient;
 
 use crate::{
@@ -97,7 +97,7 @@ impl ProveCmd {
             .read_to_end(&mut elf)
             .expect("failed to read from input file");
 
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         if let Some(ref input) = self.input {
             match input {
                 Input::FilePath(ref path) => {

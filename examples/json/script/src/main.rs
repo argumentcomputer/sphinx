@@ -1,7 +1,7 @@
 //! A simple script to generate and verify the proof of a given program.
 
 use lib::{Account, Transaction};
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 const JSON_ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -10,7 +10,7 @@ fn main() {
     utils::setup_logger();
 
     // Generate proof.
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     // Generic sample JSON (as a string input).
     let data_str = r#"

@@ -9,7 +9,7 @@ use sphinx_core::air::{BaseAirBuilder, MachineAir};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{MultiBuilder, SP1RecursionAirBuilder};
+use crate::air::{MultiBuilder, SphinxRecursionAirBuilder};
 use crate::fri_fold::{FriFoldChip, FriFoldCols};
 use crate::poseidon2::{Poseidon2Chip, Poseidon2Cols};
 use crate::runtime::{ExecutionRecord, RecursionProgram};
@@ -117,7 +117,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<DEGREE> {
 
 impl<AB, const DEGREE: usize> Air<AB> for MultiChip<DEGREE>
 where
-    AB: SP1RecursionAirBuilder,
+    AB: SphinxRecursionAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

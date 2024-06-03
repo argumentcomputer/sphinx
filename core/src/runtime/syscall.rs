@@ -21,7 +21,7 @@ use crate::syscall::precompiles::weierstrass::{
 };
 use crate::syscall::{
     SyscallCommit, SyscallCommitDeferred, SyscallEnterUnconstrained, SyscallExitUnconstrained,
-    SyscallHalt, SyscallHintLen, SyscallHintRead, SyscallVerifySP1Proof, SyscallWrite,
+    SyscallHalt, SyscallHintLen, SyscallHintRead, SyscallVerifySphinxProof, SyscallWrite,
 };
 use crate::utils::ec::edwards::ed25519::Ed25519;
 use crate::utils::ec::weierstrass::bls12_381::{Bls12381, Bls12381BaseField};
@@ -110,7 +110,7 @@ pub enum SyscallCode {
     COMMIT_DEFERRED_PROOFS = 0x00_00_00_1A,
 
     /// Executes the `VERIFY_SP1_PROOF` precompile.
-    VERIFY_SP1_PROOF = 0x00_00_00_1B,
+    VERIFY_Sphinx_PROOF = 0x00_00_00_1B,
 
     /// Executes the `HINT_LEN` precompile.
     HINT_LEN = 0x00_00_00_F0,
@@ -146,7 +146,7 @@ impl SyscallCode {
             0x00_01_01_79 => SyscallCode::BLS12381_FP2_MUL,
             0x00_00_00_10 => SyscallCode::COMMIT,
             0x00_00_00_1A => SyscallCode::COMMIT_DEFERRED_PROOFS,
-            0x00_00_00_1B => SyscallCode::VERIFY_SP1_PROOF,
+            0x00_00_00_1B => SyscallCode::VERIFY_Sphinx_PROOF,
             0x00_00_00_F0 => SyscallCode::HINT_LEN,
             0x00_00_00_F1 => SyscallCode::HINT_READ,
             0x00_01_01_71 => SyscallCode::BLS12381_G1_ADD,
@@ -362,8 +362,8 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         Arc::new(SyscallCommitDeferred::new()),
     );
     syscall_map.insert(
-        SyscallCode::VERIFY_SP1_PROOF,
-        Arc::new(SyscallVerifySP1Proof::new()),
+        SyscallCode::VERIFY_Sphinx_PROOF,
+        Arc::new(SyscallVerifySphinxProof::new()),
     );
     syscall_map.insert(SyscallCode::HINT_LEN, Arc::new(SyscallHintLen::new()));
     syscall_map.insert(SyscallCode::HINT_READ, Arc::new(SyscallHintRead::new()));
@@ -487,8 +487,8 @@ mod tests {
                 SyscallCode::COMMIT_DEFERRED_PROOFS => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::COMMIT_DEFERRED_PROOFS)
                 }
-                SyscallCode::VERIFY_SP1_PROOF => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::VERIFY_SP1_PROOF)
+                SyscallCode::VERIFY_Sphinx_PROOF => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::VERIFY_Sphinx_PROOF)
                 }
                 SyscallCode::HINT_LEN => assert_eq!(code as u32, sphinx_zkvm::syscalls::HINT_LEN),
                 SyscallCode::HINT_READ => assert_eq!(code as u32, sphinx_zkvm::syscalls::HINT_READ),

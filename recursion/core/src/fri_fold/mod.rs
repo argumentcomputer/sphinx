@@ -16,7 +16,7 @@ use sphinx_core::air::{BaseAirBuilder, BinomialExtension, ExtensionAirBuilder, M
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::SP1RecursionAirBuilder;
+use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryRecord;
 use crate::runtime::{ExecutionRecord, RecursionProgram};
 
@@ -370,7 +370,7 @@ impl<const DEGREE: usize> FriFoldChip<DEGREE> {
 
 impl<AB, const DEGREE: usize> Air<AB> for FriFoldChip<DEGREE>
 where
-    AB: SP1RecursionAirBuilder,
+    AB: SphinxRecursionAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

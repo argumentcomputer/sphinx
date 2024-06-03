@@ -2,7 +2,7 @@ use std::time::Duration;
 use tokio::runtime::Runtime;
 
 use reqwest::Client;
-use sphinx_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 use tendermint_light_client_verifier::options::Options;
 use tendermint_light_client_verifier::types::LightBlock;
@@ -47,7 +47,7 @@ fn main() {
 
     let expected_verdict = verify_blocks(light_block_1.clone(), light_block_2.clone());
 
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     let encoded_1 = serde_cbor::to_vec(&light_block_1).unwrap();
     let encoded_2 = serde_cbor::to_vec(&light_block_2).unwrap();

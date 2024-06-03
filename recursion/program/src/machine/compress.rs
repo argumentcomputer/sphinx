@@ -37,7 +37,7 @@ use super::utils::{commit_public_values, proof_data_from_vk, verify_public_value
 
 /// A program to verify a batch of recursive proofs and aggregate their public values.
 #[derive(Debug, Clone, Copy)]
-pub struct SP1CompressVerifier<C: Config, SC: StarkGenericConfig, A> {
+pub struct SphinxCompressVerifier<C: Config, SC: StarkGenericConfig, A> {
     _phantom: PhantomData<(C, SC, A)>,
 }
 
@@ -53,7 +53,7 @@ pub enum ReduceProgramType {
 }
 
 /// An input layout for the reduce verifier.
-pub struct SP1ReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
+pub struct SphinxReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
     pub compress_vk: &'a StarkVerifyingKey<SC>,
     pub recursive_machine: &'a StarkMachine<SC, A>,
     pub shard_proofs: Vec<ShardProof<SC>>,
@@ -62,14 +62,14 @@ pub struct SP1ReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::V
 }
 
 #[derive(DslVariable, Clone)]
-pub struct SP1ReduceMemoryLayoutVariable<C: Config> {
+pub struct SphinxReduceMemoryLayoutVariable<C: Config> {
     pub compress_vk: VerifyingKeyVariable<C>,
     pub shard_proofs: Array<C, ShardProofVariable<C>>,
     pub kinds: Array<C, Var<C::N>>,
     pub is_complete: Var<C::N>,
 }
 
-impl<A> SP1CompressVerifier<InnerConfig, BabyBearPoseidon2, A>
+impl<A> SphinxCompressVerifier<InnerConfig, BabyBearPoseidon2, A>
 where
     A: MachineAir<BabyBear> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, InnerConfig>>,
 {
@@ -81,13 +81,13 @@ where
     ) -> RecursionProgram<BabyBear> {
         let mut builder = Builder::<InnerConfig>::default();
 
-        let input: SP1ReduceMemoryLayoutVariable<_> = builder.uninit();
-        SP1ReduceMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
+        let input: SphinxReduceMemoryLayoutVariable<_> = builder.uninit();
+        SphinxReduceMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
 
         let pcs = TwoAdicFriPcsVariable {
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
-        SP1CompressVerifier::verify(
+        SphinxCompressVerifier::verify(
             &mut builder,
             &pcs,
             machine,
@@ -100,7 +100,7 @@ where
     }
 }
 
-impl<C: Config, SC, A> SP1CompressVerifier<C, SC, A>
+impl<C: Config, SC, A> SphinxCompressVerifier<C, SC, A>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<
@@ -127,11 +127,11 @@ where
         builder: &mut Builder<C>,
         pcs: &TwoAdicFriPcsVariable<C>,
         machine: &StarkMachine<SC, A>,
-        input: SP1ReduceMemoryLayoutVariable<C>,
+        input: SphinxReduceMemoryLayoutVariable<C>,
         recursive_vk: &StarkVerifyingKey<SC>,
         deferred_vk: &StarkVerifyingKey<SC>,
     ) {
-        let SP1ReduceMemoryLayoutVariable {
+        let SphinxReduceMemoryLayoutVariable {
             compress_vk,
             shard_proofs,
             kinds,

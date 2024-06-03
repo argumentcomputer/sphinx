@@ -7,7 +7,7 @@ use p3_field::{AbstractField, PrimeField};
 use thiserror::Error;
 use sphinx_core::{
     air::PublicValues,
-    io::SP1PublicValues,
+    io::SphinxPublicValues,
     stark::{MachineProof, MachineVerificationError, StarkGenericConfig},
     utils::BabyBearPoseidon2,
 };
@@ -15,8 +15,8 @@ use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearP
 use sphinx_recursion_gnark_ffi::{Groth16Proof, Groth16Prover};
 
 use crate::{
-    types::HashableKey, CoreSC, OuterSC, SP1CoreProofData, SP1Prover, SP1ReduceProof,
-    SP1VerifyingKey,
+    types::HashableKey, CoreSC, OuterSC, SphinxCoreProofData, SphinxProver, SphinxReduceProof,
+    SphinxVerifyingKey,
 };
 
 #[derive(Error, Debug)]
@@ -27,13 +27,13 @@ pub enum Groth16VerificationError {
     InvalidPublicValues,
 }
 
-impl SP1Prover {
+impl SphinxProver {
     /// Verify a core proof by verifying the shards, verifying lookup bus, verifying that the
     /// shards are contiguous and complete.
     pub fn verify(
         &self,
-        proof: &SP1CoreProofData,
-        vk: &SP1VerifyingKey,
+        proof: &SphinxCoreProofData,
+        vk: &SphinxVerifyingKey,
     ) -> Result<(), MachineVerificationError<CoreSC>> {
         let mut challenger = self.core_machine.config().challenger();
         let machine_proof = MachineProof {
@@ -102,8 +102,8 @@ impl SP1Prover {
     /// Verify a compressed proof.
     pub fn verify_compressed(
         &self,
-        proof: &SP1ReduceProof<BabyBearPoseidon2>,
-        vk: &SP1VerifyingKey,
+        proof: &SphinxReduceProof<BabyBearPoseidon2>,
+        vk: &SphinxVerifyingKey,
     ) -> Result<(), MachineVerificationError<CoreSC>> {
         let mut challenger = self.compress_machine.config().challenger();
         let machine_proof = MachineProof {
@@ -145,8 +145,8 @@ impl SP1Prover {
     /// Verify a shrink proof.
     pub fn verify_shrink(
         &self,
-        proof: &SP1ReduceProof<BabyBearPoseidon2>,
-        vk: &SP1VerifyingKey,
+        proof: &SphinxReduceProof<BabyBearPoseidon2>,
+        vk: &SphinxVerifyingKey,
     ) -> Result<(), MachineVerificationError<CoreSC>> {
         let mut challenger = self.shrink_machine.config().challenger();
         let machine_proof = MachineProof {
@@ -180,8 +180,8 @@ impl SP1Prover {
     /// Verify a wrap bn254 proof.
     pub fn verify_wrap_bn254(
         &self,
-        proof: &SP1ReduceProof<BabyBearPoseidon2Outer>,
-        vk: &SP1VerifyingKey,
+        proof: &SphinxReduceProof<BabyBearPoseidon2Outer>,
+        vk: &SphinxVerifyingKey,
     ) -> Result<(), MachineVerificationError<OuterSC>> {
         let mut challenger = self.wrap_machine.config().challenger();
         let machine_proof = MachineProof {
@@ -216,8 +216,8 @@ impl SP1Prover {
     pub fn verify_groth16(
         &self,
         proof: &Groth16Proof,
-        vk: &SP1VerifyingKey,
-        public_values: &SP1PublicValues,
+        vk: &SphinxVerifyingKey,
+        public_values: &SphinxPublicValues,
         build_dir: &Path,
     ) -> Result<()> {
         let prover = Groth16Prover::new();
@@ -236,8 +236,8 @@ impl SP1Prover {
 
 /// Verify the vk_hash and public_values_hash in the public inputs of the Groth16Proof match the expected values.
 pub fn verify_groth16_public_inputs(
-    vk: &SP1VerifyingKey,
-    public_values: &SP1PublicValues,
+    vk: &SphinxVerifyingKey,
+    public_values: &SphinxPublicValues,
     groth16_public_inputs: &[String],
 ) -> Result<()> {
     let expected_vk_hash = BigUint::from_str(&groth16_public_inputs[0])?;

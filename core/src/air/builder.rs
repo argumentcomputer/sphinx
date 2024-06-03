@@ -631,7 +631,7 @@ pub trait MachineAirBuilder:
 }
 
 /// A trait which contains all helper methods for building SP1 machine AIRs.
-pub trait SP1AirBuilder:
+pub trait SphinxAirBuilder:
     MachineAirBuilder
     + ByteAirBuilder
     + WordAirBuilder
@@ -659,7 +659,7 @@ impl<AB: BaseAirBuilder> MemoryAirBuilder for AB {}
 impl<AB: BaseAirBuilder> ProgramAirBuilder for AB {}
 impl<AB: BaseAirBuilder> ExtensionAirBuilder for AB {}
 impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> MachineAirBuilder for AB {}
-impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> SP1AirBuilder for AB {}
+impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> SphinxAirBuilder for AB {}
 
 impl<'a, SC: StarkGenericConfig> EmptyMessageBuilder for ProverConstraintFolder<'a, SC> {}
 impl<'a, SC: StarkGenericConfig> EmptyMessageBuilder for VerifierConstraintFolder<'a, SC> {}

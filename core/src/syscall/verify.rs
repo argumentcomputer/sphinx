@@ -7,21 +7,21 @@ use crate::{
 /// Verifies an SP1 recursive verifier proof. Note that this syscall only verifies the proof during
 /// runtime. The actual constraint-level verification is deferred to the recursive layer, where
 /// proofs are witnessed and verified in order to reconstruct the deferred_proofs_digest.
-pub struct SyscallVerifySP1Proof;
+pub struct SyscallVerifySphinxProof;
 
-impl SyscallVerifySP1Proof {
+impl SyscallVerifySphinxProof {
     pub fn new() -> Self {
         Self
     }
 }
 
-impl Default for SyscallVerifySP1Proof {
+impl Default for SyscallVerifySphinxProof {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Syscall for SyscallVerifySP1Proof {
+impl Syscall for SyscallVerifySphinxProof {
     #[allow(unused_variables, unused_mut)]
     fn execute(
         &self,

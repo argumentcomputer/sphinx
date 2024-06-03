@@ -19,7 +19,7 @@ pub fn syscall_verify_sphinx_proof(vk_digest: &[u32; 8], pv_digest: &[u8; 32]) {
         unsafe {
             asm!(
                 "ecall",
-                in("t0") crate::syscalls::VERIFY_SP1_PROOF,
+                in("t0") crate::syscalls::VERIFY_Sphinx_PROOF,
                 in("a0") vk_digest.as_ptr(),
                 in("a1") pv_digest.as_ptr(),
             );
