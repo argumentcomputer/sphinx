@@ -1,6 +1,6 @@
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::Word;
 use crate::air::WordAirBuilder;

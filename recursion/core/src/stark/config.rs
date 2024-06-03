@@ -15,7 +15,7 @@ use p3_symmetric::Hash;
 use p3_symmetric::{MultiField32PaddingFreeSponge, TruncatedPermutation};
 use serde::Deserialize;
 use serde::Serialize;
-use wp1_core::stark::StarkGenericConfig;
+use sphinx_core::stark::StarkGenericConfig;
 
 use super::poseidon2::bn254_poseidon2_rc3;
 use super::utils;
@@ -69,7 +69,7 @@ pub fn outer_fri_config() -> FriConfig<OuterChallengeMmcs> {
     let hash = OuterHash::new(perm.clone()).unwrap();
     let compress = OuterCompress::new(perm.clone());
     let challenge_mmcs = OuterChallengeMmcs::new(OuterValMmcs::new(hash, compress));
-    let num_queries = if utils::wp1_dev_mode() {
+    let num_queries = if utils::sphinx_dev_mode() {
         1
     } else {
         match std::env::var("FRI_QUERIES") {

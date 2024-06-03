@@ -1,15 +1,15 @@
 use p3_field::AbstractExtensionField;
 use p3_field::AbstractField;
-use wp1_core::utils::{
+use sphinx_core::utils::{
     InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerFriProof,
     InnerPcsProof, InnerQueryProof, InnerVal,
 };
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::{
     asm::AsmConfig,
     ir::{Array, Builder, Config},
 };
-use wp1_recursion_core::{air::Block, runtime::DIGEST_SIZE};
+use sphinx_recursion_core::{air::Block, runtime::DIGEST_SIZE};
 
 use super::types::{BatchOpeningVariable, TwoAdicPcsProofVariable};
 use crate::{

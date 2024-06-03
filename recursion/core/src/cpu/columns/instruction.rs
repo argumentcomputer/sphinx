@@ -1,7 +1,7 @@
 use std::{iter::once, vec::IntoIter};
 
 use p3_field::PrimeField;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{air::Block, cpu::Instruction};
 

@@ -4,7 +4,7 @@ use p3_field::{
     extension::{BinomialExtensionField, BinomiallyExtendable},
     AbstractExtensionField, AbstractField, Field,
 };
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 const DEGREE: usize = 4;
 

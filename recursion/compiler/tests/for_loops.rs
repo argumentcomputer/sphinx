@@ -1,11 +1,11 @@
 use p3_baby_bear::BabyBear;
 use p3_field::AbstractField;
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::{
+use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+use sphinx_recursion_compiler::{
     asm::{AsmBuilder, AsmConfig},
     ir::{Array, SymbolicVar, Var},
 };
-use wp1_recursion_core::runtime::Runtime;
+use sphinx_recursion_core::runtime::Runtime;
 
 #[test]
 fn test_compiler_for_loops() {

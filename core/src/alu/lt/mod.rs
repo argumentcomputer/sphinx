@@ -10,7 +10,7 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::Word;
 use crate::air::{AluAirBuilder, BaseAirBuilder, ByteAirBuilder, MachineAir};

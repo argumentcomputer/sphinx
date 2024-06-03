@@ -5,22 +5,22 @@ pub mod types;
 
 pub use domain::*;
 pub use two_adic_pcs::*;
-use wp1_recursion_compiler::ir::ExtensionOperand;
-use wp1_recursion_compiler::ir::Ptr;
-use wp1_recursion_core::runtime::DIGEST_SIZE;
+use sphinx_recursion_compiler::ir::ExtensionOperand;
+use sphinx_recursion_compiler::ir::Ptr;
+use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
 use p3_field::AbstractField;
 use p3_field::Field;
 use p3_field::TwoAdicField;
 
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Builder;
-use wp1_recursion_compiler::ir::Config;
-use wp1_recursion_compiler::ir::Ext;
-use wp1_recursion_compiler::ir::Felt;
-use wp1_recursion_compiler::ir::SymbolicVar;
-use wp1_recursion_compiler::ir::Usize;
-use wp1_recursion_compiler::ir::Var;
+use sphinx_recursion_compiler::ir::Array;
+use sphinx_recursion_compiler::ir::Builder;
+use sphinx_recursion_compiler::ir::Config;
+use sphinx_recursion_compiler::ir::Ext;
+use sphinx_recursion_compiler::ir::Felt;
+use sphinx_recursion_compiler::ir::SymbolicVar;
+use sphinx_recursion_compiler::ir::Usize;
+use sphinx_recursion_compiler::ir::Var;
 
 use self::types::DigestVariable;
 use self::types::DimensionsVariable;

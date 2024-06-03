@@ -9,7 +9,7 @@ use p3_bn254_fr::Bn254Fr;
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use tokio::{runtime, task::block_in_place};
-use wp1_core::{
+use sphinx_core::{
     air::Word,
     io::SP1Stdin,
     runtime::{Program, Runtime},

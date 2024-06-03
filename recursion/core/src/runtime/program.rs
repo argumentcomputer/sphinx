@@ -1,7 +1,7 @@
 use backtrace::Backtrace;
 use p3_field::Field;
 use serde::{Deserialize, Serialize};
-use wp1_core::air::MachineProgram;
+use sphinx_core::air::MachineProgram;
 
 use super::Instruction;
 

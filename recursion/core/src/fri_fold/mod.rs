@@ -12,9 +12,9 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::borrow::BorrowMut;
 use tracing::instrument;
-use wp1_core::air::{BaseAirBuilder, BinomialExtension, ExtensionAirBuilder, MachineAir};
-use wp1_core::utils::pad_rows_fixed;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::{BaseAirBuilder, BinomialExtension, ExtensionAirBuilder, MachineAir};
+use sphinx_core::utils::pad_rows_fixed;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::SP1RecursionAirBuilder;
 use crate::memory::MemoryRecord;

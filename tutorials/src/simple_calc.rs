@@ -5,8 +5,8 @@ use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, Field};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_core::air::AluAirBuilder;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::AluAirBuilder;
+use sphinx_derive::AlignedBorrow;
 
 #[derive(AlignedBorrow, Default)]
 struct OpCols<T> {
@@ -202,7 +202,7 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_field::{AbstractField, Field};
     use p3_matrix::dense::RowMajorMatrix;
-    use wp1_core::{
+    use sphinx_core::{
         stark::StarkGenericConfig,
         utils::{uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2},
     };

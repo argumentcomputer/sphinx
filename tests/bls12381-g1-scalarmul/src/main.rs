@@ -1,11 +1,11 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use hybrid_array::typenum::U24;
-use wp1_zkvm::precompiles::bls12_381::Bls12381;
-use wp1_zkvm::precompiles::utils::AffinePoint;
+use sphinx_zkvm::precompiles::bls12_381::Bls12381;
+use sphinx_zkvm::precompiles::utils::AffinePoint;
 
-#[wp1_derive::cycle_tracker]
+#[sphinx_derive::cycle_tracker]
 pub fn main() {
     // generator.
     // 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507

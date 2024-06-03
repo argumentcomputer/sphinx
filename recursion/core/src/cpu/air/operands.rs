@@ -1,5 +1,5 @@
 use p3_field::{AbstractField, Field};
-use wp1_core::runtime::MemoryAccessPosition;
+use sphinx_core::runtime::MemoryAccessPosition;
 
 use crate::{
     air::{BlockBuilder, SP1RecursionAirBuilder},

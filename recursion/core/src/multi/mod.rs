@@ -5,9 +5,9 @@ use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use wp1_core::air::{BaseAirBuilder, MachineAir};
-use wp1_core::utils::pad_rows_fixed;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::{BaseAirBuilder, MachineAir};
+use sphinx_core::utils::pad_rows_fixed;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{MultiBuilder, SP1RecursionAirBuilder};
 use crate::fri_fold::{FriFoldChip, FriFoldCols};
@@ -223,9 +223,9 @@ mod tests {
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use p3_poseidon2::Poseidon2;
     use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::inner_perm;
-    use wp1_core::{
+    use sphinx_core::stark::StarkGenericConfig;
+    use sphinx_core::utils::inner_perm;
+    use sphinx_core::{
         air::MachineAir,
         utils::{uni_stark_prove, uni_stark_verify, BabyBearPoseidon2},
     };

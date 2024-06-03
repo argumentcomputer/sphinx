@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use wp1_core::utils::setup_logger;
-use wp1_prover::build::build_groth16_artifacts_with_dummy;
+use sphinx_core::utils::setup_logger;
+use sphinx_prover::build::build_groth16_artifacts_with_dummy;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]

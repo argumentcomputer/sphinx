@@ -7,8 +7,8 @@ edition = "2021"
 [dependencies]
 serde = "1.0.197"
 serde_json = "1.0.114"
-wp1-sdk = { path = "../../../sdk" }
+sphinx-sdk = { path = "../../../sdk" }
 lib = { path = "../lib" }
 
 [build-dependencies]
-wp1-helper = { path = "../../../helper" }
+sphinx-helper = { path = "../../../helper" }

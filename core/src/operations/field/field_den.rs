@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
 use p3_field::PrimeField32;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
@@ -159,7 +159,7 @@ mod tests {
     use p3_field::{Field, PrimeField32};
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use rand::thread_rng;
-    use wp1_derive::AlignedBorrow;
+    use sphinx_derive::AlignedBorrow;
 
     use super::{FieldDenCols, Limbs};
 

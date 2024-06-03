@@ -7,7 +7,7 @@ use std::{
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::BaseAirBuilder;
 

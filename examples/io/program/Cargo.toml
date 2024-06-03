@@ -5,5 +5,5 @@ name = "io-program"
 edition = "2021"
 
 [dependencies]
-wp1-zkvm = { path = "../../../zkvm/entrypoint" }
+sphinx-zkvm = { path = "../../../zkvm/entrypoint" }
 serde = { version = "1.0.195", features = ["derive"] }

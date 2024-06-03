@@ -6,7 +6,7 @@ use p3_field::PrimeField;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{AirInteraction, BaseAirBuilder, PublicValues};
 use crate::air::{MachineAir, Word};

@@ -1,7 +1,7 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
-use wp1_zkvm::syscalls::syscall_sha256_extend;
+use sphinx_zkvm::syscalls::syscall_sha256_extend;
 
 pub fn main() {
     let mut w = [1u32; 64];

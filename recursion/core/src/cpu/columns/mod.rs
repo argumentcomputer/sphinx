@@ -2,8 +2,8 @@ use std::mem::{size_of, transmute};
 
 use crate::memory::{MemoryReadCols, MemoryReadWriteCols};
 use p3_air::BaseAir;
-use wp1_core::utils::indices_arr;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::utils::indices_arr;
+use sphinx_derive::AlignedBorrow;
 
 mod branch;
 mod instruction;

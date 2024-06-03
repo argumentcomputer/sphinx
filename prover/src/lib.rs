@@ -29,38 +29,38 @@ use types::{
     SP1VerifyingKey,
 };
 use utils::words_to_bytes;
-use wp1_core::air::{PublicValues, Word};
-pub use wp1_core::io::{SP1PublicValues, SP1Stdin};
-use wp1_core::runtime::{ExecutionError, Runtime};
-use wp1_core::stark::{Challenge, StarkProvingKey};
-use wp1_core::stark::{Challenger, MachineVerificationError};
-use wp1_core::utils::DIGEST_SIZE;
-use wp1_core::{
+use sphinx_core::air::{PublicValues, Word};
+pub use sphinx_core::io::{SP1PublicValues, SP1Stdin};
+use sphinx_core::runtime::{ExecutionError, Runtime};
+use sphinx_core::stark::{Challenge, StarkProvingKey};
+use sphinx_core::stark::{Challenger, MachineVerificationError};
+use sphinx_core::utils::DIGEST_SIZE;
+use sphinx_core::{
     runtime::Program,
     stark::{
         LocalProver, RiscvAir, ShardProof, StarkGenericConfig, StarkMachine, StarkVerifyingKey, Val,
     },
     utils::{BabyBearPoseidon2, SP1CoreProverError},
 };
-use wp1_primitives::hash_deferred_proof;
-use wp1_recursion_circuit::witness::Witnessable;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::Witness;
-use wp1_recursion_core::{
+use sphinx_primitives::hash_deferred_proof;
+use sphinx_recursion_circuit::witness::Witnessable;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::Witness;
+use sphinx_recursion_core::{
     air::RecursionPublicValues,
     runtime::{RecursionProgram, Runtime as RecursionRuntime},
     stark::{config::BabyBearPoseidon2Outer, RecursionAir},
 };
-pub use wp1_recursion_gnark_ffi::plonk_bn254::PlonkBn254Proof;
-use wp1_recursion_gnark_ffi::plonk_bn254::PlonkBn254Prover;
-pub use wp1_recursion_gnark_ffi::Groth16Proof;
-use wp1_recursion_gnark_ffi::Groth16Prover;
-use wp1_recursion_program::hints::Hintable;
-pub use wp1_recursion_program::machine::ReduceProgramType;
-use wp1_recursion_program::machine::{
+pub use sphinx_recursion_gnark_ffi::plonk_bn254::PlonkBn254Proof;
+use sphinx_recursion_gnark_ffi::plonk_bn254::PlonkBn254Prover;
+pub use sphinx_recursion_gnark_ffi::Groth16Proof;
+use sphinx_recursion_gnark_ffi::Groth16Prover;
+use sphinx_recursion_program::hints::Hintable;
+pub use sphinx_recursion_program::machine::ReduceProgramType;
+use sphinx_recursion_program::machine::{
     SP1CompressVerifier, SP1DeferredVerifier, SP1RecursiveVerifier, SP1RootVerifier,
 };
-pub use wp1_recursion_program::machine::{
+pub use sphinx_recursion_program::machine::{
     SP1DeferredMemoryLayout, SP1RecursionMemoryLayout, SP1ReduceMemoryLayout, SP1RootMemoryLayout,
 };
 
@@ -236,7 +236,7 @@ impl SP1Prover {
     ) -> Result<SP1CoreProof, SP1CoreProverError> {
         let config = CoreSC::default();
         let program = Program::from(&pk.elf);
-        let (proof, public_values_stream) = wp1_core::utils::prove(&program, stdin, config)?;
+        let (proof, public_values_stream) = sphinx_core::utils::prove(&program, stdin, config)?;
         let public_values = SP1PublicValues::from(&public_values_stream);
         Ok(SP1CoreProof {
             proof: SP1CoreProofData(proof.shard_proofs),
@@ -314,8 +314,8 @@ impl SP1Prover {
                 proofs,
                 start_reconstruct_deferred_digest: deferred_digest.to_vec(),
                 is_complete: false,
-                wp1_vk: vk,
-                wp1_machine: &self.core_machine,
+                sphinx_vk: vk,
+                sphinx_machine: &self.core_machine,
                 end_pc: Val::<InnerSC>::zero(),
                 end_shard: last_proof_pv.shard,
                 leaf_challenger: leaf_challenger.clone(),
@@ -639,8 +639,8 @@ impl SP1Prover {
     /// Wrap the STARK proven over a SNARK-friendly field into a Groth16 proof.
     #[instrument(name = "wrap_groth16", level = "info", skip_all)]
     pub fn wrap_groth16(&self, proof: SP1ReduceProof<OuterSC>, build_dir: &Path) -> Groth16Proof {
-        let vkey_digest = proof.wp1_vkey_digest_bn254();
-        let commited_values_digest = proof.wp1_commited_values_digest_bn254();
+        let vkey_digest = proof.sphinx_vkey_digest_bn254();
+        let commited_values_digest = proof.sphinx_commited_values_digest_bn254();
 
         let mut witness = Witness::default();
         proof.proof.write(&mut witness);
@@ -679,7 +679,7 @@ impl SP1Prover {
             let committed_values_digest = words_to_bytes(&pv.committed_value_digest);
             digest = hash_deferred_proof(
                 &digest,
-                &pv.wp1_vk_digest,
+                &pv.sphinx_vk_digest,
                 &committed_values_digest.try_into().unwrap(),
             );
         }
@@ -706,8 +706,8 @@ mod tests {
     use p3_field::PrimeField32;
     use serial_test::serial;
     use types::HashableKey;
-    use wp1_core::io::SP1Stdin;
-    use wp1_core::utils::setup_logger;
+    use sphinx_core::io::SP1Stdin;
+    use sphinx_core::utils::setup_logger;
 
     /// Tests an end-to-end workflow of proving a program across the entire proof generation
     /// pipeline.
@@ -766,11 +766,11 @@ mod tests {
         prover.verify_wrap_bn254(&wrapped_bn254_proof, &vk).unwrap();
 
         tracing::info!("checking vkey hash babybear");
-        let vk_digest_babybear = wrapped_bn254_proof.wp1_vkey_digest_babybear();
+        let vk_digest_babybear = wrapped_bn254_proof.sphinx_vkey_digest_babybear();
         assert_eq!(vk_digest_babybear, vk.hash_babybear());
 
         tracing::info!("checking vkey hash bn254");
-        let vk_digest_bn254 = wrapped_bn254_proof.wp1_vkey_digest_bn254();
+        let vk_digest_bn254 = wrapped_bn254_proof.sphinx_vkey_digest_bn254();
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
         tracing::info!("generate groth16 proof");

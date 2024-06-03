@@ -1,11 +1,11 @@
 use p3_air::Air;
 use p3_commit::LagrangeSelectors;
 use p3_field::{AbstractExtensionField, AbstractField, TwoAdicField};
-use wp1_core::{
+use sphinx_core::{
     air::MachineAir,
     stark::{AirOpenedValues, MachineChip, StarkGenericConfig, PROOF_MAX_NUM_PVS},
 };
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     ir::{Array, Felt},
     prelude::{Builder, Config, Ext, ExtConst, SymbolicExt},
 };
@@ -160,7 +160,7 @@ mod tests {
     use p3_commit::{Pcs, PolynomialSpace};
     use p3_field::PrimeField32;
     use serde::{de::DeserializeOwned, Serialize};
-    use wp1_core::{
+    use sphinx_core::{
         io::SP1Stdin,
         runtime::Program,
         stark::{
@@ -169,9 +169,9 @@ mod tests {
         },
         utils::BabyBearPoseidon2,
     };
-    use wp1_recursion_core::stark::utils::{run_test_recursion, TestConfig};
+    use sphinx_recursion_core::stark::utils::{run_test_recursion, TestConfig};
 
-    use wp1_recursion_compiler::{asm::AsmBuilder, prelude::ExtConst};
+    use sphinx_recursion_compiler::{asm::AsmBuilder, prelude::ExtConst};
 
     #[allow(clippy::type_complexity)]
     fn get_shard_data<'a, SC>(
@@ -273,14 +273,14 @@ mod tests {
         type A = RiscvAir<F>;
 
         // Generate a dummy proof.
-        wp1_core::utils::setup_logger();
+        sphinx_core::utils::setup_logger();
         let elf = include_bytes!("../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
 
         let machine = A::machine(SC::default());
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
         let (proof, _) =
-            wp1_core::utils::prove(&Program::from(elf), &SP1Stdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SP1Stdin::new(), SC::default()).unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
 
         println!("Proof generated and verified successfully");

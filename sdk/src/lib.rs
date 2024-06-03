@@ -12,7 +12,7 @@ pub mod auth;
 pub mod client;
 pub mod provers;
 pub mod utils {
-    pub use wp1_core::utils::setup_logger;
+    pub use sphinx_core::utils::setup_logger;
 }
 
 use std::{env, fmt::Debug, fs::File, path::Path};
@@ -20,8 +20,8 @@ use std::{env, fmt::Debug, fs::File, path::Path};
 use anyhow::{Ok, Result};
 pub use provers::{LocalProver, MockProver, NetworkProver, Prover};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use wp1_core::stark::{MachineVerificationError, ShardProof};
-pub use wp1_prover::{
+use sphinx_core::stark::{MachineVerificationError, ShardProof};
+pub use sphinx_prover::{
     types::SP1ProvingKey, types::SP1VerifyingKey, CoreSC, Groth16Proof, InnerSC, OuterSC,
     PlonkBn254Proof, SP1Prover, SP1PublicValues, SP1Stdin,
 };
@@ -67,7 +67,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// std::env::set_var("SP1_PROVER", "local");
     /// let client = ProverClient::new();
@@ -101,7 +101,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::mock();
     /// ```
@@ -119,7 +119,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::local();
     /// ```
@@ -136,7 +136,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::remote();
     /// ```
@@ -153,7 +153,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -180,7 +180,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
     /// let client = ProverClient::new();
@@ -200,7 +200,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -229,7 +229,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -262,7 +262,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -292,7 +292,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -319,7 +319,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
     /// let client = ProverClient::new();
@@ -342,7 +342,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -374,7 +374,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -404,7 +404,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SP1Stdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");

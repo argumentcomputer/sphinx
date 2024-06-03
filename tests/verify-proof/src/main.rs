@@ -2,10 +2,10 @@
 //! SP1 proof for each input.
 
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use sha2::{Digest, Sha256};
-use wp1_zkvm::precompiles::verify::verify_wp1_proof;
+use sphinx_zkvm::precompiles::verify::verify_sphinx_proof;
 
 fn words_to_bytes(words: &[u32; 8]) -> [u8; 32] {
     let mut bytes = [0u8; 32];
@@ -17,13 +17,13 @@ fn words_to_bytes(words: &[u32; 8]) -> [u8; 32] {
 }
 
 pub fn main() {
-    let vkey = wp1_zkvm::io::read::<[u32; 8]>();
+    let vkey = sphinx_zkvm::io::read::<[u32; 8]>();
     println!("Read vkey: {:?}", hex::encode(words_to_bytes(&vkey)));
-    let inputs = wp1_zkvm::io::read::<Vec<Vec<u8>>>();
+    let inputs = sphinx_zkvm::io::read::<Vec<Vec<u8>>>();
     inputs.iter().for_each(|input| {
         // Get expected pv_digest hash: sha256(input)
         let pv_digest = Sha256::digest(input);
-        verify_wp1_proof(&vkey, &pv_digest.into());
+        verify_sphinx_proof(&vkey, &pv_digest.into());
 
         println!("Verified proof for digest: {:?}", hex::encode(pv_digest));
         println!("Verified input: {:?}", hex::encode(input));

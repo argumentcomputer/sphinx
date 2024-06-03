@@ -6,7 +6,7 @@ use reqwest::Client;
 use std::fs::{self};
 use std::io::Read;
 use std::process::Command;
-use wp1_sdk::artifacts::download_file;
+use sphinx_sdk::artifacts::download_file;
 
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;

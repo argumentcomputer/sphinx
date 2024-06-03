@@ -1,4 +1,4 @@
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::fri::TwoAdicMultiplicativeCosetVariable;
 

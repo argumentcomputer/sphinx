@@ -7,20 +7,20 @@ use anyhow::Result;
 pub use local::LocalProver;
 pub use mock::MockProver;
 pub use network::NetworkProver;
-use wp1_core::stark::MachineVerificationError;
-use wp1_prover::types::SP1CoreProofData;
-use wp1_prover::types::SP1ProvingKey;
-use wp1_prover::types::SP1ReduceProof;
-use wp1_prover::types::SP1VerifyingKey;
-use wp1_prover::CoreSC;
-use wp1_prover::SP1Prover;
-use wp1_prover::SP1Stdin;
+use sphinx_core::stark::MachineVerificationError;
+use sphinx_prover::types::SP1CoreProofData;
+use sphinx_prover::types::SP1ProvingKey;
+use sphinx_prover::types::SP1ReduceProof;
+use sphinx_prover::types::SP1VerifyingKey;
+use sphinx_prover::CoreSC;
+use sphinx_prover::SP1Prover;
+use sphinx_prover::SP1Stdin;
 
 /// An implementation of [crate::ProverClient].
 pub trait Prover: Send + Sync {
     fn id(&self) -> String;
 
-    fn wp1_prover(&self) -> &SP1Prover;
+    fn sphinx_prover(&self) -> &SP1Prover;
 
     fn setup(&self, elf: &[u8]) -> (SP1ProvingKey, SP1VerifyingKey);
 
@@ -42,13 +42,13 @@ pub trait Prover: Send + Sync {
         proof: &SP1Proof,
         vkey: &SP1VerifyingKey,
     ) -> Result<(), MachineVerificationError<CoreSC>> {
-        self.wp1_prover()
+        self.sphinx_prover()
             .verify(&SP1CoreProofData(proof.proof.clone()), vkey)
     }
 
     /// Verify that a compressed SP1 proof is valid given its vkey and metadata.
     fn verify_compressed(&self, proof: &SP1CompressedProof, vkey: &SP1VerifyingKey) -> Result<()> {
-        self.wp1_prover()
+        self.sphinx_prover()
             .verify_compressed(
                 &SP1ReduceProof {
                     proof: proof.proof.clone(),
@@ -61,14 +61,14 @@ pub trait Prover: Send + Sync {
     /// Verify that a SP1 Groth16 proof is valid. Verify that the public inputs of the Groth16Proof match
     /// the hash of the VK and the committed public values of the SP1ProofWithPublicValues.
     fn verify_groth16(&self, proof: &SP1Groth16Proof, vkey: &SP1VerifyingKey) -> Result<()> {
-        let wp1_prover = self.wp1_prover();
+        let sphinx_prover = self.sphinx_prover();
 
-        let groth16_aritfacts = if wp1_prover::build::wp1_dev_mode() {
-            wp1_prover::build::groth16_artifacts_dev_dir()
+        let groth16_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
+            sphinx_prover::build::groth16_artifacts_dev_dir()
         } else {
-            wp1_prover::build::groth16_artifacts_dir()
+            sphinx_prover::build::groth16_artifacts_dir()
         };
-        wp1_prover.verify_groth16(&proof.proof, vkey, &proof.public_values, &groth16_aritfacts)?;
+        sphinx_prover.verify_groth16(&proof.proof, vkey, &proof.public_values, &groth16_aritfacts)?;
 
         Ok(())
     }

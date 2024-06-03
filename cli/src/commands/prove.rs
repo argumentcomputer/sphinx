@@ -3,9 +3,9 @@ use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr, time::Instant};
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
-use wp1_core::utils::{setup_logger, setup_tracer};
-use wp1_prover::SP1Stdin;
-use wp1_sdk::ProverClient;
+use sphinx_core::utils::{setup_logger, setup_tracer};
+use sphinx_prover::SP1Stdin;
+use sphinx_sdk::ProverClient;
 
 use crate::{
     build::{build_program, BuildArgs},

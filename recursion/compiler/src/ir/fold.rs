@@ -1,4 +1,4 @@
-use wp1_recursion_derive::DslVariable;
+use sphinx_recursion_derive::DslVariable;
 
 use super::{Ext, Felt, Var};
 use crate::ir::{Array, Builder, Config, MemIndex, MemVariable, Ptr, Variable};

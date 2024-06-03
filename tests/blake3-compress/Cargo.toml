@@ -5,4 +5,4 @@ name = "blake3-compress-test"
 edition = "2021"
 
 [dependencies]
-wp1-zkvm = { path = "../../zkvm/entrypoint" }
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }

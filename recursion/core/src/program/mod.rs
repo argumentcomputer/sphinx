@@ -7,10 +7,10 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::collections::HashMap;
 use tracing::instrument;
-use wp1_core::air::MachineAir;
-use wp1_core::utils::pad_rows_fixed;
+use sphinx_core::air::MachineAir;
+use sphinx_core::utils::pad_rows_fixed;
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     cpu::columns::{InstructionCols, OpcodeSelectorCols},

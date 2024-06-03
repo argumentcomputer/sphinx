@@ -432,7 +432,7 @@ pub mod baby_bear_poseidon2 {
     use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
     use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
     use serde::{Deserialize, Serialize};
-    use wp1_primitives::RC_16_30;
+    use sphinx_primitives::RC_16_30;
 
     use crate::stark::StarkGenericConfig;
 

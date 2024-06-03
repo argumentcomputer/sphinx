@@ -7,10 +7,10 @@ default-run = "fibonacci-script"
 
 [dependencies]
 bincode = "1.3.3"
-wp1-sdk = { path = "../../../sdk" }
+sphinx-sdk = { path = "../../../sdk" }
 
 [build-dependencies]
-wp1-helper = { path = "../../../helper" }
+sphinx-helper = { path = "../../../helper" }
 
 [[bin]]
 name = "groth16"

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use wp1_cli::{
+use sphinx_cli::{
     commands::{
         build::BuildCmd, build_toolchain::BuildToolchainCmd,
         install_toolchain::InstallToolchainCmd, new::NewCmd, prove::ProveCmd,

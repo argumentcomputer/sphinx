@@ -1,5 +1,5 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 extern "C" {
     fn syscall_secp256k1_double(p: *mut u32);

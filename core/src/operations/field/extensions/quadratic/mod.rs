@@ -6,7 +6,7 @@ use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Integer, One, Zero};
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, PrimeField32};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{Polynomial, WordAirBuilder};
 use crate::bytes::event::ByteRecord;
@@ -376,7 +376,7 @@ mod tests {
     use p3_field::{AbstractField, Field, PrimeField32};
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use rand::thread_rng;
-    use wp1_derive::AlignedBorrow;
+    use sphinx_derive::AlignedBorrow;
 
     use super::{QuadFieldOpCols, QuadFieldOperation};
     use crate::air::MachineAir;

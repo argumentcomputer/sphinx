@@ -1,5 +1,5 @@
 [package]
-name = "wp1-recursion-gnark-ffi"
+name = "sphinx-recursion-gnark-ffi"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
@@ -8,7 +8,7 @@ license.workspace = true
 [dependencies]
 p3-field = { workspace = true }
 p3-baby-bear = { workspace = true }
-wp1-recursion-compiler = { path = "../compiler" }
+sphinx-recursion-compiler = { path = "../compiler" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }

@@ -5,7 +5,7 @@ use crate::{
 };
 use anyhow::Result;
 use p3_field::PrimeField;
-use wp1_prover::{
+use sphinx_prover::{
     types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SP1Prover, SP1Stdin,
 };
 
@@ -31,7 +31,7 @@ impl Prover for MockProver {
         self.prover.setup(elf)
     }
 
-    fn wp1_prover(&self) -> &SP1Prover {
+    fn sphinx_prover(&self) -> &SP1Prover {
         unimplemented!("MockProver does not support SP1Prover")
     }
 

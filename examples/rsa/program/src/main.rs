@@ -1,5 +1,5 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use rsa::PaddingScheme;
 use rsa::PublicKey;
@@ -11,9 +11,9 @@ pub fn main() {
     // Read an input to the program.
     //
     // Behind the scenes, this compiles down to a custom system call which handles reading inputs
-    let pk_der = wp1_zkvm::io::read::<Vec<u8>>();
-    let message = wp1_zkvm::io::read::<Vec<u8>>();
-    let signature = wp1_zkvm::io::read::<Vec<u8>>();
+    let pk_der = sphinx_zkvm::io::read::<Vec<u8>>();
+    let message = sphinx_zkvm::io::read::<Vec<u8>>();
+    let signature = sphinx_zkvm::io::read::<Vec<u8>>();
 
     let public_key = RsaPublicKey::from_public_key_der(&pk_der).unwrap();
 
@@ -38,5 +38,5 @@ pub fn main() {
     // Write the output of the program.
     //
     // Behind the scenes, this also compiles down to a custom system call which handles writing
-    wp1_zkvm::io::commit(&verified);
+    sphinx_zkvm::io::commit(&verified);
 }

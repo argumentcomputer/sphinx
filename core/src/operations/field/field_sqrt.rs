@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use num::BigUint;
 use p3_field::PrimeField32;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::field_op::FieldOpCols;
 use super::params::Limbs;
@@ -115,7 +115,7 @@ mod tests {
     use p3_field::{Field, PrimeField32};
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use rand::thread_rng;
-    use wp1_derive::AlignedBorrow;
+    use sphinx_derive::AlignedBorrow;
 
     use super::{FieldSqrtCols, Limbs};
 

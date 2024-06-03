@@ -1,6 +1,6 @@
 use p3_air::AirBuilder;
 use p3_field::Field;
-use wp1_core::air::BaseAirBuilder;
+use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
     air::SP1RecursionAirBuilder,

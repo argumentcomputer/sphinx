@@ -3960,6 +3960,386 @@ dependencies = [
 ]
 
 [[package]]
+name = "sphinx-cli"
+version = "0.1.0"
+dependencies = [
+ "anstyle",
+ "anyhow",
+ "cargo_metadata",
+ "clap",
+ "futures-util",
+ "hex",
+ "home",
+ "indicatif",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sphinx-core",
+ "sphinx-prover",
+ "sphinx-sdk",
+ "target-lexicon",
+ "tempfile",
+ "tokio",
+ "vergen",
+ "yansi",
+]
+
+[[package]]
+name = "sphinx-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arrayref",
+ "bincode",
+ "blake3",
+ "blake3-zkvm",
+ "bls12_381 0.8.0",
+ "cfg-if",
+ "criterion",
+ "curve25519-dalek",
+ "elf",
+ "elliptic-curve",
+ "hex",
+ "hybrid-array",
+ "itertools 0.12.1",
+ "k256",
+ "lazy_static",
+ "log",
+ "nohash-hasher",
+ "num",
+ "num-bigint 0.4.5",
+ "num_cpus",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-blake3",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-keccak",
+ "p3-keccak-air",
+ "p3-matrix",
+ "p3-maybe-rayon",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "p3-uni-stark",
+ "p3-util",
+ "rand",
+ "rayon-scan",
+ "rrs-lib",
+ "serde",
+ "serde_with",
+ "serial_test",
+ "size",
+ "sphinx-derive",
+ "sphinx-primitives",
+ "sphinx-zkvm",
+ "strum",
+ "strum_macros",
+ "tempfile",
+ "thiserror",
+ "tiny-keccak",
+ "tracing",
+ "tracing-forest",
+ "tracing-subscriber",
+ "web-time",
+]
+
+[[package]]
+name = "sphinx-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "sphinx-eval"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "csv",
+ "serde",
+ "sphinx-core",
+ "sphinx-prover",
+]
+
+[[package]]
+name = "sphinx-helper"
+version = "0.1.0"
+dependencies = [
+ "cargo_metadata",
+ "chrono",
+]
+
+[[package]]
+name = "sphinx-precompiles"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "bls12_381 0.8.0",
+ "cfg-if",
+ "getrandom",
+ "hybrid-array",
+ "k256",
+ "serde",
+]
+
+[[package]]
+name = "sphinx-primitives"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.12.1",
+ "lazy_static",
+ "p3-baby-bear",
+ "p3-field",
+ "p3-poseidon2",
+ "p3-symmetric",
+]
+
+[[package]]
+name = "sphinx-prover"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "backtrace",
+ "bincode",
+ "clap",
+ "futures",
+ "hex",
+ "home",
+ "indicatif",
+ "itertools 0.12.1",
+ "num-bigint 0.4.5",
+ "p3-baby-bear",
+ "p3-bn254-fr",
+ "p3-challenger",
+ "p3-commit",
+ "p3-field",
+ "rayon",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "sha2",
+ "size",
+ "sphinx-core",
+ "sphinx-primitives",
+ "sphinx-recursion-circuit",
+ "sphinx-recursion-compiler",
+ "sphinx-recursion-core",
+ "sphinx-recursion-gnark-ffi",
+ "sphinx-recursion-program",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "sphinx-recursion-circuit"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "ff 0.13.0",
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-bn254-fr",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "p3-util",
+ "rand",
+ "serde",
+ "sphinx-core",
+ "sphinx-recursion-compiler",
+ "sphinx-recursion-core",
+ "sphinx-recursion-derive",
+ "sphinx-recursion-gnark-ffi",
+ "sphinx-recursion-program",
+ "zkhash",
+]
+
+[[package]]
+name = "sphinx-recursion-compiler"
+version = "0.1.0"
+dependencies = [
+ "backtrace",
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-bn254-fr",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "p3-util",
+ "rand",
+ "serde",
+ "sphinx-core",
+ "sphinx-recursion-core",
+ "sphinx-recursion-derive",
+ "tracing",
+]
+
+[[package]]
+name = "sphinx-recursion-core"
+version = "0.1.0"
+dependencies = [
+ "arrayref",
+ "backtrace",
+ "ff 0.13.0",
+ "hashbrown 0.14.5",
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-bn254-fr",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-maybe-rayon",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "rand",
+ "serde",
+ "serde_with",
+ "sphinx-core",
+ "sphinx-derive",
+ "sphinx-primitives",
+ "static_assertions",
+ "tracing",
+ "zkhash",
+]
+
+[[package]]
+name = "sphinx-recursion-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "sphinx-recursion-gnark-ffi"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cc",
+ "crossbeam",
+ "log",
+ "num-bigint 0.4.5",
+ "p3-baby-bear",
+ "p3-field",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sphinx-recursion-compiler",
+ "subtle-encoding",
+ "tempfile",
+]
+
+[[package]]
+name = "sphinx-recursion-program"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.12.1",
+ "p3-air",
+ "p3-baby-bear",
+ "p3-challenger",
+ "p3-commit",
+ "p3-dft",
+ "p3-field",
+ "p3-fri",
+ "p3-matrix",
+ "p3-maybe-rayon",
+ "p3-merkle-tree",
+ "p3-poseidon2",
+ "p3-symmetric",
+ "p3-util",
+ "rand",
+ "serde",
+ "sphinx-core",
+ "sphinx-recursion-compiler",
+ "sphinx-recursion-core",
+ "tracing",
+]
+
+[[package]]
+name = "sphinx-sdk"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "anyhow",
+ "async-trait",
+ "axum",
+ "bincode",
+ "dotenv",
+ "futures",
+ "hex",
+ "indicatif",
+ "log",
+ "num-bigint 0.4.5",
+ "p3-commit",
+ "p3-field",
+ "p3-matrix",
+ "prost",
+ "reqwest",
+ "reqwest-middleware",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sphinx-core",
+ "sphinx-prover",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "twirp",
+ "vergen",
+]
+
+[[package]]
+name = "sphinx-zkvm"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "once_cell",
+ "p3-baby-bear",
+ "p3-field",
+ "rand",
+ "sha2",
+ "sphinx-precompiles",
+ "sphinx-primitives",
+]
+
+[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4422,8 +4802,8 @@ dependencies = [
  "p3-matrix",
  "p3-maybe-rayon",
  "p3-uni-stark",
- "wp1-core",
- "wp1-derive",
+ "sphinx-core",
+ "sphinx-derive",
 ]
 
 [[package]]
@@ -4903,386 +5283,6 @@ checksum = "a277a57398d4bfa075df44f501a17cfdf8542d224f0d36095a2adc7aee4ef0a5"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "wp1-cli"
-version = "0.1.0"
-dependencies = [
- "anstyle",
- "anyhow",
- "cargo_metadata",
- "clap",
- "futures-util",
- "hex",
- "home",
- "indicatif",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "target-lexicon",
- "tempfile",
- "tokio",
- "vergen",
- "wp1-core",
- "wp1-prover",
- "wp1-sdk",
- "yansi",
-]
-
-[[package]]
-name = "wp1-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "arrayref",
- "bincode",
- "blake3",
- "blake3-zkvm",
- "bls12_381 0.8.0",
- "cfg-if",
- "criterion",
- "curve25519-dalek",
- "elf",
- "elliptic-curve",
- "hex",
- "hybrid-array",
- "itertools 0.12.1",
- "k256",
- "lazy_static",
- "log",
- "nohash-hasher",
- "num",
- "num-bigint 0.4.5",
- "num_cpus",
- "p3-air",
- "p3-baby-bear",
- "p3-blake3",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-keccak",
- "p3-keccak-air",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-uni-stark",
- "p3-util",
- "rand",
- "rayon-scan",
- "rrs-lib",
- "serde",
- "serde_with",
- "serial_test",
- "size",
- "strum",
- "strum_macros",
- "tempfile",
- "thiserror",
- "tiny-keccak",
- "tracing",
- "tracing-forest",
- "tracing-subscriber",
- "web-time",
- "wp1-derive",
- "wp1-primitives",
- "wp1-zkvm",
-]
-
-[[package]]
-name = "wp1-derive"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "wp1-eval"
-version = "0.1.0"
-dependencies = [
- "clap",
- "csv",
- "serde",
- "wp1-core",
- "wp1-prover",
-]
-
-[[package]]
-name = "wp1-helper"
-version = "0.1.0"
-dependencies = [
- "cargo_metadata",
- "chrono",
-]
-
-[[package]]
-name = "wp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "bls12_381 0.8.0",
- "cfg-if",
- "getrandom",
- "hybrid-array",
- "k256",
- "serde",
-]
-
-[[package]]
-name = "wp1-primitives"
-version = "0.1.0"
-dependencies = [
- "itertools 0.12.1",
- "lazy_static",
- "p3-baby-bear",
- "p3-field",
- "p3-poseidon2",
- "p3-symmetric",
-]
-
-[[package]]
-name = "wp1-prover"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "backtrace",
- "bincode",
- "clap",
- "futures",
- "hex",
- "home",
- "indicatif",
- "itertools 0.12.1",
- "num-bigint 0.4.5",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-field",
- "rayon",
- "reqwest",
- "serde",
- "serde_json",
- "serial_test",
- "sha2",
- "size",
- "tempfile",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "wp1-core",
- "wp1-primitives",
- "wp1-recursion-circuit",
- "wp1-recursion-compiler",
- "wp1-recursion-core",
- "wp1-recursion-gnark-ffi",
- "wp1-recursion-program",
-]
-
-[[package]]
-name = "wp1-recursion-circuit"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "ff 0.13.0",
- "itertools 0.12.1",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rand",
- "serde",
- "wp1-core",
- "wp1-recursion-compiler",
- "wp1-recursion-core",
- "wp1-recursion-derive",
- "wp1-recursion-gnark-ffi",
- "wp1-recursion-program",
- "zkhash",
-]
-
-[[package]]
-name = "wp1-recursion-compiler"
-version = "0.1.0"
-dependencies = [
- "backtrace",
- "itertools 0.12.1",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rand",
- "serde",
- "tracing",
- "wp1-core",
- "wp1-recursion-core",
- "wp1-recursion-derive",
-]
-
-[[package]]
-name = "wp1-recursion-core"
-version = "0.1.0"
-dependencies = [
- "arrayref",
- "backtrace",
- "ff 0.13.0",
- "hashbrown 0.14.5",
- "itertools 0.12.1",
- "p3-air",
- "p3-baby-bear",
- "p3-bn254-fr",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "rand",
- "serde",
- "serde_with",
- "static_assertions",
- "tracing",
- "wp1-core",
- "wp1-derive",
- "wp1-primitives",
- "zkhash",
-]
-
-[[package]]
-name = "wp1-recursion-derive"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "wp1-recursion-gnark-ffi"
-version = "0.1.0"
-dependencies = [
- "bindgen",
- "cc",
- "crossbeam",
- "log",
- "num-bigint 0.4.5",
- "p3-baby-bear",
- "p3-field",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "subtle-encoding",
- "tempfile",
- "wp1-recursion-compiler",
-]
-
-[[package]]
-name = "wp1-recursion-program"
-version = "0.1.0"
-dependencies = [
- "itertools 0.12.1",
- "p3-air",
- "p3-baby-bear",
- "p3-challenger",
- "p3-commit",
- "p3-dft",
- "p3-field",
- "p3-fri",
- "p3-matrix",
- "p3-maybe-rayon",
- "p3-merkle-tree",
- "p3-poseidon2",
- "p3-symmetric",
- "p3-util",
- "rand",
- "serde",
- "tracing",
- "wp1-core",
- "wp1-recursion-compiler",
- "wp1-recursion-core",
-]
-
-[[package]]
-name = "wp1-sdk"
-version = "0.1.0"
-dependencies = [
- "alloy",
- "anyhow",
- "async-trait",
- "axum",
- "bincode",
- "dotenv",
- "futures",
- "hex",
- "indicatif",
- "log",
- "num-bigint 0.4.5",
- "p3-commit",
- "p3-field",
- "p3-matrix",
- "prost",
- "reqwest",
- "reqwest-middleware",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "tokio",
- "tracing",
- "twirp",
- "vergen",
- "wp1-core",
- "wp1-prover",
-]
-
-[[package]]
-name = "wp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "once_cell",
- "p3-baby-bear",
- "p3-field",
- "rand",
- "sha2",
- "wp1-precompiles",
- "wp1-primitives",
 ]
 
 [[package]]

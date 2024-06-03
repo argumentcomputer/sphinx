@@ -18,7 +18,7 @@ pub use memory::*;
 pub use opcode::*;
 pub use opcode_specific::*;
 use p3_util::indices_arr;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     air::Word,

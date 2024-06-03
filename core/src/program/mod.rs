@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField;
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     air::{MachineAir, ProgramAirBuilder},
