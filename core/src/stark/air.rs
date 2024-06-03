@@ -6,8 +6,14 @@ use crate::stark::Chip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
+use crate::syscall::precompiles::field::add::FieldAddChip;
+use crate::syscall::precompiles::field::mul::FieldMulChip;
+use crate::syscall::precompiles::field::sub::FieldSubChip;
+use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
+use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
+use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
-use crate::utils::ec::weierstrass::bls12_381::{Bls12381BaseField, Bls12381Parameters};
+use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
 use crate::StarkGenericConfig;
 use p3_field::PrimeField32;
 pub use riscv_chips::*;
@@ -16,26 +22,30 @@ use tracing::instrument;
 
 /// A module for importing all the different RISC-V chips.
 pub(crate) mod riscv_chips {
-    pub use crate::{
-        alu::{AddSubChip, BitwiseChip, DivRemChip, LtChip, MulChip, ShiftLeft, ShiftRightChip},
-        bytes::ByteChip,
-        cpu::CpuChip,
-        memory::MemoryChip,
-        program::ProgramChip,
-        syscall::precompiles::{
-            blake3::Blake3CompressInnerChip,
-            edwards::{EdAddAssignChip, EdDecompressChip},
-            field::{add::FieldAddChip, mul::FieldMulChip, sub::FieldSubChip},
-            keccak256::KeccakPermuteChip,
-            quad_field::{add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip},
-            sha256::{ShaCompressChip, ShaExtendChip},
-            weierstrass::{WeierstrassAddAssignChip, WeierstrassDoubleAssignChip},
-        },
-        utils::ec::{
-            edwards::{ed25519::Ed25519Parameters, EdwardsCurve},
-            weierstrass::{bn254::Bn254Parameters, secp256k1::Secp256k1Parameters, SwCurve},
-        },
-    };
+    pub use crate::alu::AddSubChip;
+    pub use crate::alu::BitwiseChip;
+    pub use crate::alu::DivRemChip;
+    pub use crate::alu::LtChip;
+    pub use crate::alu::MulChip;
+    pub use crate::alu::ShiftLeft;
+    pub use crate::alu::ShiftRightChip;
+    pub use crate::bytes::ByteChip;
+    pub use crate::cpu::CpuChip;
+    pub use crate::memory::MemoryChip;
+    pub use crate::program::ProgramChip;
+    pub use crate::syscall::precompiles::edwards::EdAddAssignChip;
+    pub use crate::syscall::precompiles::edwards::EdDecompressChip;
+    pub use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
+    pub use crate::syscall::precompiles::sha256::ShaCompressChip;
+    pub use crate::syscall::precompiles::sha256::ShaExtendChip;
+    pub use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
+    pub use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
+    pub use crate::utils::ec::edwards::ed25519::Ed25519Parameters;
+    pub use crate::utils::ec::edwards::EdwardsCurve;
+    pub use crate::utils::ec::weierstrass::bls12_381::Bls12381Parameters;
+    pub use crate::utils::ec::weierstrass::bn254::Bn254Parameters;
+    pub use crate::utils::ec::weierstrass::secp256k1::Secp256k1Parameters;
+    pub use crate::utils::ec::weierstrass::SwCurve;
 }
 
 /// An AIR for encoding RISC-V execution.
@@ -88,8 +98,6 @@ pub enum RiscvAir<F: PrimeField32> {
     Secp256k1Double(WeierstrassDoubleAssignChip<SwCurve<Secp256k1Parameters>>),
     /// A precompile for the Keccak permutation.
     KeccakP(KeccakPermuteChip),
-    /// A precompile for the Blake3 compression function. (Disabled by default.)
-    Blake3Compress(Blake3CompressInnerChip),
     /// A precompile for addition on the Elliptic curve bn254.
     Bn254Add(WeierstrassAddAssignChip<SwCurve<Bn254Parameters>>),
     /// A precompile for doubling a point on the Elliptic curve bn254.
@@ -158,37 +166,19 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bn254Add(bn254_add_assign));
         let bn254_double_assign = WeierstrassDoubleAssignChip::<SwCurve<Bn254Parameters>>::new();
         chips.push(RiscvAir::Bn254Double(bn254_double_assign));
-        let bls12381_g1_add = WeierstrassAddAssignChip::<SwCurve<Bls12381Parameters>>::new();
-        chips.push(RiscvAir::Bls12381Add(bls12381_g1_add));
-        let bls12381_g1_double = WeierstrassDoubleAssignChip::<SwCurve<Bls12381Parameters>>::new();
-        chips.push(RiscvAir::Bls12381Double(bls12381_g1_double));
-        let bls12381_fp_add = FieldAddChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpAdd(bls12381_fp_add));
-        let bls12381_fp_sub = FieldSubChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpSub(bls12381_fp_sub));
-        let bls12381_fp_mul = FieldMulChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpMul(bls12381_fp_mul));
-        let bls12381_fp2_add = QuadFieldAddChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Add(bls12381_fp2_add));
-        let bls12381_fp2_sub = QuadFieldSubChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Sub(bls12381_fp2_sub));
-        let bls12381_fp2_mul = QuadFieldMulChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
-        let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
-        chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
-
-        let bls12381_g2_add = Bls12381G2AffineAddChip::new();
-        chips.push(RiscvAir::Bls12381G2Add(bls12381_g2_add));
-        let bls12381_g2_double = Bls12381G2AffineDoubleChip::new();
-        chips.push(RiscvAir::Bls12381G2AffineDouble(bls12381_g2_double));
-
-        let add = AddSubChip;
+        let bls12381_add = WeierstrassAddAssignChip::<SwCurve<Bls12381Parameters>>::new();
+        chips.push(RiscvAir::Bls12381Add(bls12381_add));
+        let bls12381_double = WeierstrassDoubleAssignChip::<SwCurve<Bls12381Parameters>>::new();
+        chips.push(RiscvAir::Bls12381Double(bls12381_double));
+        let bls12381_decompress = Bls12381G1DecompressChip::<SwCurve<Bls12381Parameters>>::new();
+        chips.push(RiscvAir::Bls12381G1Decompress(bls12381_decompress));
+        let div_rem = DivRemChip::default();
+        chips.push(RiscvAir::DivRem(div_rem));
+        let add = AddSubChip::default();
         chips.push(RiscvAir::Add(add));
         let bitwise = BitwiseChip;
         chips.push(RiscvAir::Bitwise(bitwise));
-        let div_rem = DivRemChip;
-        chips.push(RiscvAir::DivRem(div_rem));
-        let mul = MulChip;
+        let mul = MulChip::default();
         chips.push(RiscvAir::Mul(mul));
         let shift_right = ShiftRightChip;
         chips.push(RiscvAir::ShiftRight(shift_right));
