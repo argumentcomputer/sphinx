@@ -23,12 +23,6 @@ use p3_challenger::CanObserve;
 use p3_field::{AbstractField, PrimeField};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::prelude::*;
-use tracing::instrument;
-use types::{
-    SphinxCoreProof, SphinxCoreProofData, SphinxProvingKey, SphinxRecursionProverError, SphinxReduceProof,
-    SphinxVerifyingKey,
-};
-use utils::words_to_bytes;
 use sphinx_core::air::{PublicValues, Word};
 pub use sphinx_core::io::{SphinxPublicValues, SphinxStdin};
 use sphinx_core::runtime::{ExecutionError, Runtime};
@@ -61,8 +55,15 @@ use sphinx_recursion_program::machine::{
     SphinxCompressVerifier, SphinxDeferredVerifier, SphinxRecursiveVerifier, SphinxRootVerifier,
 };
 pub use sphinx_recursion_program::machine::{
-    SphinxDeferredMemoryLayout, SphinxRecursionMemoryLayout, SphinxReduceMemoryLayout, SphinxRootMemoryLayout,
+    SphinxDeferredMemoryLayout, SphinxRecursionMemoryLayout, SphinxReduceMemoryLayout,
+    SphinxRootMemoryLayout,
 };
+use tracing::instrument;
+use types::{
+    SphinxCoreProof, SphinxCoreProofData, SphinxProvingKey, SphinxRecursionProverError,
+    SphinxReduceProof, SphinxVerifyingKey,
+};
+use utils::words_to_bytes;
 
 /// The configuration for the core prover.
 pub type CoreSC = BabyBearPoseidon2;
@@ -153,7 +154,8 @@ impl SphinxProver {
         let (rec_pk, rec_vk) = compress_machine.setup(&recursion_program);
 
         // Get the deferred program and keys.
-        let deferred_program = SphinxDeferredVerifier::<InnerConfig, _, _>::build(&compress_machine);
+        let deferred_program =
+            SphinxDeferredVerifier::<InnerConfig, _, _>::build(&compress_machine);
         let (deferred_pk, deferred_vk) = compress_machine.setup(&deferred_program);
 
         // Make the reduce program and keys.
@@ -223,7 +225,9 @@ impl SphinxProver {
             runtime.write_proof(proof.clone(), vkey.clone());
         }
         runtime.run_untraced()?;
-        Ok(SphinxPublicValues::from(&runtime.state.public_values_stream))
+        Ok(SphinxPublicValues::from(
+            &runtime.state.public_values_stream,
+        ))
     }
 
     /// Generate shard proofs which split up and prove the valid execution of a RISC-V program with
@@ -638,7 +642,11 @@ impl SphinxProver {
 
     /// Wrap the STARK proven over a SNARK-friendly field into a Groth16 proof.
     #[instrument(name = "wrap_groth16", level = "info", skip_all)]
-    pub fn wrap_groth16(&self, proof: SphinxReduceProof<OuterSC>, build_dir: &Path) -> Groth16Proof {
+    pub fn wrap_groth16(
+        &self,
+        proof: SphinxReduceProof<OuterSC>,
+        build_dir: &Path,
+    ) -> Groth16Proof {
         let vkey_digest = proof.sphinx_vkey_digest_bn254();
         let commited_values_digest = proof.sphinx_commited_values_digest_bn254();
 
@@ -705,9 +713,9 @@ mod tests {
     use anyhow::Result;
     use p3_field::PrimeField32;
     use serial_test::serial;
-    use types::HashableKey;
     use sphinx_core::io::SphinxStdin;
     use sphinx_core::utils::setup_logger;
+    use types::HashableKey;
 
     /// Tests an end-to-end workflow of proving a program across the entire proof generation
     /// pipeline.
@@ -954,12 +962,20 @@ mod tests {
         test_inner(
             bls12381_g2_add_elf,
             3,
-            vec![&SphinxStdin::new(), &SphinxStdin::new(), &SphinxStdin::new()],
+            vec![
+                &SphinxStdin::new(),
+                &SphinxStdin::new(),
+                &SphinxStdin::new(),
+            ],
         );
         test_inner(
             bls12381_g2_double_elf,
             3,
-            vec![&SphinxStdin::new(), &SphinxStdin::new(), &SphinxStdin::new()],
+            vec![
+                &SphinxStdin::new(),
+                &SphinxStdin::new(),
+                &SphinxStdin::new(),
+            ],
         );
     }
 }

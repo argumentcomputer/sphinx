@@ -10,11 +10,11 @@ use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use std::borrow::BorrowMut;
-use tracing::instrument;
 use sphinx_core::air::{BaseAirBuilder, BinomialExtension, ExtensionAirBuilder, MachineAir};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
+use std::borrow::BorrowMut;
+use tracing::instrument;
 
 use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryRecord;

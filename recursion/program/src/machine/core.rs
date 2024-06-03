@@ -64,7 +64,10 @@ impl SphinxRecursiveVerifier<InnerConfig, BabyBearPoseidon2> {
         let mut builder = Builder::<InnerConfig>::default();
 
         let input: SphinxRecursionMemoryLayoutVariable<_> = builder.uninit();
-        SphinxRecursionMemoryLayout::<BabyBearPoseidon2, RiscvAir<_>>::witness(&input, &mut builder);
+        SphinxRecursionMemoryLayout::<BabyBearPoseidon2, RiscvAir<_>>::witness(
+            &input,
+            &mut builder,
+        );
 
         let pcs = TwoAdicFriPcsVariable {
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),

@@ -1,5 +1,5 @@
-use std::mem::size_of;
 use sphinx_derive::AlignedBorrow;
+use std::mem::size_of;
 
 use crate::runtime::DIGEST_SIZE;
 

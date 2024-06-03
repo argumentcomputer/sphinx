@@ -4,7 +4,6 @@ use anyhow::Result;
 use num_bigint::BigUint;
 use p3_baby_bear::BabyBear;
 use p3_field::{AbstractField, PrimeField};
-use thiserror::Error;
 use sphinx_core::{
     air::PublicValues,
     io::SphinxPublicValues,
@@ -13,6 +12,7 @@ use sphinx_core::{
 };
 use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
 use sphinx_recursion_gnark_ffi::{Groth16Proof, Groth16Prover};
+use thiserror::Error;
 
 use crate::{
     types::HashableKey, CoreSC, OuterSC, SphinxCoreProofData, SphinxProver, SphinxReduceProof,

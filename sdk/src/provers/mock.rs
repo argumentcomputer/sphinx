@@ -1,12 +1,14 @@
 #![allow(unused_variables)]
 use crate::{
     Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
-    SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
+    SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey,
+    SphinxVerifyingKey,
 };
 use anyhow::Result;
 use p3_field::PrimeField;
 use sphinx_prover::{
-    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SphinxProver, SphinxStdin,
+    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SphinxProver,
+    SphinxStdin,
 };
 
 /// An implementation of [crate::ProverClient] that can generate mock proofs.
@@ -52,7 +54,11 @@ impl Prover for MockProver {
         unimplemented!()
     }
 
-    fn prove_groth16(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxGroth16Proof> {
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
         Ok(SphinxGroth16Proof {
             proof: Groth16Proof {

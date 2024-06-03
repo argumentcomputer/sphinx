@@ -8,11 +8,11 @@ use p3_air::{Air, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use std::borrow::BorrowMut;
-use tracing::instrument;
 use sphinx_core::air::{BaseAirBuilder, MachineAir};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_primitives::RC_16_30_U32;
+use std::borrow::BorrowMut;
+use tracing::instrument;
 
 use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryCols;

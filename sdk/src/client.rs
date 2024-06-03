@@ -13,8 +13,8 @@ use futures::future::join_all;
 use reqwest::{Client as HttpClient, Url};
 use reqwest_middleware::ClientWithMiddleware as HttpClientWithMiddleware;
 use serde::de::DeserializeOwned;
-use twirp::Client as TwirpClient;
 use sphinx_prover::SphinxStdin;
+use twirp::Client as TwirpClient;
 
 use crate::proto::network::{
     ClaimProofRequest, ClaimProofResponse, CreateProofRequest, FulfillProofRequest,
@@ -28,7 +28,7 @@ use crate::proto::network::{
 const DEFAULT_PROVER_NETWORK_RPC: &str = "https://rpc.succinct.xyz/";
 
 /// The default SP1 Verifier address on all chains.
-const DEFAULT_Sphinx_VERIFIER_ADDRESS: &str = "0xed2107448519345059eab9cddab42ddc78fbebe9";
+const DEFAULT_SPHINX_VERIFIER_ADDRESS: &str = "0xed2107448519345059eab9cddab42ddc78fbebe9";
 
 pub struct NetworkClient {
     pub rpc: TwirpClient,
@@ -69,7 +69,7 @@ impl NetworkClient {
     // Get the address for the SP1 Verifier contract.
     pub fn get_sphinx_verifier_address() -> [u8; 20] {
         let verifier_hex = env::var("SP1_VERIFIER_ADDRESS")
-            .unwrap_or_else(|_| DEFAULT_Sphinx_VERIFIER_ADDRESS.to_string());
+            .unwrap_or_else(|_| DEFAULT_SPHINX_VERIFIER_ADDRESS.to_string());
         let verifier_bytes = hex::decode(verifier_hex.trim_start_matches("0x"))
             .expect("Invalid SP1_VERIFIER_ADDRESS format");
 

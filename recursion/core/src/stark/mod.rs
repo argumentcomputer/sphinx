@@ -22,7 +22,7 @@ pub type RecursionAirSkinnyDeg7<F> = RecursionAir<F, 7>;
 #[sphinx_core_path = "sphinx_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
 #[program_path = "crate::runtime::RecursionProgram<F>"]
-#[builder_path = "crate::air::SP1RecursionAirBuilder<F = F>"]
+#[builder_path = "crate::air::SphinxRecursionAirBuilder<F = F>"]
 pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> {
     Program(ProgramChip),
     Cpu(CpuChip<F>),

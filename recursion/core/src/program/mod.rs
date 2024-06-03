@@ -5,10 +5,10 @@ use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use std::collections::HashMap;
-use tracing::instrument;
 use sphinx_core::air::MachineAir;
 use sphinx_core::utils::pad_rows_fixed;
+use std::collections::HashMap;
+use tracing::instrument;
 
 use sphinx_derive::AlignedBorrow;
 

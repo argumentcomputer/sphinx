@@ -20,8 +20,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use serde::Deserialize;
 use serde::Serialize;
-use std::mem::size_of;
 use sphinx_derive::AlignedBorrow;
+use std::mem::size_of;
 
 /// Chip for adding to BLS12-381 G2Affine points (A and B).
 ///

@@ -7,14 +7,15 @@ use crate::{
     Prover,
 };
 use crate::{
-    SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProvingKey, SphinxVerifyingKey,
+    SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProvingKey,
+    SphinxVerifyingKey,
 };
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
-use tokio::{runtime, time::sleep};
 use sphinx_core::runtime::{Program, Runtime};
 use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin};
+use tokio::{runtime, time::sleep};
 
 use super::LocalProver;
 
@@ -167,11 +168,19 @@ impl Prover for NetworkProver {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Core))
     }
 
-    fn prove_compressed(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxCompressedProof> {
+    fn prove_compressed(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Compressed))
     }
 
-    fn prove_groth16(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxGroth16Proof> {
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Groth16))
     }
 

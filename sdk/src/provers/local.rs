@@ -2,8 +2,8 @@ use anyhow::Result;
 use sphinx_prover::{SphinxProver, SphinxStdin};
 
 use crate::{
-    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProofWithPublicValues,
-    SphinxProvingKey, SphinxVerifyingKey,
+    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
+    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
@@ -41,7 +41,11 @@ impl Prover for LocalProver {
         })
     }
 
-    fn prove_compressed(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxCompressedProof> {
+    fn prove_compressed(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         let proof = self.prover.prove_core(pk, &stdin)?;
         let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         let public_values = proof.public_values.clone();
@@ -53,7 +57,11 @@ impl Prover for LocalProver {
         })
     }
 
-    fn prove_groth16(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxGroth16Proof> {
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         let proof = self.prover.prove_core(pk, &stdin)?;
         let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         let public_values = proof.public_values.clone();

@@ -5,8 +5,8 @@ use crate::operations::field::params::{FieldParameters, Limbs};
 use crate::operations::field::range::FieldRangeCols;
 use num::BigUint;
 use p3_field::PrimeField32;
-use std::fmt::Debug;
 use sphinx_derive::AlignedBorrow;
+use std::fmt::Debug;
 
 use super::QuadFieldOpCols;
 

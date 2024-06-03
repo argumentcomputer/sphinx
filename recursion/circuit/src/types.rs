@@ -5,7 +5,9 @@ use sphinx_core::{
     air::MachineAir,
     stark::{AirOpenedValues, Chip, ChipOpenedValues, ShardCommitment},
 };
-use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, ExtConst, Felt, FromConstant, Var};
+use sphinx_recursion_compiler::ir::{
+    Array, Builder, Config, Ext, ExtConst, Felt, FromConstant, Var,
+};
 
 use crate::DIGEST_SIZE;
 

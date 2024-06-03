@@ -4,9 +4,9 @@ use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
-use std::ops::Add;
 use sphinx_core::air::{BaseAirBuilder, ExtensionAirBuilder};
 use sphinx_primitives::RC_16_30_U32;
+use std::ops::Add;
 
 use crate::air::{RecursionInteractionAirBuilder, RecursionMemoryAirBuilder};
 use crate::memory::MemoryCols;

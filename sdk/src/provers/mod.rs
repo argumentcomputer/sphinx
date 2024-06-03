@@ -28,10 +28,18 @@ pub trait Prover: Send + Sync {
     fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof>;
 
     /// Generate a compressed proof of the execution of a RISCV ELF with the given inputs.
-    fn prove_compressed(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxCompressedProof>;
+    fn prove_compressed(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof>;
 
     /// Given an SP1 program and input, generate a Groth16 proof that can be verified on-chain.
-    fn prove_groth16(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxGroth16Proof>;
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof>;
 
     /// Given an SP1 program and input, generate a PLONK proof that can be verified on-chain.
     fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof>;
@@ -47,7 +55,11 @@ pub trait Prover: Send + Sync {
     }
 
     /// Verify that a compressed SP1 proof is valid given its vkey and metadata.
-    fn verify_compressed(&self, proof: &SphinxCompressedProof, vkey: &SphinxVerifyingKey) -> Result<()> {
+    fn verify_compressed(
+        &self,
+        proof: &SphinxCompressedProof,
+        vkey: &SphinxVerifyingKey,
+    ) -> Result<()> {
         self.sphinx_prover()
             .verify_compressed(
                 &SphinxReduceProof {
@@ -68,7 +80,12 @@ pub trait Prover: Send + Sync {
         } else {
             sphinx_prover::build::groth16_artifacts_dir()
         };
-        sphinx_prover.verify_groth16(&proof.proof, vkey, &proof.public_values, &groth16_aritfacts)?;
+        sphinx_prover.verify_groth16(
+            &proof.proof,
+            vkey,
+            &proof.public_values,
+            &groth16_aritfacts,
+        )?;
 
         Ok(())
     }

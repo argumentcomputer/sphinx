@@ -3,10 +3,10 @@ use clap::Parser;
 use home::home_dir;
 use rand::{distributions::Alphanumeric, Rng};
 use reqwest::Client;
+use sphinx_sdk::artifacts::download_file;
 use std::fs::{self};
 use std::io::Read;
 use std::process::Command;
-use sphinx_sdk::artifacts::download_file;
 
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
