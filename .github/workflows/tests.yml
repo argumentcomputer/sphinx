@@ -23,16 +23,16 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
-      - name: Run cargo test on wp1 except the test_e2e_prove_groth16 recursion test
+      - name: Run cargo test on sphinx except the test_e2e_prove_groth16 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci --workspace -E 'all() - test(test_e2e_prove_groth16)'
       - name: Run cargo test with no default features
         run: |
-          cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+          cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
         working-directory: ${{ github.workspace }}/examples
       - name: Install `cargo prove` CLI
         run: |
-          cargo install --locked --path ./cli
+          cargo install --locked --force --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
 
@@ -51,7 +51,7 @@ jobs:
           pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
       - name: Run cargo test on the recursion circuit
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -p wp1-recursion-circuit
+          cargo nextest run --cargo-profile dev-ci --profile ci -p sphinx-recursion-circuit
 
   clippy:
     runs-on: warp-ubuntu-latest-x64-16x
@@ -93,7 +93,7 @@ jobs:
           perf: false
       - name: Install `cargo prove` CLI
         run: |
-          cargo install --locked --path ./cli
+          cargo install --locked --force --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
       - name: Check examples
@@ -118,8 +118,8 @@ jobs:
           cd cargo-prove-test/program
           cat << EOF | tee -a Cargo.toml
 
-          [patch.'ssh://git@github.com/lurk-lab/wp1.git']
-          wp1-zkvm = { path = "../../zkvm/entrypoint" }
+          [patch.'ssh://git@github.com/lurk-lab/sphinx.git']
+          sphinx-zkvm = { path = "../../zkvm/entrypoint" }
           EOF
           cd ../..
 
@@ -127,8 +127,8 @@ jobs:
           cat << EOF | tee -a Cargo.toml
 
           [patch.'ssh://git@github.com/lurk-lab/sphinx.git']
-          wp1-sdk = { path = "../../sdk" }
-          wp1-helper = { path = "../../helper" }
+          sphinx-sdk = { path = "../../sdk" }
+          sphinx-helper = { path = "../../helper" }
           EOF
           cargo run --release
 
@@ -148,15 +148,15 @@ jobs:
           pull_token: ${{ secrets.REPO_TOKEN }}
       - name: Install `cargo prove` CLI
         run: |
-          cargo install --locked --path ./cli
+          cargo install --locked --force --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
-      - name: Run cargo test on wp1 except the prove_sp1 recursion test
+      - name: Run cargo test on sphinx except the prove_sp1 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_e2e_prove_groth16)'
       - name: Run cargo test with no default features
         run: |
-          cargo nextest run -p wp1-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
+          cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
       - name: check examples compile
         run: |
           for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
