@@ -1,6 +1,6 @@
 # Sphinx
 
-![](./assets/sphinx2.jpg)
+![](./assets/sphinx.jpg)
 *[Natasha De Vere](https://www.flickr.com/photos/col_and_tasha/6060947569/in/photostream/), [Attribution (CC BY 2.0)](https://creativecommons.org/licenses/by/2.0/)*
 
 Sphinx is an open-source zero-knowledge virtual machine (zkVM) that can prove
