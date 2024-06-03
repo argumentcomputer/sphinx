@@ -51,7 +51,8 @@ use crate::utils::pad_rows;
 use crate::utils::words_to_bytes_le;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
+pub struct EdDecompressEvent {
+    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -81,6 +82,7 @@ pub struct EdDecompressCols<T, P: FieldParameters> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
+    pub nonce: T,
     pub ptr: T,
     pub sign: T,
     pub x_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<P::NB_LIMBS>>,
@@ -107,6 +109,13 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
         self.channel = F::from_canonical_u32(event.channel);
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
+        self.nonce = F::from_canonical_u32(
+            record
+                .nonce_lookup
+                .get(&event.lookup_id)
+                .copied()
+                .unwrap_or_default(),
+        );
         self.sign = F::from_bool(event.sign);
         for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
             self.x_access[i].populate(
@@ -281,6 +290,7 @@ impl<V: Copy, P: FieldParameters> EdDecompressCols<V, P> {
             self.shard,
             self.channel,
             self.clk,
+            self.nonce,
             AB::F::from_canonical_u32(SyscallCode::ED_DECOMPRESS.syscall_id()),
             self.ptr,
             self.sign,
@@ -339,11 +349,13 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<Ba
         let x_memory_records: Array<MemoryWriteRecord, WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>> =
             (&x_memory_records_vec[..]).try_into().unwrap();
 
+        let lookup_id = rt.syscall_lookup_id;
         let shard = rt.current_shard();
         let channel = rt.current_channel();
         rt.record_mut()
             .ed_decompress_events
             .push(EdDecompressEvent {
+                lookup_id,
                 shard,
                 channel,
                 clk: start_clk,
@@ -410,10 +422,20 @@ where
             row
         });
 
-        RowMajorMatrix::new(
+        let mut trace = RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<EdDecompressCols<u8, E::BaseField>>(),
-        )
+            NUM_ED_DECOMPRESS_COLS,
+        );
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut EdDecompressCols<F> = trace.values
+                [i * NUM_ED_DECOMPRESS_COLS..(i + 1) * NUM_ED_DECOMPRESS_COLS]
+                .borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -433,9 +455,18 @@ where
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let row = main.row_slice(0);
-        let row: &EdDecompressCols<AB::Var, E::BaseField> = (*row).borrow();
-        row.eval::<AB, E>(builder);
+        let local = main.row_slice(0);
+        let local: &EdDecompressCols<AB::Var> = (*local).borrow();
+        let next = main.row_slice(1);
+        let next: &EdDecompressCols<AB::Var> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(local.nonce);
+        builder
+            .when_transition()
+            .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
+
+        local.eval::<AB, E::BaseField, E>(builder);
     }
 }
 

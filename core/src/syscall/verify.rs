@@ -1,6 +1,6 @@
 use crate::{
     runtime::{Syscall, SyscallContext},
-    stark::{RiscvAir, StarkGenericConfig},
+    stark::StarkGenericConfig,
     utils::BabyBearPoseidon2Inner,
 };
 
@@ -49,17 +49,6 @@ impl Syscall for SyscallVerifySphinxProof {
 
         let config = BabyBearPoseidon2Inner::new();
         let mut challenger = config.challenger();
-        // TODO: need to use RecursionAir here
-        let machine = RiscvAir::machine(config);
-
-        // TODO: Need to import PublicValues from recursion.
-        // Assert the commit in vkey from runtime inputs matches the one from syscall.
-        // Assert that the public values digest from runtime inputs matches the one from syscall.
-
-        // TODO: Verify proof
-        // machine
-        //     .verify(proof_vk, proof, &mut challenger)
-        //     .expect("proof verification failed");
 
         None
     }

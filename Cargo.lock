@@ -4648,9 +4648,11 @@ dependencies = [
  "num-bigint 0.4.5",
  "p3-baby-bear",
  "p3-field",
+ "p3-symmetric",
  "rand",
  "serde",
  "serde_json",
+ "sphinx-core",
  "sphinx-recursion-compiler",
  "tempfile",
 ]
