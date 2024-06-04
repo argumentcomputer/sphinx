@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use p3_field::{AbstractField, PrimeField32};
 use sphinx_core::air::EventLens;
-use sphinx_core::stark::{Indexable, MachineRecord, PROOF_MAX_NUM_PVS};
+use sphinx_core::stark::{Indexed, MachineRecord, PROOF_MAX_NUM_PVS};
 
 use super::RecursionProgram;
 use crate::air::Block;
@@ -42,7 +42,7 @@ impl<F: Default> ExecutionRecord<F> {
     }
 }
 
-impl<F: PrimeField32> Indexable for ExecutionRecord<F> {
+impl<F: PrimeField32> Indexed for ExecutionRecord<F> {
     fn index(&self) -> u32 {
         0
     }

@@ -25,7 +25,7 @@ use crate::air::MachineProgram;
 use crate::lookup::debug_interactions_with_all_chips;
 use crate::lookup::InteractionBuilder;
 use crate::lookup::InteractionKind;
-use crate::stark::record::{Indexable, MachineRecord};
+use crate::stark::record::{Indexed, MachineRecord};
 use crate::stark::DebugConstraintBuilder;
 use crate::stark::ProverConstraintFolder;
 use crate::stark::ShardProof;

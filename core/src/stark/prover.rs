@@ -26,7 +26,7 @@ use super::{StarkProvingKey, VerifierConstraintFolder};
 use crate::air::MachineAir;
 use crate::lookup::InteractionBuilder;
 use crate::stark::record::MachineRecord;
-use crate::stark::Indexable;
+use crate::stark::Indexed;
 use crate::stark::MachineChip;
 use crate::stark::PackedChallenge;
 use crate::stark::ProverConstraintFolder;
