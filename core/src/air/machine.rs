@@ -7,7 +7,7 @@ pub use sphinx_derive::MachineAir;
 
 use crate::{
     runtime::Program,
-    stark::{Indexable, MachineRecord},
+    stark::{Indexed, MachineRecord},
 };
 
 /// A description of the events related to this AIR.
@@ -22,7 +22,7 @@ pub trait WithEvents<'a>: Sized {
 /// Chip, as specified by its `WithEvents` trait implementation.
 ///
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
-pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexable {
+pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexed {
     fn events(&self) -> <T as WithEvents<'_>>::Events;
 }
 
@@ -71,10 +71,10 @@ where
     }
 }
 
-impl<'a, T, R, F> Indexable for Proj<'a, T, R, F>
+impl<'a, T, R, F> Indexed for Proj<'a, T, R, F>
 where
     T: for<'b> WithEvents<'b>,
-    R: EventLens<T> + Indexable,
+    R: EventLens<T> + Indexed,
 {
     fn index(&self) -> u32 {
         self.record.index()

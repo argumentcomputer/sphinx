@@ -56,7 +56,7 @@ use crate::{
     },
     utils::ec::weierstrass::bls12_381::Bls12381BaseField,
 };
-use crate::{bytes::event::ByteRecord, stark::Indexable};
+use crate::{bytes::event::ByteRecord, stark::Indexed};
 
 /// A record of the execution of a program. Contains event data for everything that happened during
 /// the execution of the shard.
@@ -426,7 +426,7 @@ impl Default for ShardingConfig {
     }
 }
 
-impl Indexable for ExecutionRecord {
+impl Indexed for ExecutionRecord {
     fn index(&self) -> u32 {
         self.index
     }
