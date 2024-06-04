@@ -4,7 +4,7 @@ use crate::range_check::RangeCheckOpcode;
 use core::iter::{once, repeat};
 use p3_air::{AirBuilder, AirBuilderWithPublicValues};
 use p3_field::AbstractField;
-use wp1_core::{
+use sphinx_core::{
     air::{AirInteraction, BaseAirBuilder, MachineAirBuilder},
     lookup::InteractionKind,
 };
@@ -12,12 +12,12 @@ use wp1_core::{
 use super::Block;
 
 /// A trait which contains all helper methods for building SP1 recursion machine AIRs.
-pub trait SP1RecursionAirBuilder:
+pub trait SphinxRecursionAirBuilder:
     MachineAirBuilder + RecursionMemoryAirBuilder + RecursionInteractionAirBuilder
 {
 }
 
-impl<AB: AirBuilderWithPublicValues + RecursionMemoryAirBuilder> SP1RecursionAirBuilder for AB {}
+impl<AB: AirBuilderWithPublicValues + RecursionMemoryAirBuilder> SphinxRecursionAirBuilder for AB {}
 impl<AB: BaseAirBuilder> RecursionMemoryAirBuilder for AB {}
 impl<AB: BaseAirBuilder> RecursionInteractionAirBuilder for AB {}
 

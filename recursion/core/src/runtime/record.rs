@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
 use p3_field::{AbstractField, PrimeField32};
-use wp1_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
+use sphinx_core::stark::{MachineRecord, PROOF_MAX_NUM_PVS};
 
 use super::RecursionProgram;
 use crate::air::Block;

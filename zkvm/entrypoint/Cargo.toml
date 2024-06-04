@@ -1,13 +1,13 @@
 [package]
-name = "wp1-zkvm"
+name = "sphinx-zkvm"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
 [dependencies]
-wp1-precompiles = { path = "../precompiles" }
-wp1-primitives = { path = "../../primitives", optional = true }
+sphinx-precompiles = { path = "../precompiles" }
+sphinx-primitives = { path = "../../primitives", optional = true }
 p3-baby-bear = { workspace = true, optional = true }
 p3-field = { workspace = true, optional = true }
 bincode = { workspace = true }
@@ -20,13 +20,13 @@ sha2 = { workspace = true }
 
 [features]
 default = []
-verify = ["dep:wp1-primitives", "dep:p3-baby-bear", "dep:p3-field", "wp1-precompiles/verify"]
+verify = ["dep:sphinx-primitives", "dep:p3-baby-bear", "dep:p3-field", "sphinx-precompiles/verify"]
 
 
 [package.metadata.cargo-udeps.ignore] # used w/ verify feature & some examples
 normal = [
     "p3-baby-bear",
     "p3-field",
-    "wp1-primitives",
+    "sphinx-primitives",
     "rand"
 ]

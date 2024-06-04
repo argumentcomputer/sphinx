@@ -3,7 +3,7 @@ cfg_if::cfg_if! {
         use core::arch::asm;
         use crate::zkvm;
         use sha2::digest::Update;
-        use wp1_precompiles::io::FD_PUBLIC_VALUES;
+        use sphinx_precompiles::io::FD_PUBLIC_VALUES;
     }
 }
 

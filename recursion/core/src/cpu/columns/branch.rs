@@ -1,6 +1,6 @@
+use sphinx_core::air::BinomialExtension;
+use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
-use wp1_core::air::BinomialExtension;
-use wp1_derive::AlignedBorrow;
 
 use crate::air::IsExtZeroOperation;
 

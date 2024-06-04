@@ -2,19 +2,19 @@ use std::borrow::Borrow;
 use std::path::PathBuf;
 
 use p3_baby_bear::BabyBear;
-use wp1_core::stark::StarkVerifyingKey;
-use wp1_core::{io::SP1Stdin, stark::ShardProof};
-pub use wp1_recursion_circuit::stark::build_wrap_circuit;
-pub use wp1_recursion_circuit::witness::Witnessable;
-pub use wp1_recursion_compiler::ir::Witness;
-use wp1_recursion_compiler::{config::OuterConfig, constraints::Constraint};
-use wp1_recursion_core::air::RecursionPublicValues;
-pub use wp1_recursion_core::stark::utils::wp1_dev_mode;
-use wp1_recursion_gnark_ffi::Groth16Prover;
+use sphinx_core::stark::StarkVerifyingKey;
+use sphinx_core::{io::SphinxStdin, stark::ShardProof};
+pub use sphinx_recursion_circuit::stark::build_wrap_circuit;
+pub use sphinx_recursion_circuit::witness::Witnessable;
+pub use sphinx_recursion_compiler::ir::Witness;
+use sphinx_recursion_compiler::{config::OuterConfig, constraints::Constraint};
+use sphinx_recursion_core::air::RecursionPublicValues;
+pub use sphinx_recursion_core::stark::utils::sphinx_dev_mode;
+use sphinx_recursion_gnark_ffi::Groth16Prover;
 
 use crate::install::{install_groth16_artifacts, GROTH16_ARTIFACTS_COMMIT};
 use crate::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
-use crate::{OuterSC, SP1Prover};
+use crate::{OuterSC, SphinxProver};
 
 /// Tries to install the Groth16 artifacts if they are not already installed.
 pub fn try_install_groth16_artifacts() -> PathBuf {
@@ -99,7 +99,7 @@ pub fn build_constraints_and_witness(
         .in_scope(|| build_wrap_circuit(template_vk, template_proof));
 
     let pv: &RecursionPublicValues<BabyBear> = template_proof.public_values.as_slice().borrow();
-    let vkey_hash = babybears_to_bn254(&pv.wp1_vk_digest);
+    let vkey_hash = babybears_to_bn254(&pv.sphinx_vk_digest);
     let committed_values_digest_bytes: [BabyBear; 32] = words_to_bytes(&pv.committed_value_digest)
         .try_into()
         .unwrap();
@@ -120,13 +120,13 @@ pub fn dummy_proof() -> (StarkVerifyingKey<OuterSC>, ShardProof<OuterSC>) {
     let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
 
     tracing::info!("initializing prover");
-    let prover = SP1Prover::new();
+    let prover = SphinxProver::new();
 
     tracing::info!("setup elf");
     let (pk, vk) = prover.setup(elf);
 
     tracing::info!("prove core");
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
     stdin.write(&500u32);
     let core_proof = prover.prove_core(&pk, &stdin).unwrap();
 

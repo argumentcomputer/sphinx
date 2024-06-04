@@ -2,24 +2,24 @@ use p3_air::Air;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractField;
 use p3_field::TwoAdicField;
-use wp1_core::air::MachineAir;
-use wp1_core::stark::Com;
-use wp1_core::stark::GenericVerifierConstraintFolder;
-use wp1_core::stark::ShardProof;
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::stark::StarkMachine;
+use sphinx_core::air::MachineAir;
+use sphinx_core::stark::Com;
+use sphinx_core::stark::GenericVerifierConstraintFolder;
+use sphinx_core::stark::ShardProof;
+use sphinx_core::stark::StarkGenericConfig;
+use sphinx_core::stark::StarkMachine;
 
-use wp1_core::stark::StarkVerifyingKey;
-use wp1_recursion_compiler::ir::Array;
-use wp1_recursion_compiler::ir::Ext;
-use wp1_recursion_compiler::ir::ExtConst;
-use wp1_recursion_compiler::ir::SymbolicExt;
-use wp1_recursion_compiler::ir::SymbolicVar;
-use wp1_recursion_compiler::ir::Var;
-use wp1_recursion_compiler::ir::{Builder, Config, Usize};
-use wp1_recursion_compiler::prelude::Felt;
+use sphinx_core::stark::StarkVerifyingKey;
+use sphinx_recursion_compiler::ir::Array;
+use sphinx_recursion_compiler::ir::Ext;
+use sphinx_recursion_compiler::ir::ExtConst;
+use sphinx_recursion_compiler::ir::SymbolicExt;
+use sphinx_recursion_compiler::ir::SymbolicVar;
+use sphinx_recursion_compiler::ir::Var;
+use sphinx_recursion_compiler::ir::{Builder, Config, Usize};
+use sphinx_recursion_compiler::prelude::Felt;
 
-use wp1_recursion_core::runtime::DIGEST_SIZE;
+use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
 use crate::challenger::CanObserveVariable;
 use crate::challenger::DuplexChallengerVariable;
@@ -410,37 +410,37 @@ pub(crate) mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_field::AbstractField;
     use rand::Rng;
-    use wp1_core::air::POSEIDON_NUM_WORDS;
-    use wp1_core::io::SP1Stdin;
-    use wp1_core::runtime::Program;
-    use wp1_core::stark::LocalProver;
-    use wp1_core::utils::setup_logger;
-    use wp1_core::utils::InnerChallenge;
-    use wp1_core::utils::InnerVal;
-    use wp1_core::{
+    use sphinx_core::air::POSEIDON_NUM_WORDS;
+    use sphinx_core::io::SphinxStdin;
+    use sphinx_core::runtime::Program;
+    use sphinx_core::stark::LocalProver;
+    use sphinx_core::utils::setup_logger;
+    use sphinx_core::utils::InnerChallenge;
+    use sphinx_core::utils::InnerVal;
+    use sphinx_core::{
         stark::{RiscvAir, StarkGenericConfig},
         utils::BabyBearPoseidon2,
     };
-    use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_compiler::ir::Array;
-    use wp1_recursion_compiler::ir::Config;
-    use wp1_recursion_compiler::ir::Felt;
-    use wp1_recursion_compiler::prelude::Usize;
-    use wp1_recursion_compiler::{
+    use sphinx_recursion_compiler::config::InnerConfig;
+    use sphinx_recursion_compiler::ir::Array;
+    use sphinx_recursion_compiler::ir::Config;
+    use sphinx_recursion_compiler::ir::Felt;
+    use sphinx_recursion_compiler::prelude::Usize;
+    use sphinx_recursion_compiler::{
         asm::AsmBuilder,
         ir::{Builder, ExtConst},
     };
-    use wp1_recursion_core::runtime::DIGEST_SIZE;
+    use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
-    use wp1_recursion_core::air::RecursionPublicValues;
-    use wp1_recursion_core::air::RECURSION_PUBLIC_VALUES_COL_MAP;
-    use wp1_recursion_core::air::RECURSIVE_PROOF_NUM_PV_ELTS;
-    use wp1_recursion_core::runtime::RecursionProgram;
-    use wp1_recursion_core::runtime::Runtime;
+    use sphinx_recursion_core::air::RecursionPublicValues;
+    use sphinx_recursion_core::air::RECURSION_PUBLIC_VALUES_COL_MAP;
+    use sphinx_recursion_core::air::RECURSIVE_PROOF_NUM_PV_ELTS;
+    use sphinx_recursion_core::runtime::RecursionProgram;
+    use sphinx_recursion_core::runtime::Runtime;
 
-    use wp1_recursion_core::stark::utils::run_test_recursion;
-    use wp1_recursion_core::stark::utils::TestConfig;
-    use wp1_recursion_core::stark::RecursionAir;
+    use sphinx_recursion_core::stark::utils::run_test_recursion;
+    use sphinx_recursion_core::stark::utils::TestConfig;
+    use sphinx_recursion_core::stark::RecursionAir;
 
     type SC = BabyBearPoseidon2;
     type Challenge = <SC as StarkGenericConfig>::Challenge;
@@ -459,7 +459,8 @@ pub(crate) mod tests {
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger_val = machine.config().challenger();
         let (proof, _) =
-            wp1_core::utils::prove(&Program::from(elf), &SP1Stdin::new(), SC::default()).unwrap();
+            sphinx_core::utils::prove(&Program::from(elf), &SphinxStdin::new(), SC::default())
+                .unwrap();
         let proofs = proof.shard_proofs;
         println!("Proof generated successfully");
 
@@ -524,7 +525,7 @@ pub(crate) mod tests {
         let public_values: &mut RecursionPublicValues<_> =
             public_values_stream.as_mut_slice().borrow_mut();
 
-        public_values.wp1_vk_digest = [builder.constant(<C as Config>::F::zero()); DIGEST_SIZE];
+        public_values.sphinx_vk_digest = [builder.constant(<C as Config>::F::zero()); DIGEST_SIZE];
         public_values.next_pc = builder.constant(<C as Config>::F::one());
         public_values.next_shard = builder.constant(<C as Config>::F::two());
         public_values.end_reconstruct_deferred_digest =

@@ -1344,6 +1344,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "sphinx-precompiles"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "bls12_381",
+ "cfg-if",
+ "getrandom",
+ "hybrid-array",
+ "k256",
+ "serde",
+]
+
+[[package]]
+name = "sphinx-zkvm"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "cfg-if",
+ "getrandom",
+ "k256",
+ "once_cell",
+ "rand",
+ "sha2 0.10.8",
+ "sphinx-precompiles",
+]
+
+[[package]]
 name = "spki"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1364,8 +1392,8 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha2 0.9.8",
+ "sphinx-zkvm",
  "ssz_rs",
- "wp1-zkvm",
 ]
 
 [[package]]
@@ -1734,34 +1762,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "wp1-precompiles"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "bls12_381",
- "cfg-if",
- "getrandom",
- "hybrid-array",
- "k256",
- "serde",
-]
-
-[[package]]
-name = "wp1-zkvm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "cfg-if",
- "getrandom",
- "k256",
- "once_cell",
- "rand",
- "sha2 0.10.8",
- "wp1-precompiles",
 ]
 
 [[package]]

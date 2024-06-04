@@ -514,7 +514,7 @@ pub mod tests {
 
     use serial_test::serial;
 
-    use crate::io::SP1Stdin;
+    use crate::io::SphinxStdin;
     use crate::runtime::tests::fibonacci_program;
     use crate::runtime::tests::simple_memory_program;
     use crate::runtime::tests::simple_program;
@@ -680,7 +680,7 @@ pub mod tests {
 
         setup_logger();
         let program = fibonacci_program();
-        let stdin = SP1Stdin::new();
+        let stdin = SphinxStdin::new();
         prove(&program, &stdin, BabyBearPoseidon2::new()).unwrap();
     }
 

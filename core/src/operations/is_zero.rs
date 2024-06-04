@@ -7,7 +7,7 @@
 use crate::air::BaseAirBuilder;
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 /// A set of columns needed to compute whether the given word is 0.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]

@@ -1,5 +1,5 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use hex_literal::hex;
 

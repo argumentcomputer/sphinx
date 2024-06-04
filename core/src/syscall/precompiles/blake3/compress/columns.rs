@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::{
     g::GOperation, NUM_MSG_WORDS_PER_CALL, NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT, ROUND_COUNT,

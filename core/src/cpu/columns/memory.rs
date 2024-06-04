@@ -1,6 +1,6 @@
 use std::{array, mem::size_of};
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{air::Word, memory::MemoryReadWriteCols};
 

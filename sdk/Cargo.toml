@@ -1,5 +1,5 @@
 [package]
-name = "wp1-sdk"
+name = "sphinx-sdk"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
@@ -16,8 +16,8 @@ async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
 reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
-wp1-prover = { path = "../prover" }
-wp1-core = { path = "../core" }
+sphinx-prover = { path = "../prover" }
+sphinx-core = { path = "../core" }
 futures = { workspace = true }
 bincode = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
@@ -36,7 +36,7 @@ tempfile = { workspace = true }
 num-bigint = { workspace = true }
 
 [features]
-neon = ["wp1-core/neon"]
+neon = ["sphinx-core/neon"]
 
 [build-dependencies]
 vergen = { workspace = true, features = ["build", "git", "git2"] }

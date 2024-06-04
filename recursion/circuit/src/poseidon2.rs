@@ -2,7 +2,7 @@
 
 use itertools::Itertools;
 use p3_field::{AbstractField, Field};
-use wp1_recursion_compiler::ir::{Builder, Config, DslIr, Felt, Var};
+use sphinx_recursion_compiler::ir::{Builder, Config, DslIr, Felt, Var};
 
 use crate::{challenger::reduce_32, types::OuterDigestVariable, DIGEST_SIZE, RATE, SPONGE_SIZE};
 
@@ -52,11 +52,11 @@ pub mod tests {
     use p3_bn254_fr::Bn254Fr;
     use p3_field::AbstractField;
     use p3_symmetric::{CryptographicHasher, Permutation, PseudoCompressionFunction};
-    use wp1_recursion_compiler::config::OuterConfig;
-    use wp1_recursion_compiler::constraints::ConstraintCompiler;
-    use wp1_recursion_compiler::ir::{Builder, Felt, Var, Witness};
-    use wp1_recursion_core::stark::config::{outer_perm, OuterCompress, OuterHash};
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_compiler::config::OuterConfig;
+    use sphinx_recursion_compiler::constraints::ConstraintCompiler;
+    use sphinx_recursion_compiler::ir::{Builder, Felt, Var, Witness};
+    use sphinx_recursion_core::stark::config::{outer_perm, OuterCompress, OuterHash};
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     use crate::{poseidon2::Poseidon2CircuitBuilder, types::OuterDigestVariable};
 

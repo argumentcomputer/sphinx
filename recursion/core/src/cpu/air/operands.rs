@@ -1,8 +1,8 @@
 use p3_field::{AbstractField, Field};
-use wp1_core::runtime::MemoryAccessPosition;
+use sphinx_core::runtime::MemoryAccessPosition;
 
 use crate::{
-    air::{BlockBuilder, SP1RecursionAirBuilder},
+    air::{BlockBuilder, SphinxRecursionAirBuilder},
     cpu::{CpuChip, CpuCols},
     memory::MemoryCols,
 };
@@ -11,7 +11,7 @@ impl<F: Field> CpuChip<F> {
     /// Eval the operands.
     pub fn eval_operands<AB>(&self, builder: &mut AB, local: &CpuCols<AB::Var>)
     where
-        AB: SP1RecursionAirBuilder<F = F>,
+        AB: SphinxRecursionAirBuilder<F = F>,
     {
         // Constraint the case of immediates for the b and c operands.
         builder

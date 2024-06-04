@@ -10,22 +10,22 @@ use p3_baby_bear::BabyBear;
 use p3_bn254_fr::Bn254Fr;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, TwoAdicField};
-use wp1_core::stark::{Com, ShardProof, PROOF_MAX_NUM_PVS};
-use wp1_core::{
+use sphinx_core::stark::{Com, ShardProof, PROOF_MAX_NUM_PVS};
+use sphinx_core::{
     air::MachineAir,
     stark::{ShardCommitment, StarkGenericConfig, StarkMachine, StarkVerifyingKey},
 };
-use wp1_recursion_compiler::config::OuterConfig;
-use wp1_recursion_compiler::constraints::{Constraint, ConstraintCompiler};
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
-use wp1_recursion_compiler::ir::{Usize, Witness};
-use wp1_recursion_compiler::prelude::SymbolicVar;
-use wp1_recursion_core::air::RecursionPublicValues;
-use wp1_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
-use wp1_recursion_core::stark::RecursionAirSkinnyDeg7;
-use wp1_recursion_program::commit::PolynomialSpaceVariable;
-use wp1_recursion_program::stark::RecursiveVerifierConstraintFolder;
-use wp1_recursion_program::types::QuotientDataValues;
+use sphinx_recursion_compiler::config::OuterConfig;
+use sphinx_recursion_compiler::constraints::{Constraint, ConstraintCompiler};
+use sphinx_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::ir::{Usize, Witness};
+use sphinx_recursion_compiler::prelude::SymbolicVar;
+use sphinx_recursion_core::air::RecursionPublicValues;
+use sphinx_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
+use sphinx_recursion_core::stark::RecursionAirSkinnyDeg7;
+use sphinx_recursion_program::commit::PolynomialSpaceVariable;
+use sphinx_recursion_program::stark::RecursiveVerifierConstraintFolder;
+use sphinx_recursion_program::types::QuotientDataValues;
 
 use crate::domain::{new_coset, TwoAdicMultiplicativeCosetVariable};
 use crate::types::TwoAdicPcsMatsVariable;
@@ -277,7 +277,7 @@ pub fn build_wrap_circuit(
     builder.assert_felt_eq(pv.is_complete, one_felt);
 
     // Convert pv.sp1_vk_digest into Bn254
-    let pv_vkey_hash = babybears_to_bn254(&mut builder, &pv.wp1_vk_digest);
+    let pv_vkey_hash = babybears_to_bn254(&mut builder, &pv.sphinx_vk_digest);
     // Vkey hash must match the witnessed commited_values_digest that we are committing to.
     builder.assert_var_eq(pv_vkey_hash, vkey_hash);
 
@@ -356,7 +356,7 @@ pub fn build_wrap_circuit(
 pub(crate) mod tests {
 
     use p3_field::PrimeField32;
-    use wp1_recursion_core::{
+    use sphinx_recursion_core::{
         cpu::Instruction,
         runtime::{Opcode, RecursionProgram},
     };

@@ -4,14 +4,14 @@ use std::path::PathBuf;
 use clap::Parser;
 use p3_baby_bear::BabyBear;
 use p3_field::PrimeField;
-use wp1_core::io::SP1Stdin;
-use wp1_prover::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
-use wp1_prover::SP1Prover;
-use wp1_recursion_circuit::stark::build_wrap_circuit;
-use wp1_recursion_circuit::witness::Witnessable;
-use wp1_recursion_compiler::ir::Witness;
-use wp1_recursion_core::air::RecursionPublicValues;
-use wp1_recursion_gnark_ffi::Groth16Prover;
+use sphinx_core::io::SphinxStdin;
+use sphinx_prover::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
+use sphinx_prover::SphinxProver;
+use sphinx_recursion_circuit::stark::build_wrap_circuit;
+use sphinx_recursion_circuit::witness::Witnessable;
+use sphinx_recursion_compiler::ir::Witness;
+use sphinx_recursion_core::air::RecursionPublicValues;
+use sphinx_recursion_gnark_ffi::Groth16Prover;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -21,7 +21,7 @@ struct Args {
 }
 
 pub fn main() {
-    wp1_core::utils::setup_logger();
+    sphinx_core::utils::setup_logger();
     std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
 
     let args = Args::parse();
@@ -30,13 +30,13 @@ pub fn main() {
     let elf = include_bytes!("../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
 
     tracing::info!("initializing prover");
-    let prover = SP1Prover::new();
+    let prover = SphinxProver::new();
 
     tracing::info!("setup elf");
     let (pk, vk) = prover.setup(elf);
 
     tracing::info!("prove core");
-    let stdin = SP1Stdin::new();
+    let stdin = SphinxStdin::new();
     let core_proof = prover.prove_core(&pk, &stdin).unwrap();
 
     tracing::info!("Compress");
@@ -54,7 +54,7 @@ pub fn main() {
 
     tracing::info!("building template witness");
     let pv: &RecursionPublicValues<_> = wrapped_proof.proof.public_values.as_slice().borrow();
-    let vkey_hash = babybears_to_bn254(&pv.wp1_vk_digest);
+    let vkey_hash = babybears_to_bn254(&pv.sphinx_vk_digest);
     let committed_values_digest_bytes: [BabyBear; 32] = words_to_bytes(&pv.committed_value_digest)
         .try_into()
         .unwrap();

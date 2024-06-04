@@ -1,11 +1,13 @@
 use p3_air::BaseAir;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractExtensionField;
-use wp1_core::{
+use sphinx_core::{
     air::MachineAir,
     stark::{AirOpenedValues, Chip, ChipOpenedValues, ShardCommitment},
 };
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, ExtConst, Felt, FromConstant, Var};
+use sphinx_recursion_compiler::ir::{
+    Array, Builder, Config, Ext, ExtConst, Felt, FromConstant, Var,
+};
 
 use crate::DIGEST_SIZE;
 

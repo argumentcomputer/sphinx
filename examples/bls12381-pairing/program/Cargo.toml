@@ -5,6 +5,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-wp1-zkvm = { path = "../../../zkvm/entrypoint" }
+sphinx-zkvm = { path = "../../../zkvm/entrypoint" }
 
 bls12_381 = { git = "https://github.com/lurk-lab/bls12_381", branch = "zkvm" }

@@ -1,5 +1,5 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use core::time::Duration;
 use tendermint_light_client_verifier::{
@@ -9,13 +9,13 @@ use tendermint_light_client_verifier::{
 fn main() {
     // Normally we could just do this to read in the LightBlocks, but bincode doesn't work with LightBlock.
     // This is likely a bug in tendermint-rs.
-    // let light_block_1 = wp1_zkvm::io::read::<LightBlock>();
-    // let light_block_2 = wp1_zkvm::io::read::<LightBlock>();
+    // let light_block_1 = sphinx_zkvm::io::read::<LightBlock>();
+    // let light_block_2 = sphinx_zkvm::io::read::<LightBlock>();
 
     println!("cycle-tracker-start: io");
     println!("cycle-tracker-start: reading bytes");
-    let encoded_1 = wp1_zkvm::io::read_vec();
-    let encoded_2 = wp1_zkvm::io::read_vec();
+    let encoded_1 = sphinx_zkvm::io::read_vec();
+    let encoded_2 = sphinx_zkvm::io::read_vec();
     println!("cycle-tracker-end: reading bytes");
     println!("first 10 bytes: {:?}", &encoded_1[..10]);
     println!("first 10 bytes: {:?}", &encoded_2[..10]);
@@ -41,8 +41,8 @@ fn main() {
     println!("cycle-tracker-end: header hash");
 
     println!("cycle-tracker-start: public input headers");
-    wp1_zkvm::io::commit_slice(header_hash_1.as_bytes());
-    wp1_zkvm::io::commit_slice(header_hash_2.as_bytes());
+    sphinx_zkvm::io::commit_slice(header_hash_1.as_bytes());
+    sphinx_zkvm::io::commit_slice(header_hash_2.as_bytes());
     println!("cycle-tracker-end: public input headers");
 
     println!("cycle-tracker-start: verify");
@@ -63,7 +63,7 @@ fn main() {
 
     println!("cycle-tracker-start: public inputs verdict");
     let verdict_encoded = serde_cbor::to_vec(&verdict).unwrap();
-    wp1_zkvm::io::commit_slice(verdict_encoded.as_slice());
+    sphinx_zkvm::io::commit_slice(verdict_encoded.as_slice());
     println!("cycle-tracker-end: public inputs verdict");
 
     match verdict {

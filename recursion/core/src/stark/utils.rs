@@ -1,7 +1,7 @@
 use p3_baby_bear::BabyBear;
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::utils;
-use wp1_core::utils::BabyBearPoseidon2;
+use sphinx_core::stark::StarkGenericConfig;
+use sphinx_core::utils;
+use sphinx_core::utils::BabyBearPoseidon2;
 
 use crate::air::Block;
 use crate::runtime::RecursionProgram;
@@ -9,8 +9,8 @@ use crate::runtime::Runtime;
 use crate::stark::RecursionAir;
 use crate::stark::RecursionAirSkinnyDeg7;
 use p3_field::PrimeField32;
+use sphinx_core::utils::run_test_machine;
 use std::collections::VecDeque;
-use wp1_core::utils::run_test_machine;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum TestConfig {
@@ -80,7 +80,7 @@ pub fn run_test_recursion(
 /// Groth16 proofs. This is useful for development and testing purposes.
 ///
 /// By default, the variable is disabled.
-pub fn wp1_dev_mode() -> bool {
+pub fn sphinx_dev_mode() -> bool {
     let value = std::env::var("SP1_DEV").unwrap_or_else(|_| "false".to_string());
     let enabled = value == "1" || value.to_lowercase() == "true";
     if enabled {

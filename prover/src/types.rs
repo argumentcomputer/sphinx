@@ -8,15 +8,15 @@ use p3_commit::{Pcs, TwoAdicMultiplicativeCoset};
 use p3_field::PrimeField;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use thiserror::Error;
-use wp1_core::{
-    io::{SP1PublicValues, SP1Stdin},
+use sphinx_core::{
+    io::{SphinxPublicValues, SphinxStdin},
     stark::{ShardProof, StarkGenericConfig, StarkProvingKey, StarkVerifyingKey},
     utils::DIGEST_SIZE,
 };
-use wp1_primitives::poseidon2_hash;
-use wp1_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
-use wp1_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
+use sphinx_primitives::poseidon2_hash;
+use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
+use sphinx_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
+use thiserror::Error;
 
 use crate::utils::words_to_bytes_be;
 use crate::{utils::babybear_bytes_to_bn254, words_to_bytes};
@@ -24,16 +24,16 @@ use crate::{utils::babybears_to_bn254, CoreSC, InnerSC};
 
 /// The information necessary to generate a proof for a given RISC-V program.
 #[derive(Clone, Serialize, Deserialize)]
-pub struct SP1ProvingKey {
+pub struct SphinxProvingKey {
     pub pk: StarkProvingKey<CoreSC>,
     pub elf: Vec<u8>,
     /// Verifying key is also included as we need it for recursion
-    pub vk: SP1VerifyingKey,
+    pub vk: SphinxVerifyingKey,
 }
 
 /// The information necessary to verify a proof for a given RISC-V program.
 #[derive(Clone, Serialize, Deserialize)]
-pub struct SP1VerifyingKey {
+pub struct SphinxVerifyingKey {
     pub vk: StarkVerifyingKey<CoreSC>,
 }
 
@@ -63,7 +63,7 @@ pub trait HashableKey {
     }
 }
 
-impl HashableKey for SP1VerifyingKey {
+impl HashableKey for SphinxVerifyingKey {
     fn hash_babybear(&self) -> [BabyBear; DIGEST_SIZE] {
         self.vk.hash_babybear()
     }
@@ -110,13 +110,13 @@ where
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(bound(serialize = "P: Serialize"))]
 #[serde(bound(deserialize = "P: DeserializeOwned"))]
-pub struct SP1ProofWithMetadata<P: Clone> {
+pub struct SphinxProofWithMetadata<P: Clone> {
     pub proof: P,
-    pub stdin: SP1Stdin,
-    pub public_values: SP1PublicValues,
+    pub stdin: SphinxStdin,
+    pub public_values: SphinxPublicValues,
 }
 
-impl<P: Serialize + DeserializeOwned + Clone> SP1ProofWithMetadata<P> {
+impl<P: Serialize + DeserializeOwned + Clone> SphinxProofWithMetadata<P> {
     pub fn save(&self, path: impl AsRef<Path>) -> Result<()> {
         bincode::serialize_into(File::create(path).expect("failed to open file"), self)
             .map_err(Into::into)
@@ -128,7 +128,7 @@ impl<P: Serialize + DeserializeOwned + Clone> SP1ProofWithMetadata<P> {
     }
 }
 
-impl<P: std::fmt::Debug + Clone> std::fmt::Debug for SP1ProofWithMetadata<P> {
+impl<P: std::fmt::Debug + Clone> std::fmt::Debug for SphinxProofWithMetadata<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SP1ProofWithMetadata")
             .field("proof", &self.proof)
@@ -137,49 +137,49 @@ impl<P: std::fmt::Debug + Clone> std::fmt::Debug for SP1ProofWithMetadata<P> {
 }
 
 /// A proof of an SP1 program without any wrapping.
-pub type SP1CoreProof = SP1ProofWithMetadata<SP1CoreProofData>;
+pub type SphinxCoreProof = SphinxProofWithMetadata<SphinxCoreProofData>;
 
 /// An SP1 proof that has been recursively reduced into a single proof. This proof can be verified
 /// within SP1 programs.
-pub type SP1ReducedProof = SP1ProofWithMetadata<SP1ReducedProofData>;
+pub type SphinxReducedProof = SphinxProofWithMetadata<SphinxReducedProofData>;
 
 /// An SP1 proof that has been wrapped into a single Groth16 proof and can be verified onchain.
-pub type SP1Groth16Proof = SP1ProofWithMetadata<SP1Groth16ProofData>;
+pub type SphinxGroth16Proof = SphinxProofWithMetadata<SphinxGroth16ProofData>;
 
 /// An SP1 proof that has been wrapped into a single Plonk proof and can be verified onchain.
-pub type SP1PlonkProof = SP1ProofWithMetadata<SP1PlonkProofData>;
+pub type SphinxPlonkProof = SphinxProofWithMetadata<SphinxPlonkProofData>;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SP1CoreProofData(pub Vec<ShardProof<CoreSC>>);
+pub struct SphinxCoreProofData(pub Vec<ShardProof<CoreSC>>);
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SP1ReducedProofData(pub ShardProof<InnerSC>);
+pub struct SphinxReducedProofData(pub ShardProof<InnerSC>);
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SP1Groth16ProofData(pub Groth16Proof);
+pub struct SphinxGroth16ProofData(pub Groth16Proof);
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SP1PlonkProofData(pub PlonkBn254Proof);
+pub struct SphinxPlonkProofData(pub PlonkBn254Proof);
 
 /// An intermediate proof which proves the execution over a range of shards.
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(bound(serialize = "ShardProof<SC>: Serialize"))]
 #[serde(bound(deserialize = "ShardProof<SC>: Deserialize<'de>"))]
-pub struct SP1ReduceProof<SC: StarkGenericConfig> {
+pub struct SphinxReduceProof<SC: StarkGenericConfig> {
     pub proof: ShardProof<SC>,
 }
 
-impl SP1ReduceProof<BabyBearPoseidon2Outer> {
-    pub fn wp1_vkey_digest_babybear(&self) -> [BabyBear; 8] {
+impl SphinxReduceProof<BabyBearPoseidon2Outer> {
+    pub fn sphinx_vkey_digest_babybear(&self) -> [BabyBear; 8] {
         let proof = &self.proof;
         let pv: &RecursionPublicValues<BabyBear> = proof.public_values.as_slice().borrow();
-        pv.wp1_vk_digest
+        pv.sphinx_vk_digest
     }
 
-    pub fn wp1_vkey_digest_bn254(&self) -> Bn254Fr {
-        babybears_to_bn254(&self.wp1_vkey_digest_babybear())
+    pub fn sphinx_vkey_digest_bn254(&self) -> Bn254Fr {
+        babybears_to_bn254(&self.sphinx_vkey_digest_babybear())
     }
 
-    pub fn wp1_commited_values_digest_bn254(&self) -> Bn254Fr {
+    pub fn sphinx_commited_values_digest_bn254(&self) -> Bn254Fr {
         let proof = &self.proof;
         let pv: &RecursionPublicValues<BabyBear> = proof.public_values.as_slice().borrow();
         let committed_values_digest_bytes: [BabyBear; 32] =
@@ -192,10 +192,10 @@ impl SP1ReduceProof<BabyBearPoseidon2Outer> {
 
 /// A proof that can be reduced along with other proofs into one proof.
 #[derive(Serialize, Deserialize, Clone)]
-pub enum SP1ReduceProofWrapper {
-    Core(SP1ReduceProof<CoreSC>),
-    Recursive(SP1ReduceProof<InnerSC>),
+pub enum SphinxReduceProofWrapper {
+    Core(SphinxReduceProof<CoreSC>),
+    Recursive(SphinxReduceProof<InnerSC>),
 }
 
 #[derive(Error, Debug)]
-pub enum SP1RecursionProverError {}
+pub enum SphinxRecursionProverError {}

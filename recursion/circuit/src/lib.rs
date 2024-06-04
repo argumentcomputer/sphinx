@@ -24,13 +24,13 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_bn254_fr::Bn254Fr;
     use p3_field::AbstractField;
-    use wp1_recursion_compiler::config::OuterConfig;
-    use wp1_recursion_compiler::constraints::ConstraintCompiler;
-    use wp1_recursion_compiler::ir::Config;
-    use wp1_recursion_compiler::ir::Ext;
-    use wp1_recursion_compiler::ir::ExtConst;
-    use wp1_recursion_compiler::ir::{Builder, Felt, Witness};
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_compiler::config::OuterConfig;
+    use sphinx_recursion_compiler::constraints::ConstraintCompiler;
+    use sphinx_recursion_compiler::ir::Config;
+    use sphinx_recursion_compiler::ir::Ext;
+    use sphinx_recursion_compiler::ir::ExtConst;
+    use sphinx_recursion_compiler::ir::{Builder, Felt, Witness};
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     #[test]
     fn test_base_babybear() {

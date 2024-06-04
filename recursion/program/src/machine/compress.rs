@@ -9,18 +9,18 @@ use p3_baby_bear::BabyBear;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
 use serde::{Deserialize, Serialize};
-use wp1_core::air::MachineAir;
-use wp1_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
-use wp1_core::stark::StarkMachine;
-use wp1_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
-use wp1_recursion_compiler::prelude::DslVariable;
-use wp1_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
-use wp1_recursion_core::runtime::{RecursionProgram, D, DIGEST_SIZE};
+use sphinx_core::air::MachineAir;
+use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
+use sphinx_core::stark::StarkMachine;
+use sphinx_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::prelude::DslVariable;
+use sphinx_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
+use sphinx_recursion_core::runtime::{RecursionProgram, D, DIGEST_SIZE};
 
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
 use crate::fri::TwoAdicFriPcsVariable;
@@ -37,7 +37,7 @@ use super::utils::{commit_public_values, proof_data_from_vk, verify_public_value
 
 /// A program to verify a batch of recursive proofs and aggregate their public values.
 #[derive(Debug, Clone, Copy)]
-pub struct SP1CompressVerifier<C: Config, SC: StarkGenericConfig, A> {
+pub struct SphinxCompressVerifier<C: Config, SC: StarkGenericConfig, A> {
     _phantom: PhantomData<(C, SC, A)>,
 }
 
@@ -53,7 +53,7 @@ pub enum ReduceProgramType {
 }
 
 /// An input layout for the reduce verifier.
-pub struct SP1ReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
+pub struct SphinxReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
     pub compress_vk: &'a StarkVerifyingKey<SC>,
     pub recursive_machine: &'a StarkMachine<SC, A>,
     pub shard_proofs: Vec<ShardProof<SC>>,
@@ -62,14 +62,14 @@ pub struct SP1ReduceMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::V
 }
 
 #[derive(DslVariable, Clone)]
-pub struct SP1ReduceMemoryLayoutVariable<C: Config> {
+pub struct SphinxReduceMemoryLayoutVariable<C: Config> {
     pub compress_vk: VerifyingKeyVariable<C>,
     pub shard_proofs: Array<C, ShardProofVariable<C>>,
     pub kinds: Array<C, Var<C::N>>,
     pub is_complete: Var<C::N>,
 }
 
-impl<A> SP1CompressVerifier<InnerConfig, BabyBearPoseidon2, A>
+impl<A> SphinxCompressVerifier<InnerConfig, BabyBearPoseidon2, A>
 where
     A: MachineAir<BabyBear> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, InnerConfig>>,
 {
@@ -81,13 +81,13 @@ where
     ) -> RecursionProgram<BabyBear> {
         let mut builder = Builder::<InnerConfig>::default();
 
-        let input: SP1ReduceMemoryLayoutVariable<_> = builder.uninit();
-        SP1ReduceMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
+        let input: SphinxReduceMemoryLayoutVariable<_> = builder.uninit();
+        SphinxReduceMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
 
         let pcs = TwoAdicFriPcsVariable {
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
-        SP1CompressVerifier::verify(
+        SphinxCompressVerifier::verify(
             &mut builder,
             &pcs,
             machine,
@@ -100,7 +100,7 @@ where
     }
 }
 
-impl<C: Config, SC, A> SP1CompressVerifier<C, SC, A>
+impl<C: Config, SC, A> SphinxCompressVerifier<C, SC, A>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<
@@ -127,11 +127,11 @@ where
         builder: &mut Builder<C>,
         pcs: &TwoAdicFriPcsVariable<C>,
         machine: &StarkMachine<SC, A>,
-        input: SP1ReduceMemoryLayoutVariable<C>,
+        input: SphinxReduceMemoryLayoutVariable<C>,
         recursive_vk: &StarkVerifyingKey<SC>,
         deferred_vk: &StarkVerifyingKey<SC>,
     ) {
-        let SP1ReduceMemoryLayoutVariable {
+        let SphinxReduceMemoryLayoutVariable {
             compress_vk,
             shard_proofs,
             kinds,
@@ -159,7 +159,7 @@ where
         builder.assert_usize_eq(shard_proofs.len(), kinds.len());
 
         // Initialize the consistency check variables.
-        let wp1_vk_digest: [Felt<_>; DIGEST_SIZE] = array::from_fn(|_| builder.uninit());
+        let sphinx_vk_digest: [Felt<_>; DIGEST_SIZE] = array::from_fn(|_| builder.uninit());
         let pc: Felt<_> = builder.uninit();
         let shard: Felt<_> = builder.uninit();
         let mut initial_reconstruct_challenger = DuplexChallengerVariable::new(builder);
@@ -273,9 +273,9 @@ where
                 }
 
                 // Initialize the sp1_vk digest
-                for (digest, first_digest) in wp1_vk_digest
+                for (digest, first_digest) in sphinx_vk_digest
                     .iter()
-                    .zip(current_public_values.wp1_vk_digest)
+                    .zip(current_public_values.sphinx_vk_digest)
                 {
                     builder.assign(digest, first_digest);
                 }
@@ -358,9 +358,9 @@ where
             // consistency checks for all accumulated values.
 
             // Assert that the sp1_vk digest is always the same.
-            for (digest, current) in wp1_vk_digest
+            for (digest, current) in sphinx_vk_digest
                 .iter()
-                .zip(current_public_values.wp1_vk_digest)
+                .zip(current_public_values.sphinx_vk_digest)
             {
                 builder.assert_felt_eq(*digest, current);
             }
@@ -434,7 +434,7 @@ where
 
         // Update the global values from the last accumulated values.
         // Set sp1_vk digest to the one from the proof values.
-        reduce_public_values.wp1_vk_digest = wp1_vk_digest;
+        reduce_public_values.sphinx_vk_digest = sphinx_vk_digest;
         // Set next_pc to be the last pc (which is the same as accumulated pc)
         reduce_public_values.next_pc = pc;
         // Set next shard to be the last shard (which is the same as accumulated shard)

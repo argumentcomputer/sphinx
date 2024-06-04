@@ -1,7 +1,7 @@
 use p3_field::AbstractField;
-use wp1_core::air::Word;
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
-use wp1_recursion_core::runtime::DIGEST_SIZE;
+use sphinx_core::air::Word;
+use sphinx_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
 // TODO: this can be done much more efficiently, but in the meantime this should work
 pub fn felt2var<C: Config>(builder: &mut Builder<C>, felt: Felt<C::F>) -> Var<C::N> {

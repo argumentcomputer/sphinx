@@ -1,10 +1,12 @@
 use p3_field::AbstractField;
-use wp1_recursion_compiler::prelude::MemIndex;
-use wp1_recursion_compiler::prelude::MemVariable;
-use wp1_recursion_compiler::prelude::Ptr;
-use wp1_recursion_compiler::prelude::Variable;
-use wp1_recursion_compiler::prelude::{Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var};
-use wp1_recursion_core::runtime::{DIGEST_SIZE, PERMUTATION_WIDTH};
+use sphinx_recursion_compiler::prelude::MemIndex;
+use sphinx_recursion_compiler::prelude::MemVariable;
+use sphinx_recursion_compiler::prelude::Ptr;
+use sphinx_recursion_compiler::prelude::Variable;
+use sphinx_recursion_compiler::prelude::{
+    Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var,
+};
+use sphinx_recursion_core::runtime::{DIGEST_SIZE, PERMUTATION_WIDTH};
 
 use crate::fri::types::DigestVariable;
 use crate::types::VerifyingKeyVariable;
@@ -293,16 +295,16 @@ mod tests {
     use p3_challenger::CanObserve;
     use p3_challenger::CanSample;
     use p3_field::AbstractField;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::BabyBearPoseidon2;
-    use wp1_recursion_compiler::asm::AsmBuilder;
-    use wp1_recursion_compiler::asm::AsmConfig;
-    use wp1_recursion_compiler::ir::Felt;
-    use wp1_recursion_compiler::ir::Usize;
-    use wp1_recursion_compiler::ir::Var;
-    use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
-    use wp1_recursion_core::stark::utils::run_test_recursion;
-    use wp1_recursion_core::stark::utils::TestConfig;
+    use sphinx_core::stark::StarkGenericConfig;
+    use sphinx_core::utils::BabyBearPoseidon2;
+    use sphinx_recursion_compiler::asm::AsmBuilder;
+    use sphinx_recursion_compiler::asm::AsmConfig;
+    use sphinx_recursion_compiler::ir::Felt;
+    use sphinx_recursion_compiler::ir::Usize;
+    use sphinx_recursion_compiler::ir::Var;
+    use sphinx_recursion_core::runtime::PERMUTATION_WIDTH;
+    use sphinx_recursion_core::stark::utils::run_test_recursion;
+    use sphinx_recursion_core::stark::utils::TestConfig;
 
     use crate::challenger::DuplexChallengerVariable;
 

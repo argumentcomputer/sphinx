@@ -1,5 +1,5 @@
 use p3_field::{AbstractField, Field};
-use wp1_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, Var};
+use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, Felt, Var};
 
 use crate::{poseidon2::Poseidon2CircuitBuilder, DIGEST_SIZE, SPONGE_SIZE};
 
@@ -151,12 +151,12 @@ mod tests {
         AbstractField,
     };
     use p3_symmetric::Hash;
-    use wp1_recursion_compiler::config::OuterConfig;
-    use wp1_recursion_compiler::constraints::ConstraintCompiler;
-    use wp1_recursion_compiler::ir::SymbolicExt;
-    use wp1_recursion_compiler::ir::{Builder, Witness};
-    use wp1_recursion_core::stark::config::{outer_perm, OuterChallenger};
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_compiler::config::OuterConfig;
+    use sphinx_recursion_compiler::constraints::ConstraintCompiler;
+    use sphinx_recursion_compiler::ir::SymbolicExt;
+    use sphinx_recursion_compiler::ir::{Builder, Witness};
+    use sphinx_recursion_core::stark::config::{outer_perm, OuterChallenger};
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     use super::{reduce_32, split_32};
     use crate::{challenger::MultiField32ChallengerVariable, DIGEST_SIZE};

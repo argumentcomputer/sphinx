@@ -1,13 +1,13 @@
 [package]
-name = "wp1-eval"
+name = "sphinx-eval"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
 [dependencies]
-wp1-core = { path = "../core" }
-wp1-prover = { path = "../prover" }
+sphinx-core = { path = "../core" }
+sphinx-prover = { path = "../prover" }
 
 clap = { workspace = true, features = ["derive"] }
 csv = { workspace = true }

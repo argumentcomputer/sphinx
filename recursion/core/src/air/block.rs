@@ -7,10 +7,10 @@ use p3_field::AbstractField;
 use p3_field::ExtensionField;
 use p3_field::Field;
 use serde::{Deserialize, Serialize};
-use wp1_core::air::BaseAirBuilder;
-use wp1_core::air::BinomialExtension;
-use wp1_core::air::ExtensionAirBuilder;
-use wp1_derive::AlignedBorrow;
+use sphinx_core::air::BaseAirBuilder;
+use sphinx_core::air::BinomialExtension;
+use sphinx_core::air::ExtensionAirBuilder;
+use sphinx_derive::AlignedBorrow;
 
 use crate::runtime::D;
 

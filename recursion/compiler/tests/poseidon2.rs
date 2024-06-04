@@ -1,12 +1,12 @@
 use p3_field::{AbstractField, PrimeField32};
 use p3_symmetric::Permutation;
 use rand::{thread_rng, Rng};
-use wp1_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
-use wp1_recursion_compiler::{
+use sphinx_core::{stark::StarkGenericConfig, utils::BabyBearPoseidon2};
+use sphinx_recursion_compiler::{
     asm::AsmBuilder,
     ir::{Array, Var},
 };
-use wp1_recursion_core::runtime::{Runtime, PERMUTATION_WIDTH};
+use sphinx_recursion_core::runtime::{Runtime, PERMUTATION_WIDTH};
 
 #[test]
 fn test_compiler_poseidon2_permute() {

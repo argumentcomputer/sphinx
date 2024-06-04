@@ -6,20 +6,20 @@ cfg_if::cfg_if! {
         use crate::zkvm::DEFERRED_PROOFS_DIGEST;
         use p3_baby_bear::BabyBear;
         use p3_field::AbstractField;
-        use wp1_primitives::hash_deferred_proof;
+        use sphinx_primitives::hash_deferred_proof;
     }
 }
 
 #[no_mangle]
 #[allow(unused_variables)]
-pub fn syscall_verify_wp1_proof(vk_digest: &[u32; 8], pv_digest: &[u8; 32]) {
+pub fn syscall_verify_sphinx_proof(vk_digest: &[u32; 8], pv_digest: &[u8; 32]) {
     #[cfg(target_os = "zkvm")]
     {
         // Call syscall to verify the next proof at runtime
         unsafe {
             asm!(
                 "ecall",
-                in("t0") crate::syscalls::VERIFY_SP1_PROOF,
+                in("t0") crate::syscalls::VERIFY_SPHINX_PROOF,
                 in("a0") vk_digest.as_ptr(),
                 in("a1") pv_digest.as_ptr(),
             );

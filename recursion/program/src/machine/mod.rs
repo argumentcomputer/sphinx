@@ -16,15 +16,15 @@ mod tests {
     use p3_baby_bear::BabyBear;
     use p3_challenger::CanObserve;
     use p3_maybe_rayon::prelude::*;
-    use wp1_core::stark::{MachineVerificationError, RiscvAir, StarkGenericConfig};
-    use wp1_core::utils::BabyBearPoseidon2;
-    use wp1_core::{
-        io::SP1Stdin,
+    use sphinx_core::stark::{MachineVerificationError, RiscvAir, StarkGenericConfig};
+    use sphinx_core::utils::BabyBearPoseidon2;
+    use sphinx_core::{
+        io::SphinxStdin,
         runtime::Program,
         stark::{Challenge, LocalProver},
     };
-    use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_core::{
+    use sphinx_recursion_compiler::config::InnerConfig;
+    use sphinx_recursion_core::{
         runtime::Runtime,
         stark::{config::BabyBearPoseidon2Outer, RecursionAir},
     };
@@ -41,29 +41,30 @@ mod tests {
         Wrap,
     }
 
-    fn test_wp1_recursive_machine_verify(program: &Program, batch_size: usize, test: Test) {
+    fn test_sphinx_recursive_machine_verify(program: &Program, batch_size: usize, test: Test) {
         type SC = BabyBearPoseidon2;
         type F = BabyBear;
         type EF = Challenge<SC>;
 
-        wp1_core::utils::setup_logger();
+        sphinx_core::utils::setup_logger();
 
         let machine = RiscvAir::machine(SC::default());
         let (_, vk) = machine.setup(program);
 
         // Make the recursion program.
-        let recursive_program = SP1RecursiveVerifier::<InnerConfig, SC>::build(&machine);
+        let recursive_program = SphinxRecursiveVerifier::<InnerConfig, SC>::build(&machine);
         let recursive_config = SC::default();
         type A = RecursionAir<BabyBear, 3>;
         let recursive_machine = A::machine(recursive_config.clone());
         let (rec_pk, rec_vk) = recursive_machine.setup(&recursive_program);
 
         // Make the deferred program.
-        let deferred_program = SP1DeferredVerifier::<InnerConfig, SC, _>::build(&recursive_machine);
+        let deferred_program =
+            SphinxDeferredVerifier::<InnerConfig, SC, _>::build(&recursive_machine);
         let (_, deferred_vk) = recursive_machine.setup(&deferred_program);
 
         // Make the compress program.
-        let reduce_program = SP1CompressVerifier::<InnerConfig, _, _>::build(
+        let reduce_program = SphinxCompressVerifier::<InnerConfig, _, _>::build(
             &recursive_machine,
             &rec_vk,
             &deferred_vk,
@@ -74,17 +75,18 @@ mod tests {
         // Make the compress program.
         let compress_machine = RecursionAir::<_, 9>::machine(SC::compressed());
         let compress_program =
-            SP1RootVerifier::<InnerConfig, _, _>::build(&recursive_machine, &compress_vk, true);
+            SphinxRootVerifier::<InnerConfig, _, _>::build(&recursive_machine, &compress_vk, true);
         let (compress_pk, compress_vk) = compress_machine.setup(&compress_program);
 
         // Make the wrap program.
         let wrap_machine = RecursionAir::<_, 5>::machine(BabyBearPoseidon2Outer::default());
         let wrap_program =
-            SP1RootVerifier::<InnerConfig, _, _>::build(&compress_machine, &compress_vk, false);
+            SphinxRootVerifier::<InnerConfig, _, _>::build(&compress_machine, &compress_vk, false);
 
         let mut challenger = machine.config().challenger();
         let time = std::time::Instant::now();
-        let (proof, _) = wp1_core::utils::prove(program, &SP1Stdin::new(), SC::default()).unwrap();
+        let (proof, _) =
+            sphinx_core::utils::prove(program, &SphinxStdin::new(), SC::default()).unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
         tracing::info!("Proof generated successfully");
         let elapsed = time.elapsed();
@@ -109,7 +111,7 @@ mod tests {
         for batch in proof.shard_proofs.chunks(batch_size) {
             let proofs = batch.to_vec();
 
-            layouts.push(SP1RecursionMemoryLayout {
+            layouts.push(SphinxRecursionMemoryLayout {
                 vk: &vk,
                 machine: &machine,
                 shard_proofs: proofs,
@@ -214,7 +216,7 @@ mod tests {
                         ReduceProgramType::Reduce
                     };
                     let kinds = batch.iter().map(|_| kind).collect::<Vec<_>>();
-                    let input = SP1ReduceMemoryLayout {
+                    let input = SphinxReduceMemoryLayout {
                         compress_vk: &compress_vk,
                         recursive_machine: &recursive_machine,
                         shard_proofs: batch.to_vec(),
@@ -272,7 +274,7 @@ mod tests {
         let reduce_proof = recursive_proofs.pop().unwrap();
 
         // Make the compress proof.
-        let input = SP1RootMemoryLayout {
+        let input = SphinxRootMemoryLayout {
             machine: &recursive_machine,
             proof: reduce_proof,
             is_reduce: true,
@@ -321,7 +323,7 @@ mod tests {
         let (wrap_pk, wrap_vk) = wrap_machine.setup(&wrap_program);
 
         let compress_proof = compress_proof.shard_proofs.pop().unwrap();
-        let input = SP1RootMemoryLayout {
+        let input = SphinxRootMemoryLayout {
             machine: &compress_machine,
             proof: compress_proof,
             is_reduce: false,
@@ -359,65 +361,65 @@ mod tests {
     }
 
     #[test]
-    fn test_wp1_recursive_machine_verify_fibonacci() {
+    fn test_sphinx_recursive_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Recursion)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Recursion)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_reduce_machine_verify_fibonacci() {
+    fn test_sphinx_reduce_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Reduce)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Reduce)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_compress_machine_verify_fibonacci() {
+    fn test_sphinx_compress_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Compress)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Compress)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_wrap_machine_verify_fibonacci() {
+    fn test_sphinx_wrap_machine_verify_fibonacci() {
         let elf = include_bytes!("../../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
-        test_wp1_recursive_machine_verify(&Program::from(elf), 1, Test::Wrap)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 1, Test::Wrap)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_reduce_machine_verify_tendermint() {
+    fn test_sphinx_reduce_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Reduce)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Reduce)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_recursive_machine_verify_tendermint() {
+    fn test_sphinx_recursive_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Recursion)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Recursion)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_compress_machine_verify_tendermint() {
+    fn test_sphinx_compress_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Compress)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Compress)
     }
 
     #[test]
     #[ignore]
-    fn test_wp1_wrap_machine_verify_tendermint() {
+    fn test_sphinx_wrap_machine_verify_tendermint() {
         let elf = include_bytes!(
             "../../../../tests/tendermint-benchmark/elf/riscv32im-succinct-zkvm-elf"
         );
-        test_wp1_recursive_machine_verify(&Program::from(elf), 2, Test::Wrap)
+        test_sphinx_recursive_machine_verify(&Program::from(elf), 2, Test::Wrap)
     }
 }

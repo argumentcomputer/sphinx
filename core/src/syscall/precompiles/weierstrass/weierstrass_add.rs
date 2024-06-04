@@ -14,7 +14,7 @@ use p3_field::AbstractField;
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{AluAirBuilder, MachineAir, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;

@@ -4,17 +4,17 @@ use p3_air::Air;
 use p3_baby_bear::BabyBear;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, PrimeField32, TwoAdicField};
-use wp1_core::air::MachineAir;
-use wp1_core::stark::StarkMachine;
-use wp1_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
-use wp1_core::utils::BabyBearPoseidon2;
-use wp1_recursion_compiler::config::InnerConfig;
-use wp1_recursion_compiler::ir::{Builder, Config, Felt, Var};
-use wp1_recursion_compiler::prelude::DslVariable;
-use wp1_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
-use wp1_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
+use sphinx_core::air::MachineAir;
+use sphinx_core::stark::StarkMachine;
+use sphinx_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
+use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_recursion_compiler::config::InnerConfig;
+use sphinx_recursion_compiler::ir::{Builder, Config, Felt, Var};
+use sphinx_recursion_compiler::prelude::DslVariable;
+use sphinx_recursion_core::air::{RecursionPublicValues, RECURSIVE_PROOF_NUM_PV_ELTS};
+use sphinx_recursion_core::runtime::{RecursionProgram, DIGEST_SIZE};
 
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::challenger::{CanObserveVariable, DuplexChallengerVariable};
 use crate::fri::TwoAdicFriPcsVariable;
@@ -28,23 +28,23 @@ use super::utils::{commit_public_values, verify_public_values_hash};
 
 /// The program that gets a final verifier at the root of the tree.
 #[derive(Debug, Clone, Copy)]
-pub struct SP1RootVerifier<C: Config, SC: StarkGenericConfig, A> {
+pub struct SphinxRootVerifier<C: Config, SC: StarkGenericConfig, A> {
     _phantom: std::marker::PhantomData<(C, SC, A)>,
 }
 
-pub struct SP1RootMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
+pub struct SphinxRootMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir<SC::Val>> {
     pub machine: &'a StarkMachine<SC, A>,
     pub proof: ShardProof<SC>,
     pub is_reduce: bool,
 }
 
 #[derive(DslVariable, Clone)]
-pub struct SP1RootMemoryLayoutVariable<C: Config> {
+pub struct SphinxRootMemoryLayoutVariable<C: Config> {
     pub proof: ShardProofVariable<C>,
     pub is_reduce: Var<C::N>,
 }
 
-impl<A> SP1RootVerifier<InnerConfig, BabyBearPoseidon2, A>
+impl<A> SphinxRootVerifier<InnerConfig, BabyBearPoseidon2, A>
 where
     A: MachineAir<BabyBear> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, InnerConfig>>,
 {
@@ -62,13 +62,13 @@ where
             config: const_fri_config(&mut builder, machine.config().pcs().fri_config()),
         };
 
-        SP1RootVerifier::verify(&mut builder, &pcs, machine, vk, &proof, is_compress);
+        SphinxRootVerifier::verify(&mut builder, &pcs, machine, vk, &proof, is_compress);
 
         builder.compile_program()
     }
 }
 
-impl<C: Config, SC, A> SP1RootVerifier<C, SC, A>
+impl<C: Config, SC, A> SphinxRootVerifier<C, SC, A>
 where
     C::F: PrimeField32 + TwoAdicField,
     SC: StarkGenericConfig<

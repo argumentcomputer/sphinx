@@ -5,8 +5,8 @@ use std::{fs::File, io::BufWriter, io::Write, time::Instant};
 use itertools::iproduct;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{fmt::format::FmtSpan, util::SubscriberInitExt};
-use wp1_core::io::SP1Stdin;
-use wp1_prover::SP1Prover;
+use sphinx_core::io::SphinxStdin;
+use sphinx_prover::SphinxProver;
 
 fn main() {
     // Setup tracer.
@@ -34,7 +34,7 @@ fn main() {
     std::env::set_var("RECONSTRUCT_COMMITMENTS", "false");
 
     // Initialize prover.
-    let prover = SP1Prover::new();
+    let prover = SphinxProver::new();
 
     // Setup sweep.
     let iterations = [480000u32];
@@ -56,7 +56,7 @@ fn main() {
         );
         std::env::set_var("SHARD_SIZE", shard_size.to_string());
 
-        let stdin = SP1Stdin {
+        let stdin = SphinxStdin {
             buffer: vec![bincode::serialize::<u32>(&iterations).unwrap()],
             ptr: 0,
             proofs: vec![],

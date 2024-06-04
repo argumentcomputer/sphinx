@@ -4,11 +4,11 @@ use p3_field::{AbstractField, TwoAdicField};
 use p3_fri::FriConfig;
 use p3_matrix::Dimensions;
 use p3_util::log2_strict_usize;
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     ir::{Builder, Config, Felt},
     prelude::*,
 };
-use wp1_recursion_core::stark::config::OuterChallengeMmcs;
+use sphinx_recursion_core::stark::config::OuterChallengeMmcs;
 
 use crate::{
     challenger::MultiField32ChallengerVariable,
@@ -244,16 +244,16 @@ pub mod tests {
     use p3_fri::{verifier, TwoAdicFriPcsProof};
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
-    use wp1_recursion_compiler::{
+    use sphinx_recursion_compiler::{
         config::OuterConfig,
         constraints::ConstraintCompiler,
         ir::{Builder, Ext, Felt, SymbolicExt, Var, Witness},
     };
-    use wp1_recursion_core::stark::config::{
+    use sphinx_recursion_core::stark::config::{
         outer_perm, test_fri_config, OuterChallenge, OuterChallengeMmcs, OuterChallenger,
         OuterCompress, OuterDft, OuterFriProof, OuterHash, OuterPcs, OuterVal, OuterValMmcs,
     };
-    use wp1_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_gnark_ffi::Groth16Prover;
 
     use super::{verify_shape_and_sample_challenges, verify_two_adic_pcs, TwoAdicPcsRoundVariable};
     use crate::{

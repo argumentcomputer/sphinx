@@ -1,5 +1,5 @@
 use p3_field::Field;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::ByteAirBuilder;
 use crate::air::Word;

@@ -5,15 +5,15 @@ use p3_challenger::DuplexChallenger;
 use p3_field::PrimeField32;
 use p3_symmetric::CryptographicPermutation;
 use serde::{Deserialize, Serialize};
-use static_assertions::const_assert_eq;
-use std::mem::size_of;
-use std::mem::transmute;
-use wp1_core::{
+use sphinx_core::{
     air::{Word, POSEIDON_NUM_WORDS},
     stark::PROOF_MAX_NUM_PVS,
     utils::indices_arr,
 };
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
+use static_assertions::const_assert_eq;
+use std::mem::size_of;
+use std::mem::transmute;
 
 pub const PV_DIGEST_NUM_WORDS: usize = 8;
 
@@ -100,7 +100,7 @@ pub struct RecursionPublicValues<T> {
     pub end_reconstruct_deferred_digest: [T; POSEIDON_NUM_WORDS],
 
     /// The commitment to the sp1 program being proven.
-    pub wp1_vk_digest: [T; DIGEST_SIZE],
+    pub sphinx_vk_digest: [T; DIGEST_SIZE],
 
     /// The commitment to the compress key being used in recursive verification.
     pub compress_vk_digest: [T; DIGEST_SIZE],

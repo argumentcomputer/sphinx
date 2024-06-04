@@ -11,8 +11,8 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
+use sphinx_derive::AlignedBorrow;
 use tracing::instrument;
-use wp1_derive::AlignedBorrow;
 
 use crate::{
     air::{AluAirBuilder, MachineAir, MemoryAirBuilder},

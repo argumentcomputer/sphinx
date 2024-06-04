@@ -4,9 +4,9 @@ use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_matrix::Matrix;
+use sphinx_core::air::{BaseAirBuilder, ExtensionAirBuilder};
+use sphinx_primitives::RC_16_30_U32;
 use std::ops::Add;
-use wp1_core::air::{BaseAirBuilder, ExtensionAirBuilder};
-use wp1_primitives::RC_16_30_U32;
 
 use crate::air::{RecursionInteractionAirBuilder, RecursionMemoryAirBuilder};
 use crate::memory::MemoryCols;
@@ -351,9 +351,9 @@ mod tests {
     use p3_matrix::{dense::RowMajorMatrix, Matrix};
     use p3_poseidon2::Poseidon2;
     use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
-    use wp1_core::stark::StarkGenericConfig;
-    use wp1_core::utils::inner_perm;
-    use wp1_core::{
+    use sphinx_core::stark::StarkGenericConfig;
+    use sphinx_core::utils::inner_perm;
+    use sphinx_core::{
         air::MachineAir,
         utils::{uni_stark_prove, uni_stark_verify, BabyBearPoseidon2},
     };

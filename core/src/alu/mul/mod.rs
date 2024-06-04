@@ -42,7 +42,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::Word;
 use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};

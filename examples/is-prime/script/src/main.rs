@@ -1,5 +1,5 @@
 //! A program that takes a number `n` as input, and writes if `n` is prime as an output.
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -7,7 +7,7 @@ fn main() {
     // Setup a tracer for logging.
     utils::setup_logger();
 
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     // Create an input stream and write '29' to it
     let n = 29u64;

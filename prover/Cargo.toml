@@ -1,5 +1,5 @@
 [package]
-name = "wp1-prover"
+name = "sphinx-prover"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
@@ -8,13 +8,13 @@ license.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wp1-recursion-program = { path = "../recursion/program" }
-wp1-recursion-circuit = { path = "../recursion/circuit" }
-wp1-recursion-compiler = { path = "../recursion/compiler" }
-wp1-recursion-core = { path = "../recursion/core" }
-wp1-recursion-gnark-ffi = { path = "../recursion/gnark-ffi" }
-wp1-core = { path = "../core" }
-wp1-primitives = { path = "../primitives" }
+sphinx-recursion-program = { path = "../recursion/program" }
+sphinx-recursion-circuit = { path = "../recursion/circuit" }
+sphinx-recursion-compiler = { path = "../recursion/compiler" }
+sphinx-recursion-core = { path = "../recursion/core" }
+sphinx-recursion-gnark-ffi = { path = "../recursion/gnark-ffi" }
+sphinx-core = { path = "../core" }
+sphinx-primitives = { path = "../primitives" }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
 p3-baby-bear = { workspace = true }
@@ -53,4 +53,4 @@ name = "e2e"
 path = "scripts/e2e.rs"
 
 [features]
-neon = ["wp1-core/neon"]
+neon = ["sphinx-core/neon"]

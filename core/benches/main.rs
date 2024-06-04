@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use wp1_core::io::SP1Stdin;
-use wp1_core::runtime::{Program, Runtime};
-use wp1_core::utils::{prove, BabyBearPoseidon2};
+use sphinx_core::io::SphinxStdin;
+use sphinx_core::runtime::{Program, Runtime};
+use sphinx_core::utils::{prove, BabyBearPoseidon2};
 
 #[allow(unreachable_code)]
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -22,7 +22,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     prove(
                         black_box(&program),
-                        &SP1Stdin::new(),
+                        &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })

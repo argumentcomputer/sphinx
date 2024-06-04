@@ -3,21 +3,21 @@ use p3_challenger::DuplexChallenger;
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::TwoAdicField;
 use p3_field::{AbstractExtensionField, AbstractField};
-use wp1_core::air::{MachineAir, Word, PV_DIGEST_NUM_WORDS};
-use wp1_core::stark::StarkGenericConfig;
-use wp1_core::stark::{
+use sphinx_core::air::{MachineAir, Word, PV_DIGEST_NUM_WORDS};
+use sphinx_core::stark::StarkGenericConfig;
+use sphinx_core::stark::{
     AirOpenedValues, ChipOpenedValues, Com, RiscvAir, ShardCommitment, ShardOpenedValues,
 };
-use wp1_core::utils::{
+use sphinx_core::utils::{
     BabyBearPoseidon2, InnerChallenge, InnerDigest, InnerDigestHash, InnerPcsProof, InnerPerm,
     InnerVal,
 };
-use wp1_recursion_compiler::{
+use sphinx_recursion_compiler::{
     config::InnerConfig,
     ir::{Array, Builder, Config, Ext, Felt, MemVariable, Var},
 };
-use wp1_recursion_core::air::Block;
-use wp1_recursion_core::runtime::PERMUTATION_WIDTH;
+use sphinx_recursion_core::air::Block;
+use sphinx_recursion_core::runtime::PERMUTATION_WIDTH;
 
 use crate::challenger::DuplexChallengerVariable;
 use crate::fri::TwoAdicMultiplicativeCosetVariable;
@@ -506,9 +506,9 @@ where
 }
 
 impl<'a, A: MachineAir<BabyBear>> Hintable<C>
-    for SP1RecursionMemoryLayout<'a, BabyBearPoseidon2, A>
+    for SphinxRecursionMemoryLayout<'a, BabyBearPoseidon2, A>
 {
-    type HintVariable = SP1RecursionMemoryLayoutVariable<C>;
+    type HintVariable = SphinxRecursionMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -518,7 +518,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
             DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
         let is_complete = builder.hint_var();
 
-        SP1RecursionMemoryLayoutVariable {
+        SphinxRecursionMemoryLayoutVariable {
             vk,
             shard_proofs,
             leaf_challenger,
@@ -548,8 +548,10 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     }
 }
 
-impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, BabyBearPoseidon2, A> {
-    type HintVariable = SP1ReduceMemoryLayoutVariable<C>;
+impl<'a, A: MachineAir<BabyBear>> Hintable<C>
+    for SphinxReduceMemoryLayout<'a, BabyBearPoseidon2, A>
+{
+    type HintVariable = SphinxReduceMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let compress_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -557,7 +559,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, Baby
         let kinds = Vec::<usize>::read(builder);
         let is_complete = builder.hint_var();
 
-        SP1ReduceMemoryLayoutVariable {
+        SphinxReduceMemoryLayoutVariable {
             compress_vk,
             shard_proofs,
             kinds,
@@ -590,14 +592,14 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1ReduceMemoryLayout<'a, Baby
     }
 }
 
-impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1RootMemoryLayout<'a, BabyBearPoseidon2, A> {
-    type HintVariable = SP1RootMemoryLayoutVariable<C>;
+impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SphinxRootMemoryLayout<'a, BabyBearPoseidon2, A> {
+    type HintVariable = SphinxRootMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let proof = ShardProofHint::<'a, BabyBearPoseidon2, A>::read(builder);
         let is_reduce = builder.hint_var();
 
-        SP1RootMemoryLayoutVariable { proof, is_reduce }
+        SphinxRootMemoryLayoutVariable { proof, is_reduce }
     }
 
     fn write(&self) -> Vec<Vec<Block<<C as Config>::F>>> {
@@ -613,9 +615,9 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C> for SP1RootMemoryLayout<'a, BabyBe
 }
 
 impl<'a, A: MachineAir<BabyBear>> Hintable<C>
-    for SP1DeferredMemoryLayout<'a, BabyBearPoseidon2, A>
+    for SphinxDeferredMemoryLayout<'a, BabyBearPoseidon2, A>
 {
-    type HintVariable = SP1DeferredMemoryLayoutVariable<C>;
+    type HintVariable = SphinxDeferredMemoryLayoutVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let compress_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
@@ -623,19 +625,19 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         let start_reconstruct_deferred_digest = Vec::<BabyBear>::read(builder);
         let is_complete = builder.hint_var();
 
-        let wp1_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, RiscvAir<_>>::read(builder);
+        let sphinx_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, RiscvAir<_>>::read(builder);
         let committed_value_digest = Vec::<Vec<InnerVal>>::read(builder);
         let deferred_proofs_digest = Vec::<InnerVal>::read(builder);
         let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
         let end_pc = InnerVal::read(builder);
         let end_shard = InnerVal::read(builder);
 
-        SP1DeferredMemoryLayoutVariable {
+        SphinxDeferredMemoryLayoutVariable {
             compress_vk,
             proofs,
             start_reconstruct_deferred_digest,
             is_complete,
-            wp1_vk,
+            sphinx_vk,
             committed_value_digest,
             deferred_proofs_digest,
             leaf_challenger,
@@ -647,8 +649,8 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     fn write(&self) -> Vec<Vec<Block<<C as Config>::F>>> {
         let mut stream = Vec::new();
 
-        let wp1_vk_hint =
-            VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.wp1_machine, self.wp1_vk);
+        let sphinx_vk_hint =
+            VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.sphinx_machine, self.sphinx_vk);
 
         let compress_vk_hint =
             VerifyingKeyHint::<'a, BabyBearPoseidon2, _>::new(self.machine, self.compress_vk);
@@ -670,7 +672,7 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         stream.extend(self.start_reconstruct_deferred_digest.write());
         stream.extend(usize::from(self.is_complete).write());
 
-        stream.extend(wp1_vk_hint.write());
+        stream.extend(sphinx_vk_hint.write());
         stream.extend(committed_value_digest.write());
         stream.extend(self.deferred_proofs_digest.write());
         stream.extend(self.leaf_challenger.write());

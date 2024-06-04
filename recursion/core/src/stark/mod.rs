@@ -3,8 +3,8 @@ pub mod poseidon2;
 pub mod utils;
 
 use p3_field::{extension::BinomiallyExtendable, PrimeField32};
-use wp1_core::stark::{Chip, StarkGenericConfig, StarkMachine, PROOF_MAX_NUM_PVS};
-use wp1_derive::MachineAir;
+use sphinx_core::stark::{Chip, StarkGenericConfig, StarkMachine, PROOF_MAX_NUM_PVS};
+use sphinx_derive::MachineAir;
 
 use crate::runtime::D;
 use crate::{
@@ -19,10 +19,10 @@ pub type RecursionAirWideDeg3<F> = RecursionAir<F, 3>;
 pub type RecursionAirSkinnyDeg7<F> = RecursionAir<F, 7>;
 
 #[derive(MachineAir)]
-#[wp1_core_path = "wp1_core"]
+#[sphinx_core_path = "sphinx_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
 #[program_path = "crate::runtime::RecursionProgram<F>"]
-#[builder_path = "crate::air::SP1RecursionAirBuilder<F = F>"]
+#[builder_path = "crate::air::SphinxRecursionAirBuilder<F = F>"]
 pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> {
     Program(ProgramChip),
     Cpu(CpuChip<F>),

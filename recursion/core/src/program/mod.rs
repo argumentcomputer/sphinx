@@ -1,16 +1,16 @@
-use crate::air::SP1RecursionAirBuilder;
+use crate::air::SphinxRecursionAirBuilder;
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
+use sphinx_core::air::MachineAir;
+use sphinx_core::utils::pad_rows_fixed;
 use std::collections::HashMap;
 use tracing::instrument;
-use wp1_core::air::MachineAir;
-use wp1_core::utils::pad_rows_fixed;
 
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::{
     cpu::columns::{InstructionCols, OpcodeSelectorCols},
@@ -153,7 +153,7 @@ impl<F> BaseAir<F> for ProgramChip {
 
 impl<AB> Air<AB> for ProgramChip
 where
-    AB: SP1RecursionAirBuilder + PairBuilder,
+    AB: SphinxRecursionAirBuilder + PairBuilder,
 {
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();

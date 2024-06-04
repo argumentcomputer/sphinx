@@ -1,9 +1,9 @@
 use p3_air::AirBuilder;
 use p3_field::Field;
-use wp1_core::air::BaseAirBuilder;
+use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
-    air::SP1RecursionAirBuilder,
+    air::SphinxRecursionAirBuilder,
     cpu::{CpuChip, CpuCols},
 };
 
@@ -19,7 +19,7 @@ impl<F: Field> CpuChip<F> {
         local: &CpuCols<AB::Var>,
         next: &CpuCols<AB::Var>,
     ) where
-        AB: SP1RecursionAirBuilder,
+        AB: SphinxRecursionAirBuilder,
     {
         builder
             .when(local.is_real)

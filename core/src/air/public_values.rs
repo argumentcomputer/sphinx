@@ -11,7 +11,7 @@ use super::Word;
 use crate::stark::PROOF_MAX_NUM_PVS;
 
 /// The number of non padded elements in the SP1 proofs public values vec.
-pub const SP1_PROOF_NUM_PV_ELTS: usize = size_of::<PublicValues<Word<u8>, u8>>();
+pub const SPHINX_PROOF_NUM_PV_ELTS: usize = size_of::<PublicValues<Word<u8>, u8>>();
 
 /// The number of 32 bit words in the SP1 proof's committed value digest.
 pub const PV_DIGEST_NUM_WORDS: usize = 8;
@@ -131,7 +131,7 @@ mod tests {
     fn test_public_values_digest_num_words_consistency_zkvm() {
         assert_eq!(
             public_values::PV_DIGEST_NUM_WORDS,
-            wp1_zkvm::PV_DIGEST_NUM_WORDS
+            sphinx_zkvm::PV_DIGEST_NUM_WORDS
         );
     }
 }

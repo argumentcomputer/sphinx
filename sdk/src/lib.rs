@@ -12,7 +12,7 @@ pub mod auth;
 pub mod client;
 pub mod provers;
 pub mod utils {
-    pub use wp1_core::utils::setup_logger;
+    pub use sphinx_core::utils::setup_logger;
 }
 
 use std::{env, fmt::Debug, fs::File, path::Path};
@@ -20,10 +20,10 @@ use std::{env, fmt::Debug, fs::File, path::Path};
 use anyhow::{Ok, Result};
 pub use provers::{LocalProver, MockProver, NetworkProver, Prover};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use wp1_core::stark::{MachineVerificationError, ShardProof};
-pub use wp1_prover::{
-    types::SP1ProvingKey, types::SP1VerifyingKey, CoreSC, Groth16Proof, InnerSC, OuterSC,
-    PlonkBn254Proof, SP1Prover, SP1PublicValues, SP1Stdin,
+use sphinx_core::stark::{MachineVerificationError, ShardProof};
+pub use sphinx_prover::{
+    types::SphinxProvingKey, types::SphinxVerifyingKey, CoreSC, Groth16Proof, InnerSC, OuterSC,
+    PlonkBn254Proof, SphinxProver, SphinxPublicValues, SphinxStdin,
 };
 
 /// A client for interacting with SP1.
@@ -36,25 +36,25 @@ pub struct ProverClient {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound(serialize = "P: Serialize + Debug + Clone"))]
 #[serde(bound(deserialize = "P: DeserializeOwned + Debug + Clone"))]
-pub struct SP1ProofWithPublicValues<P> {
+pub struct SphinxProofWithPublicValues<P> {
     pub proof: P,
-    pub stdin: SP1Stdin,
-    pub public_values: SP1PublicValues,
+    pub stdin: SphinxStdin,
+    pub public_values: SphinxPublicValues,
 }
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove].
-pub type SP1Proof = SP1ProofWithPublicValues<Vec<ShardProof<CoreSC>>>;
-pub type SP1ProofVerificationError = MachineVerificationError<CoreSC>;
+pub type SphinxProof = SphinxProofWithPublicValues<Vec<ShardProof<CoreSC>>>;
+pub type SphinxProofVerificationError = MachineVerificationError<CoreSC>;
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove_compressed].
-pub type SP1CompressedProof = SP1ProofWithPublicValues<ShardProof<InnerSC>>;
-pub type SP1CompressedProofVerificationError = MachineVerificationError<InnerSC>;
+pub type SphinxCompressedProof = SphinxProofWithPublicValues<ShardProof<InnerSC>>;
+pub type SphinxCompressedProofVerificationError = MachineVerificationError<InnerSC>;
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove_groth16].
-pub type SP1Groth16Proof = SP1ProofWithPublicValues<Groth16Proof>;
+pub type SphinxGroth16Proof = SphinxProofWithPublicValues<Groth16Proof>;
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove_plonk].
-pub type SP1PlonkProof = SP1ProofWithPublicValues<PlonkBn254Proof>;
+pub type SphinxPlonkProof = SphinxProofWithPublicValues<PlonkBn254Proof>;
 
 impl ProverClient {
     /// Creates a new [ProverClient].
@@ -67,7 +67,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// std::env::set_var("SP1_PROVER", "local");
     /// let client = ProverClient::new();
@@ -101,7 +101,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::mock();
     /// ```
@@ -119,7 +119,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::local();
     /// ```
@@ -136,7 +136,7 @@ impl ProverClient {
     /// ### Examples
     ///
     /// ```no_run
-    /// use wp1_sdk::ProverClient;
+    /// use sphinx_sdk::ProverClient;
     ///
     /// let client = ProverClient::remote();
     /// ```
@@ -153,7 +153,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -162,14 +162,14 @@ impl ProverClient {
     /// let client = ProverClient::new();
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Execute the program on the inputs.
     /// let public_values = client.execute(elf, &stdin).unwrap();
     /// ```
-    pub fn execute(&self, elf: &[u8], stdin: &SP1Stdin) -> Result<SP1PublicValues> {
-        Ok(SP1Prover::execute(elf, stdin)?)
+    pub fn execute(&self, elf: &[u8], stdin: &SphinxStdin) -> Result<SphinxPublicValues> {
+        Ok(SphinxProver::execute(elf, stdin)?)
     }
 
     /// Setup a program to be proven and verified by the SP1 RISC-V zkVM by computing the proving
@@ -180,15 +180,15 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
     /// let client = ProverClient::new();
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     /// let (pk, vk) = client.setup(elf);
     /// ```
-    pub fn setup(&self, elf: &[u8]) -> (SP1ProvingKey, SP1VerifyingKey) {
+    pub fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
         self.prover.setup(elf)
     }
 
@@ -200,7 +200,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -212,13 +212,13 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
     /// let proof = client.prove(&pk, stdin).unwrap();
     /// ```
-    pub fn prove(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Proof> {
+    pub fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
         self.prover.prove(pk, stdin)
     }
 
@@ -229,7 +229,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -241,7 +241,7 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
@@ -249,9 +249,9 @@ impl ProverClient {
     /// ```
     pub fn prove_compressed(
         &self,
-        pk: &SP1ProvingKey,
-        stdin: SP1Stdin,
-    ) -> Result<SP1CompressedProof> {
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         self.prover.prove_compressed(pk, stdin)
     }
 
@@ -262,7 +262,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -274,14 +274,18 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
     /// let proof = client.prove_groth16(&pk, stdin).unwrap();
     /// ```
     /// Generates a groth16 proof, verifiable onchain, of the given elf and stdin.
-    pub fn prove_groth16(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Groth16Proof> {
+    pub fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         self.prover.prove_groth16(pk, stdin)
     }
 
@@ -292,7 +296,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -304,13 +308,17 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
     /// let proof = client.prove_plonk(&pk, stdin).unwrap();
     /// ```
-    pub fn prove_plonk(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1PlonkProof> {
+    pub fn prove_plonk(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxPlonkProof> {
         self.prover.prove_plonk(pk, stdin)
     }
 
@@ -319,21 +327,21 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
     /// let client = ProverClient::new();
     /// let (pk, vk) = client.setup(elf);
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     /// let proof = client.prove(&pk, stdin).unwrap();
     /// client.verify(&proof, &vk).unwrap();
     /// ```
     pub fn verify(
         &self,
-        proof: &SP1Proof,
-        vkey: &SP1VerifyingKey,
-    ) -> Result<(), SP1ProofVerificationError> {
+        proof: &SphinxProof,
+        vkey: &SphinxVerifyingKey,
+    ) -> Result<(), SphinxProofVerificationError> {
         self.prover.verify(proof, vkey)
     }
 
@@ -342,7 +350,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -354,7 +362,7 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
@@ -363,8 +371,8 @@ impl ProverClient {
     /// ```
     pub fn verify_compressed(
         &self,
-        proof: &SP1CompressedProof,
-        vkey: &SP1VerifyingKey,
+        proof: &SphinxCompressedProof,
+        vkey: &SphinxVerifyingKey,
     ) -> Result<()> {
         self.prover.verify_compressed(proof, vkey)
     }
@@ -374,7 +382,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -386,7 +394,7 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
@@ -395,7 +403,11 @@ impl ProverClient {
     /// // Verify the proof.
     /// client.verify_groth16(&proof, &vk).unwrap();
     /// ```
-    pub fn verify_groth16(&self, proof: &SP1Groth16Proof, vkey: &SP1VerifyingKey) -> Result<()> {
+    pub fn verify_groth16(
+        &self,
+        proof: &SphinxGroth16Proof,
+        vkey: &SphinxVerifyingKey,
+    ) -> Result<()> {
         self.prover.verify_groth16(proof, vkey)
     }
 
@@ -404,7 +416,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use wp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -416,7 +428,7 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
@@ -425,7 +437,7 @@ impl ProverClient {
     /// // Verify the proof.
     /// client.verify_plonk(&proof, &vk).unwrap();
     /// ```
-    pub fn verify_plonk(&self, proof: &SP1PlonkProof, vkey: &SP1VerifyingKey) -> Result<()> {
+    pub fn verify_plonk(&self, proof: &SphinxPlonkProof, vkey: &SphinxVerifyingKey) -> Result<()> {
         self.prover.verify_plonk(proof, vkey)
     }
 }
@@ -436,7 +448,7 @@ impl Default for ProverClient {
     }
 }
 
-impl<P: Debug + Clone + Serialize + DeserializeOwned> SP1ProofWithPublicValues<P> {
+impl<P: Debug + Clone + Serialize + DeserializeOwned> SphinxProofWithPublicValues<P> {
     /// Saves the proof to a path.
     pub fn save(&self, path: impl AsRef<Path>) -> Result<()> {
         bincode::serialize_into(File::create(path).expect("failed to open file"), self)
@@ -450,7 +462,7 @@ impl<P: Debug + Clone + Serialize + DeserializeOwned> SP1ProofWithPublicValues<P
     }
 }
 
-impl SP1Groth16Proof {
+impl SphinxGroth16Proof {
     pub fn bytes(&self) -> String {
         format!("0x{}", self.proof.encoded_proof.clone())
     }
@@ -459,7 +471,7 @@ impl SP1Groth16Proof {
 #[cfg(test)]
 mod tests {
 
-    use crate::{utils, ProverClient, SP1Stdin};
+    use crate::{utils, ProverClient, SphinxStdin};
 
     #[test]
     fn test_execute() {
@@ -467,7 +479,7 @@ mod tests {
         let client = ProverClient::local();
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         client.execute(elf, &stdin).unwrap();
     }
@@ -478,7 +490,7 @@ mod tests {
         utils::setup_logger();
         let client = ProverClient::local();
         let elf = include_bytes!("../../tests/panic/elf/riscv32im-succinct-zkvm-elf");
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         client.execute(elf, &stdin).unwrap();
     }
@@ -490,7 +502,7 @@ mod tests {
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
         let (pk, vk) = client.setup(elf);
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         let proof = client.prove(&pk, stdin).unwrap();
         client.verify(&proof, &vk).unwrap();
@@ -503,7 +515,7 @@ mod tests {
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
         let (pk, vk) = client.setup(elf);
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         let proof = client.prove_groth16(&pk, stdin).unwrap();
         client.verify_groth16(&proof, &vk).unwrap();
@@ -516,7 +528,7 @@ mod tests {
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
         let (pk, vk) = client.setup(elf);
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         let proof = client.prove(&pk, stdin).unwrap();
         client.verify(&proof, &vk).unwrap();
@@ -529,7 +541,7 @@ mod tests {
         let elf =
             include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
         let (pk, vk) = client.setup(elf);
-        let mut stdin = SP1Stdin::new();
+        let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         let proof = client.prove_groth16(&pk, stdin).unwrap();
         client.verify_groth16(&proof, &vk).unwrap();

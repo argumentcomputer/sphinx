@@ -1,4 +1,4 @@
-use wp1_helper::build_program;
+use sphinx_helper::build_program;
 
 fn main() {
     build_program("../program")

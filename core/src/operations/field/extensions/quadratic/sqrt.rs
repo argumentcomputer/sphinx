@@ -5,8 +5,8 @@ use crate::operations::field::params::{FieldParameters, Limbs};
 use crate::operations::field::range::FieldRangeCols;
 use num::BigUint;
 use p3_field::PrimeField32;
+use sphinx_derive::AlignedBorrow;
 use std::fmt::Debug;
-use wp1_derive::AlignedBorrow;
 
 use super::QuadFieldOpCols;
 
@@ -129,7 +129,7 @@ mod tests {
     use p3_matrix::dense::RowMajorMatrix;
     use p3_matrix::Matrix;
     use rand::thread_rng;
-    use wp1_derive::AlignedBorrow;
+    use sphinx_derive::AlignedBorrow;
 
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, P: FieldParameters> {

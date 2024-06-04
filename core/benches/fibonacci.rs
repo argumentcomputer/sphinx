@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use wp1_core::{
-    io::SP1Stdin,
+use sphinx_core::{
+    io::SphinxStdin,
     runtime::{Program, Runtime},
     stark::RiscvAir,
     utils::{prove, prove_simple, BabyBearPoseidon2},
@@ -97,7 +97,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     prove(
                         black_box(&program),
-                        &SP1Stdin::new(),
+                        &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
                     )
                 })
@@ -108,6 +108,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     run_and_prove_group.finish();
 }
 
-// cargo criterion --bench fibonacci --package wp1-core
+// cargo criterion --bench fibonacci --package sphinx-core
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);

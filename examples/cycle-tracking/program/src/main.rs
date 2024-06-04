@@ -1,7 +1,7 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
-#[wp1_derive::cycle_tracker]
+#[sphinx_derive::cycle_tracker]
 pub fn expensive_function(x: usize) -> usize {
     let mut y = 1;
     for _ in 0..100 {

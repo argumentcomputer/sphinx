@@ -2,7 +2,7 @@ use rsa::{
     pkcs8::{DecodePrivateKey, DecodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
-use wp1_sdk::{utils, ProverClient, SP1Stdin};
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 use std::vec;
 
 /// The ELF we want to execute inside the zkVM.
@@ -16,7 +16,7 @@ fn main() {
     utils::setup_logger();
 
     // Create a new stdin with the input for the program.
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     let private_key = RsaPrivateKey::from_pkcs8_der(RSA_2048_PRIV_DER).unwrap();
     let public_key = RsaPublicKey::from_public_key_der(RSA_2048_PUB_DER).unwrap();

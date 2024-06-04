@@ -6,7 +6,7 @@ use core::{
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
 use crate::{

@@ -1,20 +1,20 @@
 use anyhow::Result;
-use wp1_prover::{SP1Prover, SP1Stdin};
+use sphinx_prover::{SphinxProver, SphinxStdin};
 
 use crate::{
-    Prover, SP1CompressedProof, SP1Groth16Proof, SP1PlonkProof, SP1Proof, SP1ProofWithPublicValues,
-    SP1ProvingKey, SP1VerifyingKey,
+    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
+    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
 pub struct LocalProver {
-    prover: SP1Prover,
+    prover: SphinxProver,
 }
 
 impl LocalProver {
     /// Creates a new [LocalProver].
     pub fn new() -> Self {
-        let prover = SP1Prover::new();
+        let prover = SphinxProver::new();
         Self { prover }
     }
 }
@@ -24,36 +24,44 @@ impl Prover for LocalProver {
         "local".to_string()
     }
 
-    fn setup(&self, elf: &[u8]) -> (SP1ProvingKey, SP1VerifyingKey) {
+    fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
         self.prover.setup(elf)
     }
 
-    fn wp1_prover(&self) -> &SP1Prover {
+    fn sphinx_prover(&self) -> &SphinxProver {
         &self.prover
     }
 
-    fn prove(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Proof> {
+    fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
         let proof = self.prover.prove_core(pk, &stdin)?;
-        Ok(SP1ProofWithPublicValues {
+        Ok(SphinxProofWithPublicValues {
             proof: proof.proof.0,
             stdin: proof.stdin,
             public_values: proof.public_values,
         })
     }
 
-    fn prove_compressed(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1CompressedProof> {
+    fn prove_compressed(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         let proof = self.prover.prove_core(pk, &stdin)?;
         let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         let public_values = proof.public_values.clone();
         let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
-        Ok(SP1CompressedProof {
+        Ok(SphinxCompressedProof {
             proof: reduce_proof.proof,
             stdin,
             public_values,
         })
     }
 
-    fn prove_groth16(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Groth16Proof> {
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         let proof = self.prover.prove_core(pk, &stdin)?;
         let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         let public_values = proof.public_values.clone();
@@ -61,23 +69,23 @@ impl Prover for LocalProver {
         let compress_proof = self.prover.shrink(reduce_proof)?;
         let outer_proof = self.prover.wrap_bn254(compress_proof)?;
 
-        let groth16_aritfacts = if wp1_prover::build::wp1_dev_mode() {
-            wp1_prover::build::try_build_groth16_artifacts_dev(
+        let groth16_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
+            sphinx_prover::build::try_build_groth16_artifacts_dev(
                 &self.prover.wrap_vk,
                 &outer_proof.proof,
             )
         } else {
-            wp1_prover::build::try_install_groth16_artifacts()
+            sphinx_prover::build::try_install_groth16_artifacts()
         };
         let proof = self.prover.wrap_groth16(outer_proof, &groth16_aritfacts);
-        Ok(SP1ProofWithPublicValues {
+        Ok(SphinxProofWithPublicValues {
             proof,
             stdin,
             public_values,
         })
     }
 
-    fn prove_plonk(&self, _pk: &SP1ProvingKey, _stdin: SP1Stdin) -> Result<SP1PlonkProof> {
+    fn prove_plonk(&self, _pk: &SphinxProvingKey, _stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
         // let proof = self.prover.prove_core(pk, &stdin);
         // let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         // let public_values = proof.public_values.clone();

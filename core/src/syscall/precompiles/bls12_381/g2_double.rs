@@ -4,7 +4,7 @@ use crate::memory::{MemoryCols, MemoryWriteCols};
 use crate::operations::field::extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation};
 use crate::operations::field::params::{FieldParameters, Limbs, WORDS_QUAD_EXT_CURVEPOINT};
 use crate::runtime::{ExecutionRecord, MemoryWriteRecord, Syscall, SyscallCode, SyscallContext};
-use crate::stark::SP1AirBuilder;
+use crate::stark::SphinxAirBuilder;
 use crate::utils::ec::weierstrass::bls12_381::{bls12381_double, Bls12381BaseField};
 use crate::utils::{limbs_from_prev_access, pad_vec_rows};
 use crate::Program;
@@ -17,8 +17,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use serde::Deserialize;
 use serde::Serialize;
+use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
-use wp1_derive::AlignedBorrow;
 
 /// Chip for doubling a BLS12-381 G2Affine point (P).
 ///
@@ -304,7 +304,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
     }
 }
 
-impl<AB: SP1AirBuilder> Air<AB> for Bls12381G2AffineDoubleChip
+impl<AB: SphinxAirBuilder> Air<AB> for Bls12381G2AffineDoubleChip
 where
     AB::F: PrimeField32,
 {

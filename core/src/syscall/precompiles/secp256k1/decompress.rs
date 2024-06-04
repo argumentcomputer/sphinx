@@ -9,7 +9,7 @@ use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use serde::{Deserialize, Serialize};
-use wp1_derive::AlignedBorrow;
+use sphinx_derive::AlignedBorrow;
 
 use crate::air::{AluAirBuilder, ByteAirBuilder, MemoryAirBuilder};
 use crate::bytes::event::ByteRecord;
@@ -394,7 +394,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        io::SP1Stdin,
+        io::SphinxStdin,
         utils::{self, run_test_io, tests::SECP256K1_DECOMPRESS_ELF},
         Program,
     };
@@ -413,7 +413,7 @@ mod tests {
         let decompressed = encoded.as_bytes();
         let compressed = public_key.to_sec1_bytes();
 
-        let inputs = SP1Stdin::from(&compressed);
+        let inputs = SphinxStdin::from(&compressed);
 
         let mut public_values =
             run_test_io(Program::from(SECP256K1_DECOMPRESS_ELF), &inputs).unwrap();

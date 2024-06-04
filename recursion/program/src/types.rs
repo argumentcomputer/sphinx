@@ -1,10 +1,10 @@
 use p3_air::BaseAir;
 use p3_field::{AbstractExtensionField, AbstractField};
-use wp1_core::{
+use sphinx_core::{
     air::{MachineAir, Word, PV_DIGEST_NUM_WORDS, WORD_SIZE},
     stark::{AirOpenedValues, Chip, ChipOpenedValues},
 };
-use wp1_recursion_compiler::prelude::*;
+use sphinx_recursion_compiler::prelude::*;
 
 use crate::fri::{
     types::{DigestVariable, FriConfigVariable, TwoAdicPcsProofVariable},

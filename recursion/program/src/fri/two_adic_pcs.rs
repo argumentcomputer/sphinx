@@ -1,8 +1,8 @@
 use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::{AbstractField, TwoAdicField};
 use p3_symmetric::Hash;
-use wp1_recursion_compiler::prelude::*;
-use wp1_recursion_core::runtime::DIGEST_SIZE;
+use sphinx_recursion_compiler::prelude::*;
+use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
 use super::{
     types::{
@@ -278,25 +278,25 @@ pub mod tests {
     use p3_field::AbstractField;
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
-    use wp1_core::utils::baby_bear_poseidon2::compressed_fri_config;
-    use wp1_core::utils::inner_perm;
-    use wp1_core::utils::InnerChallenge;
-    use wp1_core::utils::InnerChallenger;
-    use wp1_core::utils::InnerCompress;
-    use wp1_core::utils::InnerDft;
-    use wp1_core::utils::InnerHash;
-    use wp1_core::utils::InnerPcs;
-    use wp1_core::utils::InnerPcsProof;
-    use wp1_core::utils::InnerVal;
-    use wp1_core::utils::InnerValMmcs;
-    use wp1_recursion_compiler::config::InnerConfig;
-    use wp1_recursion_compiler::ir::Array;
-    use wp1_recursion_compiler::ir::Builder;
-    use wp1_recursion_compiler::ir::Usize;
-    use wp1_recursion_compiler::ir::Var;
-    use wp1_recursion_core::air::Block;
-    use wp1_recursion_core::runtime::RecursionProgram;
-    use wp1_recursion_core::runtime::DIGEST_SIZE;
+    use sphinx_core::utils::baby_bear_poseidon2::compressed_fri_config;
+    use sphinx_core::utils::inner_perm;
+    use sphinx_core::utils::InnerChallenge;
+    use sphinx_core::utils::InnerChallenger;
+    use sphinx_core::utils::InnerCompress;
+    use sphinx_core::utils::InnerDft;
+    use sphinx_core::utils::InnerHash;
+    use sphinx_core::utils::InnerPcs;
+    use sphinx_core::utils::InnerPcsProof;
+    use sphinx_core::utils::InnerVal;
+    use sphinx_core::utils::InnerValMmcs;
+    use sphinx_recursion_compiler::config::InnerConfig;
+    use sphinx_recursion_compiler::ir::Array;
+    use sphinx_recursion_compiler::ir::Builder;
+    use sphinx_recursion_compiler::ir::Usize;
+    use sphinx_recursion_compiler::ir::Var;
+    use sphinx_recursion_core::air::Block;
+    use sphinx_recursion_core::runtime::RecursionProgram;
+    use sphinx_recursion_core::runtime::DIGEST_SIZE;
 
     pub fn build_test_fri_with_cols_and_log2_rows(
         nb_cols: usize,
@@ -402,7 +402,7 @@ pub mod tests {
 
     #[test]
     fn test_two_adic_fri_pcs_single_batch() {
-        use wp1_recursion_core::stark::utils::{run_test_recursion, TestConfig};
+        use sphinx_recursion_core::stark::utils::{run_test_recursion, TestConfig};
         let (program, witness) = build_test_fri_with_cols_and_log2_rows(10, 16);
         run_test_recursion(&program, Some(witness), TestConfig::All);
     }

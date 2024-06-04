@@ -2,9 +2,9 @@ use std::borrow::BorrowMut;
 
 use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
+use sphinx_core::{air::MachineAir, utils::pad_rows_fixed};
+use sphinx_primitives::RC_16_30_U32;
 use tracing::instrument;
-use wp1_core::{air::MachineAir, utils::pad_rows_fixed};
-use wp1_primitives::RC_16_30_U32;
 
 use crate::{
     poseidon2_wide::{external_linear_layer, internal_linear_layer},

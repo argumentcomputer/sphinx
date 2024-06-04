@@ -1,9 +1,9 @@
 #![no_main]
-wp1_zkvm::entrypoint!(main);
+sphinx_zkvm::entrypoint!(main);
 
 use std::hint::black_box;
 
-#[wp1_derive::cycle_tracker]
+#[sphinx_derive::cycle_tracker]
 pub fn f(x: usize) -> usize {
     x + 1
 }

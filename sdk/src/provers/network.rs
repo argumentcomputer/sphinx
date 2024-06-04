@@ -7,14 +7,15 @@ use crate::{
     Prover,
 };
 use crate::{
-    SP1CompressedProof, SP1Groth16Proof, SP1PlonkProof, SP1Proof, SP1ProvingKey, SP1VerifyingKey,
+    SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProvingKey,
+    SphinxVerifyingKey,
 };
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
+use sphinx_core::runtime::{Program, Runtime};
+use sphinx_prover::utils::block_on;
+use sphinx_prover::{SphinxProver, SphinxStdin};
 use tokio::{runtime, time::sleep};
-use wp1_core::runtime::{Program, Runtime};
-use wp1_prover::utils::block_on;
-use wp1_prover::{SP1Prover, SP1Stdin};
 
 use super::LocalProver;
 
@@ -39,7 +40,7 @@ impl NetworkProver {
     pub(crate) async fn prove_async<P: DeserializeOwned>(
         &self,
         elf: &[u8],
-        stdin: SP1Stdin,
+        stdin: SphinxStdin,
         mode: ProofMode,
     ) -> Result<P> {
         let client = &self.client;
@@ -98,7 +99,7 @@ impl NetworkProver {
         rt.block_on(async {
             let client = &self.client;
 
-            let verifier = NetworkClient::get_wp1_verifier_address();
+            let verifier = NetworkClient::get_sphinx_verifier_address();
 
             let mut tx_details = Vec::new();
             for ((i, callback), callback_data) in
@@ -155,27 +156,35 @@ impl Prover for NetworkProver {
         "remote".to_string()
     }
 
-    fn setup(&self, elf: &[u8]) -> (SP1ProvingKey, SP1VerifyingKey) {
+    fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
         self.local_prover.setup(elf)
     }
 
-    fn wp1_prover(&self) -> &SP1Prover {
-        self.local_prover.wp1_prover()
+    fn sphinx_prover(&self) -> &SphinxProver {
+        self.local_prover.sphinx_prover()
     }
 
-    fn prove(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Proof> {
+    fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Core))
     }
 
-    fn prove_compressed(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1CompressedProof> {
+    fn prove_compressed(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxCompressedProof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Compressed))
     }
 
-    fn prove_groth16(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1Groth16Proof> {
+    fn prove_groth16(
+        &self,
+        pk: &SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Result<SphinxGroth16Proof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Groth16))
     }
 
-    fn prove_plonk(&self, pk: &SP1ProvingKey, stdin: SP1Stdin) -> Result<SP1PlonkProof> {
+    fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Plonk))
     }
 }

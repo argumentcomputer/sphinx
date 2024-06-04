@@ -1,9 +1,9 @@
-use wp1_sdk::{ProverClient, SP1Stdin};
+use sphinx_sdk::{ProverClient, SphinxStdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
 fn main() {
-    let mut stdin = SP1Stdin::new();
+    let mut stdin = SphinxStdin::new();
 
     // FEN representation of a chessboard in its initial state
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string();

@@ -8,7 +8,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Standard input for the prover.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SP1Stdin {
+pub struct SphinxStdin {
     /// Input stored as a vec of vec of bytes. It's stored this way because the read syscall reads
     /// a vec of bytes at a time.
     pub buffer: Vec<Vec<u8>>,
@@ -21,18 +21,18 @@ pub struct SP1Stdin {
 
 /// Public values for the prover.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SP1PublicValues {
+pub struct SphinxPublicValues {
     buffer: Buffer,
 }
 
-impl Default for SP1Stdin {
+impl Default for SphinxStdin {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SP1Stdin {
-    /// Create a new `SP1Stdin`.
+impl SphinxStdin {
+    /// Create a new `SphinxStdin`.
     pub fn new() -> Self {
         Self {
             buffer: Vec::new(),
@@ -41,7 +41,7 @@ impl SP1Stdin {
         }
     }
 
-    /// Create a `SP1Stdin` from a slice of bytes.
+    /// Create a `SphinxStdin` from a slice of bytes.
     pub fn from(data: &[u8]) -> Self {
         Self {
             buffer: vec![data.to_vec()],
@@ -89,13 +89,13 @@ impl SP1Stdin {
     }
 }
 
-impl Default for SP1PublicValues {
+impl Default for SphinxPublicValues {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SP1PublicValues {
+impl SphinxPublicValues {
     /// Create a new `SP1PublicValues`.
     pub fn new() -> Self {
         Self {
@@ -163,7 +163,7 @@ impl SP1PublicValues {
     }
 }
 
-impl AsRef<[u8]> for SP1PublicValues {
+impl AsRef<[u8]> for SphinxPublicValues {
     fn as_ref(&self) -> &[u8] {
         &self.buffer.data
     }
@@ -216,7 +216,7 @@ mod tests {
         let test_hex = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
         let test_bytes = hex::decode(test_hex).unwrap();
 
-        let mut public_values = SP1PublicValues::new();
+        let mut public_values = SphinxPublicValues::new();
         public_values.write_slice(&test_bytes);
         let hash = public_values.hash();
 

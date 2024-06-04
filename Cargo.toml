@@ -145,4 +145,4 @@ codegen-units = 16
 [workspace.package]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/wormhole-foundation/wp1"
+repository = "https://github.com/lurk-lab/sphinx"

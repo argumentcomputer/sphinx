@@ -1,5 +1,5 @@
 [package]
-name = "wp1-core"
+name = "sphinx-core"
 version = "0.1.0"
 edition.workspace = true
 repository.workspace = true
@@ -32,8 +32,8 @@ p3-symmetric = { workspace = true }
 p3-uni-stark = { workspace = true }
 p3-util = { workspace = true }
 rrs-lib = { workspace = true }
-wp1-derive = { path = "../derive" }
-wp1-primitives = { path = "../primitives" }
+sphinx-derive = { path = "../derive" }
+sphinx-primitives = { path = "../primitives" }
 
 anyhow = { workspace = true }
 arrayref = { workspace = true }
@@ -66,7 +66,7 @@ tiny-keccak = { workspace = true, features = ["keccak"] }
 criterion = { workspace = true }
 num = { workspace = true, features = ["rand"] }
 rand = { workspace = true }
-wp1-zkvm = { path = "../zkvm/entrypoint" }
+sphinx-zkvm = { path = "../zkvm/entrypoint" }
 
 [features]
 debug = []
