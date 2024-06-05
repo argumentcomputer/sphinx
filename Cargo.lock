@@ -4738,7 +4738,7 @@ dependencies = [
 [[package]]
 name = "twirp"
 version = "0.3.0"
-source = "git+https://github.com/github/twirp-rs.git#c85f31f9c54957374e7dcb3534fc52cff0aa2dc5"
+source = "git+https://github.com/github/twirp-rs.git#e18a3cfb30853250213d4bdc486a9fb8f5ac9bd4"
 dependencies = [
  "async-trait",
  "axum",
