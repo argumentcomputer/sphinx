@@ -7,7 +7,6 @@ use crate::air::Word;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteOpcode;
 use crate::disassembler::WORD_SIZE;
-use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the not of a word.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
@@ -18,7 +17,7 @@ pub struct NotOperation<T> {
 }
 
 impl<F: Field> NotOperation<F> {
-    pub fn populate(&mut self, record: &mut ExecutionRecord, shard: u32, x: u32) -> u32 {
+    pub fn populate(&mut self, record: &mut impl ByteRecord, shard: u32, x: u32) -> u32 {
         let expected = !x;
         let x_bytes = x.to_le_bytes();
         for i in 0..WORD_SIZE {

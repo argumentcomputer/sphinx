@@ -4,8 +4,8 @@ use sphinx_derive::AlignedBorrow;
 use super::g_func;
 use crate::{
     air::{Word, WordAirBuilder, WORD_SIZE},
+    bytes::event::ByteRecord,
     operations::{AddOperation, FixedRotateRightOperation, XorOperation},
-    runtime::ExecutionRecord,
 };
 /// A set of columns needed to compute the `g` of the input state.
 ///  ``` ignore
@@ -44,7 +44,7 @@ pub struct GOperation<T> {
 impl<F: Field> GOperation<F> {
     pub fn populate(
         &mut self,
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
         shard: u32,
         input: [u32; 6],
     ) -> [u32; 4] {

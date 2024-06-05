@@ -97,7 +97,7 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
     pub fn populate<E: EdwardsParameters<BaseField = P>>(
         &mut self,
         event: &EdDecompressEvent,
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
     ) {
         let mut new_byte_lookup_events = Vec::new();
         self.is_real = F::from_bool(true);

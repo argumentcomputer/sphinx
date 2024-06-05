@@ -6,7 +6,6 @@ use crate::air::Word;
 use crate::air::WordAirBuilder;
 use crate::air::WORD_SIZE;
 use crate::bytes::event::ByteRecord;
-use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the sum of five words.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
@@ -38,7 +37,7 @@ impl<F: Field> Add5Operation<F> {
     #[allow(clippy::too_many_arguments)]
     pub fn populate(
         &mut self,
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
         shard: u32,
         a_u32: u32,
         b_u32: u32,
