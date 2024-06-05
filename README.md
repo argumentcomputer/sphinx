@@ -6,7 +6,7 @@
 Sphinx is an open-source zero-knowledge virtual machine (zkVM) that can prove
 the execution of [RISC-V](https://en.wikipedia.org/wiki/RISC-V) bytecode, with
 initial tooling support for programs written in
-[Rust](https://en.wikipedia.org/wiki/Rust_(programming_language). Additionally,
+[Rust](https://en.wikipedia.org/wiki/Rust_(programming_language)). Additionally,
 Sphinx aims to support other reduction engines, including the evaluator for the
 [Lurk programming language](https://www.lurk-lang.org) , which could be extended
 to other functional languages like JavaScript or Lean.
@@ -32,7 +32,7 @@ build on, the whole world benefits:
 - [Risc Zero](https://www.risczero.com/), who developed and maintain the
   [riscv32im-risc0-zkvm-elf](https://doc.rust-lang.org/nightly/rustc/platform-support/riscv32im-risc0-zkvm-elf.html)
   Rust toolchain and related tooling.
-- [Delendum](https://delendum.xyz/writings/2023-05-10-zkvm-design.html) and Lita Foundation](https://www.lita.foundation/), whose [Valida
+- [Delendum](https://delendum.xyz/writings/2023-05-10-zkvm-design.html) and [Lita Foundation](https://www.lita.foundation/), whose [Valida
   zkVM](https://github.com/valida-xyz/valida) influenced the cross-table lookup
   architecture, prover, borrow macro, and chip design of SP1.
 - [Polygon Zero](https://polygon.technology/about) whose
