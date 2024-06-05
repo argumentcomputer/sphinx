@@ -12,13 +12,9 @@ sphinx-recursion-compiler = { path = "../compiler" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
-reqwest = { workspace = true, features = ["json", "blocking"] }
 rand = { workspace = true }
-crossbeam = { workspace = true }
-subtle-encoding = { workspace = true }
 log = { workspace = true }
 num-bigint = { workspace = true }
 
 [build-dependencies]
 bindgen = { workspace = true }
-cc = { workspace = true }

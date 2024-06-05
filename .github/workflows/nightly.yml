@@ -7,16 +7,48 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   unused-dependencies:
-    uses: lurk-lab/ci-workflows/.github/workflows/unused-deps.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+          perf: false
+      - uses: taiki-e/install-action@cargo-udeps
+      # Normally running cargo-udeps requires use of a nightly compiler
+      # In order to have a more stable and less noisy experience, lets instead
+      # opt to use the stable toolchain specified via the 'rust-toolchain' file
+      # and instead enable nightly features via 'RUSTC_BOOTSTRAP'
+      - name: run cargo-udeps
+        run: RUSTC_BOOTSTRAP=1 cargo udeps --workspace --all-targets
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ failure() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          update_existing: true
+          filename: .github/templates/UNUSED_DEPS.md
 
   linux-exhaustive:
-    name: Run all tests including ignored
-    runs-on: warp-ubuntu-latest-x64-32x
+    name: Exhaustive tests on ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: warp-ubuntu-latest-arm64-32x
+            arch: ARM 
+          - runner: warp-ubuntu-latest-x64-32x
+            arch: x86
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +85,8 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Install deps
+        run: sudo apt update && sudo apt install cmake -y
       - name: Install `cargo-prove` toolchain
         run: |
           cargo install --locked --path ./cli
@@ -78,4 +112,4 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
-          filename: .github/NIGHTLY_FAILURE.md
+          filename: .github/templates/NIGHTLY_TESTS.md

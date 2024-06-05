@@ -1,7 +1,7 @@
 ---
-title: "ci: Tests are broken on M1 Mac"
+title: "ci: M1 Mac tests failed"
 labels: debt, automated issue
 ---
-Tests have failed on `macos-latest-xlarge` after {{ env.GIT_COMMIT }} was merged to `dev`
+Compilation tests failed on `macos-latest-xlarge` as of {{ env.GIT_COMMIT }}
 
 Triggered by: {{ env.WORKFLOW_URL }}

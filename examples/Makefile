@@ -1,5 +1,4 @@
 SHELL := /bin/bash
-.SHELLFLAGS = -e
 
 all:
 	@set -e; \
@@ -10,6 +9,13 @@ all:
 			cd ../../; \
 		else \
 			echo "No program directory in $${dir}, skipping..."; \
+		fi; \
+		if [ -d "$${dir}script" ]; then \
+			echo "Building in $${dir}script..."; \
+			cd $${dir}script && cargo check || { echo "Failed at command: cd $${dir}script && cargo check"; exit 1; }; \
+			cd ../../; \
+		else \
+			echo "No script directory in $${dir}, skipping..."; \
 		fi; \
 	done
 

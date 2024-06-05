@@ -30,11 +30,6 @@ jobs:
         run: |
           cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
         working-directory: ${{ github.workspace }}/examples
-      - name: Install `cargo prove` CLI
-        run: |
-          cargo install --locked --force --path ./cli
-          cargo prove install-toolchain
-        working-directory: ${{ github.workspace }}
 
   test-recursion-circuit:
     name: Test recursion circuit
@@ -91,26 +86,18 @@ jobs:
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
+      - name: Install deps
+        run: sudo apt update && sudo apt install cmake -y
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --force --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
       - name: Check examples
-        run: |
-          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
-            cd "$i/script"
-            cargo check
-            cd ../../
-          done
+        run: make
         working-directory: ${{ github.workspace }}/examples
       - name: Check integration tests
-        run: |
-          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
-            cd "$i"
-            cargo check
-            cd ../
-          done
+        run: make
         working-directory: ${{ github.workspace }}/tests
       - name: Run cargo prove new
         run: |
@@ -133,9 +120,9 @@ jobs:
           cargo run --release
 
   mac-m1:
-    name: CI Tests on OSX ARM
+    name: Check OSX ARM compiles
     runs-on: warp-macos-latest-arm64-6x
-    if: github.event_name != 'pull_request'
+    #if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -151,20 +138,14 @@ jobs:
           cargo install --locked --force --path ./cli
           cargo prove install-toolchain
         working-directory: ${{ github.workspace }}
-      - name: Run cargo test on sphinx except the prove_sp1 recursion test
-        run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -E 'all() - test(test_e2e_prove_groth16)'
-      - name: Run cargo test with no default features
-        run: |
-          cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features debug -- cpu::trace::tests::generate_trace
-      - name: check examples compile
-        run: |
-          for i in $(find ./ -maxdepth 1 -mindepth 1 -type d); do
-            cd "$i/script"
-            cargo check
-            cd ../../
-          done
+      - name: Check workspace
+        run: cargo check --all-targets --all-features --workspace
+      - name: Check examples
+        run: make
         working-directory: ${{ github.workspace }}/examples
+      - name: Check integration tests
+        run: make
+        working-directory: ${{ github.workspace }}/tests
       - name: Set env
         if: failure()
         run: |
@@ -187,9 +168,6 @@ jobs:
           repository: lurk-lab/ci-workflows
           path: ci-workflows
       - uses: ./ci-workflows/.github/actions/ci-env
-      - uses: ./ci-workflows/.github/actions/install-deps
-        with:
-          packages: "pkg-config libudev-dev"
       - name: Set env
         run: |
           echo "DOWNSTREAM_REPO=$(echo "wormhole-foundation/example-zk-light-clients-internal" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
@@ -197,23 +175,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
-          submodules: recursive
       - name: Setup CI
         uses: ./sphinx/.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
-      - name: Install cargo prove
+      - name: Install deps
         run: |
-          cargo install --locked --path ./cli
-          cargo prove install-toolchain
-        working-directory: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
+          sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev libudev-dev cmake
+          cd sphinx/cli
+          cargo install --locked --force --path .
+          cargo prove install-toolchain   
       - uses: actions/checkout@v4
         with:
           repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
           token: ${{ secrets.REPO_TOKEN }}
-          submodules: recursive
+      - name: Setup aptos CI
+        uses: ./example-zk-light-clients-internal/.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles
         with:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
