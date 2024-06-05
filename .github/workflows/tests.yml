@@ -186,15 +186,12 @@ jobs:
           cd sphinx/cli
           cargo install --locked --force --path .
           cargo prove install-toolchain   
+          echo "RUSTFLAGS=${{env.RUSTFLAGS}} --cfg tokio_unstable" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
           repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
           token: ${{ secrets.REPO_TOKEN }}
-      - name: Setup aptos CI
-        uses: ./example-zk-light-clients-internal/.github/actions/setup
-        with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles
         with:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
