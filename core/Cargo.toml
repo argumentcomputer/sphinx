@@ -38,7 +38,6 @@ sphinx-primitives = { path = "../primitives" }
 anyhow = { workspace = true }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
-blake3-zkvm = { workspace = true }
 bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
 hybrid-array = { workspace = true }
