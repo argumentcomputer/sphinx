@@ -2,7 +2,7 @@ use std::{borrow::BorrowMut, collections::BTreeMap};
 
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
-use sphinx_core::air::{EventLens, MachineAir, WithEvents};
+use sphinx_core::air::{EventLens, EventMutLens, MachineAir, WithEvents};
 
 use super::{
     columns::{RangeCheckMultCols, NUM_RANGE_CHECK_MULT_COLS, NUM_RANGE_CHECK_PREPROCESSED_COLS},
@@ -14,6 +14,7 @@ pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for RangeCheckChip<F> {
     type InputEvents = &'a BTreeMap<RangeCheckEvent, usize>;
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {
@@ -34,14 +35,18 @@ impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {
         Some(trace)
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord<F>,
+        _output: &mut OR,
     ) -> RowMajorMatrix<F> {
         let (_, event_map) = Self::trace_and_map();
 

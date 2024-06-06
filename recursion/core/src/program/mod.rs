@@ -6,7 +6,7 @@ use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{EventLens, MachineAir, WithEvents};
+use sphinx_core::air::{EventLens, EventMutLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -55,6 +55,7 @@ impl<'a, F: Field> WithEvents<'a> for ProgramChip<F> {
         // cpu_events
         &'a [CpuEvent<F>],
     );
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32> MachineAir<F> for ProgramChip<F> {
@@ -103,15 +104,19 @@ impl<F: PrimeField32> MachineAir<F> for ProgramChip<F> {
         ))
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
     #[instrument(name = "generate program trace", level = "debug", skip_all, fields(rows = input.events().0.len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord<F>,
+        _output: &mut OR,
     ) -> RowMajorMatrix<F> {
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.

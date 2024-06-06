@@ -9,9 +9,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir};
+use crate::air::{AluAirBuilder, ByteAirBuilder, EventMutLens, MachineAir};
 use crate::air::{EventLens, WithEvents, Word};
-use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
@@ -53,6 +52,7 @@ pub struct BitwiseCols<T> {
 
 impl<'a> WithEvents<'a> for BitwiseChip {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for BitwiseChip {
@@ -64,10 +64,10 @@ impl<F: PrimeField> MachineAir<F> for BitwiseChip {
         "Bitwise".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let rows = input
@@ -98,7 +98,7 @@ impl<F: PrimeField> MachineAir<F> for BitwiseChip {
                         b: u32::from(b_b),
                         c: u32::from(b_c),
                     };
-                    output.add_byte_lookup_event(byte_event);
+                    output.add_events(&[byte_event]);
                 }
 
                 row

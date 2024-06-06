@@ -12,9 +12,11 @@ use crate::{
 
 /// A description of the events related to this AIR.
 pub trait WithEvents<'a>: Sized {
-    /// output of a functional lens from the Record to
-    /// refs of those events relative to the AIR.
+    /// the input events that this AIR needs to get a reference to in order to lay out its trace
     type InputEvents: 'a;
+
+    // the output events that this AIR produces
+    type OutputEvents: 'a;
 }
 
 /// A trait intended for implementation on Records that may store events related to Chips,
@@ -24,6 +26,10 @@ pub trait WithEvents<'a>: Sized {
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
 pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexed {
     fn events(&self) -> <T as WithEvents<'_>>::InputEvents;
+}
+
+pub trait EventMutLens<T: for<'b> WithEvents<'b>> {
+    fn add_events(&mut self, events: <T as WithEvents<'_>>::OutputEvents);
 }
 
 //////////////// Derive macro shenanigans ////////////////////////////////////////////////
@@ -80,12 +86,56 @@ where
         self.record.index()
     }
 }
+
+/// if I have an EventMutLens from T::Events, and a way (F) to deduce T::Events from U::Events,
+/// I can compose them to get an EventMutLens from U::Events.
+pub struct Inj<'a, T, R, F>
+where
+    T: for<'b> WithEvents<'b>,
+    R: EventMutLens<T>,
+{
+    record: &'a mut R,
+    injection: F,
+    _phantom: PhantomData<T>,
+}
+
+/// A constructor for the projection from T::Events to U::Events.
+impl<'a, T, R, F> Inj<'a, T, R, F>
+where
+    T: for<'b> WithEvents<'b>,
+    R: EventMutLens<T>,
+{
+    pub fn new(record: &'a mut R, injection: F) -> Self {
+        Self {
+            record,
+            injection,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a, T, R, U, F> EventMutLens<U> for Inj<'a, T, R, F>
+where
+    T: for<'b> WithEvents<'b>,
+    R: EventMutLens<T>,
+    U: for<'b> WithEvents<'b>,
+    // see https://github.com/rust-lang/rust/issues/86702 for the empty parameter
+    F: for<'c> Fn(
+        <U as WithEvents<'c>>::OutputEvents,
+        &'c (),
+    ) -> <T as WithEvents<'c>>::OutputEvents,
+{
+    fn add_events(&mut self, events: <U as WithEvents<'_>>::OutputEvents) {
+        let events: <T as WithEvents<'_>>::OutputEvents = (self.injection)(events, &());
+        self.record.add_events(events);
+    }
+}
 //////////////// end of shenanigans destined for the derive macros. ////////////////
 
 /// An AIR that is part of a multi table AIR arithmetization.
 pub trait MachineAir<F: Field>: BaseAir<F> + for<'a> WithEvents<'a> {
     /// The execution record containing events for producing the air trace.
-    type Record: MachineRecord + EventLens<Self>;
+    type Record: MachineRecord + EventLens<Self> + EventMutLens<Self>;
 
     type Program: MachineProgram<F>;
 
@@ -97,14 +147,18 @@ pub trait MachineAir<F: Field>: BaseAir<F> + for<'a> WithEvents<'a> {
     /// - `input` is the execution record containing the events to be written to the trace.
     /// - `output` is the execution record containing events that the `MachineAir` can add to
     ///    the record such as byte lookup requests.
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut Self::Record,
+        output: &mut OL,
     ) -> RowMajorMatrix<F>;
 
     /// Generate the dependencies for a given execution record.
-    fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
+        &self,
+        input: &EL,
+        output: &mut OL,
+    ) {
         self.generate_trace(input, output);
     }
 

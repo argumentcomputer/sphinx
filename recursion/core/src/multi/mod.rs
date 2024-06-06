@@ -6,7 +6,9 @@ use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, Proj, WithEvents};
+use sphinx_core::air::{
+    BaseAirBuilder, EventLens, EventMutLens, Inj, MachineAir, Proj, WithEvents,
+};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 
@@ -55,6 +57,8 @@ impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> 
         <FriFoldChip<F, DEGREE> as WithEvents<'a>>::InputEvents,
         <Poseidon2Chip<F> as WithEvents<'a>>::InputEvents,
     );
+    // here we use the fact that the fri_fold and poseidon2 chips do not emit output events
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE> {
@@ -66,14 +70,18 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
         "Multi".to_string()
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord<F>,
+        output: &mut OR,
     ) -> RowMajorMatrix<F> {
         let fri_fold_chip = FriFoldChip::<F, 3>::default();
         let poseidon2 = Poseidon2Chip::default();
@@ -92,10 +100,28 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
             evs.1
         }
 
-        let fri_fold_trace =
-            fri_fold_chip.generate_trace(&Proj::new(input, to_fri::<F, DEGREE>), output);
-        let mut poseidon2_trace =
-            poseidon2.generate_trace(&Proj::new(input, to_poseidon::<F, DEGREE>), output);
+        // here we reuse the fact that output events for those recursive chips are empty
+        fn from_fri<'c, F: PrimeField32, const DEGREE: usize>(
+            _evs: <FriFoldChip<F, DEGREE> as WithEvents<'c>>::OutputEvents,
+            _v: &'c (),
+        ) -> <MultiChip<F, DEGREE> as WithEvents<'c>>::OutputEvents {
+            &()
+        }
+        fn from_poseidon<'c, F: PrimeField32, const DEGREE: usize>(
+            _evs: <Poseidon2Chip<F> as WithEvents<'c>>::OutputEvents,
+            _v: &'c (),
+        ) -> <MultiChip<F, DEGREE> as WithEvents<'c>>::OutputEvents {
+            &()
+        }
+
+        let fri_fold_trace = fri_fold_chip.generate_trace(
+            &Proj::new(input, to_fri::<F, DEGREE>),
+            &mut Inj::new(output, from_fri::<F, DEGREE>),
+        );
+        let mut poseidon2_trace = poseidon2.generate_trace(
+            &Proj::new(input, to_poseidon::<F, DEGREE>),
+            &mut Inj::new(output, from_poseidon::<F, DEGREE>),
+        );
 
         let mut rows = fri_fold_trace
             .clone()

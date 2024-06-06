@@ -15,8 +15,8 @@ use sphinx_derive::AlignedBorrow;
 use tracing::instrument;
 
 use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
-    bytes::{event::ByteRecord, ByteLookupEvent},
+    air::{AluAirBuilder, EventLens, EventMutLens, MachineAir, MemoryAirBuilder, WithEvents},
+    bytes::ByteLookupEvent,
     memory::{MemoryCols, MemoryReadCols, MemoryWriteCols},
     operations::field::{
         extensions::quadratic::{QuadFieldOpCols, QuadFieldOperation},
@@ -141,11 +141,12 @@ pub fn create_fp2_sub_event<FP: FieldParameters>(
 
 impl<'a, FP: FieldParameters> WithEvents<'a> for QuadFieldSubChip<FP> {
     type InputEvents = &'a [QuadFieldSubEvent<FP>];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for QuadFieldSubChip<FP>
 where
-    ExecutionRecord: EventLens<QuadFieldSubChip<FP>>,
+    ExecutionRecord: EventLens<QuadFieldSubChip<FP>> + EventMutLens<QuadFieldSubChip<FP>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -158,10 +159,10 @@ where
     }
 
     #[instrument(name = "generate bls12381 fp2 sub trace", level = "debug", skip_all)]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the field type.
         let events = input.events();
@@ -215,7 +216,7 @@ where
             .unzip();
 
         for byte_lookup_events in new_byte_lookup_events {
-            output.add_byte_lookup_events(byte_lookup_events);
+            output.add_events(&byte_lookup_events);
         }
 
         pad_vec_rows(&mut rows, || {

@@ -7,9 +7,8 @@ use tracing::instrument;
 
 use super::columns::{CPU_COL_MAP, NUM_CPU_COLS};
 use super::{CpuChip, CpuEvent};
-use crate::air::{EventLens, MachineAir, WithEvents};
+use crate::air::{EventLens, EventMutLens, MachineAir, WithEvents};
 use crate::alu::AluEvent;
-use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::cpu::columns::CpuCols;
 use crate::cpu::trace::ByteOpcode::{U16Range, U8Range};
@@ -18,8 +17,14 @@ use crate::memory::MemoryCols;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
+pub enum CpuOutputEvent<'a> {
+    ByteLookupEvent(&'a ByteLookupEvent),
+    AluEvent(&'a AluEvent),
+}
+
 impl<'a> WithEvents<'a> for CpuChip {
     type InputEvents = &'a [CpuEvent];
+    type OutputEvents = &'a [CpuOutputEvent<'a>];
 }
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
@@ -31,10 +36,10 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         "CPU".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut new_alu_events = HashMap::new();
         let mut new_blu_events = Vec::new();
@@ -69,8 +74,20 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             value.sort_unstable_by_key(|event| event.clk);
         }
         new_blu_events.sort_unstable_by_key(|event| event.a1);
-        output.add_alu_events(&new_alu_events);
-        output.add_byte_lookup_events(new_blu_events);
+        for alu_events in new_alu_events.values() {
+            output.add_events(
+                &alu_events
+                    .iter()
+                    .map(CpuOutputEvent::AluEvent)
+                    .collect::<Vec<_>>(),
+            );
+        }
+        output.add_events(
+            &new_blu_events
+                .iter()
+                .map(CpuOutputEvent::ByteLookupEvent)
+                .collect::<Vec<_>>(),
+        );
 
         // Convert the trace to a row major matrix.
         let mut trace = RowMajorMatrix::new(rows, NUM_CPU_COLS);
@@ -82,7 +99,13 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
     }
 
     #[instrument(name = "generate cpu dependencies", level = "debug", skip_all)]
-    fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut ExecutionRecord) {
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
+        &self,
+        input: &EL,
+        output: &mut OL,
+    ) {
+        // let (byte_events, add_events, mul_events, sub_events, bitwise_events, shift_left_events, shift_right_events, lt_events) = output.events();
+
         // Generate the trace rows for each event.
         let chunk_size = std::cmp::max(input.events().len() / num_cpus::get(), 1);
         let events = input
@@ -107,9 +130,21 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
                 value.sort_unstable_by_key(|event| event.clk);
             }
             // Add the dependency events to the shard.
-            output.add_alu_events(&alu_events);
+            for alu_events in alu_events.values() {
+                output.add_events(
+                    &alu_events
+                        .iter()
+                        .map(CpuOutputEvent::AluEvent)
+                        .collect::<Vec<_>>(),
+                );
+            }
             blu_events.sort_unstable_by_key(|event| event.a1);
-            output.add_byte_lookup_events(blu_events);
+            output.add_events(
+                &blu_events
+                    .iter()
+                    .map(CpuOutputEvent::ByteLookupEvent)
+                    .collect::<Vec<_>>(),
+            );
         }
     }
 

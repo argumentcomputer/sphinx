@@ -152,7 +152,7 @@ mod tests {
         mem::size_of,
     };
 
-    use crate::air::{EventLens, WordAirBuilder};
+    use crate::air::{EventLens, EventMutLens, WordAirBuilder};
     use num::{bigint::RandBigInt, BigUint};
     use p3_air::{Air, BaseAir};
     use p3_baby_bear::BabyBear;
@@ -165,6 +165,8 @@ mod tests {
 
     use crate::{
         air::MachineAir,
+        bytes::event::ByteRecord,
+        bytes::ByteLookupEvent,
         utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
 
@@ -199,11 +201,23 @@ mod tests {
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldDenChip<P> {
         type InputEvents = &'a ();
+        type OutputEvents = &'a [ByteLookupEvent];
     }
 
     impl<P: FieldParameters> EventLens<FieldDenChip<P>> for ExecutionRecord {
         fn events(&self) -> <FieldDenChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
+        }
+    }
+
+    impl<P: FieldParameters> EventMutLens<FieldDenChip<P>> for ExecutionRecord {
+        fn add_events(
+            &mut self,
+            events: <FieldDenChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
+        ) {
+            for event in events {
+                self.add_byte_lookup_event(*event);
+            }
         }
     }
 
@@ -216,10 +230,10 @@ mod tests {
             "FieldDen".to_string()
         }
 
-        fn generate_trace<EL: EventLens<Self>>(
+        fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
             &self,
             _: &EL,
-            output: &mut ExecutionRecord,
+            output: &mut OL,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -250,7 +264,9 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
-                    cols.a_den_b.populate(output, 1, a, b, self.sign);
+                    let mut v = Vec::new();
+                    cols.a_den_b.populate(&mut v, 1, a, b, self.sign);
+                    output.add_events(&v);
                     row
                 })
                 .collect::<Vec<_>>();

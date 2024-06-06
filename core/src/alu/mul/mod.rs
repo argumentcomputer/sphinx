@@ -44,14 +44,13 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{AluAirBuilder, ByteAirBuilder, EventMutLens, MachineAir, WordAirBuilder};
 use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::mul::utils::get_msb;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
-use crate::stark::MachineRecord;
 use crate::utils::pad_to_power_of_two;
 
 use super::AluEvent;
@@ -125,6 +124,7 @@ pub struct MulCols<T> {
 
 impl<'a> WithEvents<'a> for MulChip {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for MulChip {
@@ -136,10 +136,10 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
         "Mul".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mul_events = input.events();
         // Compute the chunk size based on the number of events and the number of CPUs.
@@ -149,7 +149,7 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
         let rows_and_records = mul_events
             .par_chunks(chunk_size)
             .map(|events| {
-                let mut record = ExecutionRecord::default();
+                let mut record = Vec::new();
                 let rows = events
                     .iter()
                     .map(|event| {
@@ -257,9 +257,9 @@ impl<F: PrimeField> MachineAir<F> for MulChip {
 
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_MUL_COLS]> = vec![];
-        for mut row_and_record in rows_and_records {
+        for row_and_record in rows_and_records {
             rows.extend(row_and_record.0);
-            output.append(&mut row_and_record.1);
+            output.add_events(&row_and_record.1);
         }
 
         // Convert the trace to a row major matrix.

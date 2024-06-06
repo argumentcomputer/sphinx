@@ -11,7 +11,8 @@ use sphinx_derive::AlignedBorrow;
 use super::MemoryInitializeFinalizeEvent;
 use crate::{
     air::{
-        AirInteraction, BaseAirBuilder, EventLens, MachineAir, WithEvents, Word, WordAirBuilder,
+        AirInteraction, BaseAirBuilder, EventLens, EventMutLens, MachineAir, WithEvents, Word,
+        WordAirBuilder,
     },
     runtime::{ExecutionRecord, Program},
     utils::pad_to_power_of_two,
@@ -49,6 +50,7 @@ impl<'a> WithEvents<'a> for MemoryChip {
         // finalize events
         &'a [MemoryInitializeFinalizeEvent],
     );
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField> MachineAir<F> for MemoryChip {
@@ -63,10 +65,10 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
         }
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut memory_events: Vec<MemoryInitializeFinalizeEvent> = match self.kind {
             MemoryChipType::Initialize => input.events().0,
@@ -105,10 +107,10 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
         trace
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         _input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) {
         // Do nothing since this chip has no dependencies.
     }

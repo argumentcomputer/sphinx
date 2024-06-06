@@ -152,9 +152,11 @@ mod tests {
 
     use super::{FieldInnerProductCols, Limbs};
 
-    use crate::air::{EventLens, WordAirBuilder};
+    use crate::air::{EventLens, EventMutLens, WordAirBuilder};
     use crate::{
         air::MachineAir,
+        bytes::event::ByteRecord,
+        bytes::ByteLookupEvent,
         utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
 
@@ -166,6 +168,7 @@ mod tests {
     use crate::utils::{pad_to_power_of_two_nongeneric, BabyBearPoseidon2};
     use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
     use p3_field::AbstractField;
+
     #[derive(AlignedBorrow, Debug, Clone)]
     pub struct TestCols<T, P: FieldParameters> {
         pub a: [Limbs<T, P::NB_LIMBS>; 1],
@@ -187,11 +190,23 @@ mod tests {
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldIpChip<P> {
         type InputEvents = &'a ();
+        type OutputEvents = &'a [ByteLookupEvent];
     }
 
     impl<P: FieldParameters> EventLens<FieldIpChip<P>> for ExecutionRecord {
         fn events(&self) -> <FieldIpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
+        }
+    }
+
+    impl<P: FieldParameters> EventMutLens<FieldIpChip<P>> for ExecutionRecord {
+        fn add_events(
+            &mut self,
+            events: <FieldIpChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
+        ) {
+            for event in events {
+                self.add_byte_lookup_event(*event);
+            }
         }
     }
 
@@ -204,10 +219,10 @@ mod tests {
             "FieldInnerProduct".to_string()
         }
 
-        fn generate_trace<EL: EventLens<Self>>(
+        fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
             &self,
             _: &EL,
-            output: &mut ExecutionRecord,
+            output: &mut OL,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -233,7 +248,9 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a[0] = P::to_limbs_field::<F>(&a[0]);
                     cols.b[0] = P::to_limbs_field::<F>(&b[0]);
-                    cols.a_ip_b.populate(output, 1, a, b);
+                    let mut v = Vec::new();
+                    cols.a_ip_b.populate(&mut v, 1, a, b);
+                    output.add_events(&v);
                     row
                 })
                 .collect::<Vec<_>>();

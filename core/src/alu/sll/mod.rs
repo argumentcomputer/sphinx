@@ -42,12 +42,17 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
-use crate::air::{EventLens, WithEvents, Word};
-use crate::bytes::event::ByteRecord;
 use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder},
+    bytes::ByteLookupEvent,
+};
+use crate::{
+    air::{EventLens, EventMutLens, WithEvents, Word},
+    bytes::event::ByteRecord,
+};
 
 use super::AluEvent;
 
@@ -100,6 +105,7 @@ pub struct ShiftLeftCols<T> {
 
 impl<'a> WithEvents<'a> for ShiftLeft {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for ShiftLeft {
@@ -111,10 +117,10 @@ impl<F: PrimeField> MachineAir<F> for ShiftLeft {
         "ShiftLeft".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_SHIFT_LEFT_COLS]> = vec![];
@@ -164,8 +170,10 @@ impl<F: PrimeField> MachineAir<F> for ShiftLeft {
 
             // Range checks.
             {
-                output.add_u8_range_checks(event.shard, &bit_shift_result);
-                output.add_u8_range_checks(event.shard, &bit_shift_result_carry);
+                let mut v = Vec::new();
+                v.add_u8_range_checks(event.shard, &bit_shift_result);
+                v.add_u8_range_checks(event.shard, &bit_shift_result_carry);
+                output.add_events(&v)
             }
 
             // Sanity check.

@@ -243,8 +243,9 @@ mod tests {
 
     use crate::{air::MachineAir, utils::ec::weierstrass::bls12_381::Bls12381BaseField};
 
-    use crate::air::{EventLens, WordAirBuilder};
+    use crate::air::{EventLens, EventMutLens, WordAirBuilder};
     use crate::bytes::event::ByteRecord;
+    use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::FieldParameters;
     use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
@@ -280,11 +281,23 @@ mod tests {
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for FieldOpChip<P> {
         type InputEvents = &'a ();
+        type OutputEvents = &'a [ByteLookupEvent];
     }
 
     impl<P: FieldParameters> EventLens<FieldOpChip<P>> for ExecutionRecord {
         fn events(&self) -> <FieldOpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
+        }
+    }
+
+    impl<P: FieldParameters> EventMutLens<FieldOpChip<P>> for ExecutionRecord {
+        fn add_events(
+            &mut self,
+            events: <FieldOpChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
+        ) {
+            for event in events {
+                self.add_byte_lookup_event(*event);
+            }
         }
     }
 
@@ -297,10 +310,10 @@ mod tests {
             format!("FieldOp{:?}", self.operation)
         }
 
-        fn generate_trace<EL: EventLens<Self>>(
+        fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
             &self,
             _: &EL,
-            output: &mut ExecutionRecord,
+            output: &mut OL,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -334,7 +347,7 @@ mod tests {
                     cols.b = P::to_limbs_field::<F>(b);
                     cols.a_op_b
                         .populate(&mut blu_events, 1, a, b, self.operation);
-                    output.add_byte_lookup_events(blu_events);
+                    output.add_events(&blu_events);
                     row
                 })
                 .collect::<Vec<_>>();

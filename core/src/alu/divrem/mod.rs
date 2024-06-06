@@ -75,7 +75,7 @@ use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
 use self::utils::eval_abs_value;
-use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
+use crate::air::{AluAirBuilder, ByteAirBuilder, EventMutLens, MachineAir, WordAirBuilder};
 use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::divrem::utils::{get_msb, get_quotient_and_remainder, is_signed_operation};
 use crate::alu::AluEvent;
@@ -187,8 +187,15 @@ pub struct DivRemCols<T> {
     pub is_real: T,
 }
 
+pub enum DivRemEvent<'a> {
+    ByteLookupEvent(&'a ByteLookupEvent),
+    MulEvent(&'a AluEvent),
+    LtEvent(&'a AluEvent),
+}
+
 impl<'a> WithEvents<'a> for DivRemChip {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [DivRemEvent<'a>];
 }
 
 impl<F: PrimeField> MachineAir<F> for DivRemChip {
@@ -200,11 +207,15 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
         "DivRem".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
+        let mut byte_events = Vec::new();
+        let mut mul_events = Vec::new();
+        let mut lt_events = Vec::new();
+
         // Generate the trace rows for each event.
         let divrem_events = input.events();
         let mut rows: Vec<[F; NUM_DIVREM_COLS]> = Vec::with_capacity(divrem_events.len());
@@ -273,7 +284,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                             c: 0,
                         });
                     }
-                    output.add_byte_lookup_events(blu_events);
+                    byte_events.extend(blu_events);
                 }
             }
 
@@ -332,7 +343,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         c: event.c,
                         b: quotient,
                     };
-                    output.add_mul_event(lower_multiplication);
+                    mul_events.push(lower_multiplication);
 
                     let upper_multiplication = AluEvent {
                         shard: event.shard,
@@ -349,7 +360,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         b: quotient,
                     };
 
-                    output.add_mul_event(upper_multiplication);
+                    mul_events.push(upper_multiplication);
 
                     let lt_event = if is_signed_operation(event.opcode) {
                         AluEvent {
@@ -370,16 +381,23 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                             clk: event.clk,
                         }
                     };
-                    output.add_lt_event(lt_event);
+                    lt_events.push(lt_event);
                 }
 
                 // Range check.
                 {
-                    output.add_u8_range_checks(event.shard, &quotient.to_le_bytes());
-                    output.add_u8_range_checks(event.shard, &remainder.to_le_bytes());
-                    output.add_u8_range_checks(event.shard, &c_times_quotient);
+                    byte_events.add_u8_range_checks(event.shard, &quotient.to_le_bytes());
+                    byte_events.add_u8_range_checks(event.shard, &remainder.to_le_bytes());
+                    byte_events.add_u8_range_checks(event.shard, &c_times_quotient);
                 }
             }
+            let events = byte_events
+                .iter()
+                .map(DivRemEvent::ByteLookupEvent)
+                .chain(mul_events.iter().map(DivRemEvent::MulEvent))
+                .chain(lt_events.iter().map(DivRemEvent::LtEvent))
+                .collect::<Vec<_>>();
+            output.add_events(&events);
 
             rows.push(row);
         }

@@ -8,14 +8,15 @@ use super::{
     ShaCompressChip, ShaCompressEvent, SHA_COMPRESS_K,
 };
 use crate::{
-    air::{EventLens, MachineAir, WithEvents, Word},
-    bytes::event::ByteRecord,
+    air::{EventLens, EventMutLens, MachineAir, WithEvents, Word},
+    bytes::ByteLookupEvent,
     runtime::{ExecutionRecord, Program},
     utils::pad_rows,
 };
 
 impl<'a> WithEvents<'a> for ShaCompressChip {
     type InputEvents = &'a [ShaCompressEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
@@ -27,10 +28,10 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
         "ShaCompress".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -74,6 +75,7 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
                 rows.push(row);
             }
 
+            let mut compress_blu_events = Vec::new();
             // Performs the compress operation.
             for j in 0..64 {
                 if j % 8 == 0 {
@@ -112,43 +114,76 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
                 cols.g = Word::from(g);
                 cols.h = Word::from(h);
 
-                let e_rr_6 = cols.e_rr_6.populate(output, shard, e, 6);
-                let e_rr_11 = cols.e_rr_11.populate(output, shard, e, 11);
-                let e_rr_25 = cols.e_rr_25.populate(output, shard, e, 25);
-                let s1_intermediate = cols
-                    .s1_intermediate
-                    .populate(output, shard, e_rr_6, e_rr_11);
-                let s1 = cols.s1.populate(output, shard, s1_intermediate, e_rr_25);
+                let e_rr_6 = cols.e_rr_6.populate(&mut compress_blu_events, shard, e, 6);
+                let e_rr_11 = cols
+                    .e_rr_11
+                    .populate(&mut compress_blu_events, shard, e, 11);
+                let e_rr_25 = cols
+                    .e_rr_25
+                    .populate(&mut compress_blu_events, shard, e, 25);
+                let s1_intermediate =
+                    cols.s1_intermediate
+                        .populate(&mut compress_blu_events, shard, e_rr_6, e_rr_11);
+                let s1 =
+                    cols.s1
+                        .populate(&mut compress_blu_events, shard, s1_intermediate, e_rr_25);
 
-                let e_and_f = cols.e_and_f.populate(output, shard, e, f);
-                let e_not = cols.e_not.populate(output, shard, e);
-                let e_not_and_g = cols.e_not_and_g.populate(output, shard, e_not, g);
-                let ch = cols.ch.populate(output, shard, e_and_f, e_not_and_g);
+                let e_and_f = cols.e_and_f.populate(&mut compress_blu_events, shard, e, f);
+                let e_not = cols.e_not.populate(&mut compress_blu_events, shard, e);
+                let e_not_and_g =
+                    cols.e_not_and_g
+                        .populate(&mut compress_blu_events, shard, e_not, g);
+                let ch = cols
+                    .ch
+                    .populate(&mut compress_blu_events, shard, e_and_f, e_not_and_g);
 
-                let temp1 =
-                    cols.temp1
-                        .populate(output, shard, h, s1, ch, event.w[j], SHA_COMPRESS_K[j]);
+                let temp1 = cols.temp1.populate(
+                    &mut compress_blu_events,
+                    shard,
+                    h,
+                    s1,
+                    ch,
+                    event.w[j],
+                    SHA_COMPRESS_K[j],
+                );
 
-                let a_rr_2 = cols.a_rr_2.populate(output, shard, a, 2);
-                let a_rr_13 = cols.a_rr_13.populate(output, shard, a, 13);
-                let a_rr_22 = cols.a_rr_22.populate(output, shard, a, 22);
-                let s0_intermediate = cols
-                    .s0_intermediate
-                    .populate(output, shard, a_rr_2, a_rr_13);
-                let s0 = cols.s0.populate(output, shard, s0_intermediate, a_rr_22);
+                let a_rr_2 = cols.a_rr_2.populate(&mut compress_blu_events, shard, a, 2);
+                let a_rr_13 = cols
+                    .a_rr_13
+                    .populate(&mut compress_blu_events, shard, a, 13);
+                let a_rr_22 = cols
+                    .a_rr_22
+                    .populate(&mut compress_blu_events, shard, a, 22);
+                let s0_intermediate =
+                    cols.s0_intermediate
+                        .populate(&mut compress_blu_events, shard, a_rr_2, a_rr_13);
+                let s0 =
+                    cols.s0
+                        .populate(&mut compress_blu_events, shard, s0_intermediate, a_rr_22);
 
-                let a_and_b = cols.a_and_b.populate(output, shard, a, b);
-                let a_and_c = cols.a_and_c.populate(output, shard, a, c);
-                let b_and_c = cols.b_and_c.populate(output, shard, b, c);
-                let maj_intermediate = cols
-                    .maj_intermediate
-                    .populate(output, shard, a_and_b, a_and_c);
-                let maj = cols.maj.populate(output, shard, maj_intermediate, b_and_c);
+                let a_and_b = cols.a_and_b.populate(&mut compress_blu_events, shard, a, b);
+                let a_and_c = cols.a_and_c.populate(&mut compress_blu_events, shard, a, c);
+                let b_and_c = cols.b_and_c.populate(&mut compress_blu_events, shard, b, c);
+                let maj_intermediate = cols.maj_intermediate.populate(
+                    &mut compress_blu_events,
+                    shard,
+                    a_and_b,
+                    a_and_c,
+                );
+                let maj =
+                    cols.maj
+                        .populate(&mut compress_blu_events, shard, maj_intermediate, b_and_c);
 
-                let temp2 = cols.temp2.populate(output, shard, s0, maj);
+                let temp2 = cols
+                    .temp2
+                    .populate(&mut compress_blu_events, shard, s0, maj);
 
-                let d_add_temp1 = cols.d_add_temp1.populate(output, shard, d, temp1);
-                let temp1_add_temp2 = cols.temp1_add_temp2.populate(output, shard, temp1, temp2);
+                let d_add_temp1 =
+                    cols.d_add_temp1
+                        .populate(&mut compress_blu_events, shard, d, temp1);
+                let temp1_add_temp2 =
+                    cols.temp1_add_temp2
+                        .populate(&mut compress_blu_events, shard, temp1, temp2);
 
                 event.h[7] = g;
                 event.h[6] = f;
@@ -182,7 +217,7 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
                 cols.octet_num[octet_num_idx] = F::one();
 
                 cols.finalize_add
-                    .populate(output, shard, og_h[j], event.h[j]);
+                    .populate(&mut compress_blu_events, shard, og_h[j], event.h[j]);
                 cols.mem
                     .populate_write(event.h_write_records[j], &mut new_byte_lookup_events);
                 cols.mem_addr = F::from_canonical_u32(event.h_ptr + (j * 4) as u32);
@@ -215,9 +250,10 @@ impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {
 
                 rows.push(row);
             }
+            output.add_events(&compress_blu_events)
         }
 
-        output.add_byte_lookup_events(new_byte_lookup_events);
+        output.add_events(&new_byte_lookup_events);
 
         pad_rows(&mut rows, || [F::zero(); NUM_SHA_COMPRESS_COLS]);
 

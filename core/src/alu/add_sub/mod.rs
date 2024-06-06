@@ -12,10 +12,10 @@ use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
 use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, WithEvents, Word},
+    air::{AluAirBuilder, EventLens, EventMutLens, MachineAir, WithEvents, Word},
+    bytes::ByteLookupEvent,
     operations::AddOperation,
     runtime::{ExecutionRecord, Opcode, Program},
-    stark::MachineRecord,
     utils::pad_to_power_of_two,
 };
 
@@ -64,6 +64,7 @@ impl<'a> WithEvents<'a> for AddSubChip {
         // sub events
         &'a [AluEvent],
     );
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for AddSubChip {
@@ -75,10 +76,10 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
         "AddSub".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut Self::Record,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let (add_events, sub_events) = input.events();
         // Generate the rows for the trace.
@@ -91,7 +92,7 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
         let rows_and_records = merged_events
             .par_chunks(chunk_size)
             .map(|events| {
-                let mut record = ExecutionRecord::default();
+                let mut record = Vec::new();
                 let rows = events
                     .iter()
                     .map(|event| {
@@ -117,9 +118,9 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
             .collect::<Vec<_>>();
 
         let mut rows: Vec<[F; NUM_ADD_SUB_COLS]> = vec![];
-        for mut row_and_record in rows_and_records {
+        for row_and_record in rows_and_records {
             rows.extend(row_and_record.0);
-            output.append(&mut row_and_record.1);
+            output.add_events(&row_and_record.1);
         }
 
         // Convert the trace to a row major matrix.

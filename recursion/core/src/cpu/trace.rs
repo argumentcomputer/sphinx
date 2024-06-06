@@ -3,7 +3,7 @@ use std::borrow::BorrowMut;
 use p3_field::{extension::BinomiallyExtendable, Field, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::{
-    air::{BinomialExtension, EventLens, MachineAir, WithEvents},
+    air::{BinomialExtension, EventLens, EventMutLens, MachineAir, WithEvents},
     utils::pad_rows_fixed,
 };
 use tracing::instrument;
@@ -18,6 +18,7 @@ use super::{CpuChip, CpuCols, CpuEvent, CPU_COL_MAP, NUM_CPU_COLS};
 
 impl<'a, F: Field> WithEvents<'a> for CpuChip<F> {
     type InputEvents = &'a [CpuEvent<F>];
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F>
@@ -31,15 +32,19 @@ where
         "CPU".to_string()
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // There are no dependencies, since we do it all in the runtime. This is just a placeholder.
     }
 
     #[instrument(name = "generate cpu trace", level = "debug", skip_all, fields(rows = input.events().len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _: &mut ExecutionRecord<F>,
+        _: &mut OR,
     ) -> RowMajorMatrix<F> {
         let mut rows = input
             .events()

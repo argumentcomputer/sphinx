@@ -11,7 +11,8 @@ use p3_field::{AbstractField, Field};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_core::air::{
-    BaseAirBuilder, BinomialExtension, EventLens, ExtensionAirBuilder, MachineAir, WithEvents,
+    BaseAirBuilder, BinomialExtension, EventLens, EventMutLens, ExtensionAirBuilder, MachineAir,
+    WithEvents,
 };
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
@@ -95,6 +96,7 @@ impl<F: Field, const DEGREE: usize> BaseAir<F> for FriFoldChip<F, DEGREE> {
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for FriFoldChip<F, DEGREE> {
     type InputEvents = &'a [FriFoldEvent<F>];
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGREE> {
@@ -106,15 +108,19 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGR
         "FriFold".to_string()
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
     #[instrument(name = "generate fri fold trace", level = "debug", skip_all, fields(rows = input.events().len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _: &mut ExecutionRecord<F>,
+        _: &mut OR,
     ) -> RowMajorMatrix<F> {
         let mut rows = input
             .events()

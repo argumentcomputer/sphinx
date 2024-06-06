@@ -3,7 +3,7 @@ use std::borrow::BorrowMut;
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use sphinx_core::{
-    air::{EventLens, MachineAir, WithEvents},
+    air::{EventLens, EventMutLens, MachineAir, WithEvents},
     utils::pad_rows_fixed,
 };
 use sphinx_primitives::RC_16_30_U32;
@@ -21,6 +21,7 @@ use super::{
 
 impl<'a, F: Field> WithEvents<'a> for Poseidon2Chip<F> {
     type InputEvents = &'a [Poseidon2Event<F>];
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
@@ -32,15 +33,19 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
         "Poseidon2".to_string()
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
     #[instrument(name = "generate poseidon2 trace", level = "debug", skip_all, fields(rows = input.events().len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _: &mut ExecutionRecord<F>,
+        _: &mut OR,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 

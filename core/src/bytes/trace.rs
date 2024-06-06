@@ -8,7 +8,7 @@ use super::{
     ByteChip, ByteLookupEvent,
 };
 use crate::{
-    air::{EventLens, MachineAir, WithEvents},
+    air::{EventLens, EventMutLens, MachineAir, WithEvents},
     runtime::{ExecutionRecord, Program},
 };
 
@@ -17,6 +17,7 @@ pub const NUM_ROWS: usize = 1 << 16;
 impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
     // the byte lookups
     type InputEvents = &'a BTreeMap<u32, BTreeMap<ByteLookupEvent, usize>>;
+    type OutputEvents = &'a ();
 }
 
 impl<F: Field> MachineAir<F> for ByteChip<F> {
@@ -40,18 +41,18 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
         Some(trace)
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         _input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let shard = input.index();
         let (_, event_map) = Self::trace_and_map(shard);

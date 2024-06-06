@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
 use crate::air::EventLens;
+use crate::air::EventMutLens;
 use crate::air::MachineAir;
 use crate::air::MachineAirBuilder;
 use crate::air::WithEvents;
@@ -335,11 +336,12 @@ impl<E: EdwardsParameters> EdDecompressChip<E> {
 
 impl<'a, E: EdwardsParameters> WithEvents<'a> for EdDecompressChip<E> {
     type InputEvents = &'a [EdDecompressEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E>
 where
-    ExecutionRecord: EventLens<EdDecompressChip<E>>,
+    ExecutionRecord: EventLens<EdDecompressChip<E>> + EventMutLens<EdDecompressChip<E>>,
 {
     type Record = ExecutionRecord;
 
@@ -349,10 +351,10 @@ where
         "EdDecompress".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -360,7 +362,9 @@ where
             let event = &input.events()[i];
             let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, E::BaseField>>()];
             let cols: &mut EdDecompressCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
-            cols.populate::<E>(event, output);
+            let mut v = Vec::new();
+            cols.populate::<E>(event, &mut v);
+            output.add_events(&v);
 
             rows.push(row);
         }

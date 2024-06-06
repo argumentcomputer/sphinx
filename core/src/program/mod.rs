@@ -10,7 +10,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_derive::AlignedBorrow;
 
 use crate::{
-    air::{EventLens, MachineAir, ProgramAirBuilder, WithEvents},
+    air::{EventLens, EventMutLens, MachineAir, ProgramAirBuilder, WithEvents},
     cpu::{
         columns::{InstructionCols, OpcodeSelectorCols},
         CpuEvent,
@@ -59,6 +59,7 @@ impl<'a> WithEvents<'a> for ProgramChip {
         // the Program
         &'a Program,
     );
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField> MachineAir<F> for ProgramChip {
@@ -104,18 +105,18 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
         Some(trace)
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         _input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
 

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
 use p3_field::{AbstractField, PrimeField32};
-use sphinx_core::air::EventLens;
+use sphinx_core::air::{EventLens, EventMutLens, WithEvents};
 use sphinx_core::stark::{Indexed, MachineRecord, PROOF_MAX_NUM_PVS};
 
 use super::RecursionProgram;
@@ -101,7 +101,7 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
 }
 
 impl<F: PrimeField32> EventLens<CpuChip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <CpuChip<F> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <CpuChip<F> as WithEvents<'_>>::InputEvents {
         &self.cpu_events
     }
 }
@@ -109,13 +109,13 @@ impl<F: PrimeField32> EventLens<CpuChip<F>> for ExecutionRecord<F> {
 impl<F: PrimeField32, const DEGREE: usize> EventLens<FriFoldChip<F, DEGREE>>
     for ExecutionRecord<F>
 {
-    fn events(&self) -> <FriFoldChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <FriFoldChip<F, DEGREE> as WithEvents<'_>>::InputEvents {
         &self.fri_fold_events
     }
 }
 
 impl<F: PrimeField32> EventLens<Poseidon2Chip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <Poseidon2Chip<F> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <Poseidon2Chip<F> as WithEvents<'_>>::InputEvents {
         &self.poseidon2_events
     }
 }
@@ -123,34 +123,42 @@ impl<F: PrimeField32> EventLens<Poseidon2Chip<F>> for ExecutionRecord<F> {
 impl<F: PrimeField32, const DEGREE: usize> EventLens<Poseidon2WideChip<F, DEGREE>>
     for ExecutionRecord<F>
 {
-    fn events(&self) -> <Poseidon2WideChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <Poseidon2WideChip<F, DEGREE> as WithEvents<'_>>::InputEvents {
         &self.poseidon2_events
     }
 }
 
 impl<F: PrimeField32> EventLens<MemoryGlobalChip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <MemoryGlobalChip<F> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <MemoryGlobalChip<F> as WithEvents<'_>>::InputEvents {
         (&self.first_memory_record, &self.last_memory_record)
     }
 }
 
 impl<F: PrimeField32> EventLens<ProgramChip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <ProgramChip<F> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <ProgramChip<F> as WithEvents<'_>>::InputEvents {
         (&self.program.instructions, &self.cpu_events)
     }
 }
 
 impl<F: PrimeField32> EventLens<RangeCheckChip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <RangeCheckChip<F> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <RangeCheckChip<F> as WithEvents<'_>>::InputEvents {
         &self.range_check_events
     }
 }
 
 impl<F: PrimeField32, const DEGREE: usize> EventLens<MultiChip<F, DEGREE>> for ExecutionRecord<F> {
-    fn events(&self) -> <MultiChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::InputEvents {
+    fn events(&self) -> <MultiChip<F, DEGREE> as WithEvents<'_>>::InputEvents {
         (
             <Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self),
             <Self as EventLens<Poseidon2Chip<F>>>::events(self),
         )
     }
+}
+
+// For a recursive machine chip, there are no dependencies since we manage them in the runtime.
+// The output events are always empty.
+impl<F: PrimeField32, Chip: for<'a> WithEvents<'a, OutputEvents = &'a ()>> EventMutLens<Chip>
+    for ExecutionRecord<F>
+{
+    fn add_events(&mut self, _events: <Chip as WithEvents<'_>>::OutputEvents) {}
 }

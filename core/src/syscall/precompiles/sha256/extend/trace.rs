@@ -5,13 +5,14 @@ use p3_matrix::dense::RowMajorMatrix;
 
 use super::{ShaExtendChip, ShaExtendCols, ShaExtendEvent, NUM_SHA_EXTEND_COLS};
 use crate::{
-    air::{EventLens, MachineAir, WithEvents},
-    bytes::event::ByteRecord,
+    air::{EventLens, EventMutLens, MachineAir, WithEvents},
+    bytes::ByteLookupEvent,
     runtime::{ExecutionRecord, Program},
 };
 
 impl<'a> WithEvents<'a> for ShaExtendChip {
     type InputEvents = &'a [ShaExtendEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
@@ -23,10 +24,10 @@ impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
         "ShaExtend".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -53,61 +54,63 @@ impl<F: PrimeField32> MachineAir<F> for ShaExtendChip {
                     .populate(event.w_i_minus_7_reads[j], &mut new_byte_lookup_events);
 
                 // `s0 := (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18) xor (w[i-15] rightshift 3)`.
+                let mut v = Vec::new();
                 let w_i_minus_15 = event.w_i_minus_15_reads[j].value;
                 let w_i_minus_15_rr_7 =
                     cols.w_i_minus_15_rr_7
-                        .populate(output, shard, w_i_minus_15, 7);
+                        .populate(&mut v, shard, w_i_minus_15, 7);
                 let w_i_minus_15_rr_18 =
                     cols.w_i_minus_15_rr_18
-                        .populate(output, shard, w_i_minus_15, 18);
+                        .populate(&mut v, shard, w_i_minus_15, 18);
                 let w_i_minus_15_rs_3 =
                     cols.w_i_minus_15_rs_3
-                        .populate(output, shard, w_i_minus_15, 3);
+                        .populate(&mut v, shard, w_i_minus_15, 3);
                 let s0_intermediate = cols.s0_intermediate.populate(
-                    output,
+                    &mut v,
                     shard,
                     w_i_minus_15_rr_7,
                     w_i_minus_15_rr_18,
                 );
                 let s0 = cols
                     .s0
-                    .populate(output, shard, s0_intermediate, w_i_minus_15_rs_3);
+                    .populate(&mut v, shard, s0_intermediate, w_i_minus_15_rs_3);
 
                 // `s1 := (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19) xor (w[i-2] rightshift 10)`.
                 let w_i_minus_2 = event.w_i_minus_2_reads[j].value;
                 let w_i_minus_2_rr_17 =
                     cols.w_i_minus_2_rr_17
-                        .populate(output, shard, w_i_minus_2, 17);
+                        .populate(&mut v, shard, w_i_minus_2, 17);
                 let w_i_minus_2_rr_19 =
                     cols.w_i_minus_2_rr_19
-                        .populate(output, shard, w_i_minus_2, 19);
+                        .populate(&mut v, shard, w_i_minus_2, 19);
                 let w_i_minus_2_rs_10 =
                     cols.w_i_minus_2_rs_10
-                        .populate(output, shard, w_i_minus_2, 10);
+                        .populate(&mut v, shard, w_i_minus_2, 10);
                 let s1_intermediate = cols.s1_intermediate.populate(
-                    output,
+                    &mut v,
                     shard,
                     w_i_minus_2_rr_17,
                     w_i_minus_2_rr_19,
                 );
                 let s1 = cols
                     .s1
-                    .populate(output, shard, s1_intermediate, w_i_minus_2_rs_10);
+                    .populate(&mut v, shard, s1_intermediate, w_i_minus_2_rs_10);
 
                 // Compute `s2`.
                 let w_i_minus_7 = event.w_i_minus_7_reads[j].value;
                 let w_i_minus_16 = event.w_i_minus_16_reads[j].value;
                 cols.s2
-                    .populate(output, shard, w_i_minus_16, s0, w_i_minus_7, s1);
+                    .populate(&mut v, shard, w_i_minus_16, s0, w_i_minus_7, s1);
 
                 cols.w_i
                     .populate(event.w_i_writes[j], &mut new_byte_lookup_events);
 
                 rows.push(row);
+                output.add_events(&v);
             }
         }
 
-        output.add_byte_lookup_events(new_byte_lookup_events);
+        output.add_events(&new_byte_lookup_events);
 
         let nb_rows = rows.len();
         let mut padded_nb_rows = nb_rows.next_power_of_two();

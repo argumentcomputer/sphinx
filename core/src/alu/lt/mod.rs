@@ -12,7 +12,7 @@ use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, BaseAirBuilder, ByteAirBuilder, MachineAir};
+use crate::air::{AluAirBuilder, BaseAirBuilder, ByteAirBuilder, EventMutLens, MachineAir};
 use crate::air::{EventLens, WithEvents, Word};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
@@ -95,6 +95,7 @@ impl LtCols<u32> {
 
 impl<'a> WithEvents<'a> for LtChip {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for LtChip {
@@ -106,10 +107,10 @@ impl<F: PrimeField32> MachineAir<F> for LtChip {
         "Lt".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let (rows, new_byte_lookup_events): (Vec<_>, Vec<_>) = input
@@ -211,7 +212,7 @@ impl<F: PrimeField32> MachineAir<F> for LtChip {
             .unzip();
 
         for byte_lookup_events in new_byte_lookup_events {
-            output.add_byte_lookup_events(byte_lookup_events);
+            output.add_events(&byte_lookup_events);
         }
 
         // Convert the trace to a row major matrix.

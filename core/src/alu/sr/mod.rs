@@ -55,15 +55,17 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, ByteAirBuilder, MachineAir, WordAirBuilder};
 use crate::air::{EventLens, WithEvents, Word};
 use crate::alu::sr::utils::{nb_bits_to_shift, nb_bytes_to_shift};
-use crate::bytes::event::ByteRecord;
 use crate::bytes::utils::shr_carry;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::disassembler::WORD_SIZE;
 use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::utils::pad_to_power_of_two;
+use crate::{
+    air::{AluAirBuilder, ByteAirBuilder, EventMutLens, MachineAir, WordAirBuilder},
+    bytes::event::ByteRecord,
+};
 
 use super::AluEvent;
 
@@ -132,6 +134,7 @@ pub struct ShiftRightCols<T> {
 
 impl<'a> WithEvents<'a> for ShiftRightChip {
     type InputEvents = &'a [AluEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
@@ -143,10 +146,10 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
         "ShiftRight".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_SHIFT_RIGHT_COLS]> = Vec::new();
@@ -175,7 +178,7 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
 
                 // Insert the MSB lookup event.
                 let most_significant_byte = event.b.to_le_bytes()[WORD_SIZE - 1];
-                output.add_byte_lookup_events(vec![ByteLookupEvent {
+                output.add_events(&[ByteLookupEvent {
                     shard: event.shard,
                     opcode: ByteOpcode::MSB,
                     a1: u32::from((most_significant_byte >> 7) & 1),
@@ -232,7 +235,7 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
                         b: u32::from(byte_shift_result[i]),
                         c: num_bits_to_shift as u32,
                     };
-                    output.add_byte_lookup_event(byte_event);
+                    output.add_events(&[byte_event]);
 
                     shr_carry_output_carry[i] = carry;
                     shr_carry_output_shifted_byte[i] = shift;
@@ -248,10 +251,12 @@ impl<F: PrimeField> MachineAir<F> for ShiftRightChip {
                     debug_assert_eq!(cols.a[i], cols.bit_shift_result[i].clone());
                 }
                 // Range checks.
-                output.add_u8_range_checks(event.shard, &byte_shift_result);
-                output.add_u8_range_checks(event.shard, &bit_shift_result);
-                output.add_u8_range_checks(event.shard, &shr_carry_output_carry);
-                output.add_u8_range_checks(event.shard, &shr_carry_output_shifted_byte);
+                let mut v = Vec::new();
+                v.add_u8_range_checks(event.shard, &byte_shift_result);
+                v.add_u8_range_checks(event.shard, &bit_shift_result);
+                v.add_u8_range_checks(event.shard, &shr_carry_output_carry);
+                v.add_u8_range_checks(event.shard, &shr_carry_output_shifted_byte);
+                output.add_events(&v);
             }
 
             rows.push(row);

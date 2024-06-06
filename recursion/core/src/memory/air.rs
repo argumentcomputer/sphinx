@@ -8,7 +8,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::{Field, PrimeField32};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::{
-    air::{AirInteraction, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
+    air::{AirInteraction, EventLens, EventMutLens, MachineAir, MemoryAirBuilder, WithEvents},
     lookup::InteractionKind,
     utils::pad_rows_fixed,
 };
@@ -37,6 +37,7 @@ impl<'a, F: Field> WithEvents<'a> for MemoryGlobalChip<F> {
         // last memory event
         &'a [(F, F, Block<F>)],
     );
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip<F> {
@@ -47,15 +48,19 @@ impl<F: PrimeField32> MachineAir<F> for MemoryGlobalChip<F> {
         "MemoryGlobalChip".to_string()
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
     #[instrument(name = "generate memory trace", level = "debug", skip_all, fields(first_rows = input.events().0.len(), last_rows = input.events().1.len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord<F>,
+        _output: &mut OR,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
         let (first_memory_events, last_memory_events) = input.events();

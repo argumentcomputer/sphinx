@@ -16,7 +16,6 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
 use crate::memory::MemoryReadCols;
@@ -36,7 +35,7 @@ use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
+    air::{AluAirBuilder, EventLens, EventMutLens, MachineAir, MemoryAirBuilder, WithEvents},
     syscall::precompiles::ECAddEvent,
 };
 
@@ -151,12 +150,14 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 
 impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a> for WeierstrassAddAssignChip<E> {
     type InputEvents = &'a [ECAddEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     for WeierstrassAddAssignChip<E>
 where
-    ExecutionRecord: EventLens<WeierstrassAddAssignChip<E>>,
+    ExecutionRecord:
+        EventLens<WeierstrassAddAssignChip<E>> + EventMutLens<WeierstrassAddAssignChip<E>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -170,10 +171,10 @@ where
         }
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
         let events = input.events();
@@ -224,7 +225,7 @@ where
 
             rows.push(row);
         }
-        output.add_byte_lookup_events(new_byte_lookup_events);
+        output.add_events(&new_byte_lookup_events);
 
         pad_vec_rows(&mut rows, || {
             let mut row = vec![F::zero(); size_of::<WeierstrassAddAssignCols<u8, E::BaseField>>()];

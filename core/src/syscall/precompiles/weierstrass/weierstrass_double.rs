@@ -29,7 +29,6 @@ use crate::operations::field::params::WORDS_FIELD_ELEMENT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::SyscallCode;
-use crate::stark::MachineRecord;
 use crate::syscall::precompiles::WORDS_CURVEPOINT;
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
@@ -39,7 +38,7 @@ use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents},
+    air::{AluAirBuilder, EventLens, EventMutLens, MachineAir, MemoryAirBuilder, WithEvents},
     syscall::precompiles::ECDoubleEvent,
 };
 
@@ -177,12 +176,14 @@ impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a>
     for WeierstrassDoubleAssignChip<E>
 {
     type InputEvents = &'a [ECDoubleEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
     for WeierstrassDoubleAssignChip<E>
 where
-    ExecutionRecord: EventLens<WeierstrassDoubleAssignChip<E>>,
+    ExecutionRecord:
+        EventLens<WeierstrassDoubleAssignChip<E>> + EventMutLens<WeierstrassDoubleAssignChip<E>>,
 {
     type Record = ExecutionRecord;
     type Program = Program;
@@ -196,10 +197,10 @@ where
         }
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         // collects the events based on the curve type.
         let events = input.events();
@@ -210,7 +211,7 @@ where
         let rows_and_records = events
             .par_chunks(chunk_size)
             .map(|events| {
-                let mut record = ExecutionRecord::default();
+                let mut record = Vec::new();
                 let mut new_byte_lookup_events = Vec::new();
 
                 let rows = events
@@ -258,9 +259,9 @@ where
 
         // Generate the trace rows for each event.
         let mut rows = Vec::new();
-        for (row, mut record) in rows_and_records {
+        for (row, record) in rows_and_records {
             rows.extend(row);
-            output.append(&mut record);
+            output.add_events(&record);
         }
 
         pad_vec_rows(&mut rows, || {

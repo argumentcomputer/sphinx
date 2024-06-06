@@ -5,10 +5,10 @@ use p3_keccak_air::{generate_trace_rows, NUM_KECCAK_COLS, NUM_ROUNDS};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use p3_maybe_rayon::prelude::{ParallelIterator, ParallelSlice};
 
-use crate::air::{EventLens, WithEvents};
+use crate::air::{EventLens, EventMutLens, WithEvents};
 use crate::bytes::event::ByteRecord;
-use crate::{runtime::Program, stark::MachineRecord};
-
+use crate::bytes::ByteLookupEvent;
+use crate::runtime::Program;
 use crate::{air::MachineAir, runtime::ExecutionRecord};
 
 use super::KeccakPermuteEvent;
@@ -19,6 +19,7 @@ use super::{
 
 impl<'a> WithEvents<'a> for KeccakPermuteChip {
     type InputEvents = &'a [KeccakPermuteEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
@@ -29,10 +30,10 @@ impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
         "KeccakPermute".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let num_events = input.events().len();
         let chunk_size = std::cmp::max(num_events / num_cpus::get(), 1);
@@ -42,7 +43,7 @@ impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
             .events()
             .par_chunks(chunk_size)
             .map(|chunk_events| {
-                let mut record = ExecutionRecord::default();
+                let mut event_record = Vec::new();
                 let mut new_byte_lookup_events = Vec::new();
 
                 // First generate all the p3_keccak_air traces at once.
@@ -105,17 +106,16 @@ impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {
                         rows
                     })
                     .collect::<Vec<_>>();
-                record.add_byte_lookup_events(new_byte_lookup_events);
-                (rows, record)
+                event_record.add_byte_lookup_events(new_byte_lookup_events);
+                (rows, event_record)
             })
             .collect::<Vec<_>>();
 
         // Generate the trace rows for each event.
         let mut rows: Vec<[F; NUM_KECCAK_MEM_COLS]> = vec![];
-        for (mut row, mut record) in rows_and_records {
+        for (mut row, record) in rows_and_records {
             rows.append(&mut row);
-            record.index = output.index;
-            output.append(&mut record);
+            output.add_events(&record);
         }
 
         let nb_rows = rows.len();

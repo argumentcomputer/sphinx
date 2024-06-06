@@ -9,7 +9,9 @@ use std::collections::BTreeMap;
 
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AirInteraction, BaseAirBuilder, EventLens, PublicValues, WithEvents};
+use crate::air::{
+    AirInteraction, BaseAirBuilder, EventLens, EventMutLens, PublicValues, WithEvents,
+};
 use crate::air::{MachineAir, Word};
 use crate::operations::IsZeroOperation;
 use crate::runtime::{ExecutionRecord, Program};
@@ -52,6 +54,7 @@ impl MemoryProgramChip {
 
 impl<'a> WithEvents<'a> for MemoryProgramChip {
     type InputEvents = &'a BTreeMap<u32, u32>;
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
@@ -96,18 +99,18 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
         Some(trace)
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(
+    fn generate_dependencies<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         _input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) {
         // Do nothing since this chip has no dependencies.
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _output: &mut ExecutionRecord,
+        _output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let program_memory_addrs = input.events().keys().copied().collect::<Vec<_>>();
 

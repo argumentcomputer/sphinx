@@ -9,7 +9,7 @@ use p3_air::{Air, BaseAir};
 use p3_field::{AbstractField, Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, WithEvents};
+use sphinx_core::air::{BaseAirBuilder, EventLens, EventMutLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_primitives::RC_16_30_U32;
 use std::borrow::BorrowMut;
@@ -40,6 +40,7 @@ pub struct Poseidon2WideChip<F: Field, const DEGREE: usize> {
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
     type InputEvents = &'a [Poseidon2Event<F>];
+    type OutputEvents = &'a ();
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F, DEGREE> {
@@ -51,15 +52,19 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F
         format!("Poseidon2Wide {}", DEGREE)
     }
 
-    fn generate_dependencies<EL: EventLens<Self>>(&self, _: &EL, _: &mut Self::Record) {
+    fn generate_dependencies<EL: EventLens<Self>, OR: EventMutLens<Self>>(
+        &self,
+        _: &EL,
+        _: &mut OR,
+    ) {
         // This is a no-op.
     }
 
     #[instrument(name = "generate poseidon2 wide trace", level = "debug", skip_all, fields(rows = input.events().len()))]
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OR: EventMutLens<Self>>(
         &self,
         input: &EL,
-        _: &mut ExecutionRecord<F>,
+        _: &mut OR,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 

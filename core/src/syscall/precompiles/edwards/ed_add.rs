@@ -44,7 +44,7 @@ use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_vec_rows;
 use crate::{air::MachineAir, utils::ec::EllipticCurveParameters};
 use crate::{
-    air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents},
+    air::{AluAirBuilder, EventLens, EventMutLens, MemoryAirBuilder, WithEvents},
     syscall::precompiles::ECAddEvent,
 };
 
@@ -145,11 +145,12 @@ impl<
 
 impl<'a, E: EllipticCurve + EdwardsParameters> WithEvents<'a> for EdAddAssignChip<E> {
     type InputEvents = &'a [ECAddEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E>
 where
-    ExecutionRecord: EventLens<EdAddAssignChip<E>>,
+    ExecutionRecord: EventLens<EdAddAssignChip<E>> + EventMutLens<EdAddAssignChip<E>>,
 {
     type Record = ExecutionRecord;
 
@@ -159,10 +160,10 @@ where
         "EdAddAssign".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let (mut rows, new_byte_lookup_events): (Vec<Vec<F>>, Vec<Vec<ByteLookupEvent>>) = input
             .events()
@@ -212,7 +213,7 @@ where
             .unzip();
 
         for byte_lookup_events in new_byte_lookup_events {
-            output.add_byte_lookup_events(byte_lookup_events);
+            output.add_events(&byte_lookup_events);
         }
 
         pad_vec_rows(&mut rows, || {

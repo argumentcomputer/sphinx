@@ -8,8 +8,8 @@ use super::{
     columns::Blake3CompressInnerCols, G_INDEX, G_INPUT_SIZE, MSG_SCHEDULE, NUM_MSG_WORDS_PER_CALL,
     NUM_STATE_WORDS_PER_CALL, OPERATION_COUNT,
 };
-use crate::air::{EventLens, WithEvents};
-use crate::bytes::event::ByteRecord;
+use crate::air::{EventLens, EventMutLens, WithEvents};
+use crate::bytes::ByteLookupEvent;
 use crate::{
     air::MachineAir,
     runtime::{ExecutionRecord, MemoryRecordEnum, Program},
@@ -21,6 +21,7 @@ use crate::{
 
 impl<'a> WithEvents<'a> for Blake3CompressInnerChip {
     type InputEvents = &'a [Blake3CompressInnerEvent];
+    type OutputEvents = &'a [ByteLookupEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
@@ -31,10 +32,10 @@ impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
         "Blake3CompressInner".to_string()
     }
 
-    fn generate_trace<EL: EventLens<Self>>(
+    fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        output: &mut OL,
     ) -> RowMajorMatrix<F> {
         let mut rows = Vec::new();
 
@@ -104,7 +105,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
                             event.message_reads[round][operation][1].value,
                         ];
 
-                        cols.g.populate(output, shard, input);
+                        let mut v = Vec::new();
+                        cols.g.populate(&mut v, shard, input);
+                        output.add_events(&v)
                     }
 
                     clk += 1;
@@ -116,7 +119,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {
             }
         }
 
-        output.add_byte_lookup_events(new_byte_lookup_events);
+        output.add_events(&new_byte_lookup_events);
 
         pad_rows(&mut rows, || [F::zero(); NUM_BLAKE3_COMPRESS_INNER_COLS]);
 

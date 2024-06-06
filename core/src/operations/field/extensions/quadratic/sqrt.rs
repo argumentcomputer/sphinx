@@ -111,8 +111,9 @@ mod tests {
     use super::QuadFieldSqrtCols;
 
     use crate::air::MachineAir;
-    use crate::air::{EventLens, WordAirBuilder};
+    use crate::air::{EventLens, EventMutLens, WordAirBuilder};
     use crate::bytes::event::ByteRecord;
+    use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
@@ -152,11 +153,23 @@ mod tests {
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for QuadSqrtChip<P> {
         type InputEvents = &'a ();
+        type OutputEvents = &'a [ByteLookupEvent];
     }
 
     impl<P: FieldParameters> EventLens<QuadSqrtChip<P>> for ExecutionRecord {
         fn events(&self) -> <QuadSqrtChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
+        }
+    }
+
+    impl<P: FieldParameters> EventMutLens<QuadSqrtChip<P>> for ExecutionRecord {
+        fn add_events(
+            &mut self,
+            events: <QuadSqrtChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
+        ) {
+            for event in events {
+                self.add_byte_lookup_event(*event);
+            }
         }
     }
 
@@ -169,10 +182,10 @@ mod tests {
             "QuadSqrtChip".to_string()
         }
 
-        fn generate_trace<EL: EventLens<Self>>(
+        fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
             &self,
             _: &EL,
-            output: &mut ExecutionRecord,
+            output: &mut OL,
         ) -> RowMajorMatrix<F> {
             let num_test_cols = size_of::<TestCols<u8, P>>();
             let mut rng = thread_rng();
@@ -215,7 +228,7 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
                     cols.sqrt.populate(&mut blu_events, 1, a, self.sqrt_fn);
-                    output.add_byte_lookup_events(blu_events);
+                    output.add_events(&blu_events);
                     row
                 })
                 .collect::<Vec<_>>();
