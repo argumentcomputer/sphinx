@@ -43,7 +43,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.PRIVATE_PULL_TOEKN }}
+          pull_token: ${{ secrets.REPO_TOKEN }}
       - name: Run cargo test on the recursion circuit
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -p sphinx-recursion-circuit
