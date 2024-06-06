@@ -49,7 +49,7 @@ impl<F> ProgramChip<F> {
 }
 
 impl<'a, F: Field> WithEvents<'a> for ProgramChip<F> {
-    type Events = (
+    type InputEvents = (
         // program.instructions
         &'a [Instruction<F>],
         // cpu_events

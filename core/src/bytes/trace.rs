@@ -16,7 +16,7 @@ pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
     // the byte lookups
-    type Events = &'a BTreeMap<u32, BTreeMap<ByteLookupEvent, usize>>;
+    type InputEvents = &'a BTreeMap<u32, BTreeMap<ByteLookupEvent, usize>>;
 }
 
 impl<F: Field> MachineAir<F> for ByteChip<F> {

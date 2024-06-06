@@ -140,7 +140,7 @@ pub fn create_fp2_add_event<FP: FieldParameters>(
 }
 
 impl<'a, FP: FieldParameters> WithEvents<'a> for QuadFieldAddChip<FP> {
-    type Events = &'a [QuadFieldAddEvent<FP>];
+    type InputEvents = &'a [QuadFieldAddEvent<FP>];
 }
 
 impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for QuadFieldAddChip<FP>

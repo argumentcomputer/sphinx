@@ -17,7 +17,7 @@ use crate::{
 use super::{CpuChip, CpuCols, CpuEvent, CPU_COL_MAP, NUM_CPU_COLS};
 
 impl<'a, F: Field> WithEvents<'a> for CpuChip<F> {
-    type Events = &'a [CpuEvent<F>];
+    type InputEvents = &'a [CpuEvent<F>];
 }
 
 impl<F: PrimeField32 + BinomiallyExtendable<D>> MachineAir<F> for CpuChip<F>

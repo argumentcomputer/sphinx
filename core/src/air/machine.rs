@@ -14,7 +14,7 @@ use crate::{
 pub trait WithEvents<'a>: Sized {
     /// output of a functional lens from the Record to
     /// refs of those events relative to the AIR.
-    type Events: 'a;
+    type InputEvents: 'a;
 }
 
 /// A trait intended for implementation on Records that may store events related to Chips,
@@ -23,7 +23,7 @@ pub trait WithEvents<'a>: Sized {
 ///
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
 pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexed {
-    fn events(&self) -> <T as WithEvents<'_>>::Events;
+    fn events(&self) -> <T as WithEvents<'_>>::InputEvents;
 }
 
 //////////////// Derive macro shenanigans ////////////////////////////////////////////////
@@ -63,10 +63,10 @@ where
     R: EventLens<T>,
     U: for<'b> WithEvents<'b>,
     // see https://github.com/rust-lang/rust/issues/86702 for the empty parameter
-    F: for<'c> Fn(<T as WithEvents<'c>>::Events, &'c ()) -> <U as WithEvents<'c>>::Events,
+    F: for<'c> Fn(<T as WithEvents<'c>>::InputEvents, &'c ()) -> <U as WithEvents<'c>>::InputEvents,
 {
-    fn events<'c>(&'c self) -> <U as WithEvents<'c>>::Events {
-        let events: <T as WithEvents<'c>>::Events = self.record.events();
+    fn events<'c>(&'c self) -> <U as WithEvents<'c>>::InputEvents {
+        let events: <T as WithEvents<'c>>::InputEvents = self.record.events();
         (self.projection)(events, &())
     }
 }

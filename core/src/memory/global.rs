@@ -43,7 +43,7 @@ impl<F> BaseAir<F> for MemoryChip {
 }
 
 impl<'a> WithEvents<'a> for MemoryChip {
-    type Events = (
+    type InputEvents = (
         // initialize events
         &'a [MemoryInitializeFinalizeEvent],
         // finalize events

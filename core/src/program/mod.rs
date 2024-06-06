@@ -53,7 +53,7 @@ impl ProgramChip {
 }
 
 impl<'a> WithEvents<'a> for ProgramChip {
-    type Events = (
+    type InputEvents = (
         // CPU events
         &'a [CpuEvent],
         // the Program

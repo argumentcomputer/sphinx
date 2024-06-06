@@ -150,7 +150,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 }
 
 impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a> for WeierstrassAddAssignChip<E> {
-    type Events = &'a [ECAddEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+    type InputEvents = &'a [ECAddEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>

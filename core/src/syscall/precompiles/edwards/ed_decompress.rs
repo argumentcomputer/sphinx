@@ -334,7 +334,7 @@ impl<E: EdwardsParameters> EdDecompressChip<E> {
 }
 
 impl<'a, E: EdwardsParameters> WithEvents<'a> for EdDecompressChip<E> {
-    type Events = &'a [EdDecompressEvent];
+    type InputEvents = &'a [EdDecompressEvent];
 }
 
 impl<F: PrimeField32, E: EdwardsParameters> MachineAir<F> for EdDecompressChip<E>

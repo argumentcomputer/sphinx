@@ -51,9 +51,9 @@ impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
 }
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
-    type Events = (
-        <FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events,
-        <Poseidon2Chip<F> as WithEvents<'a>>::Events,
+    type InputEvents = (
+        <FriFoldChip<F, DEGREE> as WithEvents<'a>>::InputEvents,
+        <Poseidon2Chip<F> as WithEvents<'a>>::InputEvents,
     );
 }
 
@@ -79,16 +79,16 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
         let poseidon2 = Poseidon2Chip::default();
 
         fn to_fri<'c, F: PrimeField32, const DEGREE: usize>(
-            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::Events,
+            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::InputEvents,
             _v: &'c (),
-        ) -> <FriFoldChip<F, DEGREE> as WithEvents<'c>>::Events {
+        ) -> <FriFoldChip<F, DEGREE> as WithEvents<'c>>::InputEvents {
             evs.0
         }
 
         fn to_poseidon<'c, F: PrimeField32, const DEGREE: usize>(
-            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::Events,
+            evs: <MultiChip<F, DEGREE> as WithEvents<'c>>::InputEvents,
             _v: &'c (),
-        ) -> <Poseidon2Chip<F> as WithEvents<'c>>::Events {
+        ) -> <Poseidon2Chip<F> as WithEvents<'c>>::InputEvents {
             evs.1
         }
 

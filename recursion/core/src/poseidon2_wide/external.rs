@@ -39,7 +39,7 @@ pub struct Poseidon2WideChip<F: Field, const DEGREE: usize> {
 }
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
-    type Events = &'a [Poseidon2Event<F>];
+    type InputEvents = &'a [Poseidon2Event<F>];
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F, DEGREE> {

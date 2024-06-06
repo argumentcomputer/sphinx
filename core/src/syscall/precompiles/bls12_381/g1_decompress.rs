@@ -230,7 +230,7 @@ impl Bls12381G1DecompressChip {
 }
 
 impl<'a> WithEvents<'a> for Bls12381G1DecompressChip {
-    type Events = &'a [Bls12381G1DecompressEvent];
+    type InputEvents = &'a [Bls12381G1DecompressEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {

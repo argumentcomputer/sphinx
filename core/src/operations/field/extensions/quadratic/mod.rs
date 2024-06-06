@@ -412,11 +412,11 @@ mod tests {
     }
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for QuadFieldOpChip<P> {
-        type Events = &'a ();
+        type InputEvents = &'a ();
     }
 
     impl<P: FieldParameters> EventLens<QuadFieldOpChip<P>> for ExecutionRecord {
-        fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents<'_>>::Events {
+        fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
         }
     }

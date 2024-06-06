@@ -146,139 +146,139 @@ pub struct ExecutionRecord {
 
 // Event lenses connect the record to the events relative to a particular chip
 impl EventLens<AddSubChip> for ExecutionRecord {
-    fn events(&self) -> <AddSubChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <AddSubChip as crate::air::WithEvents<'_>>::InputEvents {
         (&self.add_events, &self.sub_events)
     }
 }
 
 impl EventLens<BitwiseChip> for ExecutionRecord {
-    fn events(&self) -> <BitwiseChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <BitwiseChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.bitwise_events
     }
 }
 
 impl EventLens<DivRemChip> for ExecutionRecord {
-    fn events(&self) -> <DivRemChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <DivRemChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.divrem_events
     }
 }
 
 impl EventLens<LtChip> for ExecutionRecord {
-    fn events(&self) -> <LtChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <LtChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.lt_events
     }
 }
 
 impl EventLens<MulChip> for ExecutionRecord {
-    fn events(&self) -> <MulChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <MulChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.mul_events
     }
 }
 
 impl EventLens<ShiftLeft> for ExecutionRecord {
-    fn events(&self) -> <ShiftLeft as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ShiftLeft as crate::air::WithEvents<'_>>::InputEvents {
         &self.shift_left_events
     }
 }
 
 impl EventLens<ShiftRightChip> for ExecutionRecord {
-    fn events(&self) -> <ShiftRightChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ShiftRightChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.shift_right_events
     }
 }
 
 impl<F: Field> EventLens<ByteChip<F>> for ExecutionRecord {
-    fn events(&self) -> <ByteChip<F> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ByteChip<F> as crate::air::WithEvents<'_>>::InputEvents {
         &self.byte_lookups
     }
 }
 
 impl EventLens<CpuChip> for ExecutionRecord {
-    fn events(&self) -> <CpuChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <CpuChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.cpu_events
     }
 }
 
 impl EventLens<MemoryChip> for ExecutionRecord {
-    fn events(&self) -> <MemoryChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <MemoryChip as crate::air::WithEvents<'_>>::InputEvents {
         (&self.memory_initialize_events, &self.memory_finalize_events)
     }
 }
 
 impl EventLens<MemoryProgramChip> for ExecutionRecord {
-    fn events(&self) -> <MemoryProgramChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <MemoryProgramChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.program.memory_image
     }
 }
 
 impl EventLens<ProgramChip> for ExecutionRecord {
-    fn events(&self) -> <ProgramChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ProgramChip as crate::air::WithEvents<'_>>::InputEvents {
         (&self.cpu_events, &self.program)
     }
 }
 
 impl EventLens<ShaExtendChip> for ExecutionRecord {
-    fn events(&self) -> <ShaExtendChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ShaExtendChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.sha_extend_events
     }
 }
 
 impl EventLens<ShaCompressChip> for ExecutionRecord {
-    fn events(&self) -> <ShaCompressChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <ShaCompressChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.sha_compress_events
     }
 }
 
 impl EventLens<Blake3CompressInnerChip> for ExecutionRecord {
-    fn events(&self) -> <Blake3CompressInnerChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <Blake3CompressInnerChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.blake3_compress_inner_events
     }
 }
 
 impl EventLens<KeccakPermuteChip> for ExecutionRecord {
-    fn events(&self) -> <KeccakPermuteChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <KeccakPermuteChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.keccak_permute_events
     }
 }
 
 impl EventLens<Bls12381G1DecompressChip> for ExecutionRecord {
-    fn events(&self) -> <Bls12381G1DecompressChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <Bls12381G1DecompressChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_g1_decompress_events
     }
 }
 
 impl EventLens<Secp256k1DecompressChip> for ExecutionRecord {
-    fn events(&self) -> <Secp256k1DecompressChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <Secp256k1DecompressChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.secp256k1_decompress_events
     }
 }
 
 impl EventLens<Bls12381G2AffineAddChip> for ExecutionRecord {
-    fn events(&self) -> <Bls12381G2AffineAddChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <Bls12381G2AffineAddChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_g2_add_events
     }
 }
 
 impl EventLens<Bls12381G2AffineDoubleChip> for ExecutionRecord {
-    fn events(&self) -> <Bls12381G2AffineDoubleChip as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <Bls12381G2AffineDoubleChip as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_g2_double_events
     }
 }
 
 impl EventLens<FieldAddChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <FieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp_add_events
     }
 }
 
 impl EventLens<FieldSubChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <FieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp_sub_events
     }
 }
 
 impl EventLens<FieldMulChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <FieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp_mul_events
     }
 }
@@ -286,7 +286,7 @@ impl EventLens<FieldMulChip<Bls12381BaseField>> for ExecutionRecord {
 impl EventLens<QuadFieldAddChip<Bls12381BaseField>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <QuadFieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    ) -> <QuadFieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp2_add_events
     }
 }
@@ -294,7 +294,7 @@ impl EventLens<QuadFieldAddChip<Bls12381BaseField>> for ExecutionRecord {
 impl EventLens<QuadFieldSubChip<Bls12381BaseField>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <QuadFieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    ) -> <QuadFieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp2_sub_events
     }
 }
@@ -302,7 +302,7 @@ impl EventLens<QuadFieldSubChip<Bls12381BaseField>> for ExecutionRecord {
 impl EventLens<QuadFieldMulChip<Bls12381BaseField>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <QuadFieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+    ) -> <QuadFieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_fp2_mul_events
     }
 }
@@ -310,19 +310,19 @@ impl EventLens<QuadFieldMulChip<Bls12381BaseField>> for ExecutionRecord {
 impl EventLens<WeierstrassAddAssignChip<Secp256k1>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <WeierstrassAddAssignChip<Secp256k1> as crate::air::WithEvents<'_>>::Events {
+    ) -> <WeierstrassAddAssignChip<Secp256k1> as crate::air::WithEvents<'_>>::InputEvents {
         &self.secp256k1_add_events
     }
 }
 
 impl EventLens<WeierstrassAddAssignChip<Bls12381>> for ExecutionRecord {
-    fn events(&self) -> <WeierstrassAddAssignChip<Bls12381> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <WeierstrassAddAssignChip<Bls12381> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_g1_add_events
     }
 }
 
 impl EventLens<WeierstrassAddAssignChip<Bn254>> for ExecutionRecord {
-    fn events(&self) -> <WeierstrassAddAssignChip<Bn254> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <WeierstrassAddAssignChip<Bn254> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bn254_add_events
     }
 }
@@ -330,7 +330,7 @@ impl EventLens<WeierstrassAddAssignChip<Bn254>> for ExecutionRecord {
 impl EventLens<WeierstrassDoubleAssignChip<Secp256k1>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <WeierstrassDoubleAssignChip<Secp256k1> as crate::air::WithEvents<'_>>::Events {
+    ) -> <WeierstrassDoubleAssignChip<Secp256k1> as crate::air::WithEvents<'_>>::InputEvents {
         &self.secp256k1_double_events
     }
 }
@@ -338,19 +338,19 @@ impl EventLens<WeierstrassDoubleAssignChip<Secp256k1>> for ExecutionRecord {
 impl EventLens<WeierstrassDoubleAssignChip<Bls12381>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <WeierstrassDoubleAssignChip<Bls12381> as crate::air::WithEvents<'_>>::Events {
+    ) -> <WeierstrassDoubleAssignChip<Bls12381> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bls12381_g1_double_events
     }
 }
 
 impl EventLens<WeierstrassDoubleAssignChip<Bn254>> for ExecutionRecord {
-    fn events(&self) -> <WeierstrassDoubleAssignChip<Bn254> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <WeierstrassDoubleAssignChip<Bn254> as crate::air::WithEvents<'_>>::InputEvents {
         &self.bn254_double_events
     }
 }
 
 impl EventLens<EdAddAssignChip<Ed25519>> for ExecutionRecord {
-    fn events(&self) -> <EdAddAssignChip<Ed25519> as crate::air::WithEvents<'_>>::Events {
+    fn events(&self) -> <EdAddAssignChip<Ed25519> as crate::air::WithEvents<'_>>::InputEvents {
         &self.ed_add_events
     }
 }
@@ -358,7 +358,7 @@ impl EventLens<EdAddAssignChip<Ed25519>> for ExecutionRecord {
 impl EventLens<EdDecompressChip<Ed25519Parameters>> for ExecutionRecord {
     fn events(
         &self,
-    ) -> <EdDecompressChip<Ed25519Parameters> as crate::air::WithEvents<'_>>::Events {
+    ) -> <EdDecompressChip<Ed25519Parameters> as crate::air::WithEvents<'_>>::InputEvents {
         &self.ed_decompress_events
     }
 }

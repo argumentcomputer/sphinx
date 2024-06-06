@@ -188,7 +188,7 @@ pub struct DivRemCols<T> {
 }
 
 impl<'a> WithEvents<'a> for DivRemChip {
-    type Events = &'a [AluEvent];
+    type InputEvents = &'a [AluEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for DivRemChip {

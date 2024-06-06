@@ -20,7 +20,7 @@ use crate::{
 };
 
 impl<'a> WithEvents<'a> for Blake3CompressInnerChip {
-    type Events = &'a [Blake3CompressInnerEvent];
+    type InputEvents = &'a [Blake3CompressInnerEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Blake3CompressInnerChip {

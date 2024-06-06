@@ -124,7 +124,7 @@ pub struct MulCols<T> {
 }
 
 impl<'a> WithEvents<'a> for MulChip {
-    type Events = &'a [AluEvent];
+    type InputEvents = &'a [AluEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for MulChip {

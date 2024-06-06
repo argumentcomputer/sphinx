@@ -20,7 +20,7 @@ use super::{
 };
 
 impl<'a, F: Field> WithEvents<'a> for Poseidon2Chip<F> {
-    type Events = &'a [Poseidon2Event<F>];
+    type InputEvents = &'a [Poseidon2Event<F>];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {

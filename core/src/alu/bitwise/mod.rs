@@ -52,7 +52,7 @@ pub struct BitwiseCols<T> {
 }
 
 impl<'a> WithEvents<'a> for BitwiseChip {
-    type Events = &'a [AluEvent];
+    type InputEvents = &'a [AluEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for BitwiseChip {

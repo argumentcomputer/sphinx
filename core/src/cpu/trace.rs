@@ -19,7 +19,7 @@ use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
 impl<'a> WithEvents<'a> for CpuChip {
-    type Events = &'a [CpuEvent];
+    type InputEvents = &'a [CpuEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {

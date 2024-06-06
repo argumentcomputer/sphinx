@@ -176,7 +176,7 @@ impl<E: EllipticCurve + WeierstrassParameters> WeierstrassDoubleAssignChip<E> {
 impl<'a, E: EllipticCurve + WeierstrassParameters> WithEvents<'a>
     for WeierstrassDoubleAssignChip<E>
 {
-    type Events = &'a [ECDoubleEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
+    type InputEvents = &'a [ECDoubleEvent<<E::BaseField as FieldParameters>::NB_LIMBS>];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>

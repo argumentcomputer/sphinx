@@ -131,7 +131,7 @@ pub struct ShiftRightCols<T> {
 }
 
 impl<'a> WithEvents<'a> for ShiftRightChip {
-    type Events = &'a [AluEvent];
+    type InputEvents = &'a [AluEvent];
 }
 
 impl<F: PrimeField> MachineAir<F> for ShiftRightChip {

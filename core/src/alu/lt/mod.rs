@@ -94,7 +94,7 @@ impl LtCols<u32> {
 }
 
 impl<'a> WithEvents<'a> for LtChip {
-    type Events = &'a [AluEvent];
+    type InputEvents = &'a [AluEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for LtChip {

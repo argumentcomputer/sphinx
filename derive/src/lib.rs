@@ -123,12 +123,12 @@ pub fn with_events_air_derive(input: TokenStream) -> TokenStream {
             let field_ty_events = fields.iter().map(|field| {
                 let field_ty = &field.ty;
                 quote! {
-                    <#field_ty as #sphinx_core_path::air::WithEvents<'a>>::Events
+                    <#field_ty as #sphinx_core_path::air::WithEvents<'a>>::InputEvents
                 }
             });
             quote!{
                 impl <'a, #(#type_params),*, #(#const_params),*> #sphinx_core_path::air::WithEvents<'a> for #name #ty_generics #where_clause {
-                    type Events = (#(#field_ty_events,)*);
+                    type InputEvents = (#(#field_ty_events,)*);
                 }
             }.into()
         }
@@ -210,7 +210,7 @@ pub fn event_lens_air_derive(input: TokenStream) -> TokenStream {
             });
             let res = quote! {
                 impl #impl_generics #sphinx_core_path::air::EventLens<#name #ty_generics> for #rec_ty {
-                    fn events(&self) -> <#name #ty_generics as #sphinx_core_path::air::WithEvents>::Events {
+                    fn events(&self) -> <#name #ty_generics as #sphinx_core_path::air::WithEvents>::InputEvents {
                         (#(#field_events,)*)
                     }
                 }
@@ -308,7 +308,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
                 let idx = syn::Index::from(i);
                 quote! {
                     #name::#variant_name(x) => {
-                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::Events, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::Events  { evs.#idx }
+                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::InputEvents, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::InputEvents  { evs.#idx }
 
                         <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_trace(x, &#sphinx_core_path::air::Proj::new(input, f #turbo_ty), output)
                     }
@@ -321,7 +321,7 @@ pub fn machine_air_derive(input: TokenStream) -> TokenStream {
 
                 quote! {
                     #name::#variant_name(x) => {
-                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::Events, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::Events  { evs.#idx }
+                        fn f <'c, #ty_params, #co_params> (evs: <#name #ty_generics as #sphinx_core_path::air::WithEvents<'c>>::InputEvents, _v: &'c ()) -> <#field_ty as #sphinx_core_path::air::WithEvents<'c>>::InputEvents  { evs.#idx }
 
                         <#field_ty as #sphinx_core_path::air::MachineAir<F>>::generate_dependencies(x, &#sphinx_core_path::air::Proj::new(input, f #turbo_ty), output)
                     }

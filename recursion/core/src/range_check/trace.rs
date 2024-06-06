@@ -13,7 +13,7 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for RangeCheckChip<F> {
-    type Events = &'a BTreeMap<RangeCheckEvent, usize>;
+    type InputEvents = &'a BTreeMap<RangeCheckEvent, usize>;
 }
 
 impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {

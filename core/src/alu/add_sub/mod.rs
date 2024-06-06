@@ -58,7 +58,7 @@ pub struct AddSubCols<T> {
 }
 
 impl<'a> WithEvents<'a> for AddSubChip {
-    type Events = (
+    type InputEvents = (
         // add events
         &'a [AluEvent],
         // sub events

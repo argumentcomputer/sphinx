@@ -94,7 +94,7 @@ impl<F: Field, const DEGREE: usize> BaseAir<F> for FriFoldChip<F, DEGREE> {
 }
 
 impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for FriFoldChip<F, DEGREE> {
-    type Events = &'a [FriFoldEvent<F>];
+    type InputEvents = &'a [FriFoldEvent<F>];
 }
 
 impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGREE> {

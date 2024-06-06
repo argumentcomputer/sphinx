@@ -18,7 +18,7 @@ use super::{
 };
 
 impl<'a> WithEvents<'a> for KeccakPermuteChip {
-    type Events = &'a [KeccakPermuteEvent];
+    type InputEvents = &'a [KeccakPermuteEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for KeccakPermuteChip {

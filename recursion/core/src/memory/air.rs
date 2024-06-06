@@ -31,7 +31,7 @@ impl<F> MemoryGlobalChip<F> {
 }
 
 impl<'a, F: Field> WithEvents<'a> for MemoryGlobalChip<F> {
-    type Events = (
+    type InputEvents = (
         // first memory event
         &'a [(F, Block<F>)],
         // last memory event

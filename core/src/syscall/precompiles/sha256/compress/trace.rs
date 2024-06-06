@@ -15,7 +15,7 @@ use crate::{
 };
 
 impl<'a> WithEvents<'a> for ShaCompressChip {
-    type Events = &'a [ShaCompressEvent];
+    type InputEvents = &'a [ShaCompressEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for ShaCompressChip {

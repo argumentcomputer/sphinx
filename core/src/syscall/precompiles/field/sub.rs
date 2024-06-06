@@ -114,7 +114,7 @@ pub fn create_fp_sub_event<FP: FieldParameters>(
 }
 
 impl<'a, FP: FieldParameters> WithEvents<'a> for FieldSubChip<FP> {
-    type Events = &'a [FieldSubEvent<FP>];
+    type InputEvents = &'a [FieldSubEvent<FP>];
 }
 
 impl<F: PrimeField32, FP: FieldParameters> MachineAir<F> for FieldSubChip<FP>

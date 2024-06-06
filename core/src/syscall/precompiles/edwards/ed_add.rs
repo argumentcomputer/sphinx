@@ -144,7 +144,7 @@ impl<
 }
 
 impl<'a, E: EllipticCurve + EdwardsParameters> WithEvents<'a> for EdAddAssignChip<E> {
-    type Events = &'a [ECAddEvent];
+    type InputEvents = &'a [ECAddEvent];
 }
 
 impl<F: PrimeField32, E: EllipticCurve + EdwardsParameters> MachineAir<F> for EdAddAssignChip<E>

@@ -226,7 +226,7 @@ impl<T: PrimeField32> BaseAir<T> for Bls12381G2AffineDoubleChip {
 }
 
 impl<'a> WithEvents<'a> for Bls12381G2AffineDoubleChip {
-    type Events = &'a [Bls12381G2AffineDoubleEvent];
+    type InputEvents = &'a [Bls12381G2AffineDoubleEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {

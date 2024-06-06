@@ -215,7 +215,7 @@ impl Secp256k1DecompressChip {
 }
 
 impl<'a> WithEvents<'a> for Secp256k1DecompressChip {
-    type Events = &'a [Secp256k1DecompressEvent];
+    type InputEvents = &'a [Secp256k1DecompressEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {

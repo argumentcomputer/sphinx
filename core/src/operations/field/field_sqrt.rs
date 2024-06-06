@@ -152,11 +152,11 @@ mod tests {
     }
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for EdSqrtChip<P> {
-        type Events = &'a ();
+        type InputEvents = &'a ();
     }
 
     impl<P: FieldParameters> EventLens<EdSqrtChip<P>> for ExecutionRecord {
-        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents<'_>>::Events {
+        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
         }
     }

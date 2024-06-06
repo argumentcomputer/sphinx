@@ -51,7 +51,7 @@ impl MemoryProgramChip {
 }
 
 impl<'a> WithEvents<'a> for MemoryProgramChip {
-    type Events = &'a BTreeMap<u32, u32>;
+    type InputEvents = &'a BTreeMap<u32, u32>;
 }
 
 impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
