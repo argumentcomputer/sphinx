@@ -24,6 +24,7 @@ pub struct FriProofVariable<C: Config> {
 
 #[derive(DslVariable, Clone)]
 pub struct FriQueryProofVariable<C: Config> {
+    pub input_proof: Array<C, BatchOpeningVariable<C>>,
     pub commit_phase_openings: Array<C, FriCommitPhaseProofStepVariable<C>>,
 }
 
@@ -42,12 +43,6 @@ pub struct FriChallengesVariable<C: Config> {
 #[derive(DslVariable, Clone)]
 pub struct DimensionsVariable<C: Config> {
     pub height: Var<C::N>,
-}
-
-#[derive(DslVariable, Clone)]
-pub struct TwoAdicPcsProofVariable<C: Config> {
-    pub fri_proof: FriProofVariable<C>,
-    pub query_openings: Array<C, Array<C, BatchOpeningVariable<C>>>,
 }
 
 #[derive(DslVariable, Clone)]

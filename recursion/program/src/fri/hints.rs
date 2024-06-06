@@ -1,8 +1,8 @@
 use p3_field::AbstractExtensionField;
 use p3_field::AbstractField;
 use sphinx_core::utils::{
-    InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerFriProof,
-    InnerPcsProof, InnerQueryProof, InnerVal,
+    InnerBatchOpening, InnerChallenge, InnerCommitPhaseStep, InnerDigest, InnerPcsProof,
+    InnerQueryProof, InnerVal,
 };
 use sphinx_recursion_compiler::config::InnerConfig;
 use sphinx_recursion_compiler::{
@@ -11,7 +11,7 @@ use sphinx_recursion_compiler::{
 };
 use sphinx_recursion_core::{air::Block, runtime::DIGEST_SIZE};
 
-use super::types::{BatchOpeningVariable, TwoAdicPcsProofVariable};
+use super::types::BatchOpeningVariable;
 use crate::{
     fri::types::{
         DigestVariable, FriCommitPhaseProofStepVariable, FriProofVariable, FriQueryProofVariable,
@@ -119,8 +119,10 @@ impl Hintable<C> for InnerQueryProof {
     type HintVariable = FriQueryProofVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
+        let input_proof = Vec::<InnerBatchOpening>::read(builder);
         let commit_phase_openings = Vec::<InnerCommitPhaseStep>::read(builder);
         Self::HintVariable {
+            input_proof,
             commit_phase_openings,
         }
     }
@@ -164,7 +166,7 @@ impl Hintable<C> for Vec<InnerQueryProof> {
     }
 }
 
-impl Hintable<C> for InnerFriProof {
+impl Hintable<C> for InnerPcsProof {
     type HintVariable = FriProofVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
@@ -279,26 +281,6 @@ impl Hintable<C> for Vec<Vec<InnerBatchOpening>> {
             stream.extend(comm);
         }
 
-        stream
-    }
-}
-
-impl Hintable<C> for InnerPcsProof {
-    type HintVariable = TwoAdicPcsProofVariable<C>;
-
-    fn read(builder: &mut Builder<C>) -> Self::HintVariable {
-        let fri_proof = InnerFriProof::read(builder);
-        let query_openings = Vec::<Vec<InnerBatchOpening>>::read(builder);
-        Self::HintVariable {
-            fri_proof,
-            query_openings,
-        }
-    }
-
-    fn write(&self) -> Vec<Vec<Block<<C as Config>::F>>> {
-        let mut stream = Vec::new();
-        stream.extend(self.fri_proof.write());
-        stream.extend(self.query_openings.write());
         stream
     }
 }

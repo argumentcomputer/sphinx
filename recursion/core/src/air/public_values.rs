@@ -16,6 +16,8 @@ use std::mem::size_of;
 use std::mem::transmute;
 
 pub const PV_DIGEST_NUM_WORDS: usize = 8;
+// TODO: Check RATE
+pub const RATE: usize = 8;
 
 pub const CHALLENGER_STATE_NUM_ELTS: usize = 50;
 
@@ -50,7 +52,7 @@ pub struct ChallengerPublicValues<T> {
 impl<T: Clone + Debug> ChallengerPublicValues<T> {
     pub fn set_challenger<P: CryptographicPermutation<[T; PERMUTATION_WIDTH]>>(
         &self,
-        challenger: &mut DuplexChallenger<T, P, PERMUTATION_WIDTH>,
+        challenger: &mut DuplexChallenger<T, P, PERMUTATION_WIDTH, RATE>,
     ) where
         T: PrimeField32,
     {

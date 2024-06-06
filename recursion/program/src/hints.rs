@@ -386,7 +386,8 @@ impl Hintable<C> for ShardCommitment<InnerDigestHash> {
     }
 }
 
-impl Hintable<C> for DuplexChallenger<InnerVal, InnerPerm, 16> {
+// TODO: Check RATE
+impl Hintable<C> for DuplexChallenger<InnerVal, InnerPerm, 16, 8> {
     type HintVariable = DuplexChallengerVariable<C>;
 
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
@@ -513,9 +514,10 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
     fn read(builder: &mut Builder<C>) -> Self::HintVariable {
         let vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, A>::read(builder);
         let shard_proofs = Vec::<ShardProofHint<'a, BabyBearPoseidon2, A>>::read(builder);
-        let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
+        // TODO: Check RATE
+        let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16, 8>::read(builder);
         let initial_reconstruct_challenger =
-            DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
+            DuplexChallenger::<InnerVal, InnerPerm, 16, 8>::read(builder);
         let is_complete = builder.hint_var();
 
         SphinxRecursionMemoryLayoutVariable {
@@ -628,7 +630,8 @@ impl<'a, A: MachineAir<BabyBear>> Hintable<C>
         let sphinx_vk = VerifyingKeyHint::<'a, BabyBearPoseidon2, RiscvAir<_>>::read(builder);
         let committed_value_digest = Vec::<Vec<InnerVal>>::read(builder);
         let deferred_proofs_digest = Vec::<InnerVal>::read(builder);
-        let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16>::read(builder);
+        // TODO: Check RATE
+        let leaf_challenger = DuplexChallenger::<InnerVal, InnerPerm, 16, 8>::read(builder);
         let end_pc = InnerVal::read(builder);
         let end_shard = InnerVal::read(builder);
 

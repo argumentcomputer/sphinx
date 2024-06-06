@@ -16,7 +16,7 @@ pub type OuterDigestVariable<C: Config> = [Var<C::N>; DIGEST_SIZE];
 pub struct RecursionShardProofVariable<C: Config> {
     pub commitment: ShardCommitment<OuterDigestVariable<C>>,
     pub opened_values: RecursionShardOpenedValuesVariable<C>,
-    pub opening_proof: TwoAdicPcsProofVariable<C>,
+    pub opening_proof: FriProofVariable<C>,
     pub public_values: Array<C, Felt<C::F>>,
 }
 
@@ -44,6 +44,7 @@ pub struct FriCommitPhaseProofStepVariable<C: Config> {
 /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/fri/src/proof.rs#L23
 #[derive(Clone)]
 pub struct FriQueryProofVariable<C: Config> {
+    pub input_proof: Vec<BatchOpeningVariable<C>>,
     pub commit_phase_openings: Vec<FriCommitPhaseProofStepVariable<C>>,
 }
 
@@ -58,12 +59,6 @@ pub struct FriChallenges<C: Config> {
 pub struct BatchOpeningVariable<C: Config> {
     pub opened_values: Vec<Vec<Vec<Felt<C::F>>>>,
     pub opening_proof: Vec<OuterDigestVariable<C>>,
-}
-
-#[derive(Clone)]
-pub struct TwoAdicPcsProofVariable<C: Config> {
-    pub fri_proof: FriProofVariable<C>,
-    pub query_openings: Vec<Vec<BatchOpeningVariable<C>>>,
 }
 
 #[derive(Clone)]

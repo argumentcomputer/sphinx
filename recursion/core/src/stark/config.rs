@@ -7,7 +7,7 @@ use p3_field::extension::BinomialExtensionField;
 use p3_fri::BatchOpening;
 use p3_fri::CommitPhaseProofStep;
 use p3_fri::QueryProof;
-use p3_fri::{FriConfig, FriProof, TwoAdicFriPcs, TwoAdicFriPcsProof};
+use p3_fri::{FriConfig, FriProof, TwoAdicFriPcs};
 use p3_merkle_tree::FieldMerkleTreeMmcs;
 use p3_poseidon2::Poseidon2;
 use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
@@ -33,13 +33,12 @@ pub type OuterChallengeMmcs = ExtensionMmcs<OuterVal, OuterChallenge, OuterValMm
 pub type OuterDft = Radix2DitParallel;
 pub type OuterChallenger = MultiField32Challenger<OuterVal, Bn254Fr, OuterPerm, 3>;
 pub type OuterPcs = TwoAdicFriPcs<OuterVal, OuterDft, OuterValMmcs, OuterChallengeMmcs>;
-
-pub type OuterQueryProof = QueryProof<OuterChallenge, OuterChallengeMmcs>;
-pub type OuterCommitPhaseStep = CommitPhaseProofStep<OuterChallenge, OuterChallengeMmcs>;
-pub type OuterFriProof = FriProof<OuterChallenge, OuterChallengeMmcs, OuterVal>;
 pub type OuterBatchOpening = BatchOpening<OuterVal, OuterValMmcs>;
-pub type OuterPcsProof =
-    TwoAdicFriPcsProof<OuterVal, OuterChallenge, OuterValMmcs, OuterChallengeMmcs>;
+pub type OuterInputProof = Vec<OuterBatchOpening>;
+pub type OuterQueryProof = QueryProof<OuterChallenge, OuterChallengeMmcs, OuterInputProof>;
+pub type OuterCommitPhaseStep = CommitPhaseProofStep<OuterChallenge, OuterChallengeMmcs>;
+pub type OuterCommitPhaseProofStep = CommitPhaseProofStep<OuterChallenge, OuterChallengeMmcs>;
+pub type OuterPcsProof = FriProof<OuterChallenge, OuterChallengeMmcs, OuterVal, OuterInputProof>;
 
 /// The permutation for outer recursion.
 pub fn outer_perm() -> OuterPerm {
@@ -121,7 +120,7 @@ impl BabyBearPoseidon2Outer {
         let val_mmcs = OuterValMmcs::new(hash, compress);
         let dft = OuterDft {};
         let fri_config = outer_fri_config();
-        let pcs = OuterPcs::new(27, dft, val_mmcs, fri_config);
+        let pcs = OuterPcs::new(dft, val_mmcs, fri_config);
         Self { pcs, perm }
     }
 }

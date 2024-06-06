@@ -7,7 +7,7 @@ use p3_field::{extension::BinomialExtensionField, Field};
 use p3_fri::BatchOpening;
 use p3_fri::CommitPhaseProofStep;
 use p3_fri::QueryProof;
-use p3_fri::{FriConfig, FriProof, TwoAdicFriPcs, TwoAdicFriPcsProof};
+use p3_fri::{FriConfig, FriProof, TwoAdicFriPcs};
 use p3_merkle_tree::FieldMerkleTreeMmcs;
 use p3_poseidon2::Poseidon2;
 use p3_poseidon2::Poseidon2ExternalMatrixGeneral;
@@ -18,6 +18,8 @@ use serde::Serialize;
 use sphinx_primitives::poseidon2_init;
 
 pub const DIGEST_SIZE: usize = 8;
+// TODO: Check RATE
+pub const RATE: usize = 8;
 
 /// A configuration for inner recursion.
 pub type InnerVal = BabyBear;
@@ -36,15 +38,15 @@ pub type InnerValMmcs = FieldMerkleTreeMmcs<
     8,
 >;
 pub type InnerChallengeMmcs = ExtensionMmcs<InnerVal, InnerChallenge, InnerValMmcs>;
-pub type InnerChallenger = DuplexChallenger<InnerVal, InnerPerm, 16>;
+pub type InnerChallenger = DuplexChallenger<InnerVal, InnerPerm, 16, RATE>;
 pub type InnerDft = Radix2DitParallel;
 pub type InnerPcs = TwoAdicFriPcs<InnerVal, InnerDft, InnerValMmcs, InnerChallengeMmcs>;
-pub type InnerQueryProof = QueryProof<InnerChallenge, InnerChallengeMmcs>;
-pub type InnerCommitPhaseStep = CommitPhaseProofStep<InnerChallenge, InnerChallengeMmcs>;
-pub type InnerFriProof = FriProof<InnerChallenge, InnerChallengeMmcs, InnerVal>;
 pub type InnerBatchOpening = BatchOpening<InnerVal, InnerValMmcs>;
-pub type InnerPcsProof =
-    TwoAdicFriPcsProof<InnerVal, InnerChallenge, InnerValMmcs, InnerChallengeMmcs>;
+pub type InnerInputProof = Vec<InnerBatchOpening>;
+pub type InnerQueryProof = QueryProof<InnerChallenge, InnerChallengeMmcs, InnerInputProof>;
+pub type InnerCommitPhaseStep = CommitPhaseProofStep<InnerChallenge, InnerChallengeMmcs>;
+pub type InnerCommitPhaseProofStep = CommitPhaseProofStep<InnerChallenge, InnerChallengeMmcs>;
+pub type InnerPcsProof = FriProof<InnerChallenge, InnerChallengeMmcs, InnerVal, InnerInputProof>;
 
 /// The permutation for inner recursion.
 pub fn inner_perm() -> InnerPerm {
@@ -124,7 +126,7 @@ impl BabyBearPoseidon2Inner {
         let val_mmcs = InnerValMmcs::new(hash, compress);
         let dft = InnerDft {};
         let fri_config = inner_fri_config();
-        let pcs = InnerPcs::new(27, dft, val_mmcs, fri_config);
+        let pcs = InnerPcs::new(dft, val_mmcs, fri_config);
         Self { pcs, perm }
     }
 }

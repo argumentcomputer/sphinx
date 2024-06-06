@@ -31,8 +31,6 @@ use crate::{
     stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
 };
 
-const LOG_DEGREE_BOUND: usize = 31;
-
 #[derive(Error, Debug)]
 pub enum SphinxCoreProverError {
     #[error("failed to execute program: {0}")]
@@ -423,7 +421,6 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_uni_stark::Proof;
 
 pub mod baby_bear_poseidon2 {
-
     use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
     use p3_challenger::DuplexChallenger;
     use p3_commit::ExtensionMmcs;
@@ -453,7 +450,8 @@ pub mod baby_bear_poseidon2 {
     >;
     pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
     pub type Dft = Radix2DitParallel;
-    pub type Challenger = DuplexChallenger<Val, Perm, 16>;
+    // TODO: Check RATE
+    pub type Challenger = DuplexChallenger<Val, Perm, 16, 8>;
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
 
     pub fn my_perm() -> Perm {
@@ -532,7 +530,7 @@ pub mod baby_bear_poseidon2 {
             let val_mmcs = ValMmcs::new(hash, compress);
             let dft = Dft {};
             let fri_config = default_fri_config();
-            let pcs = Pcs::new(27, dft, val_mmcs, fri_config);
+            let pcs = Pcs::new(dft, val_mmcs, fri_config);
             Self {
                 pcs,
                 perm,
@@ -547,7 +545,7 @@ pub mod baby_bear_poseidon2 {
             let val_mmcs = ValMmcs::new(hash, compress);
             let dft = Dft {};
             let fri_config = compressed_fri_config();
-            let pcs = Pcs::new(27, dft, val_mmcs, fri_config);
+            let pcs = Pcs::new(dft, val_mmcs, fri_config);
             Self {
                 pcs,
                 perm,
@@ -605,7 +603,6 @@ pub mod baby_bear_poseidon2 {
 }
 
 pub(super) mod baby_bear_keccak {
-
     use p3_baby_bear::BabyBear;
     use p3_challenger::{HashChallenger, SerializingChallenger32};
     use p3_commit::ExtensionMmcs;
@@ -617,7 +614,6 @@ pub(super) mod baby_bear_keccak {
     use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
     use serde::{Deserialize, Serialize};
 
-    use super::LOG_DEGREE_BOUND;
     use crate::stark::StarkGenericConfig;
 
     pub(crate) type Val = BabyBear;
@@ -643,6 +639,7 @@ pub(super) mod baby_bear_keccak {
     pub struct BabyBearKeccak {
         pcs: Pcs,
     }
+
     // Implement serialization manually instead of using serde(into) to avoid cloing the config
     impl Serialize for BabyBearKeccak {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -678,7 +675,7 @@ pub(super) mod baby_bear_keccak {
                 proof_of_work_bits: 16,
                 mmcs: challenge_mmcs,
             };
-            let pcs = Pcs::new(LOG_DEGREE_BOUND, dft, val_mmcs, fri_config);
+            let pcs = Pcs::new(dft, val_mmcs, fri_config);
 
             Self { pcs }
         }
@@ -717,7 +714,6 @@ pub(super) mod baby_bear_keccak {
 }
 
 pub(super) mod baby_bear_blake3 {
-
     use p3_baby_bear::BabyBear;
     use p3_blake3::Blake3;
     use p3_challenger::{HashChallenger, SerializingChallenger32};
@@ -729,7 +725,6 @@ pub(super) mod baby_bear_blake3 {
     use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
     use serde::{Deserialize, Serialize};
 
-    use super::LOG_DEGREE_BOUND;
     use crate::stark::StarkGenericConfig;
 
     pub(crate) type Val = BabyBear;
@@ -801,7 +796,7 @@ pub(super) mod baby_bear_blake3 {
                 proof_of_work_bits: 16,
                 mmcs: challenge_mmcs,
             };
-            let pcs = Pcs::new(LOG_DEGREE_BOUND, dft, val_mmcs, fri_config);
+            let pcs = Pcs::new(dft, val_mmcs, fri_config);
 
             Self { pcs }
         }

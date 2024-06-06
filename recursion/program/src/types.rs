@@ -7,7 +7,7 @@ use sphinx_core::{
 use sphinx_recursion_compiler::prelude::*;
 
 use crate::fri::{
-    types::{DigestVariable, FriConfigVariable, TwoAdicPcsProofVariable},
+    types::{DigestVariable, FriConfigVariable, FriProofVariable},
     TwoAdicMultiplicativeCosetVariable,
 };
 
@@ -16,7 +16,7 @@ use crate::fri::{
 pub struct ShardProofVariable<C: Config> {
     pub commitment: ShardCommitmentVariable<C>,
     pub opened_values: ShardOpenedValuesVariable<C>,
-    pub opening_proof: TwoAdicPcsProofVariable<C>,
+    pub opening_proof: FriProofVariable<C>,
     pub public_values: Array<C, Felt<C::F>>,
     pub quotient_data: Array<C, QuotientData<C>>,
     pub sorted_idxs: Array<C, Var<C::N>>,

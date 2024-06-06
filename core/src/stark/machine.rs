@@ -64,7 +64,7 @@ impl<SC: StarkGenericConfig, A> StarkMachine<SC, A> {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(bound(serialize = "PcsProverData<SC>: Serialize"))]
 #[serde(bound(deserialize = "PcsProverData<SC>: DeserializeOwned"))]
 pub struct StarkProvingKey<SC: StarkGenericConfig> {
@@ -516,7 +516,6 @@ impl<SC: StarkGenericConfig> std::error::Error for MachineVerificationError<SC> 
 
 #[cfg(test)]
 pub mod tests {
-
     use serial_test::serial;
 
     use crate::io::SphinxStdin;

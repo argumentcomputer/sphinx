@@ -8,13 +8,13 @@ use sphinx_recursion_compiler::{
 };
 use sphinx_recursion_core::stark::config::{
     BabyBearPoseidon2Outer, OuterBatchOpening, OuterChallenge, OuterCommitPhaseStep, OuterDigest,
-    OuterFriProof, OuterPcsProof, OuterQueryProof, OuterVal,
+    OuterPcsProof, OuterQueryProof, OuterVal,
 };
 
 use crate::types::{
     AirOpenedValuesVariable, BatchOpeningVariable, ChipOpenedValuesVariable,
     FriCommitPhaseProofStepVariable, FriProofVariable, FriQueryProofVariable, OuterDigestVariable,
-    RecursionShardOpenedValuesVariable, RecursionShardProofVariable, TwoAdicPcsProofVariable,
+    RecursionShardOpenedValuesVariable, RecursionShardProofVariable,
 };
 
 pub trait Witnessable<C: Config> {
@@ -223,19 +223,22 @@ impl Witnessable<C> for OuterQueryProof {
     type WitnessVariable = FriQueryProofVariable<C>;
 
     fn read(&self, builder: &mut Builder<C>) -> Self::WitnessVariable {
+        let input_proof = self.input_proof.read(builder);
         let commit_phase_openings = self.commit_phase_openings.read(builder);
         FriQueryProofVariable {
+            input_proof,
             commit_phase_openings,
         }
     }
 
     fn write(&self, witness: &mut Witness<C>) {
+        self.input_proof.write(witness);
         self.commit_phase_openings.write(witness);
     }
 }
 impl VectorWitnessable<C> for OuterQueryProof {}
 
-impl Witnessable<C> for OuterFriProof {
+impl Witnessable<C> for OuterPcsProof {
     type WitnessVariable = FriProofVariable<C>;
 
     fn read(&self, builder: &mut Builder<C>) -> Self::WitnessVariable {
@@ -266,24 +269,6 @@ impl Witnessable<C> for OuterFriProof {
         self.query_proofs.write(witness);
         self.final_poly.write(witness);
         self.pow_witness.write(witness);
-    }
-}
-
-impl Witnessable<C> for OuterPcsProof {
-    type WitnessVariable = TwoAdicPcsProofVariable<C>;
-
-    fn read(&self, builder: &mut Builder<C>) -> Self::WitnessVariable {
-        let fri_proof = self.fri_proof.read(builder);
-        let query_openings = self.query_openings.read(builder);
-        TwoAdicPcsProofVariable {
-            fri_proof,
-            query_openings,
-        }
-    }
-
-    fn write(&self, witness: &mut Witness<C>) {
-        self.fri_proof.write(witness);
-        self.query_openings.write(witness);
     }
 }
 
