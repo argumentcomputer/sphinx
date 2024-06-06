@@ -58,7 +58,7 @@ pub fn verify_two_adic_pcs<C: Config>(
 ) {
     let alpha = challenger.sample_ext(builder);
 
-    let fri_challenges = verify_shape_and_sample_challenges(builder, config, &proof, challenger);
+    let fri_challenges = verify_shape_and_sample_challenges(builder, config, proof, challenger);
 
     let log_global_max_height = proof.commit_phase_commits.len() + config.log_blowup;
 
@@ -131,7 +131,7 @@ pub fn verify_two_adic_pcs<C: Config>(
         })
         .collect::<Vec<_>>();
 
-    verify_challenges(builder, config, &proof, &fri_challenges, reduced_openings);
+    verify_challenges(builder, config, proof, &fri_challenges, reduced_openings);
 }
 
 pub fn verify_challenges<C: Config>(

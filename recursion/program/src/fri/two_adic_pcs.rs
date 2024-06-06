@@ -35,7 +35,7 @@ pub fn verify_two_adic_pcs<C: Config>(
     let alpha = challenger.sample_ext(builder);
 
     builder.cycle_tracker("stage-d-1-verify-shape-and-sample-challenges");
-    let fri_challenges = verify_shape_and_sample_challenges(builder, config, &proof, challenger);
+    let fri_challenges = verify_shape_and_sample_challenges(builder, config, proof, challenger);
     builder.cycle_tracker("stage-d-1-verify-shape-and-sample-challenges");
 
     let commit_phase_commits_len = proof.commit_phase_commits.len().materialize(builder);
@@ -147,7 +147,7 @@ pub fn verify_two_adic_pcs<C: Config>(
     builder.cycle_tracker("stage-d-2-fri-fold");
 
     builder.cycle_tracker("stage-d-3-verify-challenges");
-    verify_challenges(builder, config, &proof, &fri_challenges, &reduced_openings);
+    verify_challenges(builder, config, proof, &fri_challenges, &reduced_openings);
     builder.cycle_tracker("stage-d-3-verify-challenges");
 }
 
