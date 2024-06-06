@@ -230,10 +230,9 @@ pub fn verify_query<C: Config>(
 #[cfg(test)]
 pub mod tests {
     use p3_bn254_fr::Bn254Fr;
-    use p3_challenger::{CanObserve, CanSample, FieldChallenger};
+    use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, TwoAdicMultiplicativeCoset};
     use p3_field::AbstractField;
-    use p3_fri::{verifier, FriProof};
     use p3_matrix::dense::RowMajorMatrix;
     use rand::rngs::OsRng;
     use sphinx_recursion_compiler::{
@@ -242,12 +241,12 @@ pub mod tests {
         ir::{Builder, Ext, Felt, SymbolicExt, Var, Witness},
     };
     use sphinx_recursion_core::stark::config::{
-        outer_perm, test_fri_config, OuterChallenge, OuterChallengeMmcs, OuterChallenger,
-        OuterCompress, OuterDft, OuterHash, OuterPcs, OuterPcsProof, OuterVal, OuterValMmcs,
+        outer_perm, test_fri_config, OuterChallenge, OuterChallenger, OuterCompress, OuterDft,
+        OuterHash, OuterPcs, OuterPcsProof, OuterVal, OuterValMmcs,
     };
     use sphinx_recursion_gnark_ffi::Groth16Prover;
 
-    use super::{verify_shape_and_sample_challenges, verify_two_adic_pcs, TwoAdicPcsRoundVariable};
+    use super::{verify_two_adic_pcs, TwoAdicPcsRoundVariable};
     use crate::{
         challenger::MultiField32ChallengerVariable,
         fri::FriQueryProofVariable,
