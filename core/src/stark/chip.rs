@@ -3,7 +3,7 @@ use std::hash::Hash;
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::{ExtensionField, Field, PrimeField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
-use p3_uni_stark::{get_max_constraint_degree, SymbolicAirBuilder};
+use p3_uni_stark::{get_max_constraint_degree, get_symbolic_constraints, SymbolicAirBuilder};
 use p3_util::log2_ceil_usize;
 
 use crate::{
@@ -26,6 +26,8 @@ pub struct Chip<F: Field, A> {
     receives: Vec<Interaction<F>>,
     /// The relative log degree of the quotient polynomial, i.e. `log2(max_constraint_degree - 1)`.
     log_quotient_degree: usize,
+
+    num_constraints: usize,
 }
 
 impl<F: Field, A> Chip<F, A> {
@@ -75,17 +77,26 @@ where
         }
         let log_quotient_degree = log2_ceil_usize(max_constraint_degree - 1);
 
+        let num_constraints =
+            get_symbolic_constraints(&air, air.preprocessed_width(), PROOF_MAX_NUM_PVS).len();
+
         Self {
             air,
             sends,
             receives,
             log_quotient_degree,
+            num_constraints,
         }
     }
 
     #[inline]
     pub fn num_interactions(&self) -> usize {
         self.sends.len() + self.receives.len()
+    }
+
+    #[inline]
+    pub fn num_constraints(&self) -> usize {
+        self.num_constraints
     }
 
     #[inline]
