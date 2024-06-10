@@ -220,3 +220,145 @@ impl<F: PrimeField32> core::hash::Hash for RiscvAir<F> {
         self.name().hash(state);
     }
 }
+#[cfg(test)]
+pub mod tests {
+    use crate::air::MachineAir;
+    use crate::stark::{Chip, RiscvAir};
+    use p3_air::BaseAir;
+    use p3_baby_bear::BabyBear;
+    use p3_field::Field;
+    use std::ops::AddAssign;
+
+    struct Stats {
+        name: String,
+        main: usize,
+        perm: usize,
+        interactions: usize,
+        constraints: usize,
+    }
+
+    impl AddAssign<&Self> for Stats {
+        fn add_assign(&mut self, rhs: &Self) {
+            self.main += rhs.main;
+            self.perm += rhs.perm;
+            self.interactions += rhs.interactions;
+            self.constraints += rhs.constraints;
+        }
+    }
+
+    impl Stats {
+        fn new_empty(name: String) -> Self {
+            Self {
+                name,
+                main: 0,
+                perm: 0,
+                interactions: 0,
+                constraints: 0,
+            }
+        }
+
+        fn new<F: Field, A: MachineAir<F>>(chip: &Chip<F, A>) -> Self {
+            let name = chip.name();
+            let main = chip.width();
+            let interactions = chip.num_interactions();
+
+            let batch_size = 2;
+            let perm = interactions.div_ceil(batch_size) + 1;
+
+            let interactions = chip.num_interactions();
+            let constraints = chip.num_constraints();
+
+            Self {
+                name,
+                main,
+                perm,
+                interactions,
+                constraints,
+            }
+        }
+
+        fn header() {
+            println!();
+            println!("| Name | Constraints | Interactions | Main Cols | LogUp Cols |");
+            println!("|---|---|---|---|---|");
+        }
+
+        fn print(&self) {
+            println!(
+                "| {} | {} | {} | {} | {} |",
+                self.name,
+                self.constraints,
+                self.interactions,
+                self.main,
+                self.perm * 4,
+            )
+        }
+    }
+
+    #[test]
+    fn test_widths() {
+        type F = BabyBear;
+
+        let riscv = ["CPU", "Program", "Memory"].to_vec();
+        let hash_names = ["Keccak", "Sha"].to_vec();
+        let ecc_names = ["Bls", "Bn", "Ed", "Secp", "G2"].to_vec();
+        let precompile_names = [hash_names.clone(), ecc_names.clone()].concat();
+        let non_alu = [riscv.clone(), precompile_names.clone()].concat();
+        let start_with = |name: String, names: &[&str]| {
+            for &other_name in names {
+                if name.starts_with(other_name) {
+                    return true;
+                }
+            }
+            false
+        };
+
+        Stats::header();
+        let mut total = Stats::new_empty("Total RISCV".to_string());
+        for m in RiscvAir::<F>::get_all()
+            .into_iter()
+            .filter(|m| start_with(m.name(), &riscv))
+        {
+            let chip = Chip::new(m);
+            let stats = Stats::new(&chip);
+            stats.print();
+            total += &stats;
+        }
+        total.print();
+
+        Stats::header();
+        let mut total = Stats::new_empty("Total ALU + Bytes".to_string());
+        for m in RiscvAir::<F>::get_all()
+            .into_iter()
+            .filter(|m| !start_with(m.name(), &non_alu))
+        {
+            let chip = Chip::new(m);
+            let stats = Stats::new(&chip);
+            if !start_with(stats.name.clone(), &precompile_names) {
+                stats.print();
+                total += &stats;
+            }
+        }
+        total.print();
+
+        Stats::header();
+        for m in RiscvAir::<F>::get_all()
+            .into_iter()
+            .filter(|m| start_with(m.name(), &hash_names))
+        {
+            let chip = Chip::new(m);
+            let stats = Stats::new(&chip);
+            stats.print()
+        }
+
+        Stats::header();
+        for m in RiscvAir::<F>::get_all()
+            .into_iter()
+            .filter(|m| start_with(m.name(), &ecc_names))
+        {
+            let chip = Chip::new(m);
+            let stats = Stats::new(&chip);
+            stats.print()
+        }
+    }
+}
