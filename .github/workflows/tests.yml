@@ -170,7 +170,7 @@ jobs:
       - uses: ./ci-workflows/.github/actions/ci-env
       - name: Set env
         run: |
-          echo "DOWNSTREAM_REPO=$(echo "wormhole-foundation/example-zk-light-clients-internal" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
+          echo "DOWNSTREAM_REPO=$(echo "lurk-lab/zk-light-clients" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
           echo "UPSTREAM_REPO=$(echo "lurk-lab/sphinx" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
@@ -189,7 +189,7 @@ jobs:
           echo "RUSTFLAGS=${{env.RUSTFLAGS}} --cfg tokio_unstable" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
-          repository: "wormhole-foundation/${{ env.DOWNSTREAM_REPO }}"
+          repository: "lurk-lab/${{ env.DOWNSTREAM_REPO }}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
           token: ${{ secrets.REPO_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles
