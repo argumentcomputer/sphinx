@@ -4,9 +4,7 @@ use crate::air::{MachineAir, SPHINX_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
-use crate::syscall::precompiles::field::add::FieldAddChip;
-use crate::syscall::precompiles::field::mul::FieldMulChip;
-use crate::syscall::precompiles::field::sub::FieldSubChip;
+use crate::syscall::precompiles::field::FieldChip;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
 use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
@@ -104,12 +102,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Add(WeierstrassAddAssignChip<SwCurve<Bls12381Parameters>>),
     /// A precompile for doubling a G1 point on the Elliptic curve bls12_381.
     Bls12381Double(WeierstrassDoubleAssignChip<SwCurve<Bls12381Parameters>>),
-    /// A precompile for addition of BLS12-381 field elements.
-    Bls12381FpAdd(FieldAddChip<Bls12381BaseField>),
-    /// A precompile for subtraction of BLS12-381 field elements.
-    Bls12381FpSub(FieldSubChip<Bls12381BaseField>),
-    /// A precompile for multiplication of BLS12-381 field elements.
-    Bls12381FpMul(FieldMulChip<Bls12381BaseField>),
+    /// A precompile for arithmetic of BLS12-381 field elements.
+    Bls12381FpOp(FieldChip<Bls12381BaseField>),
     /// A precompile for addition of BLS12-381 quadratic extension field elements.
     Bls12381Fp2Add(QuadFieldAddChip<Bls12381BaseField>),
     /// A precompile for subtraction of BLS12-381 quadratic field elements.
@@ -164,12 +158,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Add(bls12381_g1_add));
         let bls12381_g1_double = WeierstrassDoubleAssignChip::<SwCurve<Bls12381Parameters>>::new();
         chips.push(RiscvAir::Bls12381Double(bls12381_g1_double));
-        let bls12381_fp_add = FieldAddChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpAdd(bls12381_fp_add));
-        let bls12381_fp_sub = FieldSubChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpSub(bls12381_fp_sub));
-        let bls12381_fp_mul = FieldMulChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381FpMul(bls12381_fp_mul));
+        let bls12381_fp_op = FieldChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381FpOp(bls12381_fp_op));
         let bls12381_fp2_add = QuadFieldAddChip::<Bls12381BaseField>::new();
         chips.push(RiscvAir::Bls12381Fp2Add(bls12381_fp2_add));
         let bls12381_fp2_sub = QuadFieldSubChip::<Bls12381BaseField>::new();

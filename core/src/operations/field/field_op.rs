@@ -4,6 +4,7 @@ use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Integer, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
+use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
 use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
@@ -14,7 +15,7 @@ use crate::air::{BaseAirBuilder, Polynomial};
 use crate::bytes::event::ByteRecord;
 
 /// Airthmetic operation for emulating modular arithmetic.
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum FieldOperation {
     Add,
     Mul,
@@ -259,6 +260,52 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
             .map(AB::Expr::from)
             .collect::<Polynomial<_>>();
         self.eval_with_modulus::<AB>(builder, a, b, &p_limbs, op, shard, channel, is_real);
+    }
+
+    // Here p_op needs to be:
+    // let (p_a, p_result): (Polynomial<_>, Polynomial<_>) = match op {
+    //     FieldOperation::Add | FieldOperation::Mul => (p_a_param, self.result.clone().into()),
+    //     FieldOperation::Sub | FieldOperation::Div => (self.result.clone().into(), p_a_param),
+    // };
+    // let p_op = match op {
+    //     FieldOperation::Add | FieldOperation::Sub => p_a + p_b,
+    //     FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
+    // };
+    pub fn eval_any_with_modulus<AB: WordAirBuilder<Var = V>>(
+        &self,
+        builder: &mut AB,
+        p_op: Polynomial<AB::Expr>,
+        p_result: &Polynomial<AB::Expr>,
+        modulus: &Polynomial<AB::Expr>,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
+    ) where
+        V: Into<AB::Expr>,
+    {
+        let p_carry: Polynomial<AB::Expr> = self.carry.clone().into();
+
+        let p_op_minus_result: Polynomial<AB::Expr> = p_op - p_result;
+        let p_vanishing = p_op_minus_result - &(&p_carry * modulus);
+        let p_witness_low = self.witness_low.iter().into();
+        let p_witness_high = self.witness_high.iter().into();
+        eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(
+            &self.result,
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(&self.carry, shard.clone(), channel.clone(), is_real.clone());
+        builder.slice_range_check_u8(
+            p_witness_low.coefficients(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(p_witness_high.coefficients(), shard, channel, is_real);
     }
 }
 

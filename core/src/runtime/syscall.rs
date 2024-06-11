@@ -11,9 +11,7 @@ use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
 use crate::syscall::precompiles::edwards::EdAddAssignChip;
 use crate::syscall::precompiles::edwards::EdDecompressChip;
-use crate::syscall::precompiles::field::add::FieldAddChip;
-use crate::syscall::precompiles::field::mul::FieldMulChip;
-use crate::syscall::precompiles::field::sub::FieldSubChip;
+use crate::syscall::precompiles::field::{FieldAddSyscall, FieldMulSyscall, FieldSubSyscall};
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
 use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
 use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
@@ -337,15 +335,15 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_ADD,
-        Arc::new(FieldAddChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldAddSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_SUB,
-        Arc::new(FieldSubChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldSubSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_MUL,
-        Arc::new(FieldMulChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldMulSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP2_ADD,
