@@ -4,6 +4,7 @@ use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Integer, Zero};
 use p3_air::AirBuilder;
 use p3_field::PrimeField32;
+use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
 use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
@@ -14,7 +15,7 @@ use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
 
 /// Airthmetic operation for emulating modular arithmetic.
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum FieldOperation {
     Add,
     Mul,
@@ -207,6 +208,39 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
             FieldOperation::Add | FieldOperation::Sub => p_a + p_b,
             FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
         };
+        let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;
+        let p_limbs = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect();
+        let p_vanishing = p_op_minus_result - &(&p_carry * &p_limbs);
+        let p_witness_low = self.witness_low.iter().into();
+        let p_witness_high = self.witness_high.iter().into();
+        eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(&self.result, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(&self.carry, shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(p_witness_low.coefficients(), shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(p_witness_high.coefficients(), shard, is_real);
+    }
+
+    pub fn eval_any<
+        AB: WordAirBuilder<Var = V>,
+        EShard: Into<AB::Expr> + Clone,
+        ER: Into<AB::Expr> + Clone,
+    >(
+        &self,
+        builder: &mut AB,
+        p_op: Polynomial<AB::Expr>,
+        shard: EShard,
+        is_real: ER,
+    ) where
+        V: Into<AB::Expr>,
+    {
+        let p_result: Polynomial<AB::Expr> = self.result.clone().into();
+
+        let p_carry: Polynomial<<AB as AirBuilder>::Expr> = self.carry.clone().into();
+
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;
         let p_limbs = P::modulus_field_iter::<AB::F>()
             .map(AB::Expr::from)
