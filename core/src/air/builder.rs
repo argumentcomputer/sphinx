@@ -422,15 +422,16 @@ pub trait MemoryAirBuilder: BaseAirBuilder {
         clk: impl Into<Self::Expr> + Clone,
         initial_addr: impl Into<Self::Expr> + Copy,
         memory_access_slice: &[impl MemoryCols<E>],
-        verify_memory_access: impl Into<Self::Expr> + Copy,
+        verify_memory_access: impl Into<Self::Expr>,
     ) {
+        let is_real = verify_memory_access.into();
         for (i, access_slice) in memory_access_slice.iter().enumerate() {
             self.eval_memory_access(
                 shard,
                 clk.clone(),
                 initial_addr.into() + Self::Expr::from_canonical_usize(i * 4),
                 access_slice,
-                verify_memory_access,
+                is_real.clone(),
             );
         }
     }

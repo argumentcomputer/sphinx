@@ -125,7 +125,10 @@ pub trait EllipticCurveParameters:
 pub trait WithAddition: EllipticCurveParameters {
     fn add_events(
         record: &ExecutionRecord,
-    ) -> &[ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>];
+    ) -> (
+        &[ECAddEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>],
+        &[ECDoubleEvent<<Self::BaseField as FieldParameters>::NB_LIMBS>],
+    );
 }
 
 pub trait WithDoubling: EllipticCurveParameters {

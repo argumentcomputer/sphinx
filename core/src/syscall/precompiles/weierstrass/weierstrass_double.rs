@@ -57,8 +57,8 @@ pub struct WeierstrassDoubleAssignCols<T, P: FieldParameters> {
     pub(crate) slope_denominator: FieldOpCols<T, P>,
     pub(crate) slope_numerator: FieldOpCols<T, P>,
     pub(crate) slope: FieldOpCols<T, P>,
-    pub(crate) p_x_squared: FieldOpCols<T, P>,
-    pub(crate) p_x_squared_times_3: FieldOpCols<T, P>,
+    pub(crate) p_x_squared: FieldOpCols<T, P>,         //
+    pub(crate) p_x_squared_times_3: FieldOpCols<T, P>, //
     pub(crate) slope_squared: FieldOpCols<T, P>,
     pub(crate) p_x_plus_p_x: FieldOpCols<T, P>,
     pub(crate) x3_ins: FieldOpCols<T, P>,
