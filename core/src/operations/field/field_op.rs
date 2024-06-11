@@ -244,7 +244,7 @@ mod tests {
     use crate::{air::MachineAir, utils::ec::weierstrass::bls12_381::Bls12381BaseField};
 
     use crate::air::{EventLens, EventMutLens, WordAirBuilder};
-    use crate::bytes::event::ByteRecord;
+
     use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::FieldParameters;
     use crate::runtime::ExecutionRecord;
@@ -287,17 +287,6 @@ mod tests {
     impl<P: FieldParameters> EventLens<FieldOpChip<P>> for ExecutionRecord {
         fn events(&self) -> <FieldOpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
-        }
-    }
-
-    impl<P: FieldParameters> EventMutLens<FieldOpChip<P>> for ExecutionRecord {
-        fn add_events(
-            &mut self,
-            events: <FieldOpChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
-        ) {
-            for event in events {
-                self.add_byte_lookup_event(*event);
-            }
         }
     }
 

@@ -155,7 +155,6 @@ mod tests {
     use crate::air::{EventLens, EventMutLens, WordAirBuilder};
     use crate::{
         air::MachineAir,
-        bytes::event::ByteRecord,
         bytes::ByteLookupEvent,
         utils::ec::weierstrass::{bls12_381::Bls12381BaseField, secp256k1::Secp256k1BaseField},
     };
@@ -196,17 +195,6 @@ mod tests {
     impl<P: FieldParameters> EventLens<FieldIpChip<P>> for ExecutionRecord {
         fn events(&self) -> <FieldIpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
-        }
-    }
-
-    impl<P: FieldParameters> EventMutLens<FieldIpChip<P>> for ExecutionRecord {
-        fn add_events(
-            &mut self,
-            events: <FieldIpChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
-        ) {
-            for event in events {
-                self.add_byte_lookup_event(*event);
-            }
         }
     }
 

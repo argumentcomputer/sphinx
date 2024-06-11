@@ -112,7 +112,7 @@ mod tests {
 
     use crate::air::MachineAir;
     use crate::air::{EventLens, EventMutLens, WordAirBuilder};
-    use crate::bytes::event::ByteRecord;
+
     use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::ExecutionRecord;
@@ -159,17 +159,6 @@ mod tests {
     impl<P: FieldParameters> EventLens<QuadSqrtChip<P>> for ExecutionRecord {
         fn events(&self) -> <QuadSqrtChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
-        }
-    }
-
-    impl<P: FieldParameters> EventMutLens<QuadSqrtChip<P>> for ExecutionRecord {
-        fn add_events(
-            &mut self,
-            events: <QuadSqrtChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
-        ) {
-            for event in events {
-                self.add_byte_lookup_event(*event);
-            }
         }
     }
 

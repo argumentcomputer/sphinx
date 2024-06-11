@@ -380,7 +380,7 @@ mod tests {
 
     use super::{QuadFieldOpCols, QuadFieldOperation};
     use crate::air::MachineAir;
-    use crate::bytes::event::ByteRecord;
+
     use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::{FieldParameters, Limbs};
     use crate::runtime::{ExecutionRecord, Program};
@@ -420,17 +420,6 @@ mod tests {
     impl<P: FieldParameters> EventLens<QuadFieldOpChip<P>> for ExecutionRecord {
         fn events(&self) -> <QuadFieldOpChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
-        }
-    }
-
-    impl<P: FieldParameters> EventMutLens<QuadFieldOpChip<P>> for ExecutionRecord {
-        fn add_events(
-            &mut self,
-            events: <QuadFieldOpChip<P> as crate::air::WithEvents<'_>>::OutputEvents,
-        ) {
-            for event in events {
-                self.add_byte_lookup_event(*event);
-            }
         }
     }
 
