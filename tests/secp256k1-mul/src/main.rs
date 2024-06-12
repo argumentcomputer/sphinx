@@ -1,6 +1,7 @@
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
+use hybrid_array::typenum::U16;
 use sphinx_zkvm::precompiles::secp256k1::Secp256k1Operations;
 use sphinx_zkvm::precompiles::utils::AffinePoint;
 
@@ -16,7 +17,7 @@ pub fn main() {
         38, 119, 218, 58, 72,
     ];
 
-    let mut a_point = AffinePoint::<Secp256k1Operations, 16>::from_le_bytes(&a);
+    let mut a_point = AffinePoint::<Secp256k1Operations, U16>::from_le_bytes(&a);
 
     // scalar.
     // 3
