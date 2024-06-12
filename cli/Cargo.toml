@@ -15,14 +15,14 @@ clap = { workspace = true, features = ["derive", "env"] }
 sphinx-prover = { path = "../prover" }
 sphinx-sdk = { path = "../sdk" }
 sphinx-core = { path = "../core" }
-reqwest = { workspace = true, features = ["stream", "json", "rustls-tls"] }
+reqwest = { workspace = true, features = ["stream", "json", "default-tls"] }
 futures-util = { workspace = true }
 indicatif = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 home = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }
-downloader = { workspace = true, features = ["rustls-tls"] }
+downloader = { workspace = true, features = ["default-tls"] }
 serde_json = { workspace = true }
 yansi = { workspace = true }
 hex = { workspace = true }

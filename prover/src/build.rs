@@ -52,7 +52,7 @@ pub fn try_build_plonk_bn254_artifacts_dev(
 
 /// Gets the directory where the PLONK artifacts are installed.
 fn plonk_bn254_artifacts_dir() -> PathBuf {
-    dirs::home_dir()
+    home::home_dir()
         .unwrap()
         .join(".sp1")
         .join("circuits")
@@ -62,7 +62,7 @@ fn plonk_bn254_artifacts_dir() -> PathBuf {
 
 /// Gets the directory where the PLONK artifacts are installed in development mode.
 pub fn plonk_bn254_artifacts_dev_dir() -> PathBuf {
-    dirs::home_dir()
+    home::home_dir()
         .unwrap()
         .join(".sp1")
         .join("circuits")

@@ -64,7 +64,7 @@ pub fn install_plonk_bn254_artifacts(build_dir: &Path) {
 /// The directory where the plonk bn254 artifacts will be stored based on [PLONK_BN254_ARTIFACTS_VERSION]
 /// and [PLONK_BN254_ARTIFACTS_URL_BASE].
 pub fn install_plonk_bn254_artifacts_dir() -> PathBuf {
-    dirs::home_dir()
+    home::home_dir()
         .unwrap()
         .join(".sp1")
         .join("circuits")
