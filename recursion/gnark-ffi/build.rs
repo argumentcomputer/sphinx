@@ -1,3 +1,4 @@
+use cfg_if::cfg_if;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
@@ -7,50 +8,60 @@ use bindgen::CargoCallbacks;
 
 /// Build the go library, generate Rust bindings for the exposed functions, and link the library.
 fn main() {
-    println!("cargo:rerun-if-changed=go");
-    // Define the output directory
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let dest_path = PathBuf::from(&out_dir);
-    let lib_name = "sp1gnark";
-    let dest = dest_path.join(format!("lib{}.a", lib_name));
+    cfg_if! {
+        if #[cfg(feature = "plonk")] {
+            println!("cargo:rerun-if-changed=go");
+            // Define the output directory
+            let out_dir = env::var("OUT_DIR").unwrap();
+            let dest_path = PathBuf::from(&out_dir);
+            let lib_name = "sp1gnark";
+            let dest = dest_path.join(format!("lib{}.a", lib_name));
 
-    println!("Building Go library at {}", dest.display());
+            println!("Building Go library at {}", dest.display());
 
-    // Run the go build command
-    let status = Command::new("go")
-        .current_dir("go")
-        .env("CGO_ENABLED", "1")
-        .args([
-            "build",
-            "-o",
-            dest.to_str().unwrap(),
-            "-buildmode=c-archive",
-            ".",
-        ])
-        .status()
-        .expect("Failed to build Go library");
-    assert!(status.success(), "Go build failed");
+            // Check if 'go' command is available
+            if !Command::new("which").arg("go").status().unwrap().success(){
+                eprintln!("'go' command not found. Make sure Go is installed and in your PATH.");
+                return;
+            }
 
-    // Copy go/babybear.h to OUT_DIR/babybear.h
-    let header_src = PathBuf::from("go/babybear.h");
-    let header_dest = dest_path.join("babybear.h");
-    std::fs::copy(header_src, header_dest).unwrap();
+            // Run the go build command
+            let status = Command::new("go")
+                .current_dir("go")
+                .env("CGO_ENABLED", "1")
+                .args([
+                    "build",
+                    "-o",
+                    dest.to_str().unwrap(),
+                    "-buildmode=c-archive",
+                    ".",
+                ])
+                .status()
+                .expect("Failed to build Go library");
+            assert!(status.success(), "Go build failed");
 
-    // Generate bindings using bindgen
-    let header_path = dest_path.join(format!("lib{}.h", lib_name));
-    let bindings = bindgen::Builder::default()
-        .header(header_path.to_str().unwrap())
-        .parse_callbacks(Box::new(CargoCallbacks::new()))
-        .generate()
-        .expect("Unable to generate bindings");
+            // Copy go/babybear.h to OUT_DIR/babybear.h
+            let header_src = PathBuf::from("go/babybear.h");
+            let header_dest = dest_path.join("babybear.h");
+            std::fs::copy(header_src, header_dest).unwrap();
 
-    bindings
-        .write_to_file(dest_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+            // Generate bindings using bindgen
+            let header_path = dest_path.join(format!("lib{}.h", lib_name));
+            let bindings = bindgen::Builder::default()
+                .header(header_path.to_str().unwrap())
+                .parse_callbacks(Box::new(CargoCallbacks::new()))
+                .generate()
+                .expect("Unable to generate bindings");
 
-    println!("Go library built");
+            bindings
+                .write_to_file(dest_path.join("bindings.rs"))
+                .expect("Couldn't write bindings!");
 
-    // Link the Go library
-    println!("cargo:rustc-link-search=native={}", dest_path.display());
-    println!("cargo:rustc-link-lib=static={}", lib_name);
+            println!("Go library built");
+
+            // Link the Go library
+            println!("cargo:rustc-link-search=native={}", dest_path.display());
+            println!("cargo:rustc-link-lib=static={}", lib_name);
+        }
+    }
 }

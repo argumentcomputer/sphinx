@@ -16,7 +16,7 @@ pub struct BasicBlock<F, EF>(
 
 impl<F: PrimeField32, EF: ExtensionField<F>> BasicBlock<F, EF> {
     /// Creates a new basic block.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(Vec::new(), Vec::new())
     }
 
@@ -40,7 +40,7 @@ pub struct AssemblyCode<F, EF> {
 
 impl<F: PrimeField32, EF: ExtensionField<F>> AssemblyCode<F, EF> {
     /// Creates a new assembly code.
-    pub fn new(blocks: Vec<BasicBlock<F, EF>>, labels: BTreeMap<F, String>) -> Self {
+    pub const fn new(blocks: Vec<BasicBlock<F, EF>>, labels: BTreeMap<F, String>) -> Self {
         Self { blocks, labels }
     }
 

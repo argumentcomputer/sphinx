@@ -9,8 +9,8 @@ use sphinx_derive::AlignedBorrow;
 use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
-use crate::air::Polynomial;
 use crate::air::WordAirBuilder;
+use crate::air::{BaseAirBuilder, Polynomial};
 use crate::bytes::event::ByteRecord;
 
 /// Airthmetic operation for emulating modular arithmetic.
@@ -116,12 +116,17 @@ impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
         result
     }
 
-    pub fn populate(
+    /// Populate these columns with a specified modulus. This is useful in the `mulmod` precompile
+    /// as an example.
+    #[allow(clippy::too_many_arguments)]
+    pub fn populate_with_modulus(
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         a: &BigUint,
         b: &BigUint,
+        modulus: &BigUint,
         op: FieldOperation,
     ) -> BigUint {
         if b == &BigUint::zero() && op == FieldOperation::Div {
@@ -133,12 +138,10 @@ impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
             );
         }
 
-        let modulus = P::modulus();
-
         let result = match op {
             // If doing the subtraction operation, a - b = result, equivalent to a = result + b.
             FieldOperation::Sub => {
-                let result = (modulus.clone() + a - b) % &modulus;
+                let result = (modulus.clone() + a - b) % modulus;
                 // We populate the carry, witness_low, witness_high as if we were doing an addition with result + b.
                 // But we populate `result` with the actual result of the subtraction because those columns are expected
                 // to contain the result by the user.
@@ -168,35 +171,45 @@ impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
         };
 
         // Range checks
-        record.add_u8_range_checks_field(shard, &self.result);
-        record.add_u8_range_checks_field(shard, &self.carry);
-        record.add_u8_range_checks_field(shard, &self.witness_low);
-        record.add_u8_range_checks_field(shard, &self.witness_high);
+        record.add_u8_range_checks_field(shard, channel, &self.result);
+        record.add_u8_range_checks_field(shard, channel, &self.carry);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_low);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_high);
 
         result
+    }
+
+    /// Populate these columns without a specified modulus (will use the modulus of the field parameters).
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        channel: u32,
+        a: &BigUint,
+        b: &BigUint,
+        op: FieldOperation,
+    ) -> BigUint {
+        self.populate_with_modulus(record, shard, channel, a, b, &P::modulus(), op)
     }
 }
 
 impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
-    pub fn eval<
-        AB: WordAirBuilder<Var = V>,
-        A: Into<Polynomial<AB::Expr>> + Clone,
-        B: Into<Polynomial<AB::Expr>> + Clone,
-        EShard: Into<AB::Expr> + Clone,
-        ER: Into<AB::Expr> + Clone,
-    >(
+    pub fn eval_with_modulus<AB: WordAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
-        a: &A,
-        b: &B,
+        a: &(impl Into<Polynomial<AB::Expr>> + Clone),
+        b: &(impl Into<Polynomial<AB::Expr>> + Clone),
+        modulus: &(impl Into<Polynomial<AB::Expr>> + Clone),
         op: FieldOperation,
-        shard: EShard,
-        is_real: ER,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
     ) where
         V: Into<AB::Expr>,
     {
         let p_a_param: Polynomial<AB::Expr> = (*a).clone().into();
         let p_b: Polynomial<AB::Expr> = (*b).clone().into();
+        let p_modulus: Polynomial<AB::Expr> = (modulus).clone().into();
 
         let (p_a, p_result): (Polynomial<_>, Polynomial<_>) = match op {
             FieldOperation::Add | FieldOperation::Mul => (p_a_param, self.result.clone().into()),
@@ -208,19 +221,45 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
             FieldOperation::Mul | FieldOperation::Div => p_a * p_b,
         };
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;
-        let p_limbs = P::modulus_field_iter::<AB::F>()
-            .map(AB::Expr::from)
-            .collect();
-        let p_vanishing = p_op_minus_result - &(&p_carry * &p_limbs);
+        let p_vanishing = p_op_minus_result - &(&p_carry * &p_modulus);
         let p_witness_low = self.witness_low.iter().into();
         let p_witness_high = self.witness_high.iter().into();
         eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
 
         // Range checks for the result, carry, and witness columns.
-        builder.slice_range_check_u8(&self.result, shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.carry, shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(p_witness_low.coefficients(), shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(p_witness_high.coefficients(), shard, is_real);
+        builder.slice_range_check_u8(
+            &self.result,
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(&self.carry, shard.clone(), channel.clone(), is_real.clone());
+        builder.slice_range_check_u8(
+            p_witness_low.coefficients(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(p_witness_high.coefficients(), shard, channel, is_real);
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn eval<AB: BaseAirBuilder<Var = V>>(
+        &self,
+        builder: &mut AB,
+        a: &(impl Into<Polynomial<AB::Expr>> + Clone),
+        b: &(impl Into<Polynomial<AB::Expr>> + Clone),
+        op: FieldOperation,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
+    ) where
+        V: Into<AB::Expr>,
+    {
+        let p_limbs = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect::<Polynomial<_>>();
+        self.eval_with_modulus::<AB>(builder, a, b, &p_limbs, op, shard, channel, is_real);
     }
 }
 
@@ -270,7 +309,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> FieldOpChip<P> {
-        pub(crate) fn new(operation: FieldOperation) -> Self {
+        pub(crate) const fn new(operation: FieldOperation) -> Self {
             Self {
                 operation,
                 _phantom: std::marker::PhantomData,
@@ -333,7 +372,7 @@ mod tests {
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
                     cols.a_op_b
-                        .populate(&mut blu_events, 1, a, b, self.operation);
+                        .populate(&mut blu_events, 1, 0, a, b, self.operation);
                     output.add_byte_lookup_events(blu_events);
                     row
                 })
@@ -375,6 +414,7 @@ mod tests {
                 &local.b,
                 self.operation,
                 AB::F::one(),
+                AB::F::zero(),
                 AB::F::one(),
             );
         }

@@ -1,4 +1,5 @@
 #![allow(
+    clippy::new_without_default,
     clippy::field_reassign_with_default,
     clippy::needless_range_loop,
     deprecated

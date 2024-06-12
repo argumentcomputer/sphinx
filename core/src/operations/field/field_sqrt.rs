@@ -7,7 +7,7 @@ use sphinx_derive::AlignedBorrow;
 use super::field_op::FieldOpCols;
 use super::params::Limbs;
 use super::range::FieldRangeCols;
-use crate::air::WordAirBuilder;
+use crate::air::BaseAirBuilder;
 use crate::bytes::event::ByteRecord;
 use crate::operations::field::params::FieldParameters;
 
@@ -35,6 +35,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         a: &BigUint,
         sqrt_fn: impl Fn(&BigUint) -> BigUint,
     ) -> BigUint {
@@ -46,6 +47,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
         let sqrt_squared = self.multiplication.populate(
             record,
             shard,
+            channel,
             &sqrt,
             &sqrt,
             super::field_op::FieldOperation::Mul,
@@ -59,7 +61,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
         self.multiplication.result = P::to_limbs_field::<F>(&sqrt);
 
         // Populate the range columns.
-        self.range.populate(record, shard, &sqrt);
+        self.range.populate(record, shard, channel, &sqrt);
 
         sqrt
     }
@@ -67,16 +69,13 @@ impl<F: PrimeField32, P: FieldParameters> FieldSqrtCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
-    pub fn eval<
-        AB: WordAirBuilder<Var = V>,
-        ER: Into<AB::Expr> + Clone,
-        EShard: Into<AB::Expr> + Clone,
-    >(
+    pub fn eval<AB: BaseAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
-        shard: &EShard,
-        is_real: &ER,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
     ) where
         V: Into<AB::Expr>,
     {
@@ -94,11 +93,11 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
             &sqrt,
             super::field_op::FieldOperation::Mul,
             shard.clone(),
+            channel.clone(),
             is_real.clone(),
         );
 
-        self.range
-            .eval(builder, &sqrt, shard.clone(), is_real.clone());
+        self.range.eval(builder, &sqrt, shard, channel, is_real);
     }
 }
 
@@ -144,7 +143,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> EdSqrtChip<P> {
-        pub(crate) fn new() -> Self {
+        pub(crate) const fn new() -> Self {
             Self {
                 _phantom: std::marker::PhantomData,
             }
@@ -199,7 +198,7 @@ mod tests {
                     let mut row = [F::zero(); NUM_TEST_COLS];
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
-                    cols.sqrt.populate(&mut blu_events, 1, a, ed25519_sqrt);
+                    cols.sqrt.populate(&mut blu_events, 1, 0, a, ed25519_sqrt);
                     output.add_byte_lookup_events(blu_events);
                     row
                 })
@@ -239,7 +238,7 @@ mod tests {
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
             local
                 .sqrt
-                .eval(builder, &local.a, &AB::F::one(), &AB::F::one());
+                .eval(builder, &local.a, AB::F::one(), AB::F::zero(), AB::F::one());
         }
     }
 

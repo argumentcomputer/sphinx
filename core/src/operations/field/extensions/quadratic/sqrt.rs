@@ -36,6 +36,7 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         a: &[BigUint; 2],
         sqrt_fn: impl Fn(&[BigUint; 2]) -> [BigUint; 2],
     ) -> [BigUint; 2] {
@@ -44,9 +45,14 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
         let sqrt = sqrt_fn(a);
 
         // Use QuadFieldOpCols to compute result * result.
-        let sqrt_squared =
-            self.multiplication
-                .populate(record, shard, &sqrt, &sqrt, QuadFieldOperation::Mul);
+        let sqrt_squared = self.multiplication.populate(
+            record,
+            shard,
+            channel,
+            &sqrt,
+            &sqrt,
+            QuadFieldOperation::Mul,
+        );
 
         // If the result is indeed the square root of a, then result * result = a.
         assert_eq!(sqrt_squared, *a);
@@ -58,8 +64,8 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
             P::to_limbs_field::<F>(&sqrt[1]),
         ];
 
-        self.range[0].populate(record, shard, &sqrt[0]);
-        self.range[1].populate(record, shard, &sqrt[1]);
+        self.range[0].populate(record, shard, channel, &sqrt[0]);
+        self.range[1].populate(record, shard, channel, &sqrt[1]);
 
         sqrt
     }
@@ -67,16 +73,13 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldSqrtCols<F, P> {
 
 impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
     /// Calculates the square root of `a`.
-    pub fn eval<
-        AB: WordAirBuilder<Var = V>,
-        ER: Into<AB::Expr> + Clone,
-        EShard: Into<AB::Expr> + Clone,
-    >(
+    pub fn eval<AB: WordAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
         a: &[Limbs<AB::Var, P::NB_LIMBS>; 2],
-        shard: &EShard,
-        is_real: &ER,
+        shard: &(impl Into<AB::Expr> + Clone),
+        channel: &(impl Into<AB::Expr> + Clone),
+        is_real: &(impl Into<AB::Expr> + Clone),
     ) where
         V: Into<AB::Expr>,
     {
@@ -94,11 +97,24 @@ impl<V: Copy, P: FieldParameters> QuadFieldSqrtCols<V, P> {
             &sqrt,
             QuadFieldOperation::Mul,
             shard.clone(),
+            channel.clone(),
             is_real.clone(),
         );
 
-        self.range[0].eval(builder, &sqrt[0], shard.clone(), is_real.clone());
-        self.range[1].eval(builder, &sqrt[1], shard.clone(), is_real.clone());
+        self.range[0].eval(
+            builder,
+            &sqrt[0],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        self.range[1].eval(
+            builder,
+            &sqrt[1],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
     }
 }
 
@@ -214,7 +230,7 @@ mod tests {
                     let mut row = vec![F::zero(); num_test_cols];
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
-                    cols.sqrt.populate(&mut blu_events, 1, a, self.sqrt_fn);
+                    cols.sqrt.populate(&mut blu_events, 1, 0, a, self.sqrt_fn);
                     output.add_byte_lookup_events(blu_events);
                     row
                 })
@@ -252,9 +268,13 @@ mod tests {
             let local: &TestCols<AB::Var, P> = (*local).borrow();
 
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
-            local
-                .sqrt
-                .eval(builder, &local.a, &AB::F::one(), &AB::F::one());
+            local.sqrt.eval(
+                builder,
+                &local.a,
+                &AB::F::one(),
+                &AB::F::zero(),
+                &AB::F::one(),
+            );
         }
     }
 

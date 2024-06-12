@@ -91,7 +91,7 @@ pub fn verify_signature(
             pubkey_y_le_bytes.reverse();
 
             // Convert the public key to an affine point
-            let affine = AffinePoint::<Secp256k1Operations>::from(&pubkey_x_le_bytes.into(), &pubkey_y_le_bytes.into());
+            let affine = AffinePoint::<Secp256k1Operations, NUM_WORDS>::from(&pubkey_x_le_bytes, &pubkey_y_le_bytes);
 
             const GENERATOR: AffinePoint<Secp256k1Operations> = AffinePoint::<Secp256k1Operations>::generator_in_affine();
 

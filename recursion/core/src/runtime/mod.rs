@@ -2,6 +2,7 @@ mod instruction;
 mod opcode;
 mod program;
 mod record;
+mod utils;
 
 use std::collections::VecDeque;
 use std::process::exit;
@@ -16,14 +17,20 @@ use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
 use p3_symmetric::{CryptographicPermutation, Permutation};
 pub use program::*;
 pub use record::*;
-use sphinx_core::runtime::MemoryAccessPosition;
+pub use utils::*;
 
-use crate::air::Block;
+use crate::air::{Block, RECURSION_PUBLIC_VALUES_COL_MAP, RECURSIVE_PROOF_NUM_PV_ELTS};
 use crate::cpu::CpuEvent;
 use crate::fri_fold::FriFoldEvent;
 use crate::memory::MemoryRecord;
 use crate::poseidon2::Poseidon2Event;
 use crate::range_check::{RangeCheckEvent, RangeCheckOpcode};
+
+use sphinx_core::runtime::MemoryAccessPosition;
+
+/// The heap pointer address.
+pub const HEAP_PTR: i32 = -4;
+pub const HEAP_START_ADDRESS: usize = STACK_SIZE + 4;
 
 pub const STACK_SIZE: usize = 1 << 24;
 pub const MEMORY_SIZE: usize = 1 << 28;
@@ -98,7 +105,7 @@ pub struct Runtime<F: PrimeField32, EF: ExtensionField<F>, Diffusion> {
 
     /// Uninitialized memory addresses that have a specific value they should be initialized with.
     /// The Opcodes that start with Hint* utilize this to set memory values.
-    pub uninitialized_memory: HashMap<usize, Block<F>>, // TODO: add "HashNoHasher" back to this
+    pub uninitialized_memory: HashMap<usize, Block<F>>,
 
     /// The execution record.
     pub record: ExecutionRecord<F>,
@@ -437,6 +444,16 @@ where
                     let mut a_val = Block::default();
                     a_val[0] = b_val[0] + c_val[0];
                     self.mw_cpu(a_ptr, a_val, MemoryAccessPosition::A);
+
+                    // If the instruction is a heap expansion, we need to add a range check event to
+                    // ensure that the heap size never goes above 2^28.
+                    if instruction_is_heap_expand(&instruction) {
+                        let (u16_range_check, u12_range_check) =
+                            get_heap_size_range_check_events(a_val[0]);
+                        self.record
+                            .add_range_check_events(&[u16_range_check, u12_range_check]);
+                    }
+
                     (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::LessThanF => {
@@ -564,6 +581,12 @@ where
                     (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::TRAP => {
+                    self.record
+                        .public_values
+                        .resize(RECURSIVE_PROOF_NUM_PV_ELTS, F::zero());
+                    self.record.public_values[RECURSION_PUBLIC_VALUES_COL_MAP.exit_code] = F::one();
+
+                    let (a_val, b_val, c_val) = self.all_rr(&instruction);
                     let trap_pc = self.pc.as_canonical_u32() as usize;
                     let trace = self.program.traces[trap_pc].clone();
                     if let Some(mut trace) = trace {
@@ -583,16 +606,21 @@ where
                         }
                         eprintln!("TRAP encountered. No backtrace available");
                     }
-                    exit(1);
+                    (a, b, c) = (a_val, b_val, c_val);
                 }
                 Opcode::HALT => {
+                    self.record
+                        .public_values
+                        .resize(RECURSIVE_PROOF_NUM_PV_ELTS, F::zero());
+                    self.record.public_values[RECURSION_PUBLIC_VALUES_COL_MAP.exit_code] =
+                        F::zero();
+
                     let (a_val, b_val, c_val) = self.all_rr(&instruction);
                     (a, b, c) = (a_val, b_val, c_val);
                 }
-                Opcode::Ext2Felt => {
+                Opcode::HintExt2Felt => {
                     let (a_val, b_val, c_val) = self.all_rr(&instruction);
                     let dst = a_val[0].as_canonical_u32() as usize;
-                    // TODO: this should be a hint and perhaps the compiler needs to change to make it a hint?
                     self.mw_uninitialized(dst, Block::from(b_val[0]));
                     self.mw_uninitialized(dst + 1, Block::from(b_val[1]));
                     self.mw_uninitialized(dst + 2, Block::from(b_val[2]));
@@ -667,7 +695,7 @@ where
                     // Get the src value.
                     let num = b_val[0].as_canonical_u32();
 
-                    // Decompose the num into bits.
+                    // Decompose the num into LE bits.
                     let bits = (0..NUM_BITS).map(|i| (num >> i) & 1).collect::<Vec<_>>();
                     // Write the bits to the array at dst.
                     for (i, bit) in bits.iter().enumerate() {
@@ -820,7 +848,10 @@ where
             self.timestamp += 1;
             self.access = CpuRecord::default();
 
-            if self.timestamp >= early_exit_ts || instruction.opcode == Opcode::HALT {
+            if self.timestamp >= early_exit_ts
+                || instruction.opcode == Opcode::HALT
+                || instruction.opcode == Opcode::TRAP
+            {
                 break;
             }
         }

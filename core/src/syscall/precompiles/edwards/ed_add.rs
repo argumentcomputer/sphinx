@@ -56,6 +56,7 @@ pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8, Ed25519BaseFiel
 pub struct EdAddAssignCols<T, P: FieldParameters> {
     pub is_real: T,
     pub shard: T,
+    pub channel: T,
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
@@ -77,14 +78,17 @@ pub struct EdAddAssignChip<E> {
 }
 
 impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             _marker: PhantomData,
         }
     }
+
+    #[allow(clippy::too_many_arguments)]
     fn populate_field_ops<F: PrimeField32>(
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         cols: &mut EdAddAssignCols<F, <E as EllipticCurveParameters>::BaseField>,
         p_x: &BigUint,
         p_y: &BigUint,
@@ -94,34 +98,41 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         let x3_numerator = cols.x3_numerator.populate(
             record,
             shard,
+            channel,
             &[p_x.clone(), q_x.clone()],
             &[q_y.clone(), p_y.clone()],
         );
         let y3_numerator = cols.y3_numerator.populate(
             record,
             shard,
+            channel,
             &[p_y.clone(), p_x.clone()],
             &[q_y.clone(), q_x.clone()],
         );
-        let x1_mul_y1 = cols
-            .x1_mul_y1
-            .populate(record, shard, p_x, p_y, FieldOperation::Mul);
-        let x2_mul_y2 = cols
-            .x2_mul_y2
-            .populate(record, shard, q_x, q_y, FieldOperation::Mul);
-        let f = cols
-            .f
-            .populate(record, shard, &x1_mul_y1, &x2_mul_y2, FieldOperation::Mul);
+        let x1_mul_y1 =
+            cols.x1_mul_y1
+                .populate(record, shard, channel, p_x, p_y, FieldOperation::Mul);
+        let x2_mul_y2 =
+            cols.x2_mul_y2
+                .populate(record, shard, channel, q_x, q_y, FieldOperation::Mul);
+        let f = cols.f.populate(
+            record,
+            shard,
+            channel,
+            &x1_mul_y1,
+            &x2_mul_y2,
+            FieldOperation::Mul,
+        );
 
         let d = E::d_biguint();
         let d_mul_f = cols
             .d_mul_f
-            .populate(record, shard, &f, &d, FieldOperation::Mul);
+            .populate(record, shard, channel, &f, &d, FieldOperation::Mul);
 
         cols.x3_ins
-            .populate(record, shard, &x3_numerator, &d_mul_f, true);
+            .populate(record, shard, channel, &x3_numerator, &d_mul_f, true);
         cols.y3_ins
-            .populate(record, shard, &y3_numerator, &d_mul_f, false);
+            .populate(record, shard, channel, &y3_numerator, &d_mul_f, false);
     }
 }
 
@@ -182,6 +193,7 @@ where
                 // Populate basic columns.
                 cols.is_real = F::one();
                 cols.shard = F::from_canonical_u32(event.shard);
+                cols.channel = F::from_canonical_u32(event.channel);
                 cols.clk = F::from_canonical_u32(event.clk);
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
@@ -190,6 +202,7 @@ where
                 Self::populate_field_ops(
                     &mut new_byte_lookup_events,
                     event.shard,
+                    event.channel,
                     cols,
                     &p_x,
                     &p_y,
@@ -198,13 +211,19 @@ where
                 );
 
                 // Populate the memory access columns.
-                for i in 0..16 {
-                    cols.q_access[i]
-                        .populate(event.q_memory_records[i], &mut new_byte_lookup_events);
+                for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
+                    cols.q_access[i].populate(
+                        event.channel,
+                        event.q_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
                 for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
-                    cols.p_access[i]
-                        .populate(event.p_memory_records[i], &mut new_byte_lookup_events);
+                    cols.p_access[i].populate(
+                        event.channel,
+                        event.p_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
 
                 (row, new_byte_lookup_events)
@@ -219,7 +238,7 @@ where
             let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
             let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            Self::populate_field_ops(&mut vec![], 0, cols, &zero, &zero, &zero, &zero);
+            Self::populate_field_ops(&mut vec![], 0, 0, cols, &zero, &zero, &zero, &zero);
             row
         });
 
@@ -261,6 +280,7 @@ where
             &[x1.clone(), x2.clone()],
             &[y2.clone(), y1.clone()],
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -270,6 +290,7 @@ where
             &[y1.clone(), x1.clone()],
             &[y2.clone(), x2.clone()],
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -280,6 +301,7 @@ where
             &y1,
             FieldOperation::Mul,
             row.shard,
+            row.channel,
             row.is_real,
         );
         row.x2_mul_y2.eval(
@@ -288,6 +310,7 @@ where
             &y2,
             FieldOperation::Mul,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -299,6 +322,7 @@ where
             &x2_mul_y2,
             FieldOperation::Mul,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -312,6 +336,7 @@ where
             &d_const,
             FieldOperation::Mul,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -324,6 +349,7 @@ where
             &d_mul_f,
             true,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -334,6 +360,7 @@ where
             &d_mul_f,
             false,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -348,27 +375,27 @@ where
                 .assert_eq(row.y3_ins.result[i], row.p_access[8 + i / 4].value()[i % 4]);
         }
 
-        for i in 0..16 {
-            builder.eval_memory_access(
-                row.shard,
-                row.clk, // clk + 0 -> Memory
-                row.q_ptr + AB::F::from_canonical_u32(i * 4),
-                &row.q_access[i as usize],
-                row.is_real,
-            );
-        }
-        for i in 0..16 {
-            builder.eval_memory_access(
-                row.shard,
-                row.clk + AB::F::from_canonical_u32(1), // The clk for p is moved by 1.
-                row.p_ptr + AB::F::from_canonical_u32(i * 4),
-                &row.p_access[i as usize],
-                row.is_real,
-            );
-        }
+        builder.eval_memory_access_slice(
+            row.shard,
+            row.channel,
+            row.clk.into(),
+            row.q_ptr,
+            &row.q_access,
+            row.is_real,
+        );
+
+        builder.eval_memory_access_slice(
+            row.shard,
+            row.channel,
+            row.clk + AB::F::from_canonical_u32(1),
+            row.p_ptr,
+            &row.p_access,
+            row.is_real,
+        );
 
         builder.receive_syscall(
             row.shard,
+            row.channel,
             row.clk,
             AB::F::from_canonical_u32(SyscallCode::ED_ADD.syscall_id()),
             row.p_ptr,

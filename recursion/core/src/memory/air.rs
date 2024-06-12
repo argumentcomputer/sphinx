@@ -21,8 +21,8 @@ use crate::{air::Block, memory::MemoryGlobalChip};
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 
 #[allow(dead_code)]
-impl<F> MemoryGlobalChip<F> {
-    pub fn new() -> Self {
+impl<F: Field> MemoryGlobalChip<F> {
+    pub const fn new() -> Self {
         Self {
             fixed_log2_rows: None,
             _phantom: PhantomData,

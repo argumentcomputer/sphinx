@@ -12,12 +12,11 @@ use sphinx_core::{
     air::Word,
     io::SphinxStdin,
     runtime::{Program, Runtime},
+    utils::SphinxCoreOpts,
 };
 use tokio::{runtime, task::block_in_place};
 
 use crate::SphinxCoreProofData;
-
-pub const RECONSTRUCT_COMMITMENTS_ENV_VAR: &str = "RECONSTRUCT_COMMITMENTS";
 
 impl SphinxCoreProofData {
     pub fn save(&self, path: &str) -> Result<(), std::io::Error> {
@@ -30,7 +29,7 @@ impl SphinxCoreProofData {
 /// Get the number of cycles for a given program.
 pub fn get_cycles(elf: &[u8], stdin: &SphinxStdin) -> u64 {
     let program = Program::from(elf);
-    let mut runtime = Runtime::new(program);
+    let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
     runtime.write_vecs(&stdin.buffer);
     runtime.dry_run();
     runtime.state.global_clk
