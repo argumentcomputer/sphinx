@@ -5,8 +5,6 @@ edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 lazy_static = { workspace = true }
 p3-field = { workspace = true }

@@ -6,6 +6,7 @@ use sphinx_recursion_compiler::prelude::Variable;
 use sphinx_recursion_compiler::prelude::{
     Array, Builder, Config, DslVariable, Ext, Felt, Usize, Var,
 };
+use sphinx_recursion_core::runtime::HASH_RATE;
 use sphinx_recursion_core::runtime::{DIGEST_SIZE, PERMUTATION_WIDTH};
 
 use crate::fri::types::DigestVariable;
@@ -149,10 +150,7 @@ impl<C: Config> DuplexChallengerVariable<C> {
         builder.assign(&self.nb_inputs, self.nb_inputs + C::N::one());
 
         builder
-            .if_eq(
-                self.nb_inputs,
-                C::N::from_canonical_usize(PERMUTATION_WIDTH),
-            )
+            .if_eq(self.nb_inputs, C::N::from_canonical_usize(HASH_RATE))
             .then(|builder| {
                 self.duplexing(builder);
             })

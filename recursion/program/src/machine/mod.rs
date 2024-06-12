@@ -17,7 +17,7 @@ mod tests {
     use p3_challenger::CanObserve;
     use p3_maybe_rayon::prelude::*;
     use sphinx_core::stark::{MachineVerificationError, RiscvAir, StarkGenericConfig};
-    use sphinx_core::utils::BabyBearPoseidon2;
+    use sphinx_core::utils::{BabyBearPoseidon2, SphinxCoreOpts};
     use sphinx_core::{
         io::SphinxStdin,
         runtime::Program,
@@ -85,8 +85,13 @@ mod tests {
 
         let mut challenger = machine.config().challenger();
         let time = std::time::Instant::now();
-        let (proof, _) =
-            sphinx_core::utils::prove(program, &SphinxStdin::new(), SC::default()).unwrap();
+        let (proof, _) = sphinx_core::utils::prove(
+            program,
+            &SphinxStdin::new(),
+            SC::default(),
+            SphinxCoreOpts::default(),
+        )
+        .unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
         tracing::info!("Proof generated successfully");
         let elapsed = time.elapsed();
@@ -169,6 +174,7 @@ mod tests {
                     &rec_pk,
                     record,
                     &mut recursive_challenger,
+                    SphinxCoreOpts::recursion(),
                 )
             })
             .collect::<Vec<_>>();
@@ -241,6 +247,7 @@ mod tests {
                         &reduce_pk,
                         runtime.record,
                         &mut recursive_challenger,
+                        SphinxCoreOpts::recursion(),
                     );
                     let mut recursive_challenger = recursive_machine.config().challenger();
                     let result =
@@ -300,6 +307,7 @@ mod tests {
             &compress_pk,
             runtime.record,
             &mut compress_challenger,
+            SphinxCoreOpts::default(),
         );
         let elapsed = time.elapsed();
         tracing::info!("Compress proving time: {:?}", elapsed);
@@ -344,8 +352,12 @@ mod tests {
         // Prove the wrap program.
         let mut wrap_challenger = wrap_machine.config().challenger();
         let time = std::time::Instant::now();
-        let wrap_proof =
-            wrap_machine.prove::<LocalProver<_, _>>(&wrap_pk, runtime.record, &mut wrap_challenger);
+        let wrap_proof = wrap_machine.prove::<LocalProver<_, _>>(
+            &wrap_pk,
+            runtime.record,
+            &mut wrap_challenger,
+            SphinxCoreOpts::recursion(),
+        );
         let elapsed = time.elapsed();
         tracing::info!("Wrap proving time: {:?}", elapsed);
         let mut wrap_challenger = wrap_machine.config().challenger();

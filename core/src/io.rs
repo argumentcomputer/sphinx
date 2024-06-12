@@ -25,15 +25,9 @@ pub struct SphinxPublicValues {
     buffer: Buffer,
 }
 
-impl Default for SphinxStdin {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SphinxStdin {
-    /// Create a new `SphinxStdin`.
-    pub fn new() -> Self {
+    /// Create a new `SP1Stdin`.
+    pub const fn new() -> Self {
         Self {
             buffer: Vec::new(),
             ptr: 0,
@@ -97,7 +91,7 @@ impl Default for SphinxPublicValues {
 
 impl SphinxPublicValues {
     /// Create a new `SP1PublicValues`.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             buffer: Buffer::new(),
         }

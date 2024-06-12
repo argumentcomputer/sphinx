@@ -1,3 +1,4 @@
+use std::array;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
@@ -87,21 +88,20 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
     }
 
     fn public_values<T: AbstractField>(&self) -> Vec<T> {
-        let mut ret = self
-            .public_values
-            .iter()
-            .map(|x| T::from_canonical_u32(x.as_canonical_u32()))
-            .collect::<Vec<_>>();
+        let ret: [T; PROOF_MAX_NUM_PVS] = array::from_fn(|i| {
+            if i < self.public_values.len() {
+                T::from_canonical_u32(self.public_values[i].as_canonical_u32())
+            } else {
+                T::zero()
+            }
+        });
 
-        // Pad the public values to the correct number of public values, in case not all are used.
-        ret.resize(PROOF_MAX_NUM_PVS, T::zero());
-
-        ret
+        ret.to_vec()
     }
 }
 
-impl<F: PrimeField32> EventLens<CpuChip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <CpuChip<F> as sphinx_core::air::WithEvents<'_>>::Events {
+impl<F: PrimeField32, const L: usize> EventLens<CpuChip<F, L>> for ExecutionRecord<F> {
+    fn events(&self) -> <CpuChip<F, L> as sphinx_core::air::WithEvents<'_>>::Events {
         &self.cpu_events
     }
 }

@@ -1,9 +1,10 @@
 use anyhow::Result;
+use cfg_if::cfg_if;
 use sphinx_prover::{SphinxProver, SphinxStdin};
 
 use crate::{
-    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
-    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
+    Prover, SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProofWithPublicValues,
+    SphinxProvingKey, SphinxVerifyingKey,
 };
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
@@ -57,48 +58,40 @@ impl Prover for LocalProver {
         })
     }
 
-    fn prove_groth16(
+    #[allow(unused_variables)] // only unused w/o feature
+    fn prove_plonk(
         &self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-    ) -> Result<SphinxGroth16Proof> {
-        let proof = self.prover.prove_core(pk, &stdin)?;
-        let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
-        let public_values = proof.public_values.clone();
-        let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
-        let compress_proof = self.prover.shrink(reduce_proof)?;
-        let outer_proof = self.prover.wrap_bn254(compress_proof)?;
+    ) -> Result<SphinxPlonkBn254Proof> {
+        cfg_if! {
+            if #[cfg(feature = "plonk")] {
 
-        let groth16_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
-            sphinx_prover::build::try_build_groth16_artifacts_dev(
-                &self.prover.wrap_vk,
-                &outer_proof.proof,
-            )
-        } else {
-            sphinx_prover::build::try_install_groth16_artifacts()
-        };
-        let proof = self.prover.wrap_groth16(outer_proof, &groth16_aritfacts);
-        Ok(SphinxProofWithPublicValues {
-            proof,
-            stdin,
-            public_values,
-        })
-    }
+                let proof = self.prover.prove_core(pk, &stdin)?;
+                let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
+                let public_values = proof.public_values.clone();
+                let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
+                let compress_proof = self.prover.shrink(reduce_proof)?;
+                let outer_proof = self.prover.wrap_bn254(compress_proof)?;
 
-    fn prove_plonk(&self, _pk: &SphinxProvingKey, _stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
-        // let proof = self.prover.prove_core(pk, &stdin);
-        // let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
-        // let public_values = proof.public_values.clone();
-        // let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs);
-        // let compress_proof = self.prover.shrink(&pk.vk, reduce_proof);
-        // let outer_proof = self.prover.wrap_bn254(&pk.vk, compress_proof);
-        // let proof = self.prover.wrap_plonk(outer_proof, artifacts_dir);
-        // Ok(SP1ProofWithPublicValues {
-        //     proof,
-        //     stdin,
-        //     public_values,
-        // })
-        todo!()
+                let plonk_bn254_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
+                    sphinx_prover::build::try_build_plonk_bn254_artifacts_dev(
+                        &self.prover.wrap_vk,
+                        &outer_proof.proof,
+                    )
+                } else {
+                    sphinx_prover::build::try_install_plonk_bn254_artifacts()
+                };
+                let proof = self.prover.wrap_plonk_bn254(outer_proof, &plonk_bn254_aritfacts);
+                Ok(SphinxProofWithPublicValues {
+                    proof,
+                    stdin,
+                    public_values,
+                })
+            } else {
+                panic!("plonk bn254 feature not enabled")
+            }
+        }
     }
 }
 

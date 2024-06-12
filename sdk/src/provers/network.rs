@@ -7,12 +7,12 @@ use crate::{
     Prover,
 };
 use crate::{
-    SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProvingKey,
-    SphinxVerifyingKey,
+    SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProvingKey, SphinxVerifyingKey,
 };
 use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use sphinx_core::runtime::{Program, Runtime};
+use sphinx_core::utils::SphinxCoreOpts;
 use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin};
 use tokio::{runtime, time::sleep};
@@ -46,7 +46,7 @@ impl NetworkProver {
         let client = &self.client;
         // Execute the runtime before creating the proof request.
         let program = Program::from(elf);
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.write_vecs(&stdin.buffer);
         for (proof, vkey) in stdin.proofs.iter() {
             runtime.write_proof(proof.clone(), vkey.clone());
@@ -176,15 +176,11 @@ impl Prover for NetworkProver {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Compressed))
     }
 
-    fn prove_groth16(
+    fn prove_plonk(
         &self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-    ) -> Result<SphinxGroth16Proof> {
-        block_on(self.prove_async(&pk.elf, stdin, ProofMode::Groth16))
-    }
-
-    fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
+    ) -> Result<SphinxPlonkBn254Proof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Plonk))
     }
 }

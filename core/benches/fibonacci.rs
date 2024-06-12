@@ -5,7 +5,7 @@ use sphinx_core::{
     io::SphinxStdin,
     runtime::{Program, Runtime},
     stark::RiscvAir,
-    utils::{prove, prove_simple, BabyBearPoseidon2},
+    utils::{prove, prove_simple, BabyBearPoseidon2, SphinxCoreOpts},
 };
 
 fn elf_path(p: &str) -> String {
@@ -19,7 +19,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         let elf_path = elf_path(p);
         let program = Program::from_elf(&elf_path);
         let cycles = {
-            let mut runtime = Runtime::new(program.clone());
+            let mut runtime = Runtime::new(program.clone(), SphinxCoreOpts::default());
             runtime.run().unwrap();
             runtime.state.global_clk
         };
@@ -40,7 +40,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             format!("{}:{}", p.split('/').last().unwrap(), cycles),
             |b| {
                 b.iter(|| {
-                    let mut runtime = Runtime::new(black_box(program.clone()));
+                    let mut runtime =
+                        Runtime::new(black_box(program.clone()), SphinxCoreOpts::default());
                     runtime.run().unwrap();
                 })
             },
@@ -65,7 +66,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 let machine = RiscvAir::machine(BabyBearPoseidon2::new());
                 b.iter_batched(
                     || {
-                        let mut runtime = Runtime::new(black_box(program.clone()));
+                        let mut runtime =
+                            Runtime::new(black_box(program.clone()), SphinxCoreOpts::default());
                         runtime.run().unwrap();
                         runtime
                     },
@@ -99,6 +101,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                         black_box(&program),
                         &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
+                        SphinxCoreOpts::default(),
                     )
                 })
             },

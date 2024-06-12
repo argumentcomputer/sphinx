@@ -50,6 +50,7 @@ pub const fn num_weierstrass_add_cols<P: FieldParameters>() -> usize {
 pub struct WeierstrassAddAssignCols<T, P: FieldParameters> {
     pub is_real: T,
     pub shard: T,
+    pub channel: T,
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
@@ -72,15 +73,17 @@ pub struct WeierstrassAddAssignChip<E> {
 }
 
 impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             _marker: PhantomData,
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn populate_field_ops<F: PrimeField32>(
         blu_events: &mut Vec<ByteLookupEvent>,
         shard: u32,
+        channel: u32,
         cols: &mut WeierstrassAddAssignCols<F, E::BaseField>,
         p_x: &BigUint,
         p_y: &BigUint,
@@ -92,17 +95,28 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {
-            let slope_numerator =
-                cols.slope_numerator
-                    .populate(blu_events, shard, q_y, p_y, FieldOperation::Sub);
+            let slope_numerator = cols.slope_numerator.populate(
+                blu_events,
+                shard,
+                channel,
+                q_y,
+                p_y,
+                FieldOperation::Sub,
+            );
 
-            let slope_denominator =
-                cols.slope_denominator
-                    .populate(blu_events, shard, q_x, p_x, FieldOperation::Sub);
+            let slope_denominator = cols.slope_denominator.populate(
+                blu_events,
+                shard,
+                channel,
+                q_x,
+                p_x,
+                FieldOperation::Sub,
+            );
 
             cols.slope.populate(
                 blu_events,
                 shard,
+                channel,
                 &slope_numerator,
                 &slope_denominator,
                 FieldOperation::Div,
@@ -111,15 +125,26 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
 
         // x = slope * slope - (p.x + q.x).
         let x = {
-            let slope_squared =
-                cols.slope_squared
-                    .populate(blu_events, shard, &slope, &slope, FieldOperation::Mul);
-            let p_x_plus_q_x =
-                cols.p_x_plus_q_x
-                    .populate(blu_events, shard, p_x, q_x, FieldOperation::Add);
+            let slope_squared = cols.slope_squared.populate(
+                blu_events,
+                shard,
+                channel,
+                &slope,
+                &slope,
+                FieldOperation::Mul,
+            );
+            let p_x_plus_q_x = cols.p_x_plus_q_x.populate(
+                blu_events,
+                shard,
+                channel,
+                p_x,
+                q_x,
+                FieldOperation::Add,
+            );
             cols.x3_ins.populate(
                 blu_events,
                 shard,
+                channel,
                 &slope_squared,
                 &p_x_plus_q_x,
                 FieldOperation::Sub,
@@ -130,10 +155,11 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
         {
             let p_x_minus_x =
                 cols.p_x_minus_x
-                    .populate(blu_events, shard, p_x, &x, FieldOperation::Sub);
+                    .populate(blu_events, shard, channel, p_x, &x, FieldOperation::Sub);
             let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate(
                 blu_events,
                 shard,
+                channel,
                 &slope,
                 &p_x_minus_x,
                 FieldOperation::Mul,
@@ -141,6 +167,7 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
             cols.y3_ins.populate(
                 blu_events,
                 shard,
+                channel,
                 &slope_times_p_x_minus_x,
                 p_y,
                 FieldOperation::Sub,
@@ -200,6 +227,7 @@ where
             // Populate basic columns.
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
+            cols.channel = F::from_canonical_u32(event.channel);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.p_ptr = F::from_canonical_u32(event.p_ptr);
             cols.q_ptr = F::from_canonical_u32(event.q_ptr);
@@ -207,6 +235,7 @@ where
             Self::populate_field_ops(
                 &mut new_byte_lookup_events,
                 event.shard,
+                event.channel,
                 cols,
                 &p_x,
                 &p_y,
@@ -215,11 +244,19 @@ where
             );
 
             // Populate the memory access columns.
-            for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
-                cols.q_access[i].populate(event.q_memory_records[i], &mut new_byte_lookup_events);
+            for i in 0..cols.q_access.len() {
+                cols.q_access[i].populate(
+                    event.channel,
+                    event.q_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
-            for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
-                cols.p_access[i].populate(event.p_memory_records[i], &mut new_byte_lookup_events);
+            for i in 0..cols.p_access.len() {
+                cols.p_access[i].populate(
+                    event.channel,
+                    event.p_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
 
             rows.push(row);
@@ -231,7 +268,7 @@ where
             let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
-            Self::populate_field_ops(&mut vec![], 0, cols, &zero, &zero, &zero, &zero);
+            Self::populate_field_ops(&mut vec![], 0, 0, cols, &zero, &zero, &zero, &zero);
             row
         });
 
@@ -284,6 +321,7 @@ where
                 &p_y,
                 FieldOperation::Sub,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -293,6 +331,7 @@ where
                 &p_x,
                 FieldOperation::Sub,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -302,6 +341,7 @@ where
                 &row.slope_denominator.result,
                 FieldOperation::Div,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -316,6 +356,7 @@ where
                 &slope,
                 FieldOperation::Mul,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -325,6 +366,7 @@ where
                 &q_x,
                 FieldOperation::Add,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -334,6 +376,7 @@ where
                 &row.p_x_plus_q_x.result,
                 FieldOperation::Sub,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -348,6 +391,7 @@ where
                 &x,
                 FieldOperation::Sub,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -357,6 +401,7 @@ where
                 &row.p_x_minus_x.result,
                 FieldOperation::Mul,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
 
@@ -366,6 +411,7 @@ where
                 &p_y,
                 FieldOperation::Sub,
                 row.shard,
+                row.channel,
                 row.is_real,
             );
         }
@@ -385,6 +431,7 @@ where
 
         builder.eval_memory_access_slice(
             row.shard,
+            row.channel,
             row.clk.into(),
             row.q_ptr,
             &row.q_access,
@@ -392,6 +439,7 @@ where
         );
         builder.eval_memory_access_slice(
             row.shard,
+            row.channel,
             row.clk + AB::F::from_canonical_u32(1), // We read p at +1 since p, q could be the same.
             row.p_ptr,
             &row.p_access,
@@ -412,6 +460,7 @@ where
 
         builder.receive_syscall(
             row.shard,
+            row.channel,
             row.clk,
             syscall_id_fe,
             row.p_ptr,

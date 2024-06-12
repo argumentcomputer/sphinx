@@ -2,8 +2,8 @@ pub mod array_serde;
 mod buffer;
 mod config;
 pub mod ec;
-pub mod env;
 mod logger;
+mod options;
 mod programs;
 mod prove;
 mod tracer;
@@ -14,8 +14,9 @@ pub use buffer::*;
 pub use config::*;
 use hybrid_array::{Array, ArraySize};
 pub use logger::*;
+pub use options::*;
 #[cfg(test)]
-pub use programs::*;
+pub use programs::tests;
 pub use prove::*;
 pub use tracer::*;
 

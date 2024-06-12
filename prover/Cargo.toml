@@ -5,8 +5,6 @@ edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 sphinx-recursion-program = { path = "../recursion/program" }
 sphinx-recursion-circuit = { path = "../recursion/circuit" }
@@ -33,23 +31,27 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 anyhow = { workspace = true }
 size = { workspace = true }
-home = { workspace = true }
+dirs = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 indicatif = { workspace = true }
 futures = { workspace = true }
+subtle-encoding = { workspace = true }
 serial_test = { workspace = true }
 num-bigint = { workspace = true }
 thiserror = { workspace = true }
 
 [[bin]]
-name = "build_groth16"
-path = "scripts/build_groth16.rs"
+name = "build_plonk_bn254"
+path = "scripts/build_plonk_bn254.rs"
 
 [[bin]]
 name = "e2e"
 path = "scripts/e2e.rs"
 
 [features]
+default = ["plonk"]
+
 neon = ["sphinx-core/neon"]
+plonk = ["sphinx-recursion-gnark-ffi/plonk"]

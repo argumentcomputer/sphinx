@@ -253,7 +253,7 @@ pub mod tests {
         outer_perm, test_fri_config, OuterChallenge, OuterChallengeMmcs, OuterChallenger,
         OuterCompress, OuterDft, OuterFriProof, OuterHash, OuterPcs, OuterVal, OuterValMmcs,
     };
-    use sphinx_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_gnark_ffi::PlonkBn254Prover;
 
     use super::{verify_shape_and_sample_challenges, verify_two_adic_pcs, TwoAdicPcsRoundVariable};
     use crate::{
@@ -486,7 +486,7 @@ pub mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        Groth16Prover::test::<OuterConfig>(&constraints, Witness::default());
+        PlonkBn254Prover::test::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -559,6 +559,6 @@ pub mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        Groth16Prover::test::<OuterConfig>(&constraints, Witness::default());
+        PlonkBn254Prover::test::<OuterConfig>(&constraints, Witness::default());
     }
 }
