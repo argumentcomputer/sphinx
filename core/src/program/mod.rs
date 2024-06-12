@@ -47,7 +47,7 @@ pub struct ProgramMultiplicityCols<T> {
 pub struct ProgramChip;
 
 impl ProgramChip {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }

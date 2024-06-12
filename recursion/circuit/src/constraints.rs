@@ -169,9 +169,12 @@ mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, PolynomialSpace};
     use serde::{de::DeserializeOwned, Serialize};
-    use sphinx_core::stark::{
-        Chip, Com, Dom, LocalProver, OpeningProof, PcsProverData, ShardCommitment, ShardMainData,
-        ShardProof, StarkGenericConfig, StarkMachine,
+    use sphinx_core::{
+        stark::{
+            Chip, Com, Dom, LocalProver, OpeningProof, PcsProverData, ShardCommitment,
+            ShardMainData, ShardProof, StarkGenericConfig, StarkMachine,
+        },
+        utils::SphinxCoreOpts,
     };
     use sphinx_recursion_compiler::{
         config::OuterConfig,
@@ -183,7 +186,7 @@ mod tests {
         runtime::Runtime,
         stark::{config::BabyBearPoseidon2Outer, RecursionAirWideDeg3},
     };
-    use sphinx_recursion_gnark_ffi::Groth16Prover;
+    use sphinx_recursion_gnark_ffi::PlonkBn254Prover;
 
     use crate::stark::{tests::basic_program, StarkVerifierCircuit};
 
@@ -295,7 +298,12 @@ mod tests {
         let machine = A::machine(config);
         let (pk, vk) = machine.setup(&program);
         let mut challenger = machine.config().challenger();
-        let proof = machine.prove::<LocalProver<_, _>>(&pk, runtime.record, &mut challenger);
+        let proof = machine.prove::<LocalProver<_, _>>(
+            &pk,
+            runtime.record,
+            &mut challenger,
+            SphinxCoreOpts::recursion(),
+        );
 
         let mut challenger = machine.config().challenger();
         vk.observe_into(&mut challenger);
@@ -359,6 +367,6 @@ mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        Groth16Prover::test::<OuterConfig>(&constraints, Witness::default());
+        PlonkBn254Prover::test::<OuterConfig>(&constraints, Witness::default());
     }
 }

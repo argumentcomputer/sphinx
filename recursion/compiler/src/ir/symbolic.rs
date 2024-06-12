@@ -134,7 +134,7 @@ impl<F: Field, EF: Field> PartialEq for SymbolicExt<F, EF> {
 impl<F: Field, EF: Field> Eq for SymbolicExt<F, EF> {}
 
 impl<N: Field> SymbolicVar<N> {
-    pub(crate) fn digest(&self) -> Digest<N> {
+    pub(crate) const fn digest(&self) -> Digest<N> {
         match self {
             SymbolicVar::Const(_, d)
             | SymbolicVar::Val(_, d)
@@ -147,7 +147,7 @@ impl<N: Field> SymbolicVar<N> {
 }
 
 impl<F: Field> SymbolicFelt<F> {
-    pub(crate) fn digest(&self) -> Digest<F> {
+    pub(crate) const fn digest(&self) -> Digest<F> {
         match self {
             SymbolicFelt::Const(_, d)
             | SymbolicFelt::Val(_, d)
@@ -161,7 +161,7 @@ impl<F: Field> SymbolicFelt<F> {
 }
 
 impl<F: Field, EF: Field> SymbolicExt<F, EF> {
-    pub(crate) fn digest(&self) -> Digest<EF> {
+    pub(crate) const fn digest(&self) -> Digest<EF> {
         match self {
             SymbolicExt::Const(_, d)
             | SymbolicExt::Base(_, d)

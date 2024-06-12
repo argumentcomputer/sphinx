@@ -5,15 +5,15 @@ name = "tendermint-script"
 edition = "2021"
 
 [dependencies]
-sphinx-core = { path = "../../../core", features = ["neon"]  }
+sphinx-core = { path = "../../../core", features = ["neon"] }
 sphinx-sdk = { path = "../../../sdk" }
-reqwest = { version = "0.12.3", features = ["json"] }
+reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 tendermint = { version = "0.34.0", default-features = false }
 tendermint-light-client-verifier = { version = "0.34.0", default-features = false, features = [
-    "rust-crypto",
+  "rust-crypto",
 ] }
 bincode = "1.3.3"
 itertools = "0.12.1"

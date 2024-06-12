@@ -15,7 +15,7 @@ use sphinx_core::{
 };
 use sphinx_primitives::poseidon2_hash;
 use sphinx_recursion_core::{air::RecursionPublicValues, stark::config::BabyBearPoseidon2Outer};
-use sphinx_recursion_gnark_ffi::{plonk_bn254::PlonkBn254Proof, Groth16Proof};
+use sphinx_recursion_gnark_ffi::plonk_bn254::PlonkBn254Proof;
 use thiserror::Error;
 
 use crate::utils::words_to_bytes_be;
@@ -143,10 +143,10 @@ pub type SphinxCoreProof = SphinxProofWithMetadata<SphinxCoreProofData>;
 /// within SP1 programs.
 pub type SphinxReducedProof = SphinxProofWithMetadata<SphinxReducedProofData>;
 
-/// An SP1 proof that has been wrapped into a single Groth16 proof and can be verified onchain.
-pub type SphinxGroth16Proof = SphinxProofWithMetadata<SphinxGroth16ProofData>;
+/// An SP1 proof that has been wrapped into a single PLONK proof and can be verified onchain.
+pub type SphinxPlonkBn254Proof = SphinxProofWithMetadata<SphinxPlonkBn254ProofData>;
 
-/// An SP1 proof that has been wrapped into a single Plonk proof and can be verified onchain.
+/// An SP1 proof that has been wrapped into a single PLONK proof and can be verified onchain.
 pub type SphinxPlonkProof = SphinxProofWithMetadata<SphinxPlonkProofData>;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -155,7 +155,7 @@ pub struct SphinxCoreProofData(pub Vec<ShardProof<CoreSC>>);
 pub struct SphinxReducedProofData(pub ShardProof<InnerSC>);
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct SphinxGroth16ProofData(pub Groth16Proof);
+pub struct SphinxPlonkBn254ProofData(pub PlonkBn254Proof);
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SphinxPlonkProofData(pub PlonkBn254Proof);

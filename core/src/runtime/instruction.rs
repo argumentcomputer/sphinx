@@ -17,7 +17,14 @@ pub struct Instruction {
 
 impl Instruction {
     /// Create a new instruction.
-    pub fn new(opcode: Opcode, op_a: u32, op_b: u32, op_c: u32, imm_b: bool, imm_c: bool) -> Self {
+    pub const fn new(
+        opcode: Opcode,
+        op_a: u32,
+        op_b: u32,
+        op_c: u32,
+        imm_b: bool,
+        imm_c: bool,
+    ) -> Self {
         Self {
             opcode,
             op_a,
@@ -29,7 +36,7 @@ impl Instruction {
     }
 
     /// Returns if the instruction is an ALU instruction.
-    pub fn is_alu_instruction(&self) -> bool {
+    pub const fn is_alu_instruction(&self) -> bool {
         matches!(
             self.opcode,
             Opcode::ADD
@@ -59,7 +66,7 @@ impl Instruction {
     }
 
     /// Returns if the instruction is a memory instruction.
-    pub fn is_memory_instruction(&self) -> bool {
+    pub const fn is_memory_instruction(&self) -> bool {
         matches!(
             self.opcode,
             Opcode::LB
@@ -74,7 +81,7 @@ impl Instruction {
     }
 
     /// Returns if the instruction is a branch instruction.
-    pub fn is_branch_instruction(&self) -> bool {
+    pub const fn is_branch_instruction(&self) -> bool {
         matches!(
             self.opcode,
             Opcode::BEQ | Opcode::BNE | Opcode::BLT | Opcode::BGE | Opcode::BLTU | Opcode::BGEU
@@ -82,7 +89,7 @@ impl Instruction {
     }
 
     /// Returns if the instruction is a jump instruction.
-    pub fn is_jump_instruction(&self) -> bool {
+    pub const fn is_jump_instruction(&self) -> bool {
         matches!(self.opcode, Opcode::JAL | Opcode::JALR)
     }
 }

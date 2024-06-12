@@ -10,7 +10,7 @@ impl Default for SyscallHintLen {
 }
 
 impl SyscallHintLen {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -35,7 +35,7 @@ impl Default for SyscallHintRead {
 }
 
 impl SyscallHintRead {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -89,7 +89,7 @@ mod tests {
     use crate::{
         io::SphinxStdin,
         runtime::Program,
-        utils::{prove, setup_logger, BabyBearPoseidon2},
+        utils::{prove, setup_logger, BabyBearPoseidon2, SphinxCoreOpts},
     };
 
     const HINT_IO_ELF: &[u8] =
@@ -110,6 +110,6 @@ mod tests {
         let program = Program::from(HINT_IO_ELF);
 
         let config = BabyBearPoseidon2::new();
-        prove(&program, &stdin, config).unwrap();
+        prove(&program, &stdin, config, SphinxCoreOpts::default()).unwrap();
     }
 }

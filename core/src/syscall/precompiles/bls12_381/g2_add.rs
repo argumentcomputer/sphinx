@@ -44,6 +44,7 @@ impl Bls12381G2AffineAddChip {
     fn populate_cols<F: PrimeField32>(
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField>,
         a_x: &[BigUint; 2],
         a_y: &[BigUint; 2],
@@ -54,6 +55,7 @@ impl Bls12381G2AffineAddChip {
             let slope_numerator = cols.slope_numerator.populate(
                 record,
                 shard,
+                channel,
                 &[b_y[0].clone(), b_y[1].clone()],
                 &[a_y[0].clone(), a_y[1].clone()],
                 QuadFieldOperation::Sub,
@@ -62,6 +64,7 @@ impl Bls12381G2AffineAddChip {
             let slope_denominator = cols.slope_denominator.populate(
                 record,
                 shard,
+                channel,
                 &[b_x[0].clone(), b_x[1].clone()],
                 &[a_x[0].clone(), a_x[1].clone()],
                 QuadFieldOperation::Sub,
@@ -70,6 +73,7 @@ impl Bls12381G2AffineAddChip {
             cols.slope.populate(
                 record,
                 shard,
+                channel,
                 &slope_numerator,
                 &slope_denominator,
                 QuadFieldOperation::Div,
@@ -77,12 +81,18 @@ impl Bls12381G2AffineAddChip {
         };
 
         let x = {
-            let slope_squared =
-                cols.slope_squared
-                    .populate(record, shard, &slope, &slope, QuadFieldOperation::Mul);
+            let slope_squared = cols.slope_squared.populate(
+                record,
+                shard,
+                channel,
+                &slope,
+                &slope,
+                QuadFieldOperation::Mul,
+            );
             let p_x_plus_q_x = cols.p_x_plus_q_x.populate(
                 record,
                 shard,
+                channel,
                 &[a_x[0].clone(), a_x[1].clone()],
                 &[b_x[0].clone(), b_x[1].clone()],
                 QuadFieldOperation::Add,
@@ -90,6 +100,7 @@ impl Bls12381G2AffineAddChip {
             cols.x3_ins.populate(
                 record,
                 shard,
+                channel,
                 &slope_squared,
                 &p_x_plus_q_x,
                 QuadFieldOperation::Sub,
@@ -100,6 +111,7 @@ impl Bls12381G2AffineAddChip {
             let p_x_minus_x = cols.p_x_minus_x.populate(
                 record,
                 shard,
+                channel,
                 &[a_x[0].clone(), a_x[1].clone()],
                 &x,
                 QuadFieldOperation::Sub,
@@ -107,6 +119,7 @@ impl Bls12381G2AffineAddChip {
             let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate(
                 record,
                 shard,
+                channel,
                 &slope,
                 &p_x_minus_x,
                 QuadFieldOperation::Mul,
@@ -114,6 +127,7 @@ impl Bls12381G2AffineAddChip {
             cols.y3_ins.populate(
                 record,
                 shard,
+                channel,
                 &slope_times_p_x_minus_x,
                 &[a_y[0].clone(), a_y[1].clone()],
                 QuadFieldOperation::Sub,
@@ -126,6 +140,7 @@ impl Bls12381G2AffineAddChip {
 pub struct Bls12381G2AffineAddEvent {
     pub clk: u32,
     pub shard: u32,
+    pub channel: u32,
     pub a_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
     pub a_x:
@@ -157,6 +172,7 @@ impl Syscall for Bls12381G2AffineAddChip {
     fn execute(&self, ctx: &mut SyscallContext<'_>, a_ptr: u32, b_ptr: u32) -> Option<u32> {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
+        let channel = ctx.current_channel();
 
         assert_eq!(a_ptr % 4, 0, "arg1 ptr must be 4-byte aligned");
         assert_eq!(b_ptr % 4, 0, "arg2 ptr must be 4-byte aligned");
@@ -229,6 +245,7 @@ impl Syscall for Bls12381G2AffineAddChip {
             .push(Bls12381G2AffineAddEvent {
                 clk,
                 shard,
+                channel,
                 a_ptr,
                 a_x,
                 a_y,
@@ -252,6 +269,7 @@ impl Syscall for Bls12381G2AffineAddChip {
 pub struct Bls12381G2AffineAddCols<T, P: FieldParameters> {
     pub clk: T,
     pub shard: T,
+    pub channel: T,
     pub is_real: T,
 
     pub a_ptr: T,
@@ -307,6 +325,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
+            cols.channel = F::from_canonical_u32(event.channel);
 
             // Data
             cols.a_ptr = F::from_canonical_u32(event.a_ptr);
@@ -323,16 +342,25 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             let (b_y_c0, b_y_c1) = (b_y.x, b_y.y);
 
             for i in 0..<Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE {
-                cols.a_access[i].populate(event.a_memory_records[i], &mut new_byte_lookup_events);
+                cols.a_access[i].populate(
+                    event.channel,
+                    event.a_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
 
             for i in 0..<Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE {
-                cols.b_access[i].populate(event.b_memory_records[i], &mut new_byte_lookup_events);
+                cols.b_access[i].populate(
+                    event.channel,
+                    event.b_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
 
             Self::populate_cols(
                 &mut new_byte_lookup_events,
                 event.shard,
+                event.channel,
                 cols,
                 &[a_x_c0, a_x_c1],
                 &[a_y_c0, a_y_c1],
@@ -353,10 +381,12 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             cols.clk = F::zero();
             cols.is_real = F::zero();
             cols.shard = F::zero();
+            cols.channel = F::zero();
 
             let zero = BigUint::zero();
             Self::populate_cols(
                 &mut vec![],
+                0,
                 0,
                 cols,
                 &[zero.clone(), zero.clone()],
@@ -410,6 +440,7 @@ where
                 &[p_y_c0, p_y_c1],
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -419,6 +450,7 @@ where
                 &[p_x_c0, p_x_c1],
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -428,6 +460,7 @@ where
                 &local.slope_denominator.result,
                 QuadFieldOperation::Div,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -441,6 +474,7 @@ where
                 &slope,
                 QuadFieldOperation::Mul,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -450,6 +484,7 @@ where
                 &[q_x_c0, q_x_c1],
                 QuadFieldOperation::Add,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -459,6 +494,7 @@ where
                 &local.p_x_plus_q_x.result,
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -472,6 +508,7 @@ where
                 &x,
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -481,6 +518,7 @@ where
                 &local.p_x_minus_x.result,
                 QuadFieldOperation::Mul,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -490,6 +528,7 @@ where
                 &[p_y_c0, p_y_c1],
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
         }
@@ -519,6 +558,7 @@ where
         for i in 0..local.a_access.len() {
             builder.eval_memory_access(
                 local.shard,
+                local.channel,
                 local.clk + AB::F::from_canonical_u32(1), // We eval 'a' pointer access at clk+1 since 'a', 'b' could be the same
                 local.a_ptr.into() + AB::F::from_canonical_u32((i as u32) * 4),
                 &local.a_access[i],
@@ -529,6 +569,7 @@ where
         for i in 0..local.b_access.len() {
             builder.eval_memory_access(
                 local.shard,
+                local.channel,
                 local.clk,
                 local.b_ptr.into() + AB::F::from_canonical_u32((i as u32) * 4),
                 &local.b_access[i],
@@ -538,6 +579,7 @@ where
 
         builder.receive_syscall(
             local.shard,
+            local.channel,
             local.clk,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G2_ADD.syscall_id()),
             local.a_ptr,

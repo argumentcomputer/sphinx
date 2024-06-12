@@ -64,6 +64,7 @@ pub fn secp256k1_decompress(bytes_be: &[u8], sign: u32) -> AffinePoint<Secp256k1
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Secp256k1DecompressEvent {
     pub shard: u32,
+    pub channel: u32,
     pub clk: u32,
     pub ptr: u32,
     pub is_odd: bool,
@@ -107,6 +108,7 @@ pub fn create_secp256k1_decompress_event(
 
     Secp256k1DecompressEvent {
         shard: rt.current_shard(),
+        channel: rt.current_channel(),
         clk: start_clk,
         ptr: slice_ptr,
         is_odd: is_odd != 0,
@@ -131,6 +133,7 @@ impl Syscall for Secp256k1DecompressChip {
 pub struct Secp256k1DecompressCols<T> {
     pub is_real: T,
     pub shard: T,
+    pub channel: T,
     pub clk: T,
     pub ptr: T,
     pub is_odd: T,
@@ -170,33 +173,35 @@ impl Secp256k1DecompressChip {
     fn populate_field_ops<F: PrimeField32>(
         blu_events: &mut Vec<ByteLookupEvent>,
         shard: u32,
+        channel: u32,
         cols: &mut Secp256k1DecompressCols<F>,
         x: &BigUint,
     ) {
         // Y = sqrt(x^3 + b)
-        cols.range_x.populate(blu_events, shard, x);
+        cols.range_x.populate(blu_events, shard, channel, x);
         let x_2 = cols.x_2.populate(
             blu_events,
             shard,
+            channel,
             &x.clone(),
             &x.clone(),
             FieldOperation::Mul,
         );
         let x_3 = cols
             .x_3
-            .populate(blu_events, shard, &x_2, x, FieldOperation::Mul);
+            .populate(blu_events, shard, channel, &x_2, x, FieldOperation::Mul);
         let b = Secp256k1Parameters::b_int();
-        let x_3_plus_b = cols
-            .x_3_plus_b
-            .populate(blu_events, shard, &x_3, &b, FieldOperation::Add);
+        let x_3_plus_b =
+            cols.x_3_plus_b
+                .populate(blu_events, shard, channel, &x_3, &b, FieldOperation::Add);
 
         let y = cols
             .y
-            .populate(blu_events, shard, &x_3_plus_b, secp256k1_sqrt);
+            .populate(blu_events, shard, channel, &x_3_plus_b, secp256k1_sqrt);
 
         let zero = BigUint::zero();
         cols.neg_y
-            .populate(blu_events, shard, &zero, &y, FieldOperation::Sub);
+            .populate(blu_events, shard, channel, &zero, &y, FieldOperation::Sub);
 
         // Byte-check the least significant Y bit
         let y_bytes = Secp256k1BaseField::to_limbs(&y);
@@ -204,6 +209,7 @@ impl Secp256k1DecompressChip {
 
         let and_event = ByteLookupEvent {
             shard,
+            channel,
             opcode: ByteOpcode::AND,
             a1: cols.y_lsb.as_canonical_u32(),
             a2: 0,
@@ -241,18 +247,33 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
 
             cols.is_real = F::from_bool(true);
             cols.shard = F::from_canonical_u32(event.shard);
+            cols.channel = F::from_canonical_u32(event.channel);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.ptr = F::from_canonical_u32(event.ptr);
             cols.is_odd = F::from_canonical_u32(u32::from(event.is_odd));
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
-            Self::populate_field_ops(&mut new_byte_lookup_events, event.shard, cols, &x);
+            Self::populate_field_ops(
+                &mut new_byte_lookup_events,
+                event.shard,
+                event.channel,
+                cols,
+                &x,
+            );
 
             for i in 0..cols.x_access.len() {
-                cols.x_access[i].populate(event.x_memory_records[i], &mut new_byte_lookup_events);
+                cols.x_access[i].populate(
+                    event.channel,
+                    event.x_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
             for i in 0..cols.y_access.len() {
-                cols.y_access[i].populate(event.y_memory_records[i], &mut new_byte_lookup_events);
+                cols.y_access[i].populate(
+                    event.channel,
+                    event.y_memory_records[i],
+                    &mut new_byte_lookup_events,
+                );
             }
 
             rows.push(row);
@@ -271,7 +292,7 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
                 cols.x_access[i].access.value = words[i].into();
             }
 
-            Self::populate_field_ops(&mut vec![], 0, cols, &dummy_value);
+            Self::populate_field_ops(&mut vec![], 0, 0, cols, &dummy_value);
             row
         });
 
@@ -308,15 +329,24 @@ where
         builder.assert_bool(row.is_odd);
 
         let x: Limbs<AB::Var> = limbs_from_prev_access(&row.x_access);
-        row.range_x.eval(builder, &x, row.shard, row.is_real);
-        row.x_2
-            .eval(builder, &x, &x, FieldOperation::Mul, row.shard, row.is_real);
+        row.range_x
+            .eval(builder, &x, row.shard, row.channel, row.is_real);
+        row.x_2.eval(
+            builder,
+            &x,
+            &x,
+            FieldOperation::Mul,
+            row.shard,
+            row.channel,
+            row.is_real,
+        );
         row.x_3.eval(
             builder,
             &row.x_2.result,
             &x,
             FieldOperation::Mul,
             row.shard,
+            row.channel,
             row.is_real,
         );
         let b = Secp256k1Parameters::b_int();
@@ -327,16 +357,23 @@ where
             &b_const,
             FieldOperation::Add,
             row.shard,
+            row.channel,
             row.is_real,
         );
-        row.y
-            .eval(builder, &row.x_3_plus_b.result, &row.shard, &row.is_real);
+        row.y.eval(
+            builder,
+            &row.x_3_plus_b.result,
+            row.shard,
+            row.channel,
+            row.is_real,
+        );
         row.neg_y.eval(
             builder,
             &[AB::Expr::zero()].iter(),
             &row.y.multiplication.result,
             FieldOperation::Sub,
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -350,6 +387,7 @@ where
             y_lsb,
             AB::F::one(),
             row.shard,
+            row.channel,
             row.is_real,
         );
 
@@ -368,6 +406,7 @@ where
         for i in 0..num_words_field_element {
             builder.eval_memory_access(
                 row.shard,
+                row.channel,
                 row.clk,
                 row.ptr.into() + AB::F::from_canonical_u32((i as u32) * 4 + num_limbs as u32),
                 &row.x_access[i],
@@ -377,6 +416,7 @@ where
         for i in 0..num_words_field_element {
             builder.eval_memory_access(
                 row.shard,
+                row.channel,
                 row.clk,
                 row.ptr.into() + AB::F::from_canonical_u32((i as u32) * 4),
                 &row.y_access[i],
@@ -386,6 +426,7 @@ where
 
         builder.receive_syscall(
             row.shard,
+            row.channel,
             row.clk,
             AB::F::from_canonical_u32(SyscallCode::SECP256K1_DECOMPRESS.syscall_id()),
             row.ptr,

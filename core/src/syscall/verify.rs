@@ -10,7 +10,7 @@ use crate::{
 pub struct SyscallVerifySphinxProof;
 
 impl SyscallVerifySphinxProof {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }

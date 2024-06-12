@@ -8,8 +8,8 @@ use sphinx_derive::AlignedBorrow;
 use super::params::{FieldParameters, Limbs, WITNESS_LIMBS};
 use super::util::{compute_root_quotient_and_shift, split_u16_limbs_to_u8_limbs};
 use super::util_air::eval_field_operation;
-use crate::air::Polynomial;
 use crate::air::WordAirBuilder;
+use crate::air::{BaseAirBuilder, Polynomial};
 use crate::bytes::event::ByteRecord;
 
 /// A set of columns to compute `FieldDen(a, b)` where `a`, `b` are field elements.
@@ -34,6 +34,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         a: &BigUint,
         b: &BigUint,
         sign: bool,
@@ -84,28 +85,26 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
         self.witness_high = (&p_witness_high[..]).try_into().unwrap();
 
         // Range checks
-        record.add_u8_range_checks_field(shard, &self.result);
-        record.add_u8_range_checks_field(shard, &self.carry);
-        record.add_u8_range_checks_field(shard, &self.witness_low);
-        record.add_u8_range_checks_field(shard, &self.witness_high);
+        record.add_u8_range_checks_field(shard, channel, &self.result);
+        record.add_u8_range_checks_field(shard, channel, &self.carry);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_low);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_high);
 
         result
     }
 }
 
 impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
-    pub fn eval<
-        AB: WordAirBuilder<Var = V>,
-        EShard: Into<AB::Expr> + Clone,
-        ER: Into<AB::Expr> + Clone,
-    >(
+    #[allow(clippy::too_many_arguments)]
+    pub fn eval<AB: BaseAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
         b: &Limbs<AB::Var, P::NB_LIMBS>,
         sign: bool,
-        shard: EShard,
-        is_real: ER,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
     ) where
         V: Into<AB::Expr>,
     {
@@ -138,10 +137,20 @@ impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
         eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);
 
         // Range checks for the result, carry, and witness columns.
-        builder.slice_range_check_u8(&self.result, shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.carry, shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.witness_low, shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.witness_high, shard, is_real);
+        builder.slice_range_check_u8(
+            &self.result,
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(&self.carry, shard.clone(), channel.clone(), is_real.clone());
+        builder.slice_range_check_u8(
+            &self.witness_low,
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(&self.witness_high, shard, channel, is_real);
     }
 }
 
@@ -189,7 +198,7 @@ mod tests {
     }
 
     impl<P: FieldParameters> FieldDenChip<P> {
-        pub(crate) fn new(sign: bool) -> Self {
+        pub(crate) const fn new(sign: bool) -> Self {
             Self {
                 sign,
                 _phantom: std::marker::PhantomData,
@@ -250,7 +259,7 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.b = P::to_limbs_field::<F>(b);
-                    cols.a_den_b.populate(output, 1, a, b, self.sign);
+                    cols.a_den_b.populate(output, 1, 0, a, b, self.sign);
                     row
                 })
                 .collect::<Vec<_>>();
@@ -289,6 +298,7 @@ mod tests {
                 &local.b,
                 self.sign,
                 AB::F::one(),
+                AB::F::zero(),
                 AB::F::one(),
             );
         }

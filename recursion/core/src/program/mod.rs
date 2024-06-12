@@ -43,7 +43,7 @@ pub struct ProgramMultiplicityCols<T> {
 pub struct ProgramChip<F>(pub PhantomData<F>);
 
 impl<F> ProgramChip<F> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(PhantomData)
     }
 }

@@ -59,6 +59,9 @@
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
     "rust-analyzer.check.features": null,
+    "rust-analyzer.server.extraEnv": {
+        "CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG": "true",
+    },
     // "rust-analyzer.showUnlinkedFileNotification": false,
     // "rust-analyzer.check.workspace": false,
     // "rust-analyzer.check.invocationStrategy": "once",
