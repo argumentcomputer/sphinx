@@ -19,7 +19,6 @@ cfg-if = { workspace = true }
 
 [build-dependencies]
 bindgen = { workspace = true }
-cc = { workspace = true }
 cfg-if = { workspace = true }
 
 [features]

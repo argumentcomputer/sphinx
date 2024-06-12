@@ -36,9 +36,6 @@ sphinx-derive = { path = "../derive" }
 sphinx-primitives = { path = "../primitives" }
 
 anyhow = { workspace = true }
-amcl = { package = "snowbridge-amcl", version = "1.0.2", default-features = false, features = [
-  "bls381",
-] }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
 bls12_381 = { workspace = true }
