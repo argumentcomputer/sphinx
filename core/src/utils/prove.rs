@@ -18,14 +18,15 @@ use crate::lookup::InteractionBuilder;
 use crate::runtime::ExecutionError;
 use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
 use crate::stark::DebugConstraintBuilder;
+use crate::stark::Indexed;
 use crate::stark::MachineProof;
 use crate::stark::ProverConstraintFolder;
 use crate::stark::StarkVerifyingKey;
 use crate::stark::Val;
 use crate::stark::VerifierConstraintFolder;
 use crate::stark::{Com, PcsProverData, RiscvAir, ShardProof, StarkProvingKey, UniConfig};
-use crate::stark::{Indexed, MachineRecord, StarkMachine};
-use crate::utils::env;
+use crate::stark::{MachineRecord, StarkMachine};
+use crate::utils::SphinxCoreOpts;
 use crate::{
     runtime::{Program, Runtime},
     stark::{LocalProver, OpeningProof, ShardMainData, StarkGenericConfig},
@@ -62,7 +63,12 @@ where
     // Prove the program.
     let mut challenger = machine.config().challenger();
     let proving_start = Instant::now();
-    let proof = machine.prove::<LocalProver<_, _>>(&pk, runtime.record, &mut challenger);
+    let proof = machine.prove::<LocalProver<_, _>>(
+        &pk,
+        runtime.record,
+        &mut challenger,
+        SphinxCoreOpts::default(),
+    );
     let proving_duration = proving_start.elapsed().as_millis();
     let nb_bytes = bincode::serialize(&proof).unwrap().len();
 
@@ -82,6 +88,7 @@ pub fn prove<SC: StarkGenericConfig + Send + Sync>(
     program: &Program,
     stdin: &SphinxStdin,
     config: SC,
+    opts: SphinxCoreOpts,
 ) -> Result<(MachineProof<SC>, Vec<u8>), SphinxCoreProverError>
 where
     SC::Challenger: Clone,
@@ -94,7 +101,7 @@ where
     let proving_start = Instant::now();
 
     // Execute the program.
-    let mut runtime = Runtime::new(program.clone());
+    let mut runtime = Runtime::new(program.clone(), opts);
     runtime.write_vecs(&stdin.buffer);
     for proof in stdin.proofs.iter() {
         runtime.write_proof(proof.0.clone(), proof.1.clone());
@@ -105,7 +112,7 @@ where
     let (pk, vk) = machine.setup(runtime.program.as_ref());
 
     // If we don't need to batch, we can just run the program normally and prove it.
-    if env::shard_batch_size() == 0 {
+    if opts.shard_batch_size == 0 {
         // Execute the runtime and collect all the events..
         runtime
             .run()
@@ -159,7 +166,7 @@ where
     let mut challenger = machine.config().challenger();
     vk.observe_into(&mut challenger);
     for checkpoint_file in checkpoints.iter_mut() {
-        let mut record = trace_checkpoint(program, checkpoint_file);
+        let mut record = trace_checkpoint(program, checkpoint_file, opts);
         record.public_values = public_values;
         reset_seek(&mut *checkpoint_file);
 
@@ -169,7 +176,7 @@ where
 
         // Commit to each shard.
         let (commitments, commit_data) = tracing::info_span!("commit")
-            .in_scope(|| LocalProver::commit_shards(&machine, &checkpoint_shards));
+            .in_scope(|| LocalProver::commit_shards(&machine, &checkpoint_shards, opts));
         shard_main_datas.push(commit_data);
 
         // Observe the commitments.
@@ -183,7 +190,7 @@ where
     let mut shard_proofs = Vec::<ShardProof<SC>>::new();
     for mut checkpoint_file in checkpoints {
         let checkpoint_shards = {
-            let mut events = trace_checkpoint(program, &checkpoint_file);
+            let mut events = trace_checkpoint(program, &checkpoint_file, opts);
             events.public_values = public_values;
             reset_seek(&mut checkpoint_file);
             tracing::debug_span!("shard").in_scope(|| machine.shard(events, &sharding_config))
@@ -232,7 +239,7 @@ pub fn run_test_io(
     inputs: &SphinxStdin,
 ) -> Result<SphinxPublicValues, crate::stark::MachineVerificationError<BabyBearPoseidon2>> {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.write_vecs(&inputs.buffer);
         runtime.run().unwrap();
         runtime
@@ -249,7 +256,7 @@ pub fn run_test_with_memory_inspection(
     HashMap<u32, MemoryRecord, BuildNoHashHasher<u32>>,
 ) {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         runtime
     });
@@ -266,7 +273,7 @@ pub fn run_test(
     crate::stark::MachineVerificationError<BabyBearPoseidon2>,
 > {
     let runtime = tracing::info_span!("runtime.run(...)").in_scope(|| {
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         runtime
     });
@@ -320,7 +327,9 @@ where
 
     let start = Instant::now();
     let mut challenger = machine.config().challenger();
-    let proof = machine.prove::<LocalProver<SC, A>>(pk, record, &mut challenger);
+
+    let proof =
+        machine.prove::<LocalProver<SC, A>>(pk, record, &mut challenger, SphinxCoreOpts::default());
     let time = start.elapsed().as_millis();
     let nb_bytes = bincode::serialize(&proof).unwrap().len();
 
@@ -338,10 +347,10 @@ where
     Ok(proof)
 }
 
-fn trace_checkpoint(program: &Program, file: &File) -> ExecutionRecord {
+fn trace_checkpoint(program: &Program, file: &File, opts: SphinxCoreOpts) -> ExecutionRecord {
     let mut reader = io::BufReader::new(file);
     let state = bincode::deserialize_from(&mut reader).expect("failed to deserialize state");
-    let mut runtime = Runtime::recover(program.clone(), state);
+    let mut runtime = Runtime::recover(program.clone(), state, opts);
     let (events, _) =
         tracing::debug_span!("runtime.trace").in_scope(|| runtime.execute_record().unwrap());
     events
@@ -453,7 +462,7 @@ pub mod baby_bear_poseidon2 {
     >;
     pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
     pub type Dft = Radix2DitParallel;
-    pub type Challenger = DuplexChallenger<Val, Perm, 16>;
+    pub type Challenger = DuplexChallenger<Val, Perm, 16, 8>;
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
 
     pub fn my_perm() -> Perm {

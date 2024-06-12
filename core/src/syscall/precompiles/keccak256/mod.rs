@@ -16,6 +16,7 @@ const STATE_NUM_WORDS: usize = STATE_SIZE * 2;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeccakPermuteEvent {
     pub shard: u32,
+    pub channel: u32,
     pub clk: u32,
     pub pre_state: [u64; STATE_SIZE],
     pub post_state: [u64; STATE_SIZE],
@@ -29,7 +30,7 @@ pub struct KeccakPermuteChip {
 }
 
 impl KeccakPermuteChip {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             p3_keccak: KeccakAir {},
         }
@@ -44,9 +45,11 @@ impl Default for KeccakPermuteChip {
 
 #[cfg(test)]
 pub mod permute_tests {
+    use crate::runtime::SyscallCode;
+    use crate::utils::{run_test, SphinxCoreOpts};
     use crate::{
-        runtime::{Instruction, Opcode, Program, Runtime, SyscallCode},
-        utils::{self, run_test, tests::KECCAK_PERMUTE_ELF},
+        runtime::{Instruction, Opcode, Program, Runtime},
+        utils::{self, tests::KECCAK_PERMUTE_ELF},
     };
 
     pub fn keccak_permute_program() -> Program {
@@ -78,7 +81,7 @@ pub mod permute_tests {
     pub fn test_keccak_permute_program_execute() {
         utils::setup_logger();
         let program = keccak_permute_program();
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
     }
 

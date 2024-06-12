@@ -7,6 +7,7 @@ pub mod quad_field;
 pub mod secp256k1;
 pub mod sha256;
 pub mod weierstrass;
+
 use crate::runtime::SyscallContext;
 use crate::utils::ec::{AffinePoint, EllipticCurve};
 use crate::{runtime::MemoryReadRecord, runtime::MemoryWriteRecord};
@@ -23,6 +24,7 @@ use crate::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ECAddEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub shard: u32,
+    pub channel: u32,
     pub clk: u32,
     pub p_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
@@ -66,6 +68,7 @@ pub fn create_ec_add_event<E: EllipticCurve>(
 
     ECAddEvent {
         shard: rt.current_shard(),
+        channel: rt.current_channel(),
         clk: start_clk,
         p_ptr,
         p,
@@ -80,6 +83,7 @@ pub fn create_ec_add_event<E: EllipticCurve>(
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ECDoubleEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub shard: u32,
+    pub channel: u32,
     pub clk: u32,
     pub p_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
@@ -108,6 +112,7 @@ pub fn create_ec_double_event<E: EllipticCurve>(
 
     ECDoubleEvent {
         shard: rt.current_shard(),
+        channel: rt.current_channel(),
         clk: start_clk,
         p_ptr,
         p,

@@ -8,6 +8,9 @@ pub struct CpuEvent {
     /// The current shard.
     pub shard: u32,
 
+    /// The current channel.
+    pub channel: u32,
+
     /// The current clock.
     pub clk: u32,
 

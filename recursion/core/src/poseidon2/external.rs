@@ -194,12 +194,7 @@ impl<F: Field> Poseidon2Chip<F> {
             let sbox_deg_3 = computation_cols.add_rc[i]
                 * computation_cols.add_rc[i]
                 * computation_cols.add_rc[i];
-            builder
-                .when(is_initial.clone() + is_external_layer.clone() + is_internal_layer.clone())
-                .assert_eq(sbox_deg_3, computation_cols.sbox_deg_3[i]);
-            let sbox_deg_7 = computation_cols.sbox_deg_3[i]
-                * computation_cols.sbox_deg_3[i]
-                * computation_cols.add_rc[i];
+            let sbox_deg_7 = sbox_deg_3.clone() * sbox_deg_3.clone() * computation_cols.add_rc[i];
             builder
                 .when(is_initial.clone() + is_external_layer.clone() + is_internal_layer.clone())
                 .assert_eq(sbox_deg_7, computation_cols.sbox_deg_7[i]);
@@ -309,7 +304,7 @@ impl<F: Field> Poseidon2Chip<F> {
         );
     }
 
-    pub fn do_receive_table<T: Copy>(local: &Poseidon2Cols<T>) -> T {
+    pub const fn do_receive_table<T: Copy>(local: &Poseidon2Cols<T>) -> T {
         local.rounds[0]
     }
 
@@ -446,6 +441,7 @@ mod tests {
             BabyBear,
             Poseidon2<BabyBear, Poseidon2ExternalMatrixGeneral, DiffusionMatrixBabyBear, 16, 7>,
             16,
+            8,
         > = config.challenger();
         let start = Instant::now();
         uni_stark_verify(&config, &chip, &mut challenger, &proof)

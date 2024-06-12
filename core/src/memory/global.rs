@@ -31,7 +31,7 @@ pub struct MemoryChip {
 
 impl MemoryChip {
     /// Creates a new memory chip with a certain type.
-    pub fn new(kind: MemoryChipType) -> Self {
+    pub const fn new(kind: MemoryChipType) -> Self {
         Self { kind }
     }
 }
@@ -190,23 +190,21 @@ where
 #[cfg(test)]
 mod tests {
 
-    use p3_baby_bear::BabyBear;
-
     use super::*;
-    use crate::{
-        lookup::{debug_interactions_with_all_chips, InteractionKind},
-        runtime::{tests::simple_program, Runtime},
-        stark::{MachineRecord, RiscvAir, StarkGenericConfig},
-        syscall::precompiles::sha256::extend_tests::sha_extend_program,
-        utils::{
-            setup_logger, uni_stark_prove as prove, uni_stark_verify as verify, BabyBearPoseidon2,
-        },
-    };
+    use crate::lookup::{debug_interactions_with_all_chips, InteractionKind};
+    use crate::runtime::tests::simple_program;
+    use crate::runtime::Runtime;
+    use crate::stark::MachineRecord;
+    use crate::stark::{RiscvAir, StarkGenericConfig};
+    use crate::syscall::precompiles::sha256::extend_tests::sha_extend_program;
+    use crate::utils::{setup_logger, BabyBearPoseidon2, SphinxCoreOpts};
+    use crate::utils::{uni_stark_prove as prove, uni_stark_verify as verify};
+    use p3_baby_bear::BabyBear;
 
     #[test]
     fn test_memory_generate_trace() {
         let program = simple_program();
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         let shard = runtime.record.clone();
 
@@ -232,7 +230,7 @@ mod tests {
         let mut challenger = config.challenger();
 
         let program = simple_program();
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
 
         let chip = MemoryChip::new(MemoryChipType::Initialize);
@@ -250,7 +248,7 @@ mod tests {
         setup_logger();
         let program = sha_extend_program();
         let program_clone = program.clone();
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         let machine: crate::stark::StarkMachine<BabyBearPoseidon2, RiscvAir<BabyBear>> =
             RiscvAir::machine(BabyBearPoseidon2::new());
@@ -273,7 +271,7 @@ mod tests {
         setup_logger();
         let program = sha_extend_program();
         let program_clone = program.clone();
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         let machine = RiscvAir::machine(BabyBearPoseidon2::new());
         let (pkey, _) = machine.setup(&program_clone);

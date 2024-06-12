@@ -17,7 +17,14 @@ pub struct XorOperation<T> {
 }
 
 impl<F: Field> XorOperation<F> {
-    pub fn populate(&mut self, record: &mut impl ByteRecord, shard: u32, x: u32, y: u32) -> u32 {
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        channel: u32,
+        x: u32,
+        y: u32,
+    ) -> u32 {
         let expected = x ^ y;
         let x_bytes = x.to_le_bytes();
         let y_bytes = y.to_le_bytes();
@@ -27,6 +34,7 @@ impl<F: Field> XorOperation<F> {
 
             let byte_event = ByteLookupEvent {
                 shard,
+                channel,
                 opcode: ByteOpcode::XOR,
                 a1: u32::from(xor),
                 a2: 0,
@@ -44,6 +52,7 @@ impl<F: Field> XorOperation<F> {
         b: Word<AB::Var>,
         cols: XorOperation<AB::Var>,
         shard: AB::Var,
+        channel: &(impl Into<AB::Expr> + Clone),
         is_real: AB::Var,
     ) {
         for i in 0..WORD_SIZE {
@@ -53,6 +62,7 @@ impl<F: Field> XorOperation<F> {
                 a[i],
                 b[i],
                 shard,
+                channel.clone(),
                 is_real,
             );
         }

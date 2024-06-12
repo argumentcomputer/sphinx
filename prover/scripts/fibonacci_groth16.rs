@@ -1,4 +1,4 @@
-//! Tests end-to-end performance of wrapping a recursion proof to Groth16.
+//! Tests end-to-end performance of wrapping a recursion proof to PLONK.
 
 use std::time::Instant;
 

@@ -135,12 +135,11 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
 
                     // Apply the sbox.
                     for j in 0..WIDTH {
-                        computation_cols.sbox_deg_3[j] = computation_cols.add_rc[j]
+                        let sbox_deg_3 = computation_cols.add_rc[j]
                             * computation_cols.add_rc[j]
                             * computation_cols.add_rc[j];
-                        computation_cols.sbox_deg_7[j] = computation_cols.sbox_deg_3[j]
-                            * computation_cols.sbox_deg_3[j]
-                            * computation_cols.add_rc[j];
+                        computation_cols.sbox_deg_7[j] =
+                            sbox_deg_3 * sbox_deg_3 * computation_cols.add_rc[j];
                     }
 
                     // What state to use for the linear layer.

@@ -5,8 +5,6 @@ edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -14,9 +12,9 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
-sphinx-prover = { path = "../prover" }
+sphinx-prover = { path = "../prover", default-features = false }
 sphinx-core = { path = "../core" }
 futures = { workspace = true }
 bincode = { workspace = true }
@@ -29,13 +27,18 @@ tracing = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
 axum = { workspace = true }
-alloy = { workspace = true, features = ["contract", "signer-wallet"] }
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true }
 sha2 = { workspace = true }
+dirs = { workspace = true }
 tempfile = { workspace = true }
 num-bigint = { workspace = true }
+cfg-if = { workspace = true }
+ethers = { workspace = true }
 
 [features]
 neon = ["sphinx-core/neon"]
+plonk = ["sphinx-prover/plonk"]
 
 [build-dependencies]
 vergen = { workspace = true, features = ["build", "git", "git2"] }

@@ -9,11 +9,17 @@ use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
 
 use super::{program::Program, Opcode};
-use crate::bytes::ByteLookupEvent;
 use crate::cpu::CpuEvent;
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
+use crate::stark::{
+    AddSubChip, BitwiseChip, Blake3CompressInnerChip, ByteChip, CpuChip, DivRemChip,
+    Ed25519Parameters, EdAddAssignChip, EdDecompressChip, FieldAddChip, FieldMulChip, FieldSubChip,
+    KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip, QuadFieldAddChip,
+    QuadFieldMulChip, QuadFieldSubChip, ShaCompressChip, ShaExtendChip, ShiftLeft, ShiftRightChip,
+    WeierstrassAddAssignChip, WeierstrassDoubleAssignChip,
+};
 use crate::syscall::precompiles::blake3::Blake3CompressInnerEvent;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddEvent;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleEvent;
@@ -21,42 +27,33 @@ use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
 use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
-use crate::utils::env;
+use crate::utils::SphinxCoreOpts;
 use crate::{
-    air::EventLens,
+    air::{EventLens, PublicValues},
     alu::AluEvent,
+    bytes::{event::ByteRecord, ByteLookupEvent},
     memory::MemoryProgramChip,
-    stark::{
-        AddSubChip, BitwiseChip, Blake3CompressInnerChip, ByteChip, CpuChip, DivRemChip,
-        Ed25519Parameters, EdAddAssignChip, EdDecompressChip, FieldAddChip, FieldMulChip,
-        FieldSubChip, KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip,
-        QuadFieldAddChip, QuadFieldMulChip, QuadFieldSubChip, ShaCompressChip, ShaExtendChip,
-        ShiftLeft, ShiftRightChip, WeierstrassAddAssignChip, WeierstrassDoubleAssignChip,
-    },
+    operations::field::params::FieldParameters,
+    stark::Indexed,
     syscall::precompiles::{
         bls12_381::{
-            g1_decompress::Bls12381G1DecompressChip, g2_add::Bls12381G2AffineAddChip,
+            g1_decompress::{Bls12381G1DecompressChip, Bls12381G1DecompressEvent},
+            g2_add::Bls12381G2AffineAddChip,
             g2_double::Bls12381G2AffineDoubleChip,
         },
-        secp256k1::decompress::Secp256k1DecompressChip,
+        field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
+        quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
+        secp256k1::decompress::{Secp256k1DecompressChip, Secp256k1DecompressEvent},
     },
     utils::ec::{
         edwards::ed25519::Ed25519,
-        weierstrass::{bls12_381::Bls12381, bn254::Bn254, secp256k1::Secp256k1},
+        weierstrass::{
+            bls12_381::{Bls12381, Bls12381BaseField},
+            bn254::Bn254,
+            secp256k1::Secp256k1,
+        },
     },
 };
-use crate::{
-    air::PublicValues,
-    operations::field::params::FieldParameters,
-    syscall::precompiles::{
-        bls12_381::g1_decompress::Bls12381G1DecompressEvent,
-        field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
-        quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
-        secp256k1::decompress::Secp256k1DecompressEvent,
-    },
-    utils::ec::weierstrass::bls12_381::Bls12381BaseField,
-};
-use crate::{bytes::event::ByteRecord, stark::Indexed};
 
 /// A record of the execution of a program. Contains event data for everything that happened during
 /// the execution of the shard.
@@ -397,7 +394,7 @@ impl ShardingConfig {
 
 impl Default for ShardingConfig {
     fn default() -> Self {
-        let shard_size = env::shard_size();
+        let shard_size = SphinxCoreOpts::default().shard_size;
         Self {
             shard_size,
             add_len: shard_size,

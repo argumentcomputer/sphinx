@@ -89,7 +89,7 @@ impl<N> From<usize> for Usize<N> {
 }
 
 impl<N> Var<N> {
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id, PhantomData)
     }
 
@@ -103,7 +103,7 @@ impl<N> Var<N> {
 }
 
 impl<F> Felt<F> {
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id, PhantomData)
     }
 
@@ -124,7 +124,7 @@ impl<F> Felt<F> {
 }
 
 impl<F, EF> Ext<F, EF> {
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id, PhantomData)
     }
 
@@ -850,7 +850,6 @@ impl<C: Config> MemVariable<C> for Felt<C::F> {
 }
 
 impl<F: Field, EF: ExtensionField<F>> Ext<F, EF> {
-    // Todo: refactor base
     fn assign_with_caches<C: Config<F = F, EF = EF>>(
         &self,
         src: SymbolicExt<F, EF>,

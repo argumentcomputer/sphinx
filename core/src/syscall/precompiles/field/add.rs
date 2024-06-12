@@ -33,6 +33,7 @@ use crate::{
 pub struct FieldAddCols<T, FP: FieldParameters> {
     pub is_real: T,
     pub shard: T,
+    pub channel: T,
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
@@ -58,6 +59,7 @@ impl<FP: FieldParameters> FieldAddChip<FP> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldAddEvent<FP: FieldParameters> {
     pub shard: u32,
+    pub channel: u32,
     pub clk: u32,
     pub p_ptr: u32,
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
@@ -103,6 +105,7 @@ pub fn create_fp_add_event<FP: FieldParameters>(
 
     FieldAddEvent {
         shard: rt.current_shard(),
+        channel: rt.current_channel(),
         clk: start_clk,
         p_ptr,
         p,
@@ -150,6 +153,7 @@ where
                 // Populate basic columns.
                 cols.is_real = F::one();
                 cols.shard = F::from_canonical_u32(event.shard);
+                cols.channel = F::from_canonical_u32(event.channel);
                 cols.clk = F::from_canonical_u32(event.clk);
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
@@ -164,6 +168,7 @@ where
                 cols.p_add_q.populate(
                     &mut new_byte_lookup_events,
                     event.shard,
+                    event.channel,
                     &p_int,
                     &q_int,
                     FieldOperation::Add,
@@ -171,12 +176,18 @@ where
 
                 // Populate the memory access columns.
                 for i in 0..words_len {
-                    cols.q_access[i]
-                        .populate(event.q_memory_records[i], &mut new_byte_lookup_events);
+                    cols.q_access[i].populate(
+                        event.channel,
+                        event.q_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
                 for i in 0..words_len {
-                    cols.p_access[i]
-                        .populate(event.p_memory_records[i], &mut new_byte_lookup_events);
+                    cols.p_access[i].populate(
+                        event.channel,
+                        event.p_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
 
                 (row, new_byte_lookup_events)
@@ -192,7 +203,7 @@ where
             let cols: &mut FieldAddCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             cols.p_add_q
-                .populate(&mut vec![], 0, &zero, &zero, FieldOperation::Add);
+                .populate(&mut vec![], 0, 0, &zero, &zero, FieldOperation::Add);
             row
         });
 
@@ -230,8 +241,15 @@ where
         let p: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[0..words_len]);
         let q: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access[0..words_len]);
 
-        row.p_add_q
-            .eval(builder, &p, &q, FieldOperation::Add, row.shard, row.is_real);
+        row.p_add_q.eval(
+            builder,
+            &p,
+            &q,
+            FieldOperation::Add,
+            row.shard,
+            row.channel,
+            row.is_real,
+        );
 
         // Constraint self.p_access.value = [self.p_add_q.result]
         // This is to ensure that p_access is updated with the new value.
@@ -244,6 +262,7 @@ where
         for i in 0..words_len {
             builder.eval_memory_access(
                 row.shard,
+                row.channel,
                 row.clk, // clk + 0 -> Memory
                 row.q_ptr + AB::F::from_canonical_u32(i as u32 * 4),
                 &row.q_access[i],
@@ -253,6 +272,7 @@ where
         for i in 0..words_len {
             builder.eval_memory_access(
                 row.shard,
+                row.channel,
                 row.clk + AB::F::from_canonical_u32(1), // The clk for p is moved by 1.
                 row.p_ptr + AB::F::from_canonical_u32(i as u32 * 4),
                 &row.p_access[i],
@@ -270,6 +290,7 @@ where
 
         builder.receive_syscall(
             row.shard,
+            row.channel,
             row.clk,
             syscall_id_fe,
             row.p_ptr,

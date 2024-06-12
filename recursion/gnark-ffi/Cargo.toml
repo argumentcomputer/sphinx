@@ -15,6 +15,14 @@ tempfile = { workspace = true }
 rand = { workspace = true }
 log = { workspace = true }
 num-bigint = { workspace = true }
+cfg-if = { workspace = true }
 
 [build-dependencies]
 bindgen = { workspace = true }
+cc = { workspace = true }
+cfg-if = { workspace = true }
+
+[features]
+default = ["plonk"]
+
+plonk = []

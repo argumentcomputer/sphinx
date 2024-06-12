@@ -38,6 +38,7 @@ impl Bls12381G2AffineDoubleChip {
     fn populate_field_ops<F: PrimeField32>(
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         cols: &mut Bls12381G2AffineDoubleCols<F, Bls12381BaseField>,
         p_x: &[BigUint; 2],
         p_y: &[BigUint; 2],
@@ -51,13 +52,19 @@ impl Bls12381G2AffineDoubleChip {
         let slope = {
             // slope_numerator = a + (p.x * p.x) * 3.
             let slope_numerator = {
-                let p_x_squared =
-                    cols.p_x_squared
-                        .populate(record, shard, p_x, p_x, QuadFieldOperation::Mul);
+                let p_x_squared = cols.p_x_squared.populate(
+                    record,
+                    shard,
+                    channel,
+                    p_x,
+                    p_x,
+                    QuadFieldOperation::Mul,
+                );
 
                 let p_x_squared_times_3 = cols.p_x_squared_times_3.populate(
                     record,
                     shard,
+                    channel,
                     &p_x_squared,
                     b_const,
                     QuadFieldOperation::Mul,
@@ -66,6 +73,7 @@ impl Bls12381G2AffineDoubleChip {
                 cols.slope_numerator.populate(
                     record,
                     shard,
+                    channel,
                     a_const,
                     &p_x_squared_times_3,
                     QuadFieldOperation::Add,
@@ -73,13 +81,19 @@ impl Bls12381G2AffineDoubleChip {
             };
 
             // slope_denominator = 2 * y.
-            let slope_denominator =
-                cols.slope_denominator
-                    .populate(record, shard, p_y, p_y, QuadFieldOperation::Add);
+            let slope_denominator = cols.slope_denominator.populate(
+                record,
+                shard,
+                channel,
+                p_y,
+                p_y,
+                QuadFieldOperation::Add,
+            );
 
             cols.slope.populate(
                 record,
                 shard,
+                channel,
                 &slope_numerator,
                 &slope_denominator,
                 QuadFieldOperation::Div,
@@ -88,15 +102,26 @@ impl Bls12381G2AffineDoubleChip {
 
         // x = slope * slope - (p.x + p.x).
         let x = {
-            let slope_squared =
-                cols.slope_squared
-                    .populate(record, shard, &slope, &slope, QuadFieldOperation::Mul);
-            let p_x_plus_p_x =
-                cols.p_x_plus_p_x
-                    .populate(record, shard, p_x, p_x, QuadFieldOperation::Add);
+            let slope_squared = cols.slope_squared.populate(
+                record,
+                shard,
+                channel,
+                &slope,
+                &slope,
+                QuadFieldOperation::Mul,
+            );
+            let p_x_plus_p_x = cols.p_x_plus_p_x.populate(
+                record,
+                shard,
+                channel,
+                p_x,
+                p_x,
+                QuadFieldOperation::Add,
+            );
             cols.x3_ins.populate(
                 record,
                 shard,
+                channel,
                 &slope_squared,
                 &p_x_plus_p_x,
                 QuadFieldOperation::Sub,
@@ -107,10 +132,11 @@ impl Bls12381G2AffineDoubleChip {
         {
             let p_x_minus_x =
                 cols.p_x_minus_x
-                    .populate(record, shard, p_x, &x, QuadFieldOperation::Sub);
+                    .populate(record, shard, channel, p_x, &x, QuadFieldOperation::Sub);
             let slope_times_p_x_minus_x = cols.slope_times_p_x_minus_x.populate(
                 record,
                 shard,
+                channel,
                 &slope,
                 &p_x_minus_x,
                 QuadFieldOperation::Mul,
@@ -118,6 +144,7 @@ impl Bls12381G2AffineDoubleChip {
             cols.y3_ins.populate(
                 record,
                 shard,
+                channel,
                 &slope_times_p_x_minus_x,
                 p_y,
                 QuadFieldOperation::Sub,
@@ -130,6 +157,7 @@ impl Bls12381G2AffineDoubleChip {
 pub struct Bls12381G2AffineDoubleEvent {
     clk: u32,
     shard: u32,
+    channel: u32,
     p_ptr: u32,
 
     #[serde(with = "crate::utils::array_serde::ArraySerde")]
@@ -144,6 +172,7 @@ impl Syscall for Bls12381G2AffineDoubleChip {
     fn execute(&self, ctx: &mut SyscallContext<'_>, p_ptr: u32, _unused: u32) -> Option<u32> {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
+        let channel = ctx.current_channel();
 
         assert_eq!(p_ptr % 4, 0, "arg1 ptr must be 4-byte aligned");
 
@@ -186,6 +215,7 @@ impl Syscall for Bls12381G2AffineDoubleChip {
             .push(Bls12381G2AffineDoubleEvent {
                 clk,
                 shard,
+                channel,
                 p_ptr,
                 p_memory_records,
                 p_words,
@@ -200,6 +230,7 @@ impl Syscall for Bls12381G2AffineDoubleChip {
 struct Bls12381G2AffineDoubleCols<T, P: FieldParameters> {
     pub(crate) clk: T,
     pub(crate) shard: T,
+    pub(crate) channel: T,
     pub(crate) is_real: T,
 
     pub(crate) p_ptr: T,
@@ -256,11 +287,15 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
+            cols.channel = F::from_canonical_u32(event.channel);
             cols.p_ptr = F::from_canonical_u32(event.p_ptr);
 
             for index in 0..<Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE {
-                cols.p_access[index]
-                    .populate(event.p_memory_records[index], &mut new_byte_lookup_events);
+                cols.p_access[index].populate(
+                    event.channel,
+                    event.p_memory_records[index],
+                    &mut new_byte_lookup_events,
+                );
             }
 
             let p = &event.p_words;
@@ -272,6 +307,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             Self::populate_field_ops(
                 &mut new_byte_lookup_events,
                 event.shard,
+                event.channel,
                 cols,
                 &[p_x_c0, p_x_c1],
                 &[p_y_c0, p_y_c1],
@@ -290,11 +326,13 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             cols.clk = F::zero();
             cols.is_real = F::zero();
             cols.shard = F::zero();
+            cols.channel = F::zero();
             cols.p_ptr = F::zero();
 
             let zero = BigUint::zero();
             Self::populate_field_ops(
                 &mut vec![],
+                0,
                 0,
                 cols,
                 &[zero.clone(), zero.clone()],
@@ -353,6 +391,7 @@ where
                     &p_x,
                     QuadFieldOperation::Mul,
                     local.shard,
+                    local.channel,
                     local.is_real,
                 );
 
@@ -362,6 +401,7 @@ where
                     three_b_const_limbs,
                     QuadFieldOperation::Mul,
                     local.shard,
+                    local.channel,
                     local.is_real,
                 );
 
@@ -371,6 +411,7 @@ where
                     &local.p_x_squared_times_3.result,
                     QuadFieldOperation::Add,
                     local.shard,
+                    local.channel,
                     local.is_real,
                 );
             };
@@ -382,6 +423,7 @@ where
                 &p_y,
                 QuadFieldOperation::Add,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -391,6 +433,7 @@ where
                 &local.slope_denominator.result,
                 QuadFieldOperation::Div,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
 
@@ -405,6 +448,7 @@ where
                 &slope,
                 QuadFieldOperation::Mul,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
             local.p_x_plus_p_x.eval(
@@ -413,6 +457,7 @@ where
                 &p_x,
                 QuadFieldOperation::Add,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
             local.x3_ins.eval(
@@ -421,6 +466,7 @@ where
                 &local.p_x_plus_p_x.result,
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
             local.x3_ins.result
@@ -434,6 +480,7 @@ where
                 &x,
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
             local.slope_times_p_x_minus_x.eval(
@@ -442,6 +489,7 @@ where
                 &local.p_x_minus_x.result,
                 QuadFieldOperation::Mul,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
             local.y3_ins.eval(
@@ -450,6 +498,7 @@ where
                 &p_y,
                 QuadFieldOperation::Sub,
                 local.shard,
+                local.channel,
                 local.is_real,
             );
         }
@@ -478,6 +527,7 @@ where
         for index in 0..<Bls12381BaseField as FieldParameters>::NB_LIMBS::USIZE {
             builder.eval_memory_access(
                 local.shard,
+                local.channel,
                 local.clk,
                 local.p_ptr.into() + AB::F::from_canonical_u32((index as u32) * 4),
                 &local.p_access[index],
@@ -487,6 +537,7 @@ where
 
         builder.receive_syscall(
             local.shard,
+            local.channel,
             local.clk,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G2_DOUBLE.syscall_id()),
             local.p_ptr,

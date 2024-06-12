@@ -174,6 +174,7 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         a: &[BigUint; 2],
         b: &[BigUint; 2],
         op: QuadFieldOperation,
@@ -253,14 +254,14 @@ impl<F: PrimeField32, P: FieldParameters> QuadFieldOpCols<F, P> {
             _ => self.populate_carry_and_witness(a, b, op),
         };
 
-        record.add_u8_range_checks_field(shard, &self.result[0]);
-        record.add_u8_range_checks_field(shard, &self.result[1]);
-        record.add_u8_range_checks_field(shard, &self.carry[0]);
-        record.add_u8_range_checks_field(shard, &self.carry[1]);
-        record.add_u8_range_checks_field(shard, &self.witness_low[0]);
-        record.add_u8_range_checks_field(shard, &self.witness_low[1]);
-        record.add_u8_range_checks_field(shard, &self.witness_high[0]);
-        record.add_u8_range_checks_field(shard, &self.witness_high[1]);
+        record.add_u8_range_checks_field(shard, channel, &self.result[0]);
+        record.add_u8_range_checks_field(shard, channel, &self.result[1]);
+        record.add_u8_range_checks_field(shard, channel, &self.carry[0]);
+        record.add_u8_range_checks_field(shard, channel, &self.carry[1]);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_low[0]);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_low[1]);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_high[0]);
+        record.add_u8_range_checks_field(shard, channel, &self.witness_high[1]);
 
         result
     }
@@ -270,8 +271,6 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     pub fn eval<
         AB: WordAirBuilder<Var = V>,
         A: Into<Polynomial<AB::Expr>> + Clone,
-        EShard: Into<AB::Expr> + Clone,
-        ER: Into<AB::Expr> + Clone,
         B: Into<Polynomial<AB::Expr>> + Clone,
     >(
         &self,
@@ -279,8 +278,9 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
         a: &[A; 2],
         b: &[B; 2],
         op: QuadFieldOperation,
-        shard: EShard,
-        is_real: ER,
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
     ) where
         V: Into<AB::Expr>,
     {
@@ -340,26 +340,49 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
         );
 
         // Range checks for the result, carry, and witness columns.
-        builder.slice_range_check_u8(&self.result[0], shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.result[1], shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.carry[0], shard.clone(), is_real.clone());
-        builder.slice_range_check_u8(&self.carry[1], shard.clone(), is_real.clone());
+        builder.slice_range_check_u8(
+            &self.result[0],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.result[1],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.carry[0],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.carry[1],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
         builder.slice_range_check_u8(
             p_witness_low[0].coefficients(),
             shard.clone(),
+            channel.clone(),
             is_real.clone(),
         );
         builder.slice_range_check_u8(
             p_witness_low[1].coefficients(),
             shard.clone(),
+            channel.clone(),
             is_real.clone(),
         );
         builder.slice_range_check_u8(
             p_witness_high[0].coefficients(),
             shard.clone(),
+            channel.clone(),
             is_real.clone(),
         );
-        builder.slice_range_check_u8(p_witness_high[1].coefficients(), shard, is_real);
+        builder.slice_range_check_u8(p_witness_high[1].coefficients(), shard, channel, is_real);
     }
 }
 
@@ -507,7 +530,7 @@ mod tests {
                     cols.a = [P::to_limbs_field::<F>(&a[0]), P::to_limbs_field::<F>(&a[1])];
                     cols.b = [P::to_limbs_field::<F>(&b[0]), P::to_limbs_field::<F>(&b[1])];
                     cols.a_op_b
-                        .populate(&mut blu_events, 1, &a, &b, self.operation);
+                        .populate(&mut blu_events, 1, 0, &a, &b, self.operation);
                     output.add_byte_lookup_events(blu_events);
                     row
                 })
@@ -549,6 +572,7 @@ mod tests {
                 &local.b,
                 self.operation,
                 AB::F::one(),
+                AB::F::zero(),
                 AB::F::one(),
             );
         }

@@ -1,13 +1,13 @@
 #![allow(unused_variables)]
 use crate::{
-    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
+    Prover, SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof,
     SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey,
     SphinxVerifyingKey,
 };
 use anyhow::Result;
 use p3_field::PrimeField;
 use sphinx_prover::{
-    types::HashableKey, verify::verify_groth16_public_inputs, Groth16Proof, SphinxProver,
+    types::HashableKey, verify::verify_plonk_bn254_public_inputs, PlonkBn254Proof, SphinxProver,
     SphinxStdin,
 };
 
@@ -54,14 +54,14 @@ impl Prover for MockProver {
         unimplemented!()
     }
 
-    fn prove_groth16(
+    fn prove_plonk(
         &self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-    ) -> Result<SphinxGroth16Proof> {
+    ) -> Result<SphinxPlonkBn254Proof> {
         let public_values = SphinxProver::execute(&pk.elf, &stdin)?;
-        Ok(SphinxGroth16Proof {
-            proof: Groth16Proof {
+        Ok(SphinxPlonkBn254Proof {
+            proof: PlonkBn254Proof {
                 public_inputs: [
                     pk.vk.hash_bn254().as_canonical_biguint().to_string(),
                     public_values.hash().to_string(),
@@ -72,10 +72,6 @@ impl Prover for MockProver {
             stdin,
             public_values,
         })
-    }
-
-    fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
-        todo!()
     }
 
     fn verify(
@@ -94,12 +90,8 @@ impl Prover for MockProver {
         Ok(())
     }
 
-    fn verify_groth16(&self, proof: &SphinxGroth16Proof, vkey: &SphinxVerifyingKey) -> Result<()> {
-        verify_groth16_public_inputs(vkey, &proof.public_values, &proof.proof.public_inputs)?;
-        Ok(())
-    }
-
-    fn verify_plonk(&self, _proof: &SphinxPlonkProof, _vkey: &SphinxVerifyingKey) -> Result<()> {
+    fn verify_plonk(&self, proof: &SphinxPlonkBn254Proof, vkey: &SphinxVerifyingKey) -> Result<()> {
+        verify_plonk_bn254_public_inputs(vkey, &proof.public_values, &proof.proof.public_inputs)?;
         Ok(())
     }
 }

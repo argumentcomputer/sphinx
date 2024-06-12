@@ -218,7 +218,7 @@ mod test {
         lookup::InteractionKind,
         runtime::{Program, Runtime, ShardingConfig},
         stark::RiscvAir,
-        utils::{setup_logger, tests::FIBONACCI_ELF, BabyBearPoseidon2},
+        utils::{setup_logger, tests::FIBONACCI_ELF, BabyBearPoseidon2, SphinxCoreOpts},
     };
 
     #[test]
@@ -228,7 +228,7 @@ mod test {
         let config = BabyBearPoseidon2::new();
         let machine = RiscvAir::machine(config);
         let (pk, _) = machine.setup(&program);
-        let mut runtime = Runtime::new(program);
+        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         let shards = machine.shard(runtime.record, &ShardingConfig::default());
         let ok = debug_interactions_with_all_chips(

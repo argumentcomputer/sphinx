@@ -53,6 +53,7 @@ where
         // Read w[i-15].
         builder.eval_memory_access(
             local.shard,
+            local.channel,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(15)) * nb_bytes_in_word,
             &local.w_i_minus_15,
@@ -62,6 +63,7 @@ where
         // Read w[i-2].
         builder.eval_memory_access(
             local.shard,
+            local.channel,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(2)) * nb_bytes_in_word,
             &local.w_i_minus_2,
@@ -71,6 +73,7 @@ where
         // Read w[i-16].
         builder.eval_memory_access(
             local.shard,
+            local.channel,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(16)) * nb_bytes_in_word,
             &local.w_i_minus_16,
@@ -80,6 +83,7 @@ where
         // Read w[i-7].
         builder.eval_memory_access(
             local.shard,
+            local.channel,
             local.clk + (local.i - i_start),
             local.w_ptr + (local.i - AB::F::from_canonical_u32(7)) * nb_bytes_in_word,
             &local.w_i_minus_7,
@@ -94,6 +98,7 @@ where
             7,
             local.w_i_minus_15_rr_7,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // w[i-15] rightrotate 18.
@@ -103,6 +108,7 @@ where
             18,
             local.w_i_minus_15_rr_18,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // w[i-15] rightshift 3.
@@ -112,6 +118,7 @@ where
             3,
             local.w_i_minus_15_rs_3,
             local.shard,
+            local.channel,
             local.is_real,
         );
         // (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18)
@@ -121,6 +128,7 @@ where
             local.w_i_minus_15_rr_18.value,
             local.s0_intermediate,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // s0 := (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18) xor (w[i-15] rightshift 3)
@@ -130,6 +138,7 @@ where
             local.w_i_minus_15_rs_3.value,
             local.s0,
             local.shard,
+            &local.channel,
             local.is_real,
         );
 
@@ -141,6 +150,7 @@ where
             17,
             local.w_i_minus_2_rr_17,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // w[i-2] rightrotate 19.
@@ -150,6 +160,7 @@ where
             19,
             local.w_i_minus_2_rr_19,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // w[i-2] rightshift 10.
@@ -159,6 +170,7 @@ where
             10,
             local.w_i_minus_2_rs_10,
             local.shard,
+            local.channel,
             local.is_real,
         );
         // (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19)
@@ -168,6 +180,7 @@ where
             local.w_i_minus_2_rr_19.value,
             local.s1_intermediate,
             local.shard,
+            &local.channel,
             local.is_real,
         );
         // s1 := (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19) xor (w[i-2] rightshift 10)
@@ -177,6 +190,7 @@ where
             local.w_i_minus_2_rs_10.value,
             local.s1,
             local.shard,
+            &local.channel,
             local.is_real,
         );
 
@@ -188,6 +202,7 @@ where
             *local.w_i_minus_7.value(),
             local.s1.value,
             local.shard,
+            local.channel,
             local.is_real,
             local.s2,
         );
@@ -195,6 +210,7 @@ where
         // Write `s2` to `w[i]`.
         builder.eval_memory_access(
             local.shard,
+            local.channel,
             local.clk + (local.i - i_start),
             local.w_ptr + local.i * nb_bytes_in_word,
             &local.w_i,
@@ -204,6 +220,7 @@ where
         // Receive syscall event in first row of 48-cycle.
         builder.receive_syscall(
             local.shard,
+            local.channel,
             local.clk,
             AB::F::from_canonical_u32(SyscallCode::SHA_EXTEND.syscall_id()),
             local.w_ptr,

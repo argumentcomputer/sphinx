@@ -26,15 +26,15 @@ pub struct FixedShiftRightOperation<T> {
 }
 
 impl<F: Field> FixedShiftRightOperation<F> {
-    pub fn nb_bytes_to_shift(rotation: usize) -> usize {
+    pub const fn nb_bytes_to_shift(rotation: usize) -> usize {
         rotation / 8
     }
 
-    pub fn nb_bits_to_shift(rotation: usize) -> usize {
+    pub const fn nb_bits_to_shift(rotation: usize) -> usize {
         rotation % 8
     }
 
-    pub fn carry_multiplier(rotation: usize) -> u32 {
+    pub const fn carry_multiplier(rotation: usize) -> u32 {
         let nb_bits_to_shift = Self::nb_bits_to_shift(rotation);
         1 << (8 - nb_bits_to_shift)
     }
@@ -43,6 +43,7 @@ impl<F: Field> FixedShiftRightOperation<F> {
         &mut self,
         record: &mut impl ByteRecord,
         shard: u32,
+        channel: u32,
         input: u32,
         rotation: usize,
     ) -> u32 {
@@ -73,6 +74,7 @@ impl<F: Field> FixedShiftRightOperation<F> {
             let (shift, carry) = shr_carry(b, c);
             let byte_event = ByteLookupEvent {
                 shard,
+                channel,
                 opcode: ByteOpcode::ShrCarry,
                 a1: u32::from(shift),
                 a2: u32::from(carry),
@@ -107,7 +109,8 @@ impl<F: Field> FixedShiftRightOperation<F> {
         input: Word<AB::Var>,
         rotation: usize,
         cols: FixedShiftRightOperation<AB::Var>,
-        shard: AB::Var,
+        shard: impl Into<AB::Expr> + Copy,
+        channel: impl Into<AB::Expr> + Copy,
         is_real: AB::Var,
     ) {
         // Compute some constants with respect to the rotation needed for the rotation.
@@ -136,6 +139,7 @@ impl<F: Field> FixedShiftRightOperation<F> {
                 input_bytes_rotated[i].clone(),
                 AB::F::from_canonical_usize(nb_bits_to_shift),
                 shard,
+                channel,
                 is_real,
             );
 
