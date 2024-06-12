@@ -113,6 +113,7 @@ allow = [
     "Unicode-DFS-2016",
     "ISC",
     "Unlicense",
+    "OpenSSL", # ring, imported through ethers-rs
 ]
 # List of explicitly disallowed licenses
 # See https://spdx.org/licenses/ for list of possible licenses
