@@ -131,7 +131,6 @@ bindgen = "0.69.4"
 cc = "1.0"
 alloy-primitives = "0.7.0"
 alloy-sol-types = "0.7.0"
-dirs = "5.0.1"
 downloader = { version = "0.2", default-features = false }
 ethers = { version = "2", default-features = false }
 
