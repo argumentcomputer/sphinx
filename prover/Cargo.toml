@@ -31,10 +31,9 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 anyhow = { workspace = true }
 size = { workspace = true }
-dirs = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
 indicatif = { workspace = true }
 futures = { workspace = true }
 subtle-encoding = { workspace = true }
