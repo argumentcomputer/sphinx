@@ -22,7 +22,6 @@ tokio = { workspace = true, features = ["full"] }
 home = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }
-downloader = { workspace = true, features = ["default-tls"] }
 serde_json = { workspace = true }
 yansi = { workspace = true }
 hex = { workspace = true }
