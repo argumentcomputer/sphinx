@@ -410,7 +410,6 @@ dependencies = [
 [[package]]
 name = "sphinx-precompiles"
 version = "0.1.0"
-source = "git+ssh://git@github.com/lurk-lab/sphinx.git#eeea8c7319aa065b198119ddc4aa3acbd921d143"
 dependencies = [
  "anyhow",
  "bincode",
@@ -425,7 +424,6 @@ dependencies = [
 [[package]]
 name = "sphinx-zkvm"
 version = "0.1.0"
-source = "git+ssh://git@github.com/lurk-lab/sphinx.git#eeea8c7319aa065b198119ddc4aa3acbd921d143"
 dependencies = [
  "bincode",
  "cfg-if",

@@ -5,4 +5,4 @@ name = "is-prime-program"
 edition = "2021"
 
 [dependencies]
-sphinx-zkvm = { git = "https://github.com/succinctlabs/sp1.git" }
+sphinx-zkvm = { path = "../../../zkvm/entrypoint" }
