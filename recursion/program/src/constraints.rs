@@ -159,7 +159,7 @@ mod tests {
     use p3_challenger::{CanObserve, FieldChallenger};
     use p3_commit::{Pcs, PolynomialSpace};
     use p3_field::PrimeField32;
-    use rand::Rng;
+    use rand::{thread_rng, Rng};
     use serde::{de::DeserializeOwned, Serialize};
     use sphinx_core::{
         io::SphinxStdin,
@@ -374,6 +374,30 @@ mod tests {
         let expected_val = builder.exp_reverse_bits_len(x_felt, &x_bits, 5);
 
         builder.assert_felt_eq(expected_val, result);
+        builder.halt();
+
+        let program = builder.compile_program();
+
+        run_test_recursion(&program, None, TestConfig::All);
+    }
+
+    #[test]
+    fn test_memory_finalize() {
+        type SC = BabyBearPoseidon2;
+        type F = <SC as StarkGenericConfig>::Val;
+        type EF = <SC as StarkGenericConfig>::Challenge;
+
+        let mut rng = thread_rng();
+
+        // Initialize a builder.
+        let mut builder = AsmBuilder::<F, EF>::default();
+
+        // Get a random var with `NUM_BITS` bits.
+        let x_val: F = rng.gen();
+
+        // Materialize the number as a var
+        let _x_felt: Felt<_> = builder.eval(x_val);
+
         builder.halt();
 
         let program = builder.compile_program();
