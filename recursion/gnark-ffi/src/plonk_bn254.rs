@@ -78,7 +78,8 @@ impl PlonkBn254Prover {
 
         // Write the corresponding asset files to the build dir.
         let sphinx_mock_verifier_path = build_dir.join("SphinxMockVerifier.sol");
-        let sphinx_mock_verifier_str = include_str!("../assets/SphinxMockVerifier.txt");
+        let sphinx_mock_verifier_str = include_str!("../assets/SphinxMockVerifier.txt")
+            .replace("{SPHINX_CIRCUIT_VERSION}", SPHINX_CIRCUIT_VERSION);
         let mut mock_verifier_file = File::create(sphinx_mock_verifier_path).unwrap();
         mock_verifier_file
             .write_all(sphinx_mock_verifier_str.as_bytes())
