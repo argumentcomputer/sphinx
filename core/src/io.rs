@@ -26,7 +26,7 @@ pub struct SphinxPublicValues {
 }
 
 impl SphinxStdin {
-    /// Create a new `SP1Stdin`.
+    /// Create a new `SphinxStdin`.
     pub const fn new() -> Self {
         Self {
             buffer: Vec::new(),
