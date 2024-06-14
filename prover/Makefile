@@ -6,7 +6,7 @@ build-plonk-bn254:
 	rm -rf build && \
 	mkdir -p build && \
 	RUSTFLAGS='-C target-cpu=native' \
-	cargo run -p sp1-prover --release --bin build_plonk_bn254 -- \
+	cargo run -p sphinx-prover --release --bin build_plonk_bn254 -- \
 	--build-dir=./build
 
 release-plonk-bn254:
@@ -14,4 +14,4 @@ release-plonk-bn254:
 
 test-e2e:
 	RUSTFLAGS='-C target-cpu=native' \
-	cargo test --package sp1-prover --lib --release -- tests::test_e2e --exact --show-output 
+	cargo test --package sphinx-prover --lib --release -- tests::test_e2e --exact --show-output 
