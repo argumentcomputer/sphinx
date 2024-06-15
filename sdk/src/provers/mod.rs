@@ -14,7 +14,7 @@ use sphinx_prover::{types::SphinxProvingKey, types::SphinxVerifyingKey, SphinxSt
 use strum_macros::EnumString;
 
 /// The type of prover.
-#[derive(Debug, PartialEq, EnumString)]
+#[derive(Debug, PartialEq, Eq, EnumString)]
 pub enum ProverType {
     Local,
     Mock,
