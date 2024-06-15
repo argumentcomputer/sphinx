@@ -14,7 +14,7 @@ fn main() {
     stdin.write(&n);
 
     let client = ProverClient::new();
-    let (mut public_values, _) = client.execute(ELF, stdin).unwrap();
+    let (mut public_values, _) = client.execute(ELF, &stdin).unwrap();
 
     println!("generated proof");
 
