@@ -394,7 +394,12 @@ impl SphinxProver {
 
         let mut first_layer_proofs = Vec::new();
         let opts = SphinxCoreOpts::recursion();
-        let shard_batch_size = opts.shard_batch_size;
+        // We want the ability to set SHARD_BATCH_SIZE to 0 to run everything in one chunk
+        let shard_batch_size = if opts.shard_batch_size > 0 {
+            opts.shard_batch_size
+        } else {
+            usize::MAX
+        };
         for inputs in core_inputs.chunks(shard_batch_size) {
             let proofs = inputs
                 .into_par_iter()
