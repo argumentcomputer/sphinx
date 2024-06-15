@@ -189,7 +189,7 @@ impl ProverClient {
     /// stdin.write(&10usize);
     ///
     /// // Execute the program on the inputs.
-    /// let (public_values, report) = client.execute(elf, stdin).unwrap();
+    /// let (public_values, report) = client.execute(elf, &stdin).unwrap();
     /// ```
     pub fn execute(
         &self,
