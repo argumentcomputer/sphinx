@@ -4469,7 +4469,6 @@ dependencies = [
 name = "sphinx-sdk"
 version = "0.1.0"
 dependencies = [
- "alloy-primitives",
  "alloy-sol-types",
  "anyhow",
  "async-trait",
@@ -4479,6 +4478,7 @@ dependencies = [
  "ethers",
  "futures",
  "hex",
+ "home",
  "indicatif",
  "log",
  "num-bigint 0.4.5",
@@ -4493,6 +4493,8 @@ dependencies = [
  "sha2",
  "sphinx-core",
  "sphinx-prover",
+ "strum",
+ "strum_macros",
  "tempfile",
  "tokio",
  "tracing",
