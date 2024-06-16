@@ -120,6 +120,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F
                 if r == NUM_EXTERNAL_ROUNDS - 1 {
                     // Do nothing, since we set the cols.output by populating the output records
                     // after this loop.
+                    #[allow(clippy::needless_range_loop)]
                     for i in 0..WIDTH {
                         assert_eq!(event.result_records[i].value[0], next_state[i]);
                     }
@@ -175,6 +176,7 @@ fn populate_external_round<F: PrimeField32>(
             r + NUM_INTERNAL_ROUNDS
         };
         let mut add_rc = *round_state;
+        #[allow(clippy::needless_range_loop)]
         for i in 0..WIDTH {
             add_rc[i] += F::from_wrapped_u32(RC_16_30_U32[round][i]);
         }
@@ -208,6 +210,7 @@ fn populate_internal_rounds<F: PrimeField32>(
 ) -> [F; WIDTH] {
     let mut state: [F; WIDTH] = poseidon2_cols.internal_rounds_state;
     let mut sbox_deg_3: [F; NUM_INTERNAL_ROUNDS] = [F::zero(); NUM_INTERNAL_ROUNDS];
+    #[allow(clippy::needless_range_loop)]
     for r in 0..NUM_INTERNAL_ROUNDS {
         // Add the round constant to the 0th state element.
         // Optimization: Since adding a constant is a degree 1 operation, we can avoid adding

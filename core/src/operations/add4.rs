@@ -31,7 +31,6 @@ pub struct Add4Operation<T> {
 }
 
 impl<F: Field> Add4Operation<F> {
-    #[allow(clippy::too_many_arguments)]
     pub fn populate(
         &mut self,
         record: &mut impl ByteRecord,
@@ -80,7 +79,6 @@ impl<F: Field> Add4Operation<F> {
         expected
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn eval<AB: WordAirBuilder<F = F>>(
         builder: &mut AB,
         a: Word<AB::Var>,

@@ -95,7 +95,6 @@ impl<F: PrimeField32, P: FieldParameters> FieldDenCols<F, P> {
 }
 
 impl<V: Copy, P: FieldParameters> FieldDenCols<V, P> {
-    #[allow(clippy::too_many_arguments)]
     pub fn eval<AB: BaseAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,

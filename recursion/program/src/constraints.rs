@@ -173,7 +173,6 @@ mod tests {
 
     use sphinx_recursion_compiler::{asm::AsmBuilder, prelude::ExtConst};
 
-    #[allow(clippy::type_complexity)]
     fn get_shard_data<'a, SC>(
         machine: &'a StarkMachine<SC, RiscvAir<SC::Val>>,
         proof: &'a ShardProof<SC>,

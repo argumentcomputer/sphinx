@@ -76,6 +76,7 @@ impl<C: Config> Builder<C> {
     pub fn exp_f_bits(&mut self, x: Felt<C::F>, power_bits: &[Var<C::N>]) -> Felt<C::F> {
         let mut result = self.eval(C::F::one());
         let mut power_f: Felt<_> = self.eval(x);
+        #[allow(clippy::needless_range_loop)]
         for i in 0..power_bits.len() {
             let bit = power_bits[i];
             let tmp = self.eval(result * power_f);
@@ -93,6 +94,7 @@ impl<C: Config> Builder<C> {
     ) -> Ext<C::F, C::EF> {
         let mut result = self.eval(SymbolicExt::from_f(C::EF::one()));
         let mut power_f: Ext<_, _> = self.eval(x);
+        #[allow(clippy::needless_range_loop)]
         for i in 0..power_bits.len() {
             let bit = power_bits[i];
             let tmp = self.eval(result * power_f);
@@ -187,6 +189,7 @@ impl<C: Config> Builder<C> {
     pub fn ext_from_base_slice(&mut self, arr: &[Felt<C::F>]) -> Ext<C::F, C::EF> {
         assert!(arr.len() <= <C::EF as AbstractExtensionField::<C::F>>::D);
         let mut res = SymbolicExt::from_f(C::EF::zero());
+        #[allow(clippy::needless_range_loop)]
         for i in 0..arr.len() {
             res += arr[i] * SymbolicExt::from_f(C::EF::monomial(i));
         }

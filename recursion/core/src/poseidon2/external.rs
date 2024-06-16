@@ -148,7 +148,6 @@ impl<F: Field> Poseidon2Chip<F> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn eval_computation<AB: BaseAirBuilder + ExtensionAirBuilder>(
         &self,
         builder: &mut AB,
@@ -172,6 +171,7 @@ impl<F: Field> Poseidon2Chip<F> {
         // Internal Layers: Only apply the round constants to the first element.
         for i in 0..WIDTH {
             let mut result: AB::Expr = computation_cols.input[i].into();
+            #[allow(clippy::needless_range_loop)]
             for r in 0..rounds {
                 if i == 0 {
                     result += local.rounds[r + 2]
