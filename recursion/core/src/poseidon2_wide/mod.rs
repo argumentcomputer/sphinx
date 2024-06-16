@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-
 use crate::poseidon2_wide::external::WIDTH;
 use p3_baby_bear::{MONTY_INVERSE, POSEIDON2_INTERNAL_MATRIX_DIAG_16_BABYBEAR_MONTY};
 use p3_field::AbstractField;

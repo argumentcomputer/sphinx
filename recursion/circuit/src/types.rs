@@ -72,7 +72,6 @@ pub struct TwoAdicPcsRoundVariable<C: Config> {
     pub mats: Vec<TwoAdicPcsMatsVariable<C>>,
 }
 
-#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 pub struct TwoAdicPcsMatsVariable<C: Config> {
     pub domain: TwoAdicMultiplicativeCoset<C::F>,
@@ -182,6 +181,7 @@ impl<C: Config> ChipOpening<C> {
         for i in 0..num_quotient_chunks {
             let chunk = &opening.quotient[i];
             let mut quotient_vals = vec![];
+            #[allow(clippy::needless_range_loop)]
             for j in 0..C::EF::D {
                 let value = &chunk[j];
                 quotient_vals.push(*value);

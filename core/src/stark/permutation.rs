@@ -10,7 +10,7 @@ use rayon_scan::ScanParallelIterator;
 use crate::{air::MultiTableAirBuilder, lookup::Interaction};
 
 #[inline]
-#[allow(clippy::too_many_arguments)]
+
 pub fn populate_permutation_row<F: PrimeField, EF: ExtensionField<F>>(
     row: &mut [EF],
     preprocessed_row: &[F],

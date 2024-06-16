@@ -89,6 +89,7 @@ impl<C: Config> Builder<C> {
     /// Convert bits to a variable inside a circuit.
     pub fn bits2num_v_circuit(&mut self, bits: &[Var<C::N>]) -> Var<C::N> {
         let result: Var<_> = self.eval(C::N::zero());
+        #[allow(clippy::needless_range_loop)]
         for i in 0..bits.len() {
             self.assign(&result, result + bits[i] * C::N::from_canonical_u32(1 << i));
         }

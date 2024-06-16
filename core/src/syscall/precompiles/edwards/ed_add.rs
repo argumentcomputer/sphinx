@@ -84,7 +84,6 @@ impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn populate_field_ops<F: PrimeField32>(
         record: &mut impl ByteRecord,
         shard: u32,
