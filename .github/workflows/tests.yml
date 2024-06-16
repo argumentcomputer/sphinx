@@ -23,12 +23,12 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
-      - name: Run cargo test on sphinx except the test_e2e_prove_plonk recursion test
+      - name: Run cargo test on *all of* sphinx except the test_e2e_prove_plonk recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci --workspace --features "plonk" -E 'all() - test(test_e2e_prove_plonk)'
       - name: Run cargo test with no default features
         run: |
-          cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features "debug" -- cpu::trace::tests::generate_trace
+          cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features "debug" -E 'test(cpu::trace::tests)'
         working-directory: ${{ github.workspace }}/examples
 
   test-recursion-circuit:
@@ -46,7 +46,7 @@ jobs:
           pull_token: ${{ secrets.REPO_TOKEN }}
       - name: Run cargo test on the recursion circuit
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci -p sphinx-recursion-circuit
+          cargo nextest run --cargo-profile dev-ci --profile ci --features "plonk" -E 'package(sphinx-recursion-circuit)'
 
   clippy:
     runs-on: warp-ubuntu-latest-x64-16x
