@@ -190,7 +190,6 @@ mod tests {
 
     use crate::stark::{tests::basic_program, StarkVerifierCircuit};
 
-    #[allow(clippy::type_complexity)]
     fn get_shard_data<'a, SC>(
         machine: &'a StarkMachine<SC, RecursionAirWideDeg3<SC::Val>>,
         proof: &'a ShardProof<SC>,

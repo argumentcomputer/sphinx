@@ -186,6 +186,7 @@ pub fn verify_query<C: Config>(
     let mut x = builder.exp_e_bits(two_adic_generator, &rev_reduced_index[..]);
 
     let mut offset = 0;
+    #[allow(clippy::explicit_counter_loop)]
     for (log_folded_height, commit, step, beta) in izip!(
         (0..log_max_height).rev(),
         commit_phase_commits,

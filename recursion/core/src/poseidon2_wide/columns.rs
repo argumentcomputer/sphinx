@@ -16,7 +16,7 @@ pub(crate) enum Poseidon2ColTypeMut<'a, T> {
 
 impl<T> Poseidon2ColTypeMut<'_, T> {
     /// Returns mutable references to the poseidon2 columns and optional the intermediate sbox columns.
-    #[allow(clippy::type_complexity)]
+
     pub(crate) fn get_cols_mut(
         &mut self,
     ) -> (

@@ -83,7 +83,7 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
 /// A trait which contains methods for byte interactions in an AIR.
 pub trait ByteAirBuilder: BaseAirBuilder {
     /// Sends a byte operation to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn send_byte(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -107,7 +107,7 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Sends a byte operation with two outputs to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn send_byte_pair(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -135,7 +135,7 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a byte operation to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn receive_byte(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -159,7 +159,7 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a byte operation with two outputs to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn receive_byte_pair(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -298,7 +298,7 @@ pub trait WordAirBuilder: ByteAirBuilder {
 /// A trait which contains methods related to ALU interactions in an AIR.
 pub trait AluAirBuilder: BaseAirBuilder {
     /// Sends an ALU operation to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn send_alu(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -325,7 +325,7 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Receives an ALU operation to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn receive_alu(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -352,7 +352,7 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Sends an syscall operation to be processed (with "ECALL" opcode).
-    #[allow(clippy::too_many_arguments)]
+
     fn send_syscall(
         &mut self,
         shard: impl Into<Self::Expr> + Clone,
@@ -378,7 +378,7 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a syscall operation to be processed.
-    #[allow(clippy::too_many_arguments)]
+
     fn receive_syscall(
         &mut self,
         shard: impl Into<Self::Expr> + Clone,

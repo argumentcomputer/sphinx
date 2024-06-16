@@ -77,7 +77,7 @@ pub fn verify_shape_and_sample_challenges<C: Config>(
 /// Verifies a set of FRI challenges.
 ///
 /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/fri/src/verifier.rs#L67
-#[allow(clippy::type_complexity)]
+
 pub fn verify_challenges<C: Config>(
     builder: &mut Builder<C>,
     config: &FriConfigVariable<C>,
@@ -215,7 +215,7 @@ where
 /// Assumes the dimensions have already been sorted by tallest first.
 ///
 /// Reference: https://github.com/Plonky3/Plonky3/blob/4809fa7bedd9ba8f6f5d3267b1592618e3776c57/merkle-tree/src/mmcs.rs#L92
-#[allow(clippy::type_complexity)]
+
 #[allow(unused_variables)]
 pub fn verify_batch<C: Config, const D: usize>(
     builder: &mut Builder<C>,
@@ -288,7 +288,6 @@ pub fn verify_batch<C: Config, const D: usize>(
     builder.cycle_tracker("verify-batch");
 }
 
-#[allow(clippy::type_complexity)]
 pub fn reduce_fast<C: Config, const D: usize>(
     builder: &mut Builder<C>,
     dim_idx: Var<C::N>,

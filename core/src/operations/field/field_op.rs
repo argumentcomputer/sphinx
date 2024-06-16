@@ -118,7 +118,7 @@ impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
 
     /// Populate these columns with a specified modulus. This is useful in the `mulmod` precompile
     /// as an example.
-    #[allow(clippy::too_many_arguments)]
+
     pub fn populate_with_modulus(
         &mut self,
         record: &mut impl ByteRecord,
@@ -243,7 +243,6 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
         builder.slice_range_check_u8(p_witness_high.coefficients(), shard, channel, is_real);
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn eval<AB: BaseAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,

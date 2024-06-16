@@ -277,7 +277,6 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> Verifier<SC, A> {
         Ok(())
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn verify_constraints(
         chip: &MachineChip<SC, A>,
         opening: &ChipOpenedValues<SC::Challenge>,

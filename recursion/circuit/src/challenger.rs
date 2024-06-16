@@ -74,6 +74,7 @@ impl<C: Config> MultiField32ChallengerVariable<C> {
         builder: &mut Builder<C>,
         value: [Var<C::N>; DIGEST_SIZE],
     ) {
+        #[allow(clippy::needless_range_loop)]
         for i in 0..DIGEST_SIZE {
             let f_vals: Vec<Felt<C::F>> = split_32(builder, value[i], self.num_f_elms);
             for f_val in f_vals {
@@ -167,6 +168,7 @@ mod tests {
         let mut value_u32 = 1345237507;
         let value = builder.eval(Bn254Fr::from_canonical_u32(value_u32));
         let result = builder.num2bits_v_circuit(value, 32);
+        #[allow(clippy::needless_range_loop)]
         for i in 0..result.len() {
             builder.assert_var_eq(result[i], Bn254Fr::from_canonical_u32(value_u32 & 1));
             value_u32 >>= 1;

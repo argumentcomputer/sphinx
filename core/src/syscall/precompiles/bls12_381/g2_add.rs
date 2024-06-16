@@ -664,8 +664,7 @@ mod tests {
         let mut result = vec![];
         // Fp / BigUint is encoded as a 12 u32 words. G2Affine point has 4 Fp elements, so we read 4 * 12 words from the memory
         for i in 0..48 {
-            #[allow(clippy::clone_on_copy)]
-            result.push(memory.get(&(a_ptr + i * 4)).unwrap().clone().value);
+            result.push(memory.get(&(a_ptr + i * 4)).unwrap().value);
         }
 
         let computed_x_c0 = BigUint::new(result[0..12].to_vec());
