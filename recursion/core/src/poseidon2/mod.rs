@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-
 use crate::poseidon2::external::WIDTH;
 mod columns;
 pub mod external;

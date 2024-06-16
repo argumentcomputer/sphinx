@@ -126,6 +126,7 @@ where
             prep_mats.push(prep_mat);
         }
 
+        #[allow(clippy::needless_range_loop)]
         for i in 0..num_shard_chips {
             let opening = &opened_values.chips[i];
             let log_quotient_degree = chip_quotient_data[i].log_quotient_degree;

@@ -75,7 +75,6 @@ impl<E: EllipticCurve> WeierstrassAddAssignChip<E> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn populate_field_ops<F: PrimeField32>(
         blu_events: &mut Vec<ByteLookupEvent>,
         shard: u32,
