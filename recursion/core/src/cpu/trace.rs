@@ -136,6 +136,8 @@ where
                 let mut row = [F::zero(); NUM_CPU_COLS];
                 let cols: &mut CpuCols<F> = row.as_mut_slice().borrow_mut();
                 cols.selectors.is_noop = F::one();
+                cols.instruction.imm_b = F::one();
+                cols.instruction.imm_c = F::one();
                 row
             },
             self.fixed_log2_rows,

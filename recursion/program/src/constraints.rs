@@ -358,7 +358,7 @@ mod tests {
         type F = <SC as StarkGenericConfig>::Val;
         type EF = <SC as StarkGenericConfig>::Challenge;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
 
         // Initialize a builder.
         let mut builder = AsmBuilder::<F, EF>::default();
