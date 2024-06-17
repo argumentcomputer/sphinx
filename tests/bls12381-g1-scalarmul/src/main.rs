@@ -20,7 +20,7 @@ pub fn main() {
             179, 8,
         ];
 
-        let mut a_point = AffinePoint::<Bls12381, 24>::from_le_bytes(&a);
+        let mut a_point = AffinePoint::<Bls12381, U24>::from_le_bytes(&a);
 
         // scalar.
         // 3

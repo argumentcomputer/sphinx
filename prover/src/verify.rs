@@ -115,16 +115,16 @@ impl SphinxProver {
             let program_memory_init_count = chips
                 .clone()
                 .into_iter()
-                .filter(|chip| chip.name() == "MemoryProgram")
+                .filter(|chip| chip.as_ref().name() == "MemoryProgram")
                 .count();
             let memory_init_count = chips
                 .clone()
                 .into_iter()
-                .filter(|chip| chip.name() == "MemoryInit")
+                .filter(|chip| chip.as_ref().name() == "MemoryInit")
                 .count();
             let memory_final_count = chips
                 .into_iter()
-                .filter(|chip| chip.name() == "MemoryFinalize")
+                .filter(|chip| chip.as_ref().name() == "MemoryFinalize")
                 .count();
 
             // Assert that the `MemoryProgram` chip only exists in the first shard.

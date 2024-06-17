@@ -129,7 +129,7 @@ pub mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        PlonkBn254Prover::test::<OuterConfig>(constraints.clone(), Witness::default());
+        PlonkBn254Prover::test::<OuterConfig>(&constraints, Witness::default());
     }
 
     #[test]
@@ -231,6 +231,6 @@ pub mod tests {
 
         let mut backend = ConstraintCompiler::<OuterConfig>::default();
         let constraints = backend.emit(builder.operations);
-        PlonkBn254Prover::test::<OuterConfig>(constraints.clone(), Witness::default());
+        PlonkBn254Prover::test::<OuterConfig>(&constraints, Witness::default());
     }
 }
