@@ -318,16 +318,16 @@ where
             .when_transition()
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
-        let nw_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
+        let num_words_field_element = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         let p_x: Limbs<_, BaseLimbWidth<E>> =
-            limbs_from_prev_access(&row.p_access[0..nw_field_elt]);
-        let p_y: Limbs<_, BaseLimbWidth<E>> = limbs_from_prev_access(&row.p_access[nw_field_elt..]);
+            limbs_from_prev_access(&local.p_access[0..num_words_field_element]);
+        let p_y: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&local.p_access[num_words_field_element..]);
 
-        let p_x = limbs_from_prev_access(&local.p_access[0..num_words_field_element]);
-        let p_y = limbs_from_prev_access(&local.p_access[num_words_field_element..]);
-
-        let q_x = limbs_from_prev_access(&local.q_access[0..num_words_field_element]);
-        let q_y = limbs_from_prev_access(&local.q_access[num_words_field_element..]);
+        let q_x: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&local.q_access[0..num_words_field_element]);
+        let q_y: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&local.q_access[num_words_field_element..]);
 
         // slope = (q.y - p.y) / (q.x - p.x).
         let slope = {
@@ -368,8 +368,8 @@ where
         let x = {
             local.slope_squared.eval(
                 builder,
-                &slope,
-                &slope,
+                slope,
+                slope,
                 FieldOperation::Mul,
                 local.shard,
                 local.channel,
@@ -404,7 +404,7 @@ where
             local.p_x_minus_x.eval(
                 builder,
                 &p_x,
-                &x,
+                x,
                 FieldOperation::Sub,
                 local.shard,
                 local.channel,
@@ -432,7 +432,6 @@ where
             );
         }
 
-        let words_field_elt = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]. This is to
         // ensure that p_access is updated with the new value.
         for i in 0..BaseLimbWidth::<E>::USIZE {
@@ -479,7 +478,7 @@ where
             local.channel,
             local.clk,
             local.nonce,
-            syscall_id_felt,
+            syscall_id_fe,
             local.p_ptr,
             local.q_ptr,
             local.is_real,

@@ -314,7 +314,7 @@ where
                 builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
             }
 
-            if chip.name() == "MemoryProgram" {
+            if chip.as_ref().name() == "MemoryProgram" {
                 builder.if_eq(shard_idx, C::N::one()).then_or_else(
                     |builder| {
                         builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
@@ -325,7 +325,7 @@ where
                 );
             }
 
-            if chip.name() == "MemoryInit" {
+            if chip.as_ref().name() == "MemoryInit" {
                 builder.if_eq(shard_idx, C::N::one()).then_or_else(
                     |builder| {
                         builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
@@ -336,7 +336,7 @@ where
                 );
             }
 
-            if chip.name() == "MemoryFinalize" {
+            if chip.as_ref().name() == "MemoryFinalize" {
                 builder.if_eq(shard_idx, C::N::one()).then_or_else(
                     |builder| {
                         builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));

@@ -1,3 +1,4 @@
+pub mod bls12_381;
 pub mod edwards;
 pub mod field;
 pub mod keccak256;
@@ -65,7 +66,6 @@ pub fn create_ec_add_event<E: EllipticCurve>(
     let result_words = result_affine.to_words_le();
     let p_memory_records = (&rt.mw_slice(p_ptr, &result_words)[..]).try_into().unwrap();
 
-    println!("ec-add lookup id {:?}", rt.syscall_lookup_id);
     ECAddEvent {
         lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),

@@ -67,6 +67,7 @@ pub fn bls12_381_g1_decompress(bytes_be: &[u8]) -> AffinePoint<SwCurve<Bls12381P
 /// BLS12-381 G1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G1DecompressEvent {
+    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -117,6 +118,7 @@ pub fn create_bls12381_g1_decompress_event(
     let x_msb_memory_record = rt.mw(slice_ptr + (2 * num_limbs as u32) - 4, x_msb_word);
 
     Bls12381G1DecompressEvent {
+        lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),
         channel: rt.current_channel(),
         clk: start_clk,
@@ -149,6 +151,7 @@ pub struct Bls12381G1DecompressCols<T> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
+    pub nonce: T,
     pub ptr: T,
     pub x_access: Array<MemoryReadCols<T>, BLS12_381_NUM_WORDS_FOR_FIELD>,
     pub x_msb_access: MemoryWriteCols<T>,
@@ -327,10 +330,19 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             row
         });
 
-        RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<Bls12381G1DecompressCols<u8>>(),
-        )
+        let num_cols = size_of::<Bls12381G1DecompressCols<u8>>();
+
+        let mut trace =
+            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut Bls12381G1DecompressCols<F> =
+                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -353,6 +365,14 @@ where
         let main = builder.main();
         let row = main.row_slice(0);
         let row: &Bls12381G1DecompressCols<AB::Var> = (*row).borrow();
+        let next = main.row_slice(1);
+        let next: &Bls12381G1DecompressCols<AB::Var> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(row.nonce);
+        builder
+            .when_transition()
+            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         let num_limbs = BLS12_381_NUM_LIMBS::USIZE;
         let num_words_field_element = num_limbs / 4;
@@ -514,6 +534,7 @@ where
             row.shard,
             row.channel,
             row.clk,
+            row.nonce,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G1_DECOMPRESS.syscall_id()),
             row.ptr,
             AB::Expr::zero(),

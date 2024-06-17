@@ -32,7 +32,7 @@ pub fn main() {
         ];
 
         unsafe {
-            syscall_bls12381_add(a.as_mut_ptr() as *mut u32, b.as_ptr() as *const u32);
+            syscall_bls12381_g1_add(a.as_mut_ptr() as *mut u32, b.as_ptr() as *const u32);
         }
 
         // 3 * generator.

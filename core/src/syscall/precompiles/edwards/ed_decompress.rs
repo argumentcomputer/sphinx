@@ -51,7 +51,7 @@ use crate::utils::pad_rows;
 use crate::utils::words_to_bytes_le;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EdDecompressEvent {
+pub struct EdDecompressEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
     pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
@@ -109,13 +109,6 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
         self.channel = F::from_canonical_u32(event.channel);
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
-        self.nonce = F::from_canonical_u32(
-            record
-                .nonce_lookup
-                .get(&event.lookup_id)
-                .copied()
-                .unwrap_or_default(),
-        );
         self.sign = F::from_bool(event.sign);
         for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
             self.x_access[i].populate(
@@ -349,9 +342,9 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<Ba
         let x_memory_records: Array<MemoryWriteRecord, WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>> =
             (&x_memory_records_vec[..]).try_into().unwrap();
 
-        let lookup_id = rt.syscall_lookup_id;
         let shard = rt.current_shard();
         let channel = rt.current_channel();
+        let lookup_id = rt.syscall_lookup_id;
         rt.record_mut()
             .ed_decompress_events
             .push(EdDecompressEvent {
@@ -422,15 +415,17 @@ where
             row
         });
 
+        let num_ed_decompress_cols: usize = size_of::<EdDecompressCols<u8, E::BaseField>>();
+
         let mut trace = RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_ED_DECOMPRESS_COLS,
+            num_ed_decompress_cols,
         );
 
         // Write the nonces to the trace.
         for i in 0..trace.height() {
-            let cols: &mut EdDecompressCols<F> = trace.values
-                [i * NUM_ED_DECOMPRESS_COLS..(i + 1) * NUM_ED_DECOMPRESS_COLS]
+            let cols: &mut EdDecompressCols<F, E::BaseField> = trace.values
+                [i * num_ed_decompress_cols..(i + 1) * num_ed_decompress_cols]
                 .borrow_mut();
             cols.nonce = F::from_canonical_usize(i);
         }
@@ -456,9 +451,9 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let local = main.row_slice(0);
-        let local: &EdDecompressCols<AB::Var> = (*local).borrow();
+        let local: &EdDecompressCols<AB::Var, E::BaseField> = (*local).borrow();
         let next = main.row_slice(1);
-        let next: &EdDecompressCols<AB::Var> = (*next).borrow();
+        let next: &EdDecompressCols<AB::Var, E::BaseField> = (*next).borrow();
 
         // Constrain the incrementing nonce.
         builder.when_first_row().assert_zero(local.nonce);
@@ -466,7 +461,7 @@ where
             .when_transition()
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
-        local.eval::<AB, E::BaseField, E>(builder);
+        local.eval::<AB, E>(builder);
     }
 }
 

@@ -23,7 +23,7 @@ use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
 impl<'a> WithEvents<'a> for CpuChip {
-    type Events = &'a [CpuEvent];
+    type Events = (&'a [CpuEvent], &'a HashMap<usize, u32>);
 }
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
@@ -43,11 +43,12 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         let mut new_alu_events = HashMap::new();
         let mut new_blu_events = Vec::new();
 
+        let (events, nonce_lookup) = input.events();
+
         // Generate the trace rows for each event.
-        let mut rows_with_events = input
-            .events()
+        let mut rows_with_events = events
             .par_iter()
-            .map(|op: &CpuEvent| self.event_to_row::<F>(*op, &input.nonce_lookup))
+            .map(|op: &CpuEvent| self.event_to_row::<F>(*op, &nonce_lookup))
             .collect::<Vec<_>>();
 
         // No need to sort by the shard, since the cpu events are already partitioned by that.
@@ -88,9 +89,10 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
     #[instrument(name = "generate cpu dependencies", level = "debug", skip_all)]
     fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut ExecutionRecord) {
         // Generate the trace rows for each event.
-        let chunk_size = std::cmp::max(input.events().len() / num_cpus::get(), 1);
+        let chunk_size = std::cmp::max(input.events().0.len() / num_cpus::get(), 1);
         let events = input
             .events()
+            .0
             .par_chunks(chunk_size)
             .map(|ops: &[CpuEvent]| {
                 let mut alu = HashMap::new();

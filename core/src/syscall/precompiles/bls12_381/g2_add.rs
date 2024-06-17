@@ -138,6 +138,7 @@ impl Bls12381G2AffineAddChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G2AffineAddEvent {
+    pub lookup_id: usize,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,
@@ -173,6 +174,7 @@ impl Syscall for Bls12381G2AffineAddChip {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
         let channel = ctx.current_channel();
+        let lookup_id = ctx.syscall_lookup_id;
 
         assert_eq!(a_ptr % 4, 0, "arg1 ptr must be 4-byte aligned");
         assert_eq!(b_ptr % 4, 0, "arg2 ptr must be 4-byte aligned");
@@ -243,6 +245,7 @@ impl Syscall for Bls12381G2AffineAddChip {
         ctx.record_mut()
             .bls12381_g2_add_events
             .push(Bls12381G2AffineAddEvent {
+                lookup_id,
                 clk,
                 shard,
                 channel,
@@ -270,6 +273,7 @@ pub struct Bls12381G2AffineAddCols<T, P: FieldParameters> {
     pub clk: T,
     pub shard: T,
     pub channel: T,
+    pub nonce: T,
     pub is_real: T,
 
     pub a_ptr: T,
@@ -321,7 +325,6 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             let cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();
 
-            // SP1 / WP1 stuff
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
@@ -397,7 +400,17 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             row
         });
 
-        RowMajorMatrix::<F>::new(rows.into_iter().flatten().collect::<Vec<_>>(), width)
+        let mut trace =
+            RowMajorMatrix::<F>::new(rows.into_iter().flatten().collect::<Vec<_>>(), width);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField> =
+                trace.values[i * width..(i + 1) * width].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -414,6 +427,14 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let local: &Bls12381G2AffineAddCols<AB::Var, Bls12381BaseField> = (*local).borrow();
+        let next = main.row_slice(1);
+        let next: &Bls12381G2AffineAddCols<AB::Var, Bls12381BaseField> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(local.nonce);
+        builder
+            .when_transition()
+            .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
         let p_x_c0: Limbs<_, <Bls12381BaseField as FieldParameters>::NB_LIMBS> =
             limbs_from_prev_access(&local.a_access[0..12]);
@@ -581,6 +602,7 @@ where
             local.shard,
             local.channel,
             local.clk,
+            local.nonce,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G2_ADD.syscall_id()),
             local.a_ptr,
             local.b_ptr,
