@@ -394,7 +394,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         }
                         let mut alu_events = HashMap::new();
                         alu_events.insert(Opcode::ADD, add_events);
-                        output.add_alu_events(&mut alu_events);
+                        output.add_alu_events(alu_events);
                     }
 
                     let mut lower_word = 0;
