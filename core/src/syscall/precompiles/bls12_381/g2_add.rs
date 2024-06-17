@@ -138,6 +138,7 @@ impl Bls12381G2AffineAddChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G2AffineAddEvent {
+    pub lookup_id: usize,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,
@@ -173,6 +174,7 @@ impl Syscall for Bls12381G2AffineAddChip {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
         let channel = ctx.current_channel();
+        let lookup_id = ctx.syscall_lookup_id;
 
         assert_eq!(a_ptr % 4, 0, "arg1 ptr must be 4-byte aligned");
         assert_eq!(b_ptr % 4, 0, "arg2 ptr must be 4-byte aligned");
@@ -243,6 +245,7 @@ impl Syscall for Bls12381G2AffineAddChip {
         ctx.record_mut()
             .bls12381_g2_add_events
             .push(Bls12381G2AffineAddEvent {
+                lookup_id,
                 clk,
                 shard,
                 channel,
@@ -270,6 +273,7 @@ pub struct Bls12381G2AffineAddCols<T, P: FieldParameters> {
     pub clk: T,
     pub shard: T,
     pub channel: T,
+    pub nonce: T,
     pub is_real: T,
 
     pub a_ptr: T,
@@ -321,7 +325,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
             let cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();
 
-            // SP1 / WP1 stuff
+            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
@@ -581,6 +585,7 @@ where
             local.shard,
             local.channel,
             local.clk,
+            local.nonce,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G2_ADD.syscall_id()),
             local.a_ptr,
             local.b_ptr,

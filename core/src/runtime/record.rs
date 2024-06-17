@@ -27,8 +27,8 @@ use crate::{
     syscall::precompiles::{
         bls12_381::{
             g1_decompress::{Bls12381G1DecompressChip, Bls12381G1DecompressEvent},
-            g2_add::Bls12381G2AffineAddChip,
-            g2_double::Bls12381G2AffineDoubleChip,
+            g2_add::{Bls12381G2AffineAddEvent, Bls12381G2AffineAddChip},
+            g2_double::{Bls12381G2AffineDoubleEvent, Bls12381G2AffineDoubleChip},
         },
         field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
         quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
@@ -225,12 +225,6 @@ impl EventLens<ShaExtendChip> for ExecutionRecord {
 impl EventLens<ShaCompressChip> for ExecutionRecord {
     fn events(&self) -> <ShaCompressChip as crate::air::WithEvents<'_>>::Events {
         &self.sha_compress_events
-    }
-}
-
-impl EventLens<Blake3CompressInnerChip> for ExecutionRecord {
-    fn events(&self) -> <Blake3CompressInnerChip as crate::air::WithEvents<'_>>::Events {
-        &self.blake3_compress_inner_events
     }
 }
 
@@ -586,8 +580,6 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_g2_add_events);
         self.bls12381_g2_double_events
             .append(&mut other.bls12381_g2_double_events);
-        self.k256_decompress_events
-            .append(&mut other.k256_decompress_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -820,7 +812,7 @@ impl MachineRecord for ExecutionRecord {
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_add_events
+                .bls12381_g1_add_events
                 .extend_from_slice(bls12381_g1_add_chunk);
             for (i, event) in bls12381_g1_add_chunk.iter().enumerate() {
                 self.nonce_lookup.insert(event.lookup_id, i as u32);
@@ -833,9 +825,77 @@ impl MachineRecord for ExecutionRecord {
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_double_events
+                .bls12381_g1_double_events
                 .extend_from_slice(bls12381_g1_double_chunk);
             for (i, event) in bls12381_g1_double_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+
+        // BLS12-381 Fp and Fp2 events
+        for (bls12381_fp_add_chunk, shard) in take(&mut self.bls12381_fp_add_events)
+            .chunks_mut(config.bls12381_fp_add_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp_add_events
+                .extend_from_slice(bls12381_fp_add_chunk);
+            for (i, event) in bls12381_fp_add_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+        for (bls12381_fp_sub_chunk, shard) in take(&mut self.bls12381_fp_sub_events)
+            .chunks_mut(config.bls12381_fp_sub_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp_sub_events
+                .extend_from_slice(bls12381_fp_sub_chunk);
+            for (i, event) in bls12381_fp_sub_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+        for (bls12381_fp_mul_chunk, shard) in take(&mut self.bls12381_fp_mul_events)
+            .chunks_mut(config.bls12381_fp_mul_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp_mul_events
+                .extend_from_slice(bls12381_fp_mul_chunk);
+            for (i, event) in bls12381_fp_mul_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+        for (bls12381_fp2_add_chunk, shard) in take(&mut self.bls12381_fp2_add_events)
+            .chunks_mut(config.bls12381_fp2_add_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp2_add_events
+                .extend_from_slice(bls12381_fp2_add_chunk);
+            for (i, event) in bls12381_fp2_add_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+        for (bls12381_fp2_sub_chunk, shard) in take(&mut self.bls12381_fp2_sub_events)
+            .chunks_mut(config.bls12381_fp2_sub_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp2_sub_events
+                .extend_from_slice(bls12381_fp2_sub_chunk);
+            for (i, event) in bls12381_fp2_sub_chunk.iter().enumerate() {
+                self.nonce_lookup.insert(event.lookup_id, i as u32);
+            }
+        }
+        for (bls12381_fp2_mul_chunk, shard) in take(&mut self.bls12381_fp2_mul_events)
+            .chunks_mut(config.bls12381_fp2_mul_len)
+            .zip(shards.iter_mut())
+        {
+            shard
+                .bls12381_fp2_mul_events
+                .extend_from_slice(bls12381_fp2_mul_chunk);
+            for (i, event) in bls12381_fp2_mul_chunk.iter().enumerate() {
                 self.nonce_lookup.insert(event.lookup_id, i as u32);
             }
         }
@@ -868,20 +928,26 @@ impl MachineRecord for ExecutionRecord {
         }
 
         // K256 curve decompress events.
-        first.k256_decompress_events = std::mem::take(&mut self.k256_decompress_events);
-        for (i, event) in first.k256_decompress_events.iter().enumerate() {
+        first.secp256k1_decompress_events = std::mem::take(&mut self.secp256k1_decompress_events);
+        for (i, event) in first.secp256k1_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
-        // Uint256 mul arithmetic events.
-        first.uint256_mul_events = std::mem::take(&mut self.uint256_mul_events);
-        for (i, event) in first.uint256_mul_events.iter().enumerate() {
+        // Bls12-381 decompress events.
+        first.bls12381_g1_decompress_events = std::mem::take(&mut self.bls12381_g1_decompress_events);
+        for (i, event) in first.bls12381_g1_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
-        // Bls12-381 decompress events .
-        first.bls12381_decompress_events = std::mem::take(&mut self.bls12381_decompress_events);
-        for (i, event) in first.bls12381_decompress_events.iter().enumerate() {
+        // Bls12-381 G2Affine addition events.
+        first.bls12381_g2_add_events = take(&mut self.bls12381_g2_add_events);
+        for (i, event) in first.bls12381_g2_add_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
+        }
+
+        // Bls12-381 G2Affine doubling events.
+        first.bls12381_g2_double_events = take(&mut self.bls12381_g2_double_events);
+        for (i, event) in first.bls12381_g2_double_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 

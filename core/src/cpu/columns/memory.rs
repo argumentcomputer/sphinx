@@ -49,6 +49,10 @@ impl<T: Default> Default for MemoryColumns<T> {
             offset_is_two: T::default(),
             offset_is_three: T::default(),
             most_sig_byte_decomp: array::from_fn(|_| T::default()),
+            addr_word_range_checker: BabyBearWordRangeChecker::<T>::default(),
+            aa_least_sig_byte_decomp: array::from_fn(|_| T::default()),
+            addr_word_nonce: T::default(),
+            unsigned_mem_val_nonce: T::default(),
         }
     }
 }

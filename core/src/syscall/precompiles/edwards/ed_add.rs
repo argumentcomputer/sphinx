@@ -18,7 +18,8 @@ use p3_maybe_rayon::prelude::IntoParallelRefIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
 use sphinx_derive::AlignedBorrow;
 
-use crate::bytes::event::ByteRecord;
+use crate::air::BaseAirBuilder;
+use crate::{bytes::event::ByteRecord, utils::limbs_from_access};
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
 use crate::memory::MemoryReadCols;
@@ -28,6 +29,7 @@ use crate::operations::field::field_inner_product::FieldInnerProductCols;
 use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::FieldParameters;
+use crate::operations::field::params::Limbs;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::Syscall;
@@ -251,7 +253,7 @@ where
 
         // Write the nonces to the trace.
         for i in 0..trace.height() {
-            let cols: &mut EdAddAssignCols<F> =
+            let cols: &mut EdAddAssignCols<F, E::BaseField> =
                 trace.values[i * NUM_ED_ADD_COLS..(i + 1) * NUM_ED_ADD_COLS].borrow_mut();
             cols.nonce = F::from_canonical_usize(i);
         }
@@ -277,9 +279,9 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let local = main.row_slice(0);
-        let local: &EdAddAssignCols<AB::Var> = (*local).borrow();
+        let local: &EdAddAssignCols<AB::Var, E::BaseField> = (*local).borrow();
         let next = main.row_slice(1);
-        let next: &EdAddAssignCols<AB::Var> = (*next).borrow();
+        let next: &EdAddAssignCols<AB::Var, E::BaseField> = (*next).borrow();
 
         // Constrain the incrementing nonce.
         builder.when_first_row().assert_zero(local.nonce);
@@ -295,8 +297,8 @@ where
         // x3_numerator = x1 * y2 + x2 * y1.
         local.x3_numerator.eval(
             builder,
-            &[x1, x2],
-            &[y2, y1],
+            &[x1.clone(), x2.clone()],
+            &[y2.clone(), y1.clone()],
             local.shard,
             local.channel,
             local.is_real,
@@ -305,8 +307,8 @@ where
         // y3_numerator = y1 * y2 + x1 * x2.
         local.y3_numerator.eval(
             builder,
-            &[y1, x1],
-            &[y2, x2],
+            &[y1.clone(), x1.clone()],
+            &[y2.clone(), x2.clone()],
             local.shard,
             local.channel,
             local.is_real,
@@ -332,12 +334,12 @@ where
             local.is_real,
         );
 
-        let x1_mul_y1 = local.x1_mul_y1.result;
-        let x2_mul_y2 = local.x2_mul_y2.result;
+        let x1_mul_y1 = &local.x1_mul_y1.result;
+        let x2_mul_y2 = &local.x2_mul_y2.result;
         local.f.eval(
             builder,
-            &x1_mul_y1,
-            &x2_mul_y2,
+            x1_mul_y1,
+            x2_mul_y2,
             FieldOperation::Mul,
             local.shard,
             local.channel,
@@ -345,12 +347,12 @@ where
         );
 
         // d * f.
-        let f = local.f.result;
+        let f = &local.f.result;
         let d_biguint = E::d_biguint();
-        let d_const = E::BaseField::to_limbs_field::<AB::Expr, _>(&d_biguint);
+        let d_const = E::BaseField::to_limbs_field::<AB::F>(&d_biguint);
         local.d_mul_f.eval(
             builder,
-            &f,
+            f,
             &d_const,
             FieldOperation::Mul,
             local.shard,
@@ -358,13 +360,13 @@ where
             local.is_real,
         );
 
-        let d_mul_f = local.d_mul_f.result;
+        let d_mul_f = &local.d_mul_f.result;
 
         // x3 = x3_numerator / (1 + d * f).
         local.x3_ins.eval(
             builder,
             &local.x3_numerator.result,
-            &d_mul_f,
+            d_mul_f,
             true,
             local.shard,
             local.channel,
@@ -375,7 +377,7 @@ where
         local.y3_ins.eval(
             builder,
             &local.y3_numerator.result,
-            &d_mul_f,
+            d_mul_f,
             false,
             local.shard,
             local.channel,
@@ -384,13 +386,13 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]
         // This is to ensure that p_access is updated with the new value.
-        let p_access_vec = value_as_limbs(&local.p_access);
+        let p_access_vec: Limbs<_, DEFAULT_NUM_LIMBS_T> = limbs_from_access(&local.p_access);
         builder
             .when(local.is_real)
-            .assert_all_eq(local.x3_ins.result, p_access_vec[0..NUM_LIMBS].to_vec());
+            .assert_all_eq(local.x3_ins.result.clone(), p_access_vec[0..DEFAULT_NUM_LIMBS_T::USIZE].to_vec());
         builder.when(local.is_real).assert_all_eq(
-            local.y3_ins.result,
-            p_access_vec[NUM_LIMBS..NUM_LIMBS * 2].to_vec(),
+            local.y3_ins.result.clone(),
+            p_access_vec[DEFAULT_NUM_LIMBS_T::USIZE..DEFAULT_NUM_LIMBS_T::USIZE * 2].to_vec(),
         );
 
         builder.eval_memory_access_slice(

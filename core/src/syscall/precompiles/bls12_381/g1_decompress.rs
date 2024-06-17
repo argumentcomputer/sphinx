@@ -67,6 +67,7 @@ pub fn bls12_381_g1_decompress(bytes_be: &[u8]) -> AffinePoint<SwCurve<Bls12381P
 /// BLS12-381 G1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G1DecompressEvent {
+    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -117,6 +118,7 @@ pub fn create_bls12381_g1_decompress_event(
     let x_msb_memory_record = rt.mw(slice_ptr + (2 * num_limbs as u32) - 4, x_msb_word);
 
     Bls12381G1DecompressEvent {
+        lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),
         channel: rt.current_channel(),
         clk: start_clk,
@@ -149,6 +151,7 @@ pub struct Bls12381G1DecompressCols<T> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
+    pub nonce: T,
     pub ptr: T,
     pub x_access: Array<MemoryReadCols<T>, BLS12_381_NUM_WORDS_FOR_FIELD>,
     pub x_msb_access: MemoryWriteCols<T>,
@@ -267,6 +270,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             cols.shard = F::from_canonical_u32(event.shard);
             cols.channel = F::from_canonical_u32(event.channel);
             cols.clk = F::from_canonical_u32(event.clk);
+            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.ptr = F::from_canonical_u32(event.ptr);
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
@@ -514,6 +518,7 @@ where
             row.shard,
             row.channel,
             row.clk,
+            row.nonce,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G1_DECOMPRESS.syscall_id()),
             row.ptr,
             AB::Expr::zero(),

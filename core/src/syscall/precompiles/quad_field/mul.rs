@@ -38,6 +38,7 @@ pub struct QuadFieldMulCols<T, FP: FieldParameters> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
+    pub nonce: T,
     pub p_ptr: T,
     pub q_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_QUAD_EXT_FIELD_ELEMENT<FP::NB_LIMBS>>,
@@ -61,6 +62,7 @@ impl<FP: FieldParameters> QuadFieldMulChip<FP> {
 /// Fp2 multiplication event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuadFieldMulEvent<FP: FieldParameters> {
+    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -137,6 +139,7 @@ pub fn create_fp2_mul_event<FP: FieldParameters>(
     let p_memory_records = (&rt.mw_slice(p_ptr, &result_words)[..]).try_into().unwrap();
 
     QuadFieldMulEvent {
+        lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),
         channel: rt.current_channel(),
         clk: start_clk,
@@ -200,6 +203,7 @@ where
                 cols.shard = F::from_canonical_u32(event.shard);
                 cols.channel = F::from_canonical_u32(event.channel);
                 cols.clk = F::from_canonical_u32(event.clk);
+                cols.nonce = F::from_canonical_u32(event.nonce);
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
@@ -338,6 +342,7 @@ where
             row.shard,
             row.channel,
             row.clk,
+            row.nonce,
             syscall_id_fe,
             row.p_ptr,
             row.q_ptr,

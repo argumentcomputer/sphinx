@@ -155,6 +155,7 @@ impl Bls12381G2AffineDoubleChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G2AffineDoubleEvent {
+    pub(crate) lookup_id: usize,
     clk: u32,
     shard: u32,
     channel: u32,
@@ -173,6 +174,7 @@ impl Syscall for Bls12381G2AffineDoubleChip {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
         let channel = ctx.current_channel();
+        let lookup_id = ctx.syscall_lookup_id;
 
         assert_eq!(p_ptr % 4, 0, "arg1 ptr must be 4-byte aligned");
 
@@ -213,6 +215,7 @@ impl Syscall for Bls12381G2AffineDoubleChip {
         ctx.record_mut()
             .bls12381_g2_double_events
             .push(Bls12381G2AffineDoubleEvent {
+                lookup_id,
                 clk,
                 shard,
                 channel,
@@ -231,6 +234,7 @@ struct Bls12381G2AffineDoubleCols<T, P: FieldParameters> {
     pub(crate) clk: T,
     pub(crate) shard: T,
     pub(crate) channel: T,
+    pub(crate) nonce: T,
     pub(crate) is_real: T,
 
     pub(crate) p_ptr: T,
@@ -284,6 +288,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             let cols: &mut Bls12381G2AffineDoubleCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();
 
+            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
@@ -539,6 +544,7 @@ where
             local.shard,
             local.channel,
             local.clk,
+            local.nonce,
             AB::F::from_canonical_u32(SyscallCode::BLS12381_G2_DOUBLE.syscall_id()),
             local.p_ptr,
             AB::Expr::zero(),
