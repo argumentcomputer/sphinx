@@ -1,7 +1,9 @@
-use std::{mem::take, sync::Arc};
-
 use hashbrown::HashMap;
-use p3_field::{AbstractField, Field};
+use p3_field::Field;
+use std::mem::take;
+use std::sync::Arc;
+
+use p3_field::AbstractField;
 use serde::{Deserialize, Serialize};
 
 use super::{program::Program, Opcode};
@@ -874,7 +876,7 @@ impl ExecutionRecord {
         self.lt_events.push(lt_event);
     }
 
-    pub fn add_alu_events(&mut self, alu_events: &mut HashMap<Opcode, Vec<AluEvent>>) {
+    pub fn add_alu_events(&mut self, mut alu_events: HashMap<Opcode, Vec<AluEvent>>) {
         for (opcode, value) in alu_events.iter_mut() {
             match opcode {
                 Opcode::ADD => {

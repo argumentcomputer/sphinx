@@ -17,6 +17,10 @@ use tracing::instrument;
 
 use super::columns::MemoryInitCols;
 use crate::{air::Block, memory::MemoryGlobalChip};
+use crate::{
+    air::RecursionMemoryAirBuilder,
+    runtime::{ExecutionRecord, RecursionProgram},
+};
 
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 

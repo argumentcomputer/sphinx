@@ -10,7 +10,6 @@ use super::{
 };
 use crate::{
     air::{EventLens, MachineAir, WithEvents},
-    bytes::ByteOpcode,
     runtime::{ExecutionRecord, Program},
 };
 
@@ -55,19 +54,16 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
         input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
+        let shard = input.index();
+        let (_, event_map) = Self::trace_and_map(shard);
+
         let mut trace = RowMajorMatrix::new(
             vec![F::zero(); NUM_BYTE_MULT_COLS * NUM_ROWS],
             NUM_BYTE_MULT_COLS,
         );
 
-        let shard = input.index();
         for (lookup, mult) in input.events()[&shard].iter() {
-            let row = if lookup.opcode != ByteOpcode::U16Range {
-                ((lookup.b << 8) + lookup.c) as usize
-            } else {
-                lookup.a1 as usize
-            };
-            let index = lookup.opcode as usize;
+            let (row, index) = event_map[lookup];
             let channel = lookup.channel as usize;
 
             let cols: &mut ByteMultCols<F> = trace.row_mut(row).borrow_mut();

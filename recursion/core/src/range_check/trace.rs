@@ -1,5 +1,6 @@
-use std::{borrow::BorrowMut, collections::BTreeMap};
+use std::borrow::BorrowMut;
 
+use hashbrown::HashMap;
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use sphinx_core::air::{EventLens, MachineAir, WithEvents};
@@ -13,7 +14,7 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for RangeCheckChip<F> {
-    type Events = &'a BTreeMap<RangeCheckEvent, usize>;
+    type Events = &'a HashMap<RangeCheckEvent, usize>;
 }
 
 impl<F: PrimeField32> MachineAir<F> for RangeCheckChip<F> {
