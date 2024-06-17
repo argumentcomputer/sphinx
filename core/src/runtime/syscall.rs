@@ -5,7 +5,7 @@ use strum_macros::EnumIter;
 
 use crate::runtime::{Register, Runtime};
 use crate::stark::{
-    Ed25519Parameters, FieldAddChip, FieldMulChip, FieldSubChip, QuadFieldAddChip,
+    Ed25519Parameters, QuadFieldAddChip,
     QuadFieldMulChip, QuadFieldSubChip,
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
@@ -13,6 +13,7 @@ use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
 use crate::syscall::precompiles::edwards::EdAddAssignChip;
 use crate::syscall::precompiles::edwards::EdDecompressChip;
+use crate::syscall::precompiles::field::{FieldAddSyscall, FieldMulSyscall, FieldSubSyscall};
 use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
@@ -329,15 +330,15 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_ADD,
-        Arc::new(FieldAddChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldAddSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_SUB,
-        Arc::new(FieldSubChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldSubSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP_MUL,
-        Arc::new(FieldMulChip::<Bls12381BaseField>::new()),
+        Arc::new(FieldMulSyscall::<Bls12381BaseField>::new()),
     );
     syscall_map.insert(
         SyscallCode::BLS12381_FP2_ADD,

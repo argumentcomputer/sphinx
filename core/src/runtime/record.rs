@@ -15,7 +15,7 @@ use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::stark::{
     AddSubChip, BitwiseChip, Blake3CompressInnerChip, ByteChip, CpuChip, DivRemChip,
-    Ed25519Parameters, EdAddAssignChip, EdDecompressChip, FieldAddChip, FieldMulChip, FieldSubChip,
+    Ed25519Parameters, EdAddAssignChip, EdDecompressChip, FieldChip,
     KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip, QuadFieldAddChip,
     QuadFieldMulChip, QuadFieldSubChip, ShaCompressChip, ShaExtendChip, ShiftLeft, ShiftRightChip,
     WeierstrassAddAssignChip, WeierstrassDoubleAssignChip,
@@ -41,7 +41,7 @@ use crate::{
             g2_add::Bls12381G2AffineAddChip,
             g2_double::Bls12381G2AffineDoubleChip,
         },
-        field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
+        field::FieldEvent,
         quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
         secp256k1::decompress::{Secp256k1DecompressChip, Secp256k1DecompressEvent},
     },
@@ -123,9 +123,7 @@ pub struct ExecutionRecord {
 
     pub blake3_compress_inner_events: Vec<Blake3CompressInnerEvent>,
 
-    pub bls12381_fp_add_events: Vec<FieldAddEvent<Bls12381BaseField>>,
-    pub bls12381_fp_sub_events: Vec<FieldSubEvent<Bls12381BaseField>>,
-    pub bls12381_fp_mul_events: Vec<FieldMulEvent<Bls12381BaseField>>,
+    pub bls12381_fp_events: Vec<FieldEvent<Bls12381BaseField>>,
     pub bls12381_fp2_add_events: Vec<QuadFieldAddEvent<Bls12381BaseField>>,
     pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
     pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
@@ -262,21 +260,9 @@ impl EventLens<Bls12381G2AffineDoubleChip> for ExecutionRecord {
     }
 }
 
-impl EventLens<FieldAddChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp_add_events
-    }
-}
-
-impl EventLens<FieldSubChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp_sub_events
-    }
-}
-
-impl EventLens<FieldMulChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(&self) -> <FieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp_mul_events
+impl EventLens<FieldChip<Bls12381BaseField>> for ExecutionRecord {
+    fn events(&self) -> <FieldChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+        &self.bls12381_fp_events
     }
 }
 
@@ -378,9 +364,7 @@ pub struct ShardingConfig {
     pub bn254_double_len: usize,
     pub bls12381_g1_add_len: usize,
     pub bls12381_g1_double_len: usize,
-    pub bls12381_fp_add_len: usize,
-    pub bls12381_fp_sub_len: usize,
-    pub bls12381_fp_mul_len: usize,
+    pub bls12381_fp_len: usize,
     pub bls12381_fp2_add_len: usize,
     pub bls12381_fp2_sub_len: usize,
     pub bls12381_fp2_mul_len: usize,
@@ -413,9 +397,7 @@ impl Default for ShardingConfig {
             bn254_double_len: shard_size,
             bls12381_g1_add_len: shard_size,
             bls12381_g1_double_len: shard_size,
-            bls12381_fp_add_len: shard_size,
-            bls12381_fp_sub_len: shard_size,
-            bls12381_fp_mul_len: shard_size,
+            bls12381_fp_len: shard_size,
             bls12381_fp2_add_len: shard_size,
             bls12381_fp2_sub_len: shard_size,
             bls12381_fp2_mul_len: shard_size,
@@ -504,16 +486,8 @@ impl MachineRecord for ExecutionRecord {
             self.bls12381_g1_decompress_events.len(),
         );
         stats.insert(
-            "bls12381_fp_add_events".to_string(),
-            self.bls12381_fp_add_events.len(),
-        );
-        stats.insert(
-            "bls12381_fp_sub_events".to_string(),
-            self.bls12381_fp_sub_events.len(),
-        );
-        stats.insert(
-            "bls12381_fp_mul_events".to_string(),
-            self.bls12381_fp_mul_events.len(),
+            "bls12381_fp_events".to_string(),
+            self.bls12381_fp_events.len(),
         );
         stats.insert(
             "bls12381_fp2_add_events".to_string(),
@@ -572,12 +546,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.secp256k1_decompress_events);
         self.blake3_compress_inner_events
             .append(&mut other.blake3_compress_inner_events);
-        self.bls12381_fp_add_events
-            .append(&mut other.bls12381_fp_add_events);
-        self.bls12381_fp_sub_events
-            .append(&mut other.bls12381_fp_sub_events);
-        self.bls12381_fp_mul_events
-            .append(&mut other.bls12381_fp_mul_events);
+        self.bls12381_fp_events
+            .append(&mut other.bls12381_fp_events);
         self.bls12381_fp2_add_events
             .append(&mut other.bls12381_fp2_add_events);
         self.bls12381_fp2_sub_events
@@ -799,29 +769,13 @@ impl MachineRecord for ExecutionRecord {
         }
 
         // BLS12-381 Fp and Fp2 events
-        for (bls12381_fp_add_chunk, shard) in take(&mut self.bls12381_fp_add_events)
-            .chunks_mut(config.bls12381_fp_add_len)
+        for (bls12381_fp_chunk, shard) in take(&mut self.bls12381_fp_events)
+            .chunks_mut(config.bls12381_fp_len)
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_fp_add_events
-                .extend_from_slice(bls12381_fp_add_chunk)
-        }
-        for (bls12381_fp_sub_chunk, shard) in take(&mut self.bls12381_fp_sub_events)
-            .chunks_mut(config.bls12381_fp_sub_len)
-            .zip(shards.iter_mut())
-        {
-            shard
-                .bls12381_fp_sub_events
-                .extend_from_slice(bls12381_fp_sub_chunk)
-        }
-        for (bls12381_fp_mul_chunk, shard) in take(&mut self.bls12381_fp_mul_events)
-            .chunks_mut(config.bls12381_fp_mul_len)
-            .zip(shards.iter_mut())
-        {
-            shard
-                .bls12381_fp_mul_events
-                .extend_from_slice(bls12381_fp_mul_chunk)
+                .bls12381_fp_events
+                .extend_from_slice(bls12381_fp_chunk)
         }
         for (bls12381_fp2_add_chunk, shard) in take(&mut self.bls12381_fp2_add_events)
             .chunks_mut(config.bls12381_fp2_add_len)
