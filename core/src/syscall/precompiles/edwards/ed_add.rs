@@ -41,7 +41,7 @@ use crate::utils::ec::AffinePoint;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
+use crate::utils::pad_rows;
 use crate::{air::MachineAir, utils::ec::EllipticCurveParameters};
 use crate::{
     air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents},
@@ -233,7 +233,7 @@ where
             output.add_byte_lookup_events(byte_lookup_events);
         }
 
-        pad_vec_rows(&mut rows, || {
+        pad_rows(&mut rows, || {
             let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
             let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();

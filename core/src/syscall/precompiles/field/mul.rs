@@ -24,7 +24,7 @@ use crate::{
     },
     runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode},
     syscall::precompiles::SyscallContext,
-    utils::{bytes_to_words_le, limbs_from_prev_access, pad_vec_rows},
+    utils::{bytes_to_words_le, limbs_from_prev_access, pad_rows},
 };
 
 /// A set of columns to compute field element multiplication where p, q are in some prime field `Fp`.
@@ -197,7 +197,7 @@ where
             output.add_byte_lookup_events(byte_lookup_events);
         }
 
-        pad_vec_rows(&mut rows, || {
+        pad_rows(&mut rows, || {
             let mut row = vec![F::zero(); size_of::<FieldMulCols<u8, FP>>()];
             let cols: &mut FieldMulCols<F, FP> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
