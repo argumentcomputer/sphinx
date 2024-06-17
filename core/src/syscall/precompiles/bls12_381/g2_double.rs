@@ -6,7 +6,7 @@ use crate::operations::field::params::{FieldParameters, Limbs, WORDS_QUAD_EXT_CU
 use crate::runtime::{ExecutionRecord, MemoryWriteRecord, Syscall, SyscallCode, SyscallContext};
 use crate::stark::SphinxAirBuilder;
 use crate::utils::ec::weierstrass::bls12_381::{bls12381_double, Bls12381BaseField};
-use crate::utils::{limbs_from_prev_access, pad_vec_rows};
+use crate::utils::{limbs_from_prev_access, pad_rows};
 use crate::Program;
 use core::borrow::{Borrow, BorrowMut};
 use hybrid_array::{typenum::Unsigned, Array};
@@ -318,7 +318,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
 
         output.add_byte_lookup_events(new_byte_lookup_events);
 
-        pad_vec_rows(&mut rows, || {
+        pad_rows(&mut rows, || {
             let mut row = vec![F::zero(); width];
             let cols: &mut Bls12381G2AffineDoubleCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();
