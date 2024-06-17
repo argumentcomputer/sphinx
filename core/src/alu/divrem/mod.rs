@@ -214,7 +214,7 @@ pub struct DivRemCols<T> {
 }
 
 impl<'a> WithEvents<'a> for DivRemChip {
-    type Events = &'a [AluEvent];
+    type Events = (&'a [AluEvent], &'a HashMap<usize, u32>);
 }
 
 impl<F: PrimeField> MachineAir<F> for DivRemChip {
@@ -232,7 +232,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
-        let divrem_events = input.events();
+        let (divrem_events, nonce_lookup) = input.events();
         let mut rows: Vec<[F; NUM_DIVREM_COLS]> = Vec::with_capacity(divrem_events.len());
         for event in divrem_events {
             assert!(
@@ -288,16 +288,14 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                 // Set the `alu_event` flags.
                 cols.abs_c_alu_event = cols.c_neg * cols.is_real;
                 cols.abs_c_alu_event_nonce = F::from_canonical_u32(
-                    input
-                        .nonce_lookup
+                    nonce_lookup
                         .get(&event.sub_lookups[4])
                         .copied()
                         .unwrap_or_default(),
                 );
                 cols.abs_rem_alu_event = cols.rem_neg * cols.is_real;
                 cols.abs_rem_alu_event_nonce = F::from_canonical_u32(
-                    input
-                        .nonce_lookup
+                    nonce_lookup
                         .get(&event.sub_lookups[5])
                         .copied()
                         .unwrap_or_default(),
@@ -421,8 +419,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         sub_lookups: create_alu_lookups(),
                     };
                     cols.lower_nonce = F::from_canonical_u32(
-                        input
-                            .nonce_lookup
+                        nonce_lookup
                             .get(&event.sub_lookups[0])
                             .copied()
                             .unwrap_or_default(),
@@ -447,8 +444,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         sub_lookups: create_alu_lookups(),
                     };
                     cols.upper_nonce = F::from_canonical_u32(
-                        input
-                            .nonce_lookup
+                        nonce_lookup
                             .get(&event.sub_lookups[1])
                             .copied()
                             .unwrap_or_default(),
@@ -456,8 +452,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                     output.add_mul_event(upper_multiplication);
                     let lt_event = if is_signed_operation(event.opcode) {
                         cols.abs_nonce = F::from_canonical_u32(
-                            input
-                                .nonce_lookup
+                            nonce_lookup
                                 .get(&event.sub_lookups[2])
                                 .copied()
                                 .unwrap_or_default(),
@@ -475,8 +470,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         }
                     } else {
                         cols.abs_nonce = F::from_canonical_u32(
-                            input
-                                .nonce_lookup
+                            nonce_lookup
                                 .get(&event.sub_lookups[3])
                                 .copied()
                                 .unwrap_or_default(),
@@ -539,7 +533,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
             row
         };
         debug_assert!(padded_row_template.len() == NUM_DIVREM_COLS);
-        for i in input.events().len() * NUM_DIVREM_COLS..trace.values.len() {
+        for i in input.events().0.len() * NUM_DIVREM_COLS..trace.values.len() {
             trace.values[i] = padded_row_template[i % NUM_DIVREM_COLS];
         }
 

@@ -38,6 +38,7 @@ pub struct QuadFieldMulCols<T, FP: FieldParameters> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
+    pub nonce: T,
     pub p_ptr: T,
     pub q_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_QUAD_EXT_FIELD_ELEMENT<FP::NB_LIMBS>>,
@@ -61,6 +62,7 @@ impl<FP: FieldParameters> QuadFieldMulChip<FP> {
 /// Fp2 multiplication event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuadFieldMulEvent<FP: FieldParameters> {
+    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -137,6 +139,7 @@ pub fn create_fp2_mul_event<FP: FieldParameters>(
     let p_memory_records = (&rt.mw_slice(p_ptr, &result_words)[..]).try_into().unwrap();
 
     QuadFieldMulEvent {
+        lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),
         channel: rt.current_channel(),
         clk: start_clk,
@@ -247,11 +250,20 @@ where
             row
         });
 
+        let num_cols = size_of::<QuadFieldMulCols<u8, FP>>();
+
         // Convert the trace to a row major matrix.
-        RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<QuadFieldMulCols<u8, FP>>(),
-        )
+        let mut trace =
+            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut QuadFieldMulCols<F, FP> =
+                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -275,8 +287,16 @@ where
     fn eval(&self, builder: &mut AB) {
         let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;
         let main = builder.main();
-        let local = main.row_slice(0);
-        let row: &QuadFieldMulCols<AB::Var, FP> = (*local).borrow();
+        let row = main.row_slice(0);
+        let row: &QuadFieldMulCols<AB::Var, FP> = (*row).borrow();
+        let next = main.row_slice(1);
+        let next: &QuadFieldMulCols<AB::Var, FP> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(row.nonce);
+        builder
+            .when_transition()
+            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         let p0: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[..words_len]);
         let p1: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[words_len..]);
@@ -338,6 +358,7 @@ where
             row.shard,
             row.channel,
             row.clk,
+            row.nonce,
             syscall_id_fe,
             row.p_ptr,
             row.q_ptr,
