@@ -9,7 +9,7 @@ use crate::runtime::{
 };
 use crate::utils::ec::weierstrass::bls12_381::{bls12381_g2_add, Bls12381BaseField};
 use crate::utils::ec::AffinePoint;
-use crate::utils::{limbs_from_access, limbs_from_prev_access, pad_vec_rows};
+use crate::utils::{limbs_from_access, limbs_from_prev_access, pad_rows};
 use crate::Program;
 use core::borrow::{Borrow, BorrowMut};
 use hybrid_array::{typenum::Unsigned, Array};
@@ -373,7 +373,7 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineAddChip {
 
         output.add_byte_lookup_events(new_byte_lookup_events);
 
-        pad_vec_rows(&mut rows, || {
+        pad_rows(&mut rows, || {
             let mut row = vec![F::zero(); width];
             let cols: &mut Bls12381G2AffineAddCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();

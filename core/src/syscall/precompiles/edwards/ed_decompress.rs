@@ -47,7 +47,7 @@ use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::BaseLimbWidth;
 use crate::utils::limbs_from_access;
 use crate::utils::limbs_from_prev_access;
-use crate::utils::pad_vec_rows;
+use crate::utils::pad_rows;
 use crate::utils::words_to_bytes_le;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -402,7 +402,7 @@ where
             rows.push(row);
         }
 
-        pad_vec_rows(&mut rows, || {
+        pad_rows(&mut rows, || {
             let mut row = vec![F::zero(); size_of::<EdDecompressCols<u8, E::BaseField>>()];
             let cols: &mut EdDecompressCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
