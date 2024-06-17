@@ -4,7 +4,7 @@ use std::ops::{Div, Mul, Shl, Shr, Sub};
 use std::slice::Iter;
 
 use hybrid_array::sizes::{U32, U4};
-use hybrid_array::typenum::{Double, Shright, Sub1, Unsigned, B1};
+use hybrid_array::typenum::{Double, Shleft, Shright, Sub1, Unsigned, B1};
 use hybrid_array::{Array, ArraySize, AssocArraySize};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -37,6 +37,12 @@ pub type WITNESS_LIMBS<N> = Double<Sub1<N>>;
 // Can also be seen as a type-level function N -> N / 2
 #[allow(non_camel_case_types)]
 pub type WORDS_CURVEPOINT<N> = Shright<N, B1>;
+
+/// Number of limbs needed to represent a point on an elliptic curve. This is twice the number of
+/// limbs needed to represent a field element as a point consists of the x and y coordinates.
+// Can also be seen as a type-level function N -> N * 2
+#[allow(non_camel_case_types)]
+pub type LIMBS_CURVEPOINT<N> = Shleft<N, B1>;
 
 /// Number of words needed to represent a field element.
 // Can also be seen as a type-level function N -> N / 4
