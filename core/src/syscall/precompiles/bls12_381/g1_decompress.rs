@@ -270,7 +270,6 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             cols.shard = F::from_canonical_u32(event.shard);
             cols.channel = F::from_canonical_u32(event.channel);
             cols.clk = F::from_canonical_u32(event.clk);
-            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.ptr = F::from_canonical_u32(event.ptr);
 
             let x = BigUint::from_bytes_le(&event.x_bytes);
@@ -331,10 +330,19 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G1DecompressChip {
             row
         });
 
-        RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<Bls12381G1DecompressCols<u8>>(),
-        )
+        let num_cols = size_of::<Bls12381G1DecompressCols<u8>>();
+
+        let mut trace =
+            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut Bls12381G1DecompressCols<F> =
+                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -357,6 +365,14 @@ where
         let main = builder.main();
         let row = main.row_slice(0);
         let row: &Bls12381G1DecompressCols<AB::Var> = (*row).borrow();
+        let next = main.row_slice(1);
+        let next: &Bls12381G1DecompressCols<AB::Var> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(row.nonce);
+        builder
+            .when_transition()
+            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         let num_limbs = BLS12_381_NUM_LIMBS::USIZE;
         let num_words_field_element = num_limbs / 4;

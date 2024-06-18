@@ -194,7 +194,6 @@ where
                 cols.shard = F::from_canonical_u32(event.shard);
                 cols.channel = F::from_canonical_u32(event.channel);
                 cols.clk = F::from_canonical_u32(event.clk);
-                cols.nonce = F::from_canonical_u32(event.nonce);
                 cols.p_ptr = F::from_canonical_u32(event.p_ptr);
                 cols.q_ptr = F::from_canonical_u32(event.q_ptr);
 
@@ -242,11 +241,20 @@ where
             row
         });
 
+        let num_cols = size_of::<QuadFieldSubCols<u8, FP>>();
+
         // Convert the trace to a row major matrix.
-        RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<QuadFieldSubCols<u8, FP>>(),
-        )
+        let mut trace =
+            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut QuadFieldSubCols<F, FP> =
+                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -270,8 +278,16 @@ where
     fn eval(&self, builder: &mut AB) {
         let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;
         let main = builder.main();
-        let local = main.row_slice(0);
-        let row: &QuadFieldSubCols<AB::Var, FP> = (*local).borrow();
+        let row = main.row_slice(0);
+        let row: &QuadFieldSubCols<AB::Var, FP> = (*row).borrow();
+        let next = main.row_slice(1);
+        let next: &QuadFieldSubCols<AB::Var, FP> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(row.nonce);
+        builder
+            .when_transition()
+            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         let p0: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[..words_len]);
         let p1: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access[words_len..]);

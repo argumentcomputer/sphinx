@@ -101,8 +101,7 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
     pub fn populate<E: EdwardsParameters<BaseField = P>>(
         &mut self,
         event: &EdDecompressEvent,
-        //record: &mut impl ByteRecord, // FIXME?
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
     ) {
         let mut new_byte_lookup_events = Vec::new();
         self.is_real = F::from_bool(true);
@@ -110,13 +109,6 @@ impl<F: PrimeField32, P: FieldParameters> EdDecompressCols<F, P> {
         self.channel = F::from_canonical_u32(event.channel);
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
-        self.nonce = F::from_canonical_u32(
-            record
-                .nonce_lookup
-                .get(&event.lookup_id)
-                .copied()
-                .unwrap_or_default(),
-        );
         self.sign = F::from_bool(event.sign);
         for i in 0..WORDS_FIELD_ELEMENT::<P::NB_LIMBS>::USIZE {
             self.x_access[i].populate(
@@ -350,9 +342,9 @@ impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<Ba
         let x_memory_records: Array<MemoryWriteRecord, WORDS_FIELD_ELEMENT<BaseLimbWidth<E>>> =
             (&x_memory_records_vec[..]).try_into().unwrap();
 
-        let lookup_id = rt.syscall_lookup_id;
         let shard = rt.current_shard();
         let channel = rt.current_channel();
+        let lookup_id = rt.syscall_lookup_id;
         rt.record_mut()
             .ed_decompress_events
             .push(EdDecompressEvent {

@@ -27,8 +27,8 @@ use crate::{
     syscall::precompiles::{
         bls12_381::{
             g1_decompress::{Bls12381G1DecompressChip, Bls12381G1DecompressEvent},
-            g2_add::{Bls12381G2AffineAddEvent, Bls12381G2AffineAddChip},
-            g2_double::{Bls12381G2AffineDoubleEvent, Bls12381G2AffineDoubleChip},
+            g2_add::{Bls12381G2AffineAddChip, Bls12381G2AffineAddEvent},
+            g2_double::{Bls12381G2AffineDoubleChip, Bls12381G2AffineDoubleEvent},
         },
         field::{add::FieldAddEvent, mul::FieldMulEvent, sub::FieldSubEvent},
         quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
@@ -158,7 +158,7 @@ impl EventLens<BitwiseChip> for ExecutionRecord {
 
 impl EventLens<DivRemChip> for ExecutionRecord {
     fn events(&self) -> <DivRemChip as crate::air::WithEvents<'_>>::Events {
-        &self.divrem_events
+        (&self.divrem_events, &self.nonce_lookup)
     }
 }
 
@@ -194,7 +194,7 @@ impl<F: Field> EventLens<ByteChip<F>> for ExecutionRecord {
 
 impl EventLens<CpuChip> for ExecutionRecord {
     fn events(&self) -> <CpuChip as crate::air::WithEvents<'_>>::Events {
-        &self.cpu_events
+        (&self.cpu_events, &self.nonce_lookup)
     }
 }
 
@@ -934,7 +934,8 @@ impl MachineRecord for ExecutionRecord {
         }
 
         // Bls12-381 decompress events.
-        first.bls12381_g1_decompress_events = std::mem::take(&mut self.bls12381_g1_decompress_events);
+        first.bls12381_g1_decompress_events =
+            std::mem::take(&mut self.bls12381_g1_decompress_events);
         for (i, event) in first.bls12381_g1_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }

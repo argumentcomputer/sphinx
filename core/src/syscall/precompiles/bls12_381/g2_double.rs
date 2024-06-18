@@ -288,7 +288,6 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             let cols: &mut Bls12381G2AffineDoubleCols<F, Bls12381BaseField> =
                 row.as_mut_slice().borrow_mut();
 
-            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
             cols.shard = F::from_canonical_u32(event.shard);
@@ -347,7 +346,17 @@ impl<F: PrimeField32> MachineAir<F> for Bls12381G2AffineDoubleChip {
             row
         });
 
-        RowMajorMatrix::<F>::new(rows.into_iter().flatten().collect::<Vec<_>>(), width)
+        let mut trace =
+            RowMajorMatrix::<F>::new(rows.into_iter().flatten().collect::<Vec<_>>(), width);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut Bls12381G2AffineDoubleCols<F, Bls12381BaseField> =
+                trace.values[i * width..(i + 1) * width].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -363,6 +372,14 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let local: &Bls12381G2AffineDoubleCols<AB::Var, Bls12381BaseField> = (*local).borrow();
+        let next = main.row_slice(1);
+        let next: &Bls12381G2AffineDoubleCols<AB::Var, Bls12381BaseField> = (*next).borrow();
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(local.nonce);
+        builder
+            .when_transition()
+            .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
         let a_const_limbs = &[
             Bls12381BaseField::to_limbs_field::<AB::F>(&BigUint::zero()),

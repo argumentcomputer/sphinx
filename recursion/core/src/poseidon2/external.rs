@@ -6,6 +6,7 @@ use p3_field::{AbstractField, Field};
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, ExtensionAirBuilder, SphinxAirBuilder};
 use sphinx_primitives::RC_16_30_U32;
+use std::marker::PhantomData;
 
 use crate::air::{RecursionInteractionAirBuilder, RecursionMemoryAirBuilder};
 use crate::memory::MemoryCols;
@@ -66,7 +67,7 @@ impl<F: Field> Poseidon2Chip<F> {
             .sum::<AB::Expr>();
         let is_memory_write = local.rounds[local.rounds.len() - 1];
 
-        self.eval_control_flow_and_inputs(builder, local, next);
+        self.eval_control_flow_and_inputs::<AB>(builder, local, next);
 
         self.eval_syscall(builder, local, receive_table);
 

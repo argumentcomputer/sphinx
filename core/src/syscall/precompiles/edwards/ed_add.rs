@@ -19,7 +19,6 @@ use p3_maybe_rayon::prelude::ParallelIterator;
 use sphinx_derive::AlignedBorrow;
 
 use crate::air::BaseAirBuilder;
-use crate::{bytes::event::ByteRecord, utils::limbs_from_access};
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
 use crate::memory::MemoryReadCols;
@@ -30,6 +29,7 @@ use crate::operations::field::field_op::FieldOpCols;
 use crate::operations::field::field_op::FieldOperation;
 use crate::operations::field::params::FieldParameters;
 use crate::operations::field::params::Limbs;
+use crate::operations::field::params::LIMBS_CURVEPOINT;
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::Syscall;
@@ -50,6 +50,7 @@ use crate::{
     air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents},
     syscall::precompiles::ECAddEvent,
 };
+use crate::{bytes::event::ByteRecord, utils::limbs_from_access};
 
 pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8, Ed25519BaseField>>();
 
@@ -386,10 +387,12 @@ where
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]
         // This is to ensure that p_access is updated with the new value.
-        let p_access_vec: Limbs<_, DEFAULT_NUM_LIMBS_T> = limbs_from_access(&local.p_access);
-        builder
-            .when(local.is_real)
-            .assert_all_eq(local.x3_ins.result.clone(), p_access_vec[0..DEFAULT_NUM_LIMBS_T::USIZE].to_vec());
+        let p_access_vec: Limbs<_, LIMBS_CURVEPOINT<DEFAULT_NUM_LIMBS_T>> =
+            limbs_from_access(&local.p_access);
+        builder.when(local.is_real).assert_all_eq(
+            local.x3_ins.result.clone(),
+            p_access_vec[0..DEFAULT_NUM_LIMBS_T::USIZE].to_vec(),
+        );
         builder.when(local.is_real).assert_all_eq(
             local.y3_ins.result.clone(),
             p_access_vec[DEFAULT_NUM_LIMBS_T::USIZE..DEFAULT_NUM_LIMBS_T::USIZE * 2].to_vec(),

@@ -252,7 +252,6 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
             cols.shard = F::from_canonical_u32(event.shard);
             cols.channel = F::from_canonical_u32(event.channel);
             cols.clk = F::from_canonical_u32(event.clk);
-            cols.nonce = F::from_canonical_u32(event.nonce);
             cols.ptr = F::from_canonical_u32(event.ptr);
             cols.is_odd = F::from_canonical_u32(u32::from(event.is_odd));
 
@@ -300,10 +299,19 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
             row
         });
 
-        RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            size_of::<Secp256k1DecompressCols<u8>>(),
-        )
+        let num_cols = size_of::<Secp256k1DecompressCols<u8>>();
+
+        let mut trace =
+            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
+
+        // Write the nonces to the trace.
+        for i in 0..trace.height() {
+            let cols: &mut Secp256k1DecompressCols<F> =
+                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
+            cols.nonce = F::from_canonical_usize(i);
+        }
+
+        trace
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -326,9 +334,17 @@ where
         let main = builder.main();
         let row = main.row_slice(0);
         let row: &Secp256k1DecompressCols<AB::Var> = (*row).borrow();
+        let next = main.row_slice(1);
+        let next: &Secp256k1DecompressCols<AB::Var> = (*next).borrow();
 
         let num_limbs = DEFAULT_NUM_LIMBS_T::USIZE;
         let num_words_field_element = num_limbs / 4;
+
+        // Constrain the incrementing nonce.
+        builder.when_first_row().assert_zero(row.nonce);
+        builder
+            .when_transition()
+            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         builder.assert_bool(row.is_odd);
 

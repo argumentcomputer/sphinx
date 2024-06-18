@@ -349,7 +349,8 @@ where
         let num_words_field_element = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         let p_x: Limbs<_, BaseLimbWidth<E>> =
             limbs_from_prev_access(&local.p_access[0..num_words_field_element]);
-        let p_y: Limbs<_, BaseLimbWidth<E>> = limbs_from_prev_access(&local.p_access[num_words_field_element..]);
+        let p_y: Limbs<_, BaseLimbWidth<E>> =
+            limbs_from_prev_access(&local.p_access[num_words_field_element..]);
 
         // `a` in the Weierstrass form: y^2 = x^3 + a * x + b.
         let a = E::BaseField::to_limbs_field::<AB::F>(&E::a_int());
