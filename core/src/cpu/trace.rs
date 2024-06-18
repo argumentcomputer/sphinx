@@ -12,7 +12,7 @@ use super::{CpuChip, CpuEvent};
 use crate::air::Word;
 use crate::air::{EventLens, MachineAir, WithEvents};
 use crate::alu::create_alu_lookups;
-use crate::alu::{self, AluEvent};
+use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::cpu::columns::CpuCols;
@@ -48,7 +48,7 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         // Generate the trace rows for each event.
         let mut rows_with_events = events
             .par_iter()
-            .map(|op: &CpuEvent| self.event_to_row::<F>(*op, &nonce_lookup))
+            .map(|op: &CpuEvent| self.event_to_row::<F>(*op, nonce_lookup))
             .collect::<Vec<_>>();
 
         // No need to sort by the shard, since the cpu events are already partitioned by that.
@@ -97,13 +97,13 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             .map(|ops: &[CpuEvent]| {
                 let mut alu = HashMap::new();
                 let mut blu: Vec<_> = Vec::default();
-                ops.iter().for_each(|op| {
+                for op in ops.iter() {
                     let (_, alu_events, blu_events) = self.event_to_row::<F>(*op, &HashMap::new());
-                    alu_events.into_iter().for_each(|(key, value)| {
+                    for (key, value) in alu_events {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
-                    });
+                    }
                     blu.extend(blu_events);
-                });
+                }
                 (alu, blu)
             })
             .collect::<Vec<_>>();
@@ -187,7 +187,7 @@ impl CpuChip {
         new_blu_events.push(ByteLookupEvent {
             shard: event.shard,
             channel: event.channel,
-            opcode: ByteOpcode::U8Range,
+            opcode: U8Range,
             a1: 0,
             a2: 0,
             b: a_bytes[0],
@@ -196,7 +196,7 @@ impl CpuChip {
         new_blu_events.push(ByteLookupEvent {
             shard: event.shard,
             channel: event.channel,
-            opcode: ByteOpcode::U8Range,
+            opcode: U8Range,
             a1: 0,
             a2: 0,
             b: a_bytes[2],
@@ -439,7 +439,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         nonce_lookup: &HashMap<usize, u32>,
     ) {
         if event.instruction.is_branch_instruction() {
@@ -568,7 +568,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         nonce_lookup: &HashMap<usize, u32>,
     ) {
         if event.instruction.is_jump_instruction() {
@@ -645,7 +645,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: CpuEvent,
-        alu_events: &mut HashMap<Opcode, Vec<alu::AluEvent>>,
+        alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         nonce_lookup: &HashMap<usize, u32>,
     ) {
         if matches!(event.instruction.opcode, Opcode::AUIPC) {

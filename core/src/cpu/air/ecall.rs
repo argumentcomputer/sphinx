@@ -41,7 +41,7 @@ impl CpuChip {
         // - is_ecall_instruction = 0 => ecall_mul_send_to_table == 0
         builder.assert_eq(
             local.ecall_mul_send_to_table,
-            send_to_table * is_ecall_instruction.clone(),
+            send_to_table * is_ecall_instruction,
         );
 
         builder.send_syscall(
