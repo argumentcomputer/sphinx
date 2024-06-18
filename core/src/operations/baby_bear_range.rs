@@ -4,7 +4,7 @@ use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use sphinx_derive::AlignedBorrow;
 
-use crate::{air::ByteAirBuilder, stark::SphinxAirBuilder};
+use crate::air::ByteAirBuilder;
 
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
 #[repr(C)]

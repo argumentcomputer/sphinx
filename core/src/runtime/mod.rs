@@ -893,17 +893,17 @@ impl Runtime {
             }
             Opcode::MULH => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = (((b as i32) as i64).wrapping_mul((c as i32) as i64) >> 32) as u32;
+                a = (i64::from(b as i32).wrapping_mul(i64::from(c as i32)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c, lookup_id);
             }
             Opcode::MULHU => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = ((b as u64).wrapping_mul(c as u64) >> 32) as u32;
+                a = (u64::from(b).wrapping_mul(u64::from(c)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c, lookup_id);
             }
             Opcode::MULHSU => {
                 (rd, b, c) = self.alu_rr(instruction);
-                a = (((b as i32) as i64).wrapping_mul(c as i64) >> 32) as u32;
+                a = (i64::from(b as i32).wrapping_mul(i64::from(c)) >> 32) as u32;
                 self.alu_rw(instruction, rd, a, b, c, lookup_id);
             }
             Opcode::DIV => {
