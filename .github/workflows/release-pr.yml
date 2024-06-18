@@ -1,0 +1,106 @@
+name: Bump Version
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'release or hotfix'
+        type: choice
+        options:
+          - release
+          - hotfix
+        required: true
+        default: 'release'
+      version:
+        description: 'Version'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      # Crates from which the version will be bumped
+      CRATES: './cli, ./core, ./derive, ./eval, ./helper, ./primitives, ./prover, ./recursion/circuit, ./recursion/compiler, ./recursion/core, ./recursion/gnark-ffi, ./recursion/program, ./sdk, ./tutorials, ./zkvm/entrypoint, ./zkvm/precompiles'
+
+    steps:
+      - name: Git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com/".insteadOf ssh://git@github.com
+          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com".insteadOf https://github.com
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set branches
+        run: |
+          if [[ "${{ inputs.type == 'hotfix' }}" == "true" ]]; then
+            BASE_BRANCH="release/${{ inputs.version }}-patched"
+          else
+            BASE_BRANCH="main"
+          fi
+
+          PR_BRANCH="${{ inputs.type }}/${{ inputs.version }}"
+
+          if [[ "${{ inputs.type }}" == "release" ]]; then
+            git checkout -b ${{ env.PR_BRANCH }}
+          else
+            git checkout ${{ env.PR_BRANCH }}
+          fi
+
+          echo "BASE_BRANCH=$BASE_BRANCH" | tee -a $GITHUB_ENV
+          echo "PR_BRANCH=$PR_BRANCH" | tee -a $GITHUB_ENV
+          echo "PR_DESCRIPTION=chore: Release ${{ inputs.version }}" | tee -a $GITHUB_ENV
+
+      # Regex from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+      - name: Validate version
+        run: |
+          echo "Validating version ${{ github.event.inputs.version }}..."
+          D='0|[1-9][0-9]*'
+          PW='[0-9]*[a-zA-Z-][0-9a-zA-Z-]*'
+          MW='[0-9a-zA-Z-]+'
+          if [[ "${{ github.event.inputs.version }}" =~ ^($D)\.($D)\.($D)(-(($D|$PW)(\.($D|$PW))*))?(\+($MW(\.$MW)*))?$ ]]; then
+            echo "Version ${{ github.event.inputs.version }} is valid."
+          else
+            echo "Version is not valid SemVer. Aborting..."
+            exit 1
+          fi
+
+      - name: Update version in Cargo.toml
+        run: |
+          echo "Updating version in Cargo.toml..."
+          IFS=',' read -ra CRATE_PATHS <<< "$CRATES"
+          for path in "${CRATE_PATHS[@]}"; do
+            cd $path
+            OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml)
+            if [[ "${{ inputs.version }}" > "$OLD_VERSION" ]]; then
+              sed -i 's/version = "'$OLD_VERSION'"/version = "${{ inputs.version }}"/' Cargo.toml
+            else
+              echo "New version is not greater than the current version for $path. Aborting..."
+              exit 1
+            fi
+            cd $GITHUB_WORKSPACE
+          done
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "${{ env.PR_DESCRIPTION }}"
+          git push origin ${{ env.PR_BRANCH }}
+
+      # Note: Can't use `peter-evans/create-pull-request` because for hotfixes we need to make the PR with an existing branch
+      # The former always creates a new one for single-commit PRs, thus overwriting the actual hotfix
+      - name: Create PR
+        run: |
+          cat << 'EOF' > body.md
+          This is an automated release PR for the patched version of `${{ inputs.version }}`.
+
+          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `{{ inputs.version }}`.
+
+          [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          EOF
+
+          gh pr create --title "${{ env.PR_DESCRIPTION }}" --body-file ./body.md --head ${{ env.PR_BRANCH }} --base ${{ env.BASE_BRANCH }}
+        env:
+          GH_TOKEN: ${{ github.token }}
