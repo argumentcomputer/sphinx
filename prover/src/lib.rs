@@ -894,7 +894,6 @@ mod tests {
             setup_logger();
             env::set_var("RECONSTRUCT_COMMITMENTS", "false");
             env::set_var("FRI_QUERIES", "1");
-            env::set_var("SHARD_SIZE", "262144");
 
             // verify program which verifies proofs of a vkey and a list of committed inputs
             let verify_elf =
