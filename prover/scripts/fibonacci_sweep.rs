@@ -3,6 +3,11 @@
 use std::{fs::File, io::BufWriter, io::Write, time::Instant};
 
 use itertools::iproduct;
+use sphinx_core::{
+    io::SphinxStdin,
+    utils::{SphinxProverOpts, SphinxProverOpts},
+};
+use sphinx_prover::SphinxProver;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{fmt::format::FmtSpan, util::SubscriberInitExt};
 use sphinx_core::io::SphinxStdin;
@@ -62,7 +67,9 @@ fn main() {
             proofs: vec![],
         };
         let leaf_proving_start = Instant::now();
-        let proof = prover.prove_core(&pk, &stdin).unwrap();
+        let proof = prover
+            .prove_core(&pk, &stdin, SphinxProverOpts::default(), SphinxContext::default())
+            .unwrap();
         let leaf_proving_duration = leaf_proving_start.elapsed().as_secs_f64();
 
         let recursion_proving_start = Instant::now();

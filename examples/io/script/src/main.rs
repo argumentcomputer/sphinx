@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
+use sphinx_sdk::{utils, ProverClient, SphinxProofWithPublicValues, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -33,7 +33,7 @@ fn main() {
     // Generate the proof for the given program.
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).unwrap();
+    let mut proof = client.prove(&pk, stdin).run().unwrap();
 
     // Read the output.
     let r = proof.public_values.read::<MyPointUnaligned>();
@@ -46,7 +46,8 @@ fn main() {
     proof
         .save("proof-with-pis.bin")
         .expect("saving proof failed");
-    let deserialized_proof = SphinxProof::load("proof-with-pis.bin").expect("loading proof failed");
+    let deserialized_proof =
+        SphinxProofWithPublicValues::load("proof-with-pis.bin").expect("loading proof failed");
 
     // Verify the deserialized proof.
     client

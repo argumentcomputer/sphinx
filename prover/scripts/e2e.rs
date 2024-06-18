@@ -5,6 +5,8 @@ use clap::Parser;
 use p3_baby_bear::BabyBear;
 use p3_field::PrimeField;
 use sphinx_core::io::SphinxStdin;
+use sphinx_core::runtime::SphinxContext;
+use sphinx_core::utils::SphinxProverOpts;
 use sphinx_prover::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
 use sphinx_prover::SphinxProver;
 use sphinx_recursion_circuit::stark::build_wrap_circuit;
@@ -32,22 +34,24 @@ pub fn main() {
 
     tracing::info!("initializing prover");
     let prover = SphinxProver::new();
+    let opts = SphinxProverOpts::default();
+    let context = SphinxContext::default();
 
     tracing::info!("setup elf");
     let (pk, vk) = prover.setup(elf);
 
     tracing::info!("prove core");
     let stdin = SphinxStdin::new();
-    let core_proof = prover.prove_core(&pk, &stdin).unwrap();
+    let core_proof = prover.prove_core(&pk, &stdin, opts, context).unwrap();
 
     tracing::info!("Compress");
-    let reduced_proof = prover.compress(&vk, core_proof, vec![]).unwrap();
+    let reduced_proof = prover.compress(&vk, core_proof, vec![], opts).unwrap();
 
     tracing::info!("Shrink");
-    let compressed_proof = prover.shrink(reduced_proof).unwrap();
+    let compressed_proof = prover.shrink(reduced_proof, opts).unwrap();
 
     tracing::info!("wrap");
-    let wrapped_proof = prover.wrap_bn254(compressed_proof).unwrap();
+    let wrapped_proof = prover.wrap_bn254(compressed_proof, opts).unwrap();
 
     tracing::info!("building verifier constraints");
     let constraints = tracing::info_span!("wrap circuit")

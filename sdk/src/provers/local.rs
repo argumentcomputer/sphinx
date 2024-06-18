@@ -1,9 +1,10 @@
 use anyhow::Result;
+use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
 use sphinx_prover::{SphinxProver, SphinxStdin};
 
 use crate::{
-    Prover, SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProofWithPublicValues,
-    SphinxProvingKey, SphinxVerifyingKey,
+    Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
+    SphinxVerifyingKey,
 };
 
 use super::ProverType;
@@ -34,44 +35,36 @@ impl Prover for LocalProver {
         &self.prover
     }
 
-    fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
-        let proof = self.prover.prove_core(pk, &stdin)?;
-        Ok(SphinxProofWithPublicValues {
-            proof: proof.proof.0,
-            stdin: proof.stdin,
-            public_values: proof.public_values,
-            sphinx_version: self.version().to_string(),
-        })
-    }
-
-    fn prove_compressed(
-        &self,
+    fn prove<'a>(
+        &'a self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-    ) -> Result<SphinxCompressedProof> {
-        let proof = self.prover.prove_core(pk, &stdin)?;
+        opts: SphinxProverOpts,
+        context: SphinxContext<'a>,
+        kind: SphinxProofKind,
+    ) -> Result<SphinxProofWithPublicValues> {
+        let proof = self.prover.prove_core(pk, &stdin, opts, context)?;
+        if kind == SphinxProofKind::Core {
+            return Ok(SphinxProofWithPublicValues {
+                proof: SphinxProof::Core(proof.proof.0),
+                stdin: proof.stdin,
+                public_values: proof.public_values,
+                sphinx_version: self.version().to_string(),
+            });
+        }
         let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
         let public_values = proof.public_values.clone();
-        let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
-        Ok(SphinxCompressedProof {
-            proof: reduce_proof.proof,
-            stdin,
-            public_values,
-            sphinx_version: self.version().to_string(),
-        })
-    }
-
-    fn prove_plonk(
-        &self,
-        pk: &SphinxProvingKey,
-        stdin: SphinxStdin,
-    ) -> Result<SphinxPlonkBn254Proof> {
-        let proof = self.prover.prove_core(pk, &stdin)?;
-        let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
-        let public_values = proof.public_values.clone();
-        let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
-        let compress_proof = self.prover.shrink(reduce_proof)?;
-        let outer_proof = self.prover.wrap_bn254(compress_proof)?;
+        let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs, opts)?;
+        if kind == SphinxProofKind::Compressed {
+            return Ok(SphinxProofWithPublicValues {
+                proof: SphinxProof::Compressed(reduce_proof.proof),
+                stdin,
+                public_values,
+                sphinx_version: self.version().to_string(),
+            });
+        }
+        let compress_proof = self.prover.shrink(reduce_proof, opts)?;
+        let outer_proof = self.prover.wrap_bn254(compress_proof, opts)?;
 
         let plonk_bn254_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
             sphinx_prover::build::try_build_plonk_bn254_artifacts_dev(
@@ -84,12 +77,15 @@ impl Prover for LocalProver {
         let proof = self
             .prover
             .wrap_plonk_bn254(outer_proof, &plonk_bn254_aritfacts);
-        Ok(SphinxProofWithPublicValues {
-            proof,
-            stdin,
-            public_values,
-            sphinx_version: self.version().to_string(),
-        })
+        if kind == SphinxProofKind::Plonk {
+            return Ok(SphinxProofWithPublicValues {
+                proof: SphinxProof::Plonk(proof),
+                stdin,
+                public_values,
+                sphinx_version: self.version().to_string(),
+            });
+        }
+        unreachable!()
     }
 }
 
