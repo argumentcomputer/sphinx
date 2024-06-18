@@ -444,9 +444,9 @@ where
         row.y.eval(
             builder,
             &row.x_3_plus_b.result,
-            row.shard,
-            row.channel,
-            row.is_real,
+            &row.shard,
+            &row.channel,
+            &row.is_real,
         );
         row.two_y.eval(
             builder,

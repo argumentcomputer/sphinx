@@ -8,7 +8,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
-use crate::air::{AirInteraction, BaseAirBuilder, SphinxAirBuilder};
+use crate::air::{AirInteraction, BaseAirBuilder};
 use crate::air::{EventLens, MachineAir, WithEvents};
 use crate::operations::BabyBearBitDecomposition;
 use crate::runtime::{ExecutionRecord, Program};

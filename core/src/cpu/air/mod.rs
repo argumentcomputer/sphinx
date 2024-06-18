@@ -95,7 +95,7 @@ where
         );
 
         // Branch instructions.
-        self.eval_branch_ops::<AB>(builder, is_branch_instruction.clone(), local, next);
+        self.eval_branch_ops::<AB>(builder, &is_branch_instruction, local, next);
 
         // Jump instructions.
         self.eval_jump_ops::<AB>(builder, local, next);

@@ -487,12 +487,6 @@ mod tests {
                 SyscallCode::BLS12381_FP2_MUL => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_FP2_MUL)
                 }
-                SyscallCode::BLS12381_G1_ADD => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G1_ADD)
-                }
-                SyscallCode::BLS12381_G1_DOUBLE => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G1_DOUBLE)
-                }
                 SyscallCode::COMMIT => assert_eq!(code as u32, sphinx_zkvm::syscalls::COMMIT),
                 SyscallCode::BLS12381_G1_DECOMPRESS => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G1_DECOMPRESS)

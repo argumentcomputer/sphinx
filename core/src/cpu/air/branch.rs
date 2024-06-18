@@ -1,7 +1,7 @@
 use p3_air::AirBuilder;
 use p3_field::AbstractField;
 
-use crate::air::{AluAirBuilder, BaseAirBuilder, SphinxAirBuilder, Word, WordAirBuilder};
+use crate::air::{AluAirBuilder, BaseAirBuilder, Word, WordAirBuilder};
 use crate::cpu::columns::{CpuCols, OpcodeSelectorCols};
 use crate::operations::BabyBearWordRangeChecker;
 use crate::{cpu::CpuChip, runtime::Opcode};
@@ -31,7 +31,7 @@ impl CpuChip {
     pub(crate) fn eval_branch_ops<AB: AluAirBuilder>(
         &self,
         builder: &mut AB,
-        is_branch_instruction: AB::Expr,
+        is_branch_instruction: &AB::Expr,
         local: &CpuCols<AB::Var>,
         next: &CpuCols<AB::Var>,
     ) {

@@ -237,9 +237,9 @@ impl<V: Copy, P: FieldParameters> EdDecompressCols<V, P> {
         self.x.eval(
             builder,
             &self.u_div_v.result,
-            self.shard,
-            self.channel,
-            self.is_real,
+            &self.shard,
+            &self.channel,
+            &self.is_real,
         );
         self.neg_x.eval(
             builder,

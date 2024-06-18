@@ -188,13 +188,13 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381G2Add(bls12381_g2_add));
         let bls12381_g2_double = Bls12381G2AffineDoubleChip::new();
         chips.push(RiscvAir::Bls12381G2AffineDouble(bls12381_g2_double));
-        let div_rem = DivRemChip::default();
+        let div_rem = DivRemChip;
         chips.push(RiscvAir::DivRem(div_rem));
-        let add = AddSubChip::default();
+        let add = AddSubChip;
         chips.push(RiscvAir::Add(add));
         let bitwise = BitwiseChip;
         chips.push(RiscvAir::Bitwise(bitwise));
-        let mul = MulChip::default();
+        let mul = MulChip;
         chips.push(RiscvAir::Mul(mul));
         let shift_right = ShiftRightChip;
         chips.push(RiscvAir::ShiftRight(shift_right));
