@@ -35,18 +35,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # The `release/1.0` branch is always truncated, so that patch version merges still are valid Semver
+      # However, when we make the initial `release/1.0` version bump, we include the full `1.0.0` in `Cargo.toml`
+      # and the release for clarity
       - name: Set branches
         run: |
-          BASE_VERSION=$(echo "${{ inputs.version }}" | cut -d'.' -f1-2)
+          BASE_VERSION_SHORT=$(echo "${{ inputs.version }}" | cut -d'.' -f1-2)
+          BASE_VERSION="${BASE_VERSION_SHORT}.0"
           if [[ "${{ inputs.type }}" == "hotfix" ]]; then
             VERSION=${{ inputs.version }}
-            BASE_BRANCH="release/$BASE_VERSION"
+            BASE_BRANCH="release/$BASE_VERSION_SHORT"
             PR_BRANCH="${{ inputs.type }}/${{ inputs.version }}"
             git checkout ${{ env.PR_BRANCH }}
           else
             VERSION=$BASE_VERSION
             BASE_BRANCH="main"
-            PR_BRANCH="release/$BASE_VERSION"
+            PR_BRANCH="release/$BASE_VERSION_SHORT"
             git checkout -b ${{ env.PR_BRANCH }}
           fi
 
