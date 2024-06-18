@@ -1,5 +1,5 @@
 //! A program that takes a number `n` as input, and writes if `n` is prime as an output.
-use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
+use sphinx_sdk::{utils, ProverClient, SphinxProofWithPublicValues, SphinxStdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -16,7 +16,7 @@ fn main() {
     // Generate and verify the proof
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove(&pk, stdin).unwrap();
+    let mut proof = client.prove(&pk, stdin).run().unwrap();
 
     let is_prime = proof.public_values.read::<bool>();
     println!("Is 29 prime? {}", is_prime);
@@ -28,7 +28,7 @@ fn main() {
         .save("proof-with-is-prime.bin")
         .expect("saving proof failed");
     let deserialized_proof =
-        SphinxProof::load("proof-with-is-prime.bin").expect("loading proof failed");
+        SphinxProofWithPublicValues::load("proof-with-is-prime.bin").expect("loading proof failed");
 
     // Verify the deserialized proof.
     client

@@ -7,10 +7,12 @@ use crate::{
     Prover,
 };
 use crate::{
-    SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProvingKey, SphinxVerifyingKey,
+    SphinxContext, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
+    SphinxVerifyingKey,
 };
 use anyhow::Result;
 use serde::de::DeserializeOwned;
+use sphinx_core::utils::SphinxProverOpts;
 use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin, SPHINX_CIRCUIT_VERSION};
 use tokio::time::sleep;
@@ -57,7 +59,7 @@ impl NetworkProver {
             .unwrap_or(false);
 
         if !skip_simulation {
-            let (_, report) = SphinxProver::execute(elf, &stdin)?;
+            let (_, report) = SphinxProver::execute(elf, &stdin, Default::default())?;
             log::info!(
                 "Simulation complete, cycles: {}",
                 report.total_instruction_count()
@@ -109,8 +111,13 @@ impl NetworkProver {
     }
 
     /// Requests a proof from the prover network and waits for it to be generated.
-    pub async fn prove<P: ProofType>(&self, elf: &[u8], stdin: SphinxStdin) -> Result<P> {
-        let proof_id = self.request_proof(elf, stdin, P::PROOF_MODE).await?;
+    pub async fn prove(
+        &self,
+        elf: &[u8],
+        stdin: SphinxStdin,
+        mode: ProofMode,
+    ) -> Result<SphinxProofWithPublicValues> {
+        let proof_id = self.request_proof(elf, stdin, mode).await?;
         self.wait_proof(&proof_id).await
     }
 }
@@ -128,24 +135,16 @@ impl Prover for NetworkProver {
         self.local_prover.sphinx_prover()
     }
 
-    fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
-        block_on(self.prove(&pk.elf, stdin))
-    }
-
-    fn prove_compressed(
-        &self,
+    fn prove<'a>(
+        &'a self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-    ) -> Result<SphinxCompressedProof> {
-        block_on(self.prove(&pk.elf, stdin))
-    }
-
-    fn prove_plonk(
-        &self,
-        pk: &SphinxProvingKey,
-        stdin: SphinxStdin,
-    ) -> Result<SphinxPlonkBn254Proof> {
-        block_on(self.prove(&pk.elf, stdin))
+        opts: SphinxProverOpts,
+        context: SphinxContext<'a>,
+        kind: SphinxProofKind,
+    ) -> Result<SphinxProofWithPublicValues> {
+        warn_if_not_default(&opts, &context);
+        block_on(self.prove(&pk.elf, stdin, kind.into()))
     }
 }
 
@@ -155,19 +154,38 @@ impl Default for NetworkProver {
     }
 }
 
-/// A deserializable proof struct that has an associated ProofMode.
-pub trait ProofType: DeserializeOwned {
-    const PROOF_MODE: ProofMode;
+/// Warns if `opts` or `context` are not default values, since they are currently unsupported.
+fn warn_if_not_default(opts: &SphinxProverOpts, context: &SphinxContext<'_>) {
+    let _guard = tracing::warn_span!("network_prover").entered();
+    if opts != &SphinxProverOpts::default() {
+        tracing::warn!("non-default opts will be ignored: {:?}", opts.core_opts);
+        tracing::warn!("custom SP1ProverOpts are currently unsupported by the network prover");
+    }
+    // Exhaustive match is done to ensure we update the warnings if the types change.
+    let SphinxContext {
+        hook_registry,
+        subproof_verifier,
+    } = context;
+    if hook_registry.is_some() {
+        tracing::warn!(
+            "non-default context.hook_registry will be ignored: {:?}",
+            hook_registry
+        );
+        tracing::warn!("custom runtime hooks are currently unsupported by the network prover");
+        tracing::warn!("proving may fail due to missing hooks");
+    }
+    if subproof_verifier.is_some() {
+        tracing::warn!("non-default context.subproof_verifier will be ignored");
+        tracing::warn!("custom subproof verifiers are currently unsupported by the network prover");
+    }
 }
 
-impl ProofType for SphinxProof {
-    const PROOF_MODE: ProofMode = ProofMode::Core;
-}
-
-impl ProofType for SphinxCompressedProof {
-    const PROOF_MODE: ProofMode = ProofMode::Compressed;
-}
-
-impl ProofType for SphinxPlonkBn254Proof {
-    const PROOF_MODE: ProofMode = ProofMode::Plonk;
+impl From<SphinxProofKind> for ProofMode {
+    fn from(value: SphinxProofKind) -> Self {
+        match value {
+            SphinxProofKind::Core => Self::Core,
+            SphinxProofKind::Compressed => Self::Compressed,
+            SphinxProofKind::Plonk => Self::Plonk,
+        }
+    }
 }

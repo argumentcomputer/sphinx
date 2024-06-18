@@ -1,4 +1,4 @@
-use sphinx_sdk::SphinxProof;
+use sphinx_sdk::SphinxProofWithPublicValues;
 use std::time::Duration;
 use tokio::runtime::Runtime;
 
@@ -63,7 +63,7 @@ fn main() {
 
     let client = ProverClient::new();
     let (pk, vk) = client.setup(TENDERMINT_ELF);
-    let proof = client.prove(&pk, stdin).expect("proving failed");
+    let proof = client.prove(&pk, stdin).run().expect("proving failed");
 
     // Verify proof.
     client.verify(&proof, &vk).expect("verification failed");
@@ -80,7 +80,7 @@ fn main() {
     proof
         .save("proof-with-pis.bin")
         .expect("saving proof failed");
-    let deserialized_proof = SphinxProof::load("proof-with-pis.bin").expect("loading proof failed");
+    let deserialized_proof = SphinxProofWithPublicValues::load("proof-with-pis.bin").expect("loading proof failed");
 
     // Verify the deserialized proof.
     client

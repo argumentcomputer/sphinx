@@ -1,7 +1,7 @@
 //! A simple script to generate and verify the proof of a given program.
 
 use lib::{Account, Transaction};
-use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
+use sphinx_sdk::{utils, ProverClient, SphinxProofWithPublicValues, SphinxStdin};
 
 const JSON_ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -47,7 +47,7 @@ fn main() {
 
     let client = ProverClient::new();
     let (pk, vk) = client.setup(JSON_ELF);
-    let mut proof = client.prove(&pk, stdin).expect("proving failed");
+    let mut proof = client.prove(&pk, stdin).run().expect("proving failed");
 
     // Read output.
     let val = proof.public_values.read::<String>();
@@ -66,7 +66,8 @@ fn main() {
     proof
         .save("proof-with-io.bin")
         .expect("saving proof failed");
-    let deserialized_proof = SphinxProof::load("proof-with-io.bin").expect("loading proof failed");
+    let deserialized_proof =
+        SphinxProofWithPublicValues::load("proof-with-io.bin").expect("loading proof failed");
 
     // Verify the deserialized proof.
     client
