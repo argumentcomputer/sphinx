@@ -21,6 +21,7 @@ use anyhow::{Ok, Result};
 pub use provers::{LocalProver, MockProver, NetworkProver, Prover};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sphinx_core::stark::{MachineVerificationError, ShardProof};
+use sphinx_prover::EthSC;
 pub use sphinx_prover::{
     types::SphinxProvingKey, types::SphinxVerifyingKey, CoreSC, Groth16Proof, InnerSC, OuterSC,
     PlonkBn254Proof, SphinxProver, SphinxPublicValues, SphinxStdin,
@@ -49,6 +50,9 @@ pub type SphinxProofVerificationError = MachineVerificationError<CoreSC>;
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove_compressed].
 pub type SphinxCompressedProof = SphinxProofWithPublicValues<ShardProof<InnerSC>>;
 pub type SphinxCompressedProofVerificationError = MachineVerificationError<InnerSC>;
+
+pub type SphinxEthProof = SphinxProofWithPublicValues<ShardProof<EthSC>>;
+pub type SphinxEthProofVerificationError = MachineVerificationError<EthSC>;
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove_groth16].
 pub type SphinxGroth16Proof = SphinxProofWithPublicValues<Groth16Proof>;
@@ -287,6 +291,10 @@ impl ProverClient {
         stdin: SphinxStdin,
     ) -> Result<SphinxGroth16Proof> {
         self.prover.prove_groth16(pk, stdin)
+    }
+
+    pub fn prove_eth(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxEthProof> {
+        self.prover.prove_eth(pk, stdin)
     }
 
     /// Proves the execution of the given program with the given input in the plonk mode.
