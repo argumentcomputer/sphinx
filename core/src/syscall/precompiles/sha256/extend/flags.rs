@@ -6,7 +6,6 @@ use p3_field::{AbstractField, Field, PrimeField32, TwoAdicField};
 use p3_matrix::Matrix;
 
 use crate::air::BaseAirBuilder;
-use crate::air::SphinxAirBuilder;
 use crate::operations::IsZeroOperation;
 
 use super::ShaExtendChip;

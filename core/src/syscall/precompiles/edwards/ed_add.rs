@@ -20,7 +20,6 @@ use sphinx_derive::AlignedBorrow;
 
 use crate::air::BaseAirBuilder;
 use crate::bytes::ByteLookupEvent;
-use crate::memory::MemoryCols;
 use crate::memory::MemoryReadCols;
 use crate::memory::MemoryWriteCols;
 use crate::operations::field::field_den::FieldDenCols;

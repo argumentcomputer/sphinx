@@ -9,7 +9,6 @@ use super::params::Limbs;
 use super::range::FieldRangeCols;
 use crate::air::WordAirBuilder;
 use crate::bytes::event::ByteRecord;
-use crate::bytes::{ByteLookupEvent, ByteOpcode};
 use crate::operations::field::params::FieldParameters;
 
 /// A set of columns to compute the square root in emulated arithmetic.
@@ -87,9 +86,9 @@ impl<V: Copy, P: FieldParameters> FieldSqrtCols<V, P> {
         &self,
         builder: &mut AB,
         a: &Limbs<AB::Var, P::NB_LIMBS>,
-        shard: impl Into<AB::Expr> + Clone,
-        channel: impl Into<AB::Expr> + Clone,
-        is_real: impl Into<AB::Expr> + Clone,
+        shard: &(impl Into<AB::Expr> + Clone),
+        channel: &(impl Into<AB::Expr> + Clone),
+        is_real: &(impl Into<AB::Expr> + Clone),
     ) where
         V: Into<AB::Expr>,
     {
@@ -264,9 +263,13 @@ mod tests {
             let local: &TestCols<AB::Var, P> = (*local).borrow();
 
             // eval verifies that local.sqrt.result is indeed the square root of local.a.
-            local
-                .sqrt
-                .eval(builder, &local.a, AB::F::one(), AB::F::zero(), AB::F::one());
+            local.sqrt.eval(
+                builder,
+                &local.a,
+                &AB::F::one(),
+                &AB::F::zero(),
+                &AB::F::one(),
+            );
         }
     }
 

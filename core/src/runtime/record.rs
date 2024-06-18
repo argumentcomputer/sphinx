@@ -904,38 +904,37 @@ impl MachineRecord for ExecutionRecord {
         let first = shards.first_mut().unwrap();
 
         // SHA-256 extend events.
-        first.sha_extend_events = std::mem::take(&mut self.sha_extend_events);
+        first.sha_extend_events = take(&mut self.sha_extend_events);
         for (i, event) in first.sha_extend_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, (i * 48) as u32);
         }
 
         // SHA-256 compress events.
-        first.sha_compress_events = std::mem::take(&mut self.sha_compress_events);
+        first.sha_compress_events = take(&mut self.sha_compress_events);
         for (i, event) in first.sha_compress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, (i * 80) as u32);
         }
 
         // Edwards curve add events.
-        first.ed_add_events = std::mem::take(&mut self.ed_add_events);
+        first.ed_add_events = take(&mut self.ed_add_events);
         for (i, event) in first.ed_add_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
         // Edwards curve decompress events.
-        first.ed_decompress_events = std::mem::take(&mut self.ed_decompress_events);
+        first.ed_decompress_events = take(&mut self.ed_decompress_events);
         for (i, event) in first.ed_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
         // K256 curve decompress events.
-        first.secp256k1_decompress_events = std::mem::take(&mut self.secp256k1_decompress_events);
+        first.secp256k1_decompress_events = take(&mut self.secp256k1_decompress_events);
         for (i, event) in first.secp256k1_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
         // Bls12-381 decompress events.
-        first.bls12381_g1_decompress_events =
-            std::mem::take(&mut self.bls12381_g1_decompress_events);
+        first.bls12381_g1_decompress_events = take(&mut self.bls12381_g1_decompress_events);
         for (i, event) in first.bls12381_g1_decompress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }

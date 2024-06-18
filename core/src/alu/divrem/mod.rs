@@ -375,7 +375,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                                 opcode: Opcode::ADD,
                                 a: 0,
                                 b: event.c,
-                                c: (event.c as i32).abs() as u32,
+                                c: (event.c as i32).unsigned_abs(),
                                 sub_lookups: create_alu_lookups(),
                             })
                         }
@@ -388,7 +388,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                                 opcode: Opcode::ADD,
                                 a: 0,
                                 b: remainder,
-                                c: (remainder as i32).abs() as u32,
+                                c: (remainder as i32).unsigned_abs(),
                                 sub_lookups: create_alu_lookups(),
                             })
                         }
