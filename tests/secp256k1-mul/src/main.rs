@@ -18,7 +18,7 @@ pub fn main() {
             101, 196, 163, 38, 119, 218, 58, 72,
         ];
 
-        let mut a_point = AffinePoint::<Secp256k1Operations, 16>::from_le_bytes(&a);
+        let mut a_point = AffinePoint::<Secp256k1Operations, U16>::from_le_bytes(&a);
 
         // scalar.
         // 3
