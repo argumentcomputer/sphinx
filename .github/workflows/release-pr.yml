@@ -10,6 +10,8 @@ on:
           - hotfix
         required: true
         default: 'release'
+      # NOTE: For a `release` branch, only specify the `major.minor` version. This branch will be persistent across patches,
+      # so any patch number specified in this case will be dropped. For a hotfix, specify the full `major.minor.patch` version
       version:
         description: 'Version'
         required: true
@@ -35,33 +37,33 @@ jobs:
 
       - name: Set branches
         run: |
-          if [[ "${{ inputs.type == 'hotfix' }}" == "true" ]]; then
-            BASE_BRANCH="release/${{ inputs.version }}-patched"
-          else
-            BASE_BRANCH="main"
-          fi
-
-          PR_BRANCH="${{ inputs.type }}/${{ inputs.version }}"
-
-          if [[ "${{ inputs.type }}" == "release" ]]; then
-            git checkout -b ${{ env.PR_BRANCH }}
-          else
+          BASE_VERSION=$(echo "${{ inputs.version }}" | cut -d'.' -f1-2)
+          if [[ "${{ inputs.type }}" == "hotfix" ]]; then
+            VERSION=${{ inputs.version }}
+            BASE_BRANCH="release/$BASE_VERSION"
+            PR_BRANCH="${{ inputs.type }}/${{ inputs.version }}"
             git checkout ${{ env.PR_BRANCH }}
+          else
+            VERSION=$BASE_VERSION
+            BASE_BRANCH="main"
+            PR_BRANCH="release/$BASE_VERSION"
+            git checkout -b ${{ env.PR_BRANCH }}
           fi
 
           echo "BASE_BRANCH=$BASE_BRANCH" | tee -a $GITHUB_ENV
           echo "PR_BRANCH=$PR_BRANCH" | tee -a $GITHUB_ENV
-          echo "PR_DESCRIPTION=chore: Release ${{ inputs.version }}" | tee -a $GITHUB_ENV
+          echo "PR_DESCRIPTION=chore: Release $VERSION" | tee -a $GITHUB_ENV
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
 
       # Regex from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
       - name: Validate version
         run: |
-          echo "Validating version ${{ github.event.inputs.version }}..."
+          echo "Validating version ${{ env.VERSION }}..."
           D='0|[1-9][0-9]*'
           PW='[0-9]*[a-zA-Z-][0-9a-zA-Z-]*'
           MW='[0-9a-zA-Z-]+'
-          if [[ "${{ github.event.inputs.version }}" =~ ^($D)\.($D)\.($D)(-(($D|$PW)(\.($D|$PW))*))?(\+($MW(\.$MW)*))?$ ]]; then
-            echo "Version ${{ github.event.inputs.version }} is valid."
+          if [[ "${{ env.VERSION }}" =~ ^($D)\.($D)\.($D)(-(($D|$PW)(\.($D|$PW))*))?(\+($MW(\.$MW)*))?$ ]]; then
+            echo "Version ${{ env.VERSION }} is valid."
           else
             echo "Version is not valid SemVer. Aborting..."
             exit 1
@@ -74,8 +76,8 @@ jobs:
           for path in "${CRATE_PATHS[@]}"; do
             cd $path
             OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml)
-            if [[ "${{ inputs.version }}" > "$OLD_VERSION" ]]; then
-              sed -i 's/version = "'$OLD_VERSION'"/version = "${{ inputs.version }}"/' Cargo.toml
+            if [[ "${{ env.VERSION }}" > "$OLD_VERSION" ]]; then
+              sed -i 's/version = "'$OLD_VERSION'"/version = "${{ env.VERSION }}"/' Cargo.toml
             else
               echo "New version is not greater than the current version for $path. Aborting..."
               exit 1
@@ -94,9 +96,9 @@ jobs:
       - name: Create PR
         run: |
           cat << 'EOF' > body.md
-          This is an automated release PR for the patched version of `${{ inputs.version }}`.
+          This is an automated release PR for the patched version of `${{ env.VERSION }}`.
 
-          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `{{ inputs.version }}`.
+          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `{{ env.VERSION }}`.
 
           [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           EOF
