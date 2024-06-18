@@ -28,7 +28,7 @@ pub use sphinx_core::io::{SphinxPublicValues, SphinxStdin};
 use sphinx_core::runtime::{ExecutionError, Runtime};
 use sphinx_core::stark::{Challenge, StarkProvingKey};
 use sphinx_core::stark::{Challenger, MachineVerificationError};
-use sphinx_core::utils::DIGEST_SIZE;
+use sphinx_core::utils::{BabyBearKeccak, DIGEST_SIZE};
 use sphinx_core::{
     runtime::Program,
     stark::{
@@ -70,6 +70,8 @@ pub type CoreSC = BabyBearPoseidon2;
 
 /// The configuration for the inner prover.
 pub type InnerSC = BabyBearPoseidon2;
+
+pub type EthSC = BabyBearKeccak;
 
 /// The configuration for the outer prover.
 pub type OuterSC = BabyBearPoseidon2Outer;
@@ -120,6 +122,9 @@ pub struct SphinxProver {
     /// The verification key for the compress step.
     pub shrink_vk: StarkVerifyingKey<InnerSC>,
 
+    pub shrink_eth_pk: StarkProvingKey<EthSC>,
+    pub shrink_eth_vk: StarkVerifyingKey<EthSC>,
+
     /// The wrap program that wraps a proof into a SNARK-friendly field.
     pub wrap_program: RecursionProgram<BabyBear>,
 
@@ -137,6 +142,7 @@ pub struct SphinxProver {
 
     /// The machine used for proving the shrink step.
     pub shrink_machine: StarkMachine<InnerSC, CompressAir<<InnerSC as StarkGenericConfig>::Val>>,
+    pub shrink_eth_machine: StarkMachine<EthSC, CompressAir<<EthSC as StarkGenericConfig>::Val>>,
 
     /// The machine used for proving the wrapping step.
     pub wrap_machine: StarkMachine<OuterSC, WrapAir<<OuterSC as StarkGenericConfig>::Val>>,
@@ -170,7 +176,9 @@ impl SphinxProver {
         let shrink_program =
             SphinxRootVerifier::<InnerConfig, _, _>::build(&compress_machine, &compress_vk, true);
         let shrink_machine = CompressAir::machine(InnerSC::compressed());
+        let shrink_eth_machine = CompressAir::machine(EthSC::compressed());
         let (shrink_pk, shrink_vk) = shrink_machine.setup(&shrink_program);
+        let (shrink_eth_pk, shrink_eth_vk) = shrink_eth_machine.setup(&shrink_program);
 
         // Get the wrap program, machine, and keys.
         let wrap_program =
@@ -191,12 +199,15 @@ impl SphinxProver {
             shrink_program,
             shrink_pk,
             shrink_vk,
+            shrink_eth_pk,
+            shrink_eth_vk,
             wrap_program,
             wrap_pk,
             wrap_vk,
             core_machine,
             compress_machine,
             shrink_machine,
+            shrink_eth_machine,
             wrap_machine,
         }
     }
@@ -567,6 +578,53 @@ impl SphinxProver {
         let mut compress_challenger = self.shrink_machine.config().challenger();
         let mut compress_proof = self.shrink_machine.prove::<LocalProver<_, _>>(
             &self.shrink_pk,
+            runtime.record,
+            &mut compress_challenger,
+        );
+
+        // Restore the prover parameters.
+        env::set_var(RECONSTRUCT_COMMITMENTS_ENV_VAR, rc);
+
+        Ok(SphinxReduceProof {
+            proof: compress_proof.shard_proofs.pop().unwrap(),
+        })
+    }
+
+    /// Wrap a reduce proof into a STARK proven over a SNARK-friendly field.
+    #[instrument(name = "shrink_eth", level = "info", skip_all)]
+    pub fn shrink_eth(
+        &self,
+        reduced_proof: SphinxReduceProof<InnerSC>,
+    ) -> Result<SphinxReduceProof<EthSC>, SphinxRecursionProverError> {
+        // Setup the prover parameters.
+        let rc = env::var(RECONSTRUCT_COMMITMENTS_ENV_VAR).unwrap_or_default();
+        env::set_var(RECONSTRUCT_COMMITMENTS_ENV_VAR, "false");
+
+        // Make the compress proof.
+        let input = SphinxRootMemoryLayout {
+            machine: &self.compress_machine,
+            proof: reduced_proof.proof,
+            is_reduce: true,
+        };
+
+        // Run the compress program.
+        let mut runtime = RecursionRuntime::<Val<EthSC>, Challenge<EthSC>, _>::new(
+            &self.shrink_program,
+            self.compress_machine.config().perm.clone(),
+        );
+
+        let mut witness_stream = Vec::new();
+        witness_stream.extend(input.write());
+
+        runtime.witness_stream = witness_stream.into();
+        runtime.run();
+        runtime.print_stats();
+        tracing::debug!("Compress program executed successfully");
+
+        // Prove the compress program.
+        let mut compress_challenger = self.shrink_eth_machine.config().challenger();
+        let mut compress_proof = self.shrink_eth_machine.prove::<LocalProver<_, _>>(
+            &self.shrink_eth_pk,
             runtime.record,
             &mut compress_challenger,
         );

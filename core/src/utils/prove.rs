@@ -682,6 +682,33 @@ pub(super) mod baby_bear_keccak {
 
             Self { pcs }
         }
+
+        pub fn compressed() -> Self {
+            let byte_hash = ByteHash {};
+            let field_hash = FieldHash::new(byte_hash);
+
+            let compress = MyCompress::new(byte_hash);
+
+            let val_mmcs = ValMmcs::new(field_hash, compress);
+
+            let challenge_mmcs = ChallengeMmcs::new(val_mmcs.clone());
+
+            let dft = Dft {};
+
+            let num_queries = match std::env::var("FRI_QUERIES") {
+                Ok(value) => value.parse().unwrap(),
+                Err(_) => 33,
+            };
+            let fri_config = FriConfig {
+                log_blowup: 3,
+                num_queries,
+                proof_of_work_bits: 16,
+                mmcs: challenge_mmcs,
+            };
+            let pcs = Pcs::new(LOG_DEGREE_BOUND, dft, val_mmcs, fri_config);
+
+            Self { pcs }
+        }
     }
 
     impl Default for BabyBearKeccak {
