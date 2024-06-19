@@ -6,6 +6,9 @@ on:
   # Once per day at 00:00 UTC
   schedule:
     - cron: "0 0 * * *"
+  push:
+    branches:
+      - ci-token-test
 
 jobs:
   unused-dependencies:

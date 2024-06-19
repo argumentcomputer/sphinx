@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, ci-token-test]
   pull_request:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Run cargo test on sphinx except the test_e2e_prove_groth16 recursion test
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci --workspace -E 'all() - test(test_e2e_prove_groth16)'
@@ -43,7 +43,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Run cargo test on the recursion circuit
         run: |
           cargo nextest run --cargo-profile dev-ci --profile ci -p sphinx-recursion-circuit
@@ -59,7 +59,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
       - name: check *everything* compiles
@@ -84,7 +84,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
           perf: false
       - name: Install deps
         run: sudo apt update && sudo apt install cmake -y
@@ -132,7 +132,7 @@ jobs:
       - name: Setup CI
         uses: ./.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --force --path ./cli
@@ -178,7 +178,7 @@ jobs:
       - name: Setup CI
         uses: ./sphinx/.github/actions/setup
         with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
+          pull_token: ${{ secrets.PULL_TOKEN }}
           perf: false
       - name: Install deps
         run: |
@@ -191,7 +191,7 @@ jobs:
         with:
           repository: "lurk-lab/${{ env.DOWNSTREAM_REPO }}"
           path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
-          token: ${{ secrets.REPO_TOKEN }}
+          token: ${{ secrets.PULL_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles
         with:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
