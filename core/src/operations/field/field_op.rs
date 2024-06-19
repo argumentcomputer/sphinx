@@ -275,23 +275,20 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
     pub fn eval_any_with_modulus<AB: WordAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
-        p_op: &(impl Into<Polynomial<AB::Expr>> + Clone),
-        modulus: &(impl Into<Polynomial<AB::Expr>> + Clone),
+        p_op: Polynomial<AB::Expr>,
+        modulus: Polynomial<AB::Expr>,
         shard: impl Into<AB::Expr> + Clone,
         channel: impl Into<AB::Expr> + Clone,
         is_real: impl Into<AB::Expr> + Clone,
     ) where
         V: Into<AB::Expr>,
     {
-        let p_modulus: Polynomial<AB::Expr> = (modulus).clone().into();
-        let p_op: Polynomial<AB::Expr> = (p_op).clone().into();
-
         let p_result: Polynomial<AB::Expr> = self.result.clone().into();
 
         let p_carry: Polynomial<AB::Expr> = self.carry.clone().into();
 
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;
-        let p_vanishing = p_op_minus_result - &(&p_carry * &p_modulus);
+        let p_vanishing = p_op_minus_result - &(&p_carry * &modulus);
         let p_witness_low = self.witness_low.iter().into();
         let p_witness_high = self.witness_high.iter().into();
         eval_field_operation::<AB, P>(builder, &p_vanishing, &p_witness_low, &p_witness_high);

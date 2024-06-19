@@ -3,20 +3,16 @@ use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
 use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
-use crate::operations::field::params::{
-    FieldParameters, FieldType, Limbs, WITNESS_LIMBS, WORDS_FIELD_ELEMENT,
-};
-use crate::operations::field::util_air::eval_field_operation;
+use crate::operations::field::params::{FieldParameters, FieldType, WORDS_FIELD_ELEMENT};
+use crate::runtime::SyscallContext;
 use crate::runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode};
-use crate::runtime::{Syscall, SyscallContext};
-use crate::utils::{bytes_to_words_le, limbs_from_prev_access, pad_vec_rows};
+use crate::utils::{bytes_to_words_le, pad_vec_rows};
 use core::{
     borrow::{Borrow, BorrowMut},
     mem::size_of,
 };
 use hybrid_array::typenum::Unsigned;
 use hybrid_array::Array;
-use itertools::{chain, Itertools};
 use num::Zero;
 use num_bigint::BigUint;
 use p3_air::{Air, AirBuilder, BaseAir};
@@ -26,7 +22,6 @@ use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
-use std::iter::zip;
 use std::marker::PhantomData;
 use tracing::instrument;
 
@@ -229,18 +224,17 @@ where
         // let a_op_b: Polynomial<AB::Expr> =
         //     a_add_b * (row.is_add.into() + row.is_sub.into()) + a_mul_b * row.is_mul.into();
 
-        let a_op_b: Polynomial<AB::Expr> =
-            (&a + &b) * row.is_add.into() +
-            (r + &b) * row.is_sub.into() +
-            (a * b) * row.is_mul.into();
+        let a_op_b: Polynomial<AB::Expr> = (&a + &b) * row.is_add.into()
+            + (r + &b) * row.is_sub.into()
+            + (a * b) * row.is_mul.into();
 
         let p_limbs = FP::modulus_field_iter::<AB::F>()
             .map(AB::Expr::from)
             .collect::<Polynomial<_>>();
         row.op_cols.eval_any_with_modulus(
             builder,
-            &a_op_b,
-            &p_limbs,
+            a_op_b,
+            p_limbs,
             row.shard,
             row.channel,
             is_real.clone(),
@@ -249,9 +243,11 @@ where
         // Constraint self.p_access.value = [self.p_add_q.result]
         // This is to ensure that p_access is updated with the new value.
         for i in 0..FP::NB_LIMBS::USIZE {
+            let result = (row.is_add + row.is_mul) * row.p_access[i / 4].value()[i % 4]
+                + row.is_sub * row.p_access[i / 4].prev_value()[i % 4];
             builder
                 .when(is_real.clone())
-                .assert_eq(row.op_cols.result[i], row.p_access[i / 4].value()[i % 4]);
+                .assert_eq(row.op_cols.result[i], result);
         }
 
         builder.eval_memory_access_slice(
@@ -328,8 +324,8 @@ where
                 // Populate basic columns.
                 match event.op {
                     FieldOperation::Add => cols.is_add = F::one(),
-                    FieldOperation::Mul => cols.is_sub = F::one(),
-                    FieldOperation::Sub => cols.is_mul = F::one(),
+                    FieldOperation::Mul => cols.is_mul = F::one(),
+                    FieldOperation::Sub => cols.is_sub = F::one(),
                     FieldOperation::Div => {
                         unreachable!()
                     }
@@ -358,12 +354,18 @@ where
 
                 // Populate the memory access columns.
                 for i in 0..words_len {
-                    cols.q_access[i]
-                        .populate(event.channel, event.q_memory_records[i], &mut new_byte_lookup_events);
+                    cols.q_access[i].populate(
+                        event.channel,
+                        event.q_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
                 for i in 0..words_len {
-                    cols.p_access[i]
-                        .populate(event.channel, event.p_memory_records[i], &mut new_byte_lookup_events);
+                    cols.p_access[i].populate(
+                        event.channel,
+                        event.p_memory_records[i],
+                        &mut new_byte_lookup_events,
+                    );
                 }
 
                 (row, new_byte_lookup_events)
@@ -392,9 +394,7 @@ where
 
     fn included(&self, shard: &Self::Record) -> bool {
         match FP::FIELD_TYPE {
-            FieldType::Bls12381 => {
-                !shard.bls12381_fp_events.is_empty()
-            }
+            FieldType::Bls12381 => !shard.bls12381_fp_events.is_empty(),
             _ => panic!("Unsupported field"),
         }
     }
@@ -403,5 +403,35 @@ where
 impl<F, FP: FieldParameters> BaseAir<F> for FieldChip<FP> {
     fn width(&self) -> usize {
         size_of::<FieldCols<u8, FP>>()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        utils,
+        utils::tests::{BLS12381_FP_ADD_ELF, BLS12381_FP_MUL_ELF, BLS12381_FP_SUB_ELF},
+        Program,
+    };
+
+    #[test]
+    fn test_bls12381_fp_add_simple() {
+        utils::setup_logger();
+        let program = Program::from(BLS12381_FP_ADD_ELF);
+        utils::run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_fp_mul_simple() {
+        utils::setup_logger();
+        let program = Program::from(BLS12381_FP_MUL_ELF);
+        utils::run_test(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_fp_sub_simple() {
+        utils::setup_logger();
+        let program = Program::from(BLS12381_FP_SUB_ELF);
+        utils::run_test(program).unwrap();
     }
 }
