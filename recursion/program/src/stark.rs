@@ -118,7 +118,7 @@ where
         machine: &StarkMachine<SC, A>,
         challenger: &mut DuplexChallengerVariable<C>,
         proof: &ShardProofVariable<C>,
-        shard_idx: Var<C::N>,
+        _shard_idx: Var<C::N>,
     ) where
         A: MachineAir<C::F> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, C>>,
         C::F: TwoAdicField,
@@ -314,38 +314,40 @@ where
                 builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
             }
 
+            // TODO(wwared): Update and uncomment these constraints with future security ports, see issue #38
             if chip.as_ref().name() == "MemoryProgram" {
-                builder.if_eq(shard_idx, C::N::one()).then_or_else(
-                    |builder| {
-                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                    |builder| {
-                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                );
+                builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+                // builder.if_eq(shard_idx, C::N::one()).then_or_else(
+                //     |builder| {
+                //         builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+                //     },
+                //     |builder| {
+                //         builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
+                //     },
+                // );
             }
 
-            if chip.as_ref().name() == "MemoryInit" {
-                builder.if_eq(shard_idx, C::N::one()).then_or_else(
-                    |builder| {
-                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                    |builder| {
-                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                );
-            }
+            // if chip.as_ref().name() == "MemoryInit" {
+            //     builder.if_eq(shard_idx, C::N::one()).then_or_else(
+            //         |builder| {
+            //             builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+            //         },
+            //         |builder| {
+            //             builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
+            //         },
+            //     );
+            // }
 
-            if chip.as_ref().name() == "MemoryFinalize" {
-                builder.if_eq(shard_idx, C::N::one()).then_or_else(
-                    |builder| {
-                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                    |builder| {
-                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                );
-            }
+            // if chip.as_ref().name() == "MemoryFinalize" {
+            //     builder.if_eq(shard_idx, C::N::one()).then_or_else(
+            //         |builder| {
+            //             builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+            //         },
+            //         |builder| {
+            //             builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
+            //         },
+            //     );
+            // }
 
             builder
                 .if_ne(index, C::N::from_canonical_usize(EMPTY))
