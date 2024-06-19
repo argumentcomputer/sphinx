@@ -50,7 +50,7 @@ pub struct ChallengerPublicValues<T> {
 impl<T: Clone + Debug> ChallengerPublicValues<T> {
     pub fn set_challenger<P: CryptographicPermutation<[T; PERMUTATION_WIDTH]>>(
         &self,
-        challenger: &mut DuplexChallenger<T, P, PERMUTATION_WIDTH>,
+        challenger: &mut DuplexChallenger<T, P, PERMUTATION_WIDTH, 8>,
     ) where
         T: PrimeField32,
     {

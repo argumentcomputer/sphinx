@@ -32,26 +32,26 @@ debug-assertions = true
 
 [workspace.dependencies]
 # Plonky3 dependencies
-p3-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-field = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-commit = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-matrix = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-baby-bear = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-util = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-challenger = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-dft = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-fri = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-goldilocks = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-keccak = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-keccak-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-blake3 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-mds = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-merkle-tree = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-poseidon2 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-symmetric = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-uni-stark = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
-p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new" }
+p3-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-field = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-commit = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-matrix = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-baby-bear = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-util = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-challenger = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-dft = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-fri = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-goldilocks = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-keccak = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-keccak-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-blake3 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-mds = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-merkle-tree = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-poseidon2 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-symmetric = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-uni-stark = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
+p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1-new-tmp" }
 alloy = { git = "https://github.com/alloy-rs/alloy", rev = "bfd0fda" }
 anstyle = "1.0.7"
 anyhow = "1.0.86"
