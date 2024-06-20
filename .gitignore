@@ -22,3 +22,6 @@ benchmark.csv
 recursion/gnark-ffi/build
 prover/build
 prover/*.tar.gz
+
+# IDE Conf
+.idea
