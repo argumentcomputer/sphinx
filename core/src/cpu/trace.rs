@@ -1,4 +1,3 @@
-use std::array;
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
 
@@ -292,14 +291,7 @@ impl CpuChip {
         let memory_addr = event.b.wrapping_add(event.c);
         let aligned_addr = memory_addr - memory_addr % WORD_SIZE as u32;
         memory_columns.addr_word = memory_addr.into();
-        memory_columns.addr_word_range_checker.populate(memory_addr);
         memory_columns.addr_aligned = F::from_canonical_u32(aligned_addr);
-
-        // Populate the aa_least_sig_byte_decomp columns.
-        assert!(aligned_addr % 4 == 0);
-        let aligned_addr_ls_byte = (aligned_addr & 0x000000FF) as u8;
-        let bits: [bool; 8] = array::from_fn(|i| aligned_addr_ls_byte & (1 << i) != 0);
-        memory_columns.aa_least_sig_byte_decomp = array::from_fn(|i| F::from_bool(bits[i + 2]));
 
         // Add event to ALU check to check that addr == b + c
         let add_event = AluEvent {

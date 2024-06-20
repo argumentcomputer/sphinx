@@ -5,7 +5,6 @@ use crate::air::{AluAirBuilder, BaseAirBuilder, MemoryAirBuilder, Word, WordAirB
 use crate::cpu::columns::{CpuCols, MemoryColumns, OpcodeSelectorCols};
 use crate::cpu::CpuChip;
 use crate::memory::MemoryCols;
-use crate::operations::BabyBearWordRangeChecker;
 use crate::runtime::{MemoryAccessPosition, Opcode};
 
 impl CpuChip {
@@ -70,14 +69,6 @@ impl CpuChip {
             is_memory_instruction.clone(),
         );
 
-        // Range check the addr_word to be a valid babybear word.
-        BabyBearWordRangeChecker::<AB::F>::range_check(
-            builder,
-            memory_columns.addr_word,
-            memory_columns.addr_word_range_checker,
-            is_memory_instruction.clone(),
-        );
-
         // Check that each addr_word element is a byte.
         builder.slice_range_check_u8(
             &memory_columns.addr_word.0,
@@ -96,35 +87,6 @@ impl CpuChip {
                 memory_columns.addr_aligned + memory_columns.addr_offset,
                 memory_columns.addr_word.reduce::<AB>(),
             );
-
-        // Verify that the least significant byte of addr_word - addr_offset is divisible by 4.
-        let offset = [
-            memory_columns.offset_is_one,
-            memory_columns.offset_is_two,
-            memory_columns.offset_is_three,
-        ]
-        .iter()
-        .enumerate()
-        .fold(AB::Expr::zero(), |acc, (index, &value)| {
-            acc + AB::Expr::from_canonical_usize(index + 1) * value
-        });
-        let mut recomposed_byte = AB::Expr::zero();
-        memory_columns
-            .aa_least_sig_byte_decomp
-            .iter()
-            .enumerate()
-            .for_each(|(i, value)| {
-                builder
-                    .when(is_memory_instruction.clone())
-                    .assert_bool(*value);
-
-                recomposed_byte =
-                    recomposed_byte.clone() + AB::Expr::from_canonical_usize(1 << (i + 2)) * *value;
-            });
-
-        builder
-            .when(is_memory_instruction.clone())
-            .assert_eq(memory_columns.addr_word[0] - offset, recomposed_byte);
 
         // For operations that require reading from memory (not registers), we need to read the
         // value into the memory columns.

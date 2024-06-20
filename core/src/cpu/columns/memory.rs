@@ -2,7 +2,7 @@ use std::{array, mem::size_of};
 
 use sphinx_derive::AlignedBorrow;
 
-use crate::{air::Word, memory::MemoryReadWriteCols, operations::BabyBearWordRangeChecker};
+use crate::{air::Word, memory::MemoryReadWriteCols};
 
 pub const NUM_MEMORY_COLUMNS: usize = size_of::<MemoryColumns<u8>>();
 
@@ -18,11 +18,8 @@ pub struct MemoryColumns<T> {
     // addr_offset = addr_word % 4
     // Note that this all needs to be verified in the AIR
     pub addr_word: Word<T>,
-    pub addr_word_range_checker: BabyBearWordRangeChecker<T>,
 
     pub addr_aligned: T,
-    /// The LE bit decomp of the least significant byte of address aligned.
-    pub aa_least_sig_byte_decomp: [T; 6],
     pub addr_offset: T,
     pub memory_access: MemoryReadWriteCols<T>,
 
@@ -46,8 +43,6 @@ impl<T: Default> Default for MemoryColumns<T> {
             offset_is_two: T::default(),
             offset_is_three: T::default(),
             most_sig_byte_decomp: array::from_fn(|_| T::default()),
-            addr_word_range_checker: BabyBearWordRangeChecker::<T>::default(),
-            aa_least_sig_byte_decomp: array::from_fn(|_| T::default()),
         }
     }
 }
