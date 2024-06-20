@@ -1,5 +1,6 @@
-use std::{borrow::BorrowMut, collections::BTreeMap};
+use std::borrow::BorrowMut;
 
+use hashbrown::HashMap;
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 
@@ -16,7 +17,7 @@ pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
     // the byte lookups
-    type Events = &'a BTreeMap<u32, BTreeMap<ByteLookupEvent, usize>>;
+    type Events = &'a HashMap<u32, HashMap<ByteLookupEvent, usize>>;
 }
 
 impl<F: Field> MachineAir<F> for ByteChip<F> {
