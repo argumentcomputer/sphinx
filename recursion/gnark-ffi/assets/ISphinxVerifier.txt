@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-/// @title SP1 Verifier Interface
-/// @author Succinct Labs
-/// @notice This contract is the interface for the SP1 Verifier.
-interface ISP1Verifier {
-    /// @notice Returns the version of the SP1 Verifier.
+/// @title Sphinx Verifier Interface
+/// @notice This contract is the interface for the Sphinx Verifier.
+interface ISphinxVerifier {
+    /// @notice Returns the version of the Sphinx Verifier.
     function VERSION() external pure returns (string memory);
 
     /// @notice Verifies a proof with given public values and vkey.
