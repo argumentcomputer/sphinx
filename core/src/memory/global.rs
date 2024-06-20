@@ -5,6 +5,7 @@ use std::array;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{AbstractField, PrimeField};
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_maybe_rayon::prelude::{ParallelBridge, ParallelIterator};
 use sphinx_derive::AlignedBorrow;
 
 use super::MemoryInitializeFinalizeEvent;
@@ -70,55 +71,67 @@ impl<F: PrimeField> MachineAir<F> for MemoryChip {
             MemoryChipType::Finalize => input.events().1,
         }
         .to_vec();
+
         memory_events.sort_by_key(|event| event.addr);
-        let rows: Vec<[F; NUM_MEMORY_INIT_COLS]> = (0..memory_events.len()) // OPT: change this to par_iter
-            .map(|i| {
-                let MemoryInitializeFinalizeEvent {
-                    addr,
-                    value,
-                    shard,
-                    timestamp,
-                    used,
-                } = memory_events[i];
 
-                let mut row = [F::zero(); NUM_MEMORY_INIT_COLS];
-                let cols: &mut MemoryInitCols<F> = row.as_mut_slice().borrow_mut();
-                cols.addr = F::from_canonical_u32(addr);
-                cols.addr_bits.populate(addr);
-                cols.shard = F::from_canonical_u32(shard);
-                cols.timestamp = F::from_canonical_u32(timestamp);
-                cols.value = array::from_fn(|i| F::from_canonical_u32((value >> i) & 1));
-                cols.is_real = F::from_canonical_u32(used);
+        let mut rows = vec![F::zero(); memory_events.len() * NUM_MEMORY_INIT_COLS];
+        let chunk_size = std::cmp::max(memory_events.len() / num_cpus::get(), 1);
 
-                if i != memory_events.len() - 1 {
-                    let next_addr = memory_events[i + 1].addr;
-                    assert_ne!(next_addr, addr);
+        rows.chunks_mut(chunk_size * NUM_MEMORY_INIT_COLS)
+            .enumerate()
+            .par_bridge()
+            .for_each(|(i, rows)| {
+                rows.chunks_mut(NUM_MEMORY_INIT_COLS)
+                    .enumerate()
+                    .for_each(|(j, row)| {
+                        let idx = i * chunk_size + j;
 
-                    cols.addr_bits.populate(addr);
+                        let MemoryInitializeFinalizeEvent {
+                            addr,
+                            value,
+                            shard,
+                            timestamp,
+                            used,
+                        } = memory_events[idx];
 
-                    cols.seen_diff_bits[0] = F::zero();
-                    for j in 0..32 {
-                        let rev_j = 32 - j - 1;
-                        let next_bit = ((next_addr >> rev_j) & 1) == 1;
-                        let local_bit = ((addr >> rev_j) & 1) == 1;
-                        cols.match_bits[j] =
-                            F::from_bool((local_bit && next_bit) || (!local_bit && !next_bit));
-                        cols.seen_diff_bits[j + 1] = cols.seen_diff_bits[j]
-                            + (F::one() - cols.seen_diff_bits[j]) * (F::one() - cols.match_bits[j]);
-                        cols.not_match_and_not_seen_diff_bits[j] =
-                            (F::one() - cols.match_bits[j]) * (F::one() - cols.seen_diff_bits[j]);
-                    }
-                    assert_eq!(cols.seen_diff_bits[cols.seen_diff_bits.len() - 1], F::one());
-                }
+                        let cols: &mut MemoryInitCols<F> = row.borrow_mut();
+                        cols.addr = F::from_canonical_u32(addr);
+                        cols.addr_bits.populate(addr);
+                        cols.shard = F::from_canonical_u32(shard);
+                        cols.timestamp = F::from_canonical_u32(timestamp);
+                        cols.value = array::from_fn(|i| F::from_canonical_u32((value >> i) & 1));
+                        cols.is_real = F::from_canonical_u32(used);
 
-                row
-            })
-            .collect::<Vec<_>>();
+                        if idx != memory_events.len() - 1 {
+                            let next_addr = memory_events[idx + 1].addr;
+                            assert_ne!(next_addr, addr);
 
-        let mut trace = RowMajorMatrix::new(
-            rows.into_iter().flatten().collect::<Vec<_>>(),
-            NUM_MEMORY_INIT_COLS,
-        );
+                            cols.addr_bits.populate(addr);
+
+                            cols.seen_diff_bits[0] = F::zero();
+                            for k in 0..32 {
+                                let rev_k = 32 - k - 1;
+                                let next_bit = ((next_addr >> rev_k) & 1) == 1;
+                                let local_bit = ((addr >> rev_k) & 1) == 1;
+                                cols.match_bits[k] = F::from_bool(
+                                    (local_bit && next_bit) || (!local_bit && !next_bit),
+                                );
+                                cols.seen_diff_bits[k + 1] = cols.seen_diff_bits[k]
+                                    + (F::one() - cols.seen_diff_bits[k])
+                                        * (F::one() - cols.match_bits[k]);
+                                cols.not_match_and_not_seen_diff_bits[k] = (F::one()
+                                    - cols.match_bits[k])
+                                    * (F::one() - cols.seen_diff_bits[k]);
+                            }
+                            assert_eq!(
+                                cols.seen_diff_bits[cols.seen_diff_bits.len() - 1],
+                                F::one()
+                            );
+                        }
+                    });
+            });
+
+        let mut trace = RowMajorMatrix::new(rows, NUM_MEMORY_INIT_COLS);
 
         pad_to_power_of_two::<NUM_MEMORY_INIT_COLS, F>(&mut trace.values);
 
