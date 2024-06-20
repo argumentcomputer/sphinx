@@ -6,7 +6,6 @@ pub mod trace;
 pub mod utils;
 
 use core::borrow::BorrowMut;
-use hashbrown::HashMap;
 use std::marker::PhantomData;
 
 pub use event::ByteLookupEvent;
@@ -35,19 +34,10 @@ pub const NUM_BYTE_LOOKUP_CHANNELS: u32 = 16;
 pub struct ByteChip<F>(PhantomData<F>);
 
 impl<F: Field> ByteChip<F> {
-    /// Creates the preprocessed byte trace and event map.
+    /// Creates the preprocessed byte trace.
     ///
-    /// This function returns a pair `(trace, map)`, where:
-    ///  - `trace` is a matrix containing all possible byte operations.
-    /// - `map` is a map from a byte lookup to the corresponding row it appears in the table and
-    /// the index of the result in the array of multiplicities.
-    pub fn trace_and_map(
-        shard: u32,
-    ) -> (RowMajorMatrix<F>, HashMap<ByteLookupEvent, (usize, usize)>) {
-        // A map from a byte lookup to its corresponding row in the table and index in the array of
-        // multiplicities.
-        let mut event_map = HashMap::new();
-
+    /// This function returns a `trace` which is a matrix containing all possible byte operations.
+    pub fn trace() -> RowMajorMatrix<F> {
         // The trace containing all values, with all multiplicities set to zero.
         let mut initial_trace = RowMajorMatrix::new(
             vec![F::zero(); NUM_ROWS * NUM_BYTE_PREPROCESSED_COLS],
@@ -65,10 +55,11 @@ impl<F: Field> ByteChip<F> {
             col.b = F::from_canonical_u8(b);
             col.c = F::from_canonical_u8(c);
 
+            let shard = 0;
             // Iterate over all operations for results and updating the table map.
             for channel in 0..NUM_BYTE_LOOKUP_CHANNELS {
-                for (i, opcode) in opcodes.iter().enumerate() {
-                    let event = match opcode {
+                for opcode in opcodes.iter() {
+                    match opcode {
                         ByteOpcode::AND => {
                             let and = b & c;
                             col.and = F::from_canonical_u8(and);
@@ -176,11 +167,25 @@ impl<F: Field> ByteChip<F> {
                             ByteLookupEvent::new(shard, channel, *opcode, v, 0, 0, 0)
                         }
                     };
-                    event_map.insert(event, (row_index, i));
                 }
             }
         }
 
-        (initial_trace, event_map)
+        initial_trace
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use p3_baby_bear::BabyBear;
+    use std::time::Instant;
+
+    use super::*;
+
+    #[test]
+    fn test_trace_and_map() {
+        let start = Instant::now();
+        ByteChip::<BabyBear>::trace();
+        println!("trace and map: {:?}", start.elapsed());
     }
 }
