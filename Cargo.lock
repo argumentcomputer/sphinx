@@ -2015,6 +2015,7 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
  "allocator-api2",
+ "serde",
 ]
 
 [[package]]
@@ -4395,6 +4396,7 @@ dependencies = [
  "curve25519-dalek",
  "elf",
  "elliptic-curve",
+ "hashbrown 0.14.5",
  "hex",
  "hybrid-array",
  "itertools 0.12.1",
