@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use sphinx_core::{

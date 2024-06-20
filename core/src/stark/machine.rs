@@ -1,3 +1,4 @@
+use hashbrown::HashMap;
 use itertools::Itertools;
 use p3_air::Air;
 use p3_challenger::CanObserve;
@@ -14,7 +15,6 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use std::cmp::Reverse;
-use std::collections::HashMap;
 use std::fmt::Debug;
 use tracing::instrument;
 

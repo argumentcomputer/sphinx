@@ -1,5 +1,5 @@
+use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io;
 use std::io::{Seek, Write};
