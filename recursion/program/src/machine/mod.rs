@@ -93,6 +93,7 @@ mod tests {
         )
         .unwrap();
         machine.verify(&vk, &proof, &mut challenger).unwrap();
+        let total_core_shards = proof.shard_proofs.len();
         tracing::info!("Proof generated successfully");
         let elapsed = time.elapsed();
         tracing::info!("Execution proof time: {:?}", elapsed);
@@ -123,6 +124,7 @@ mod tests {
                 leaf_challenger: &leaf_challenger,
                 initial_reconstruct_challenger: reconstruct_challenger.clone(),
                 is_complete,
+                total_core_shards,
             });
 
             for proof in batch.iter() {
@@ -228,6 +230,7 @@ mod tests {
                         shard_proofs: batch.to_vec(),
                         kinds,
                         is_complete,
+                        total_core_shards,
                     };
 
                     let mut runtime = Runtime::<F, EF, _>::new(

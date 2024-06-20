@@ -42,6 +42,7 @@ pub struct SphinxRecursionMemoryLayout<'a, SC: StarkGenericConfig, A: MachineAir
     pub leaf_challenger: &'a SC::Challenger,
     pub initial_reconstruct_challenger: SC::Challenger,
     pub is_complete: bool,
+    pub total_core_shards: usize,
 }
 
 #[derive(DslVariable, Clone)]
@@ -54,6 +55,8 @@ pub struct SphinxRecursionMemoryLayoutVariable<C: Config> {
     pub initial_reconstruct_challenger: DuplexChallengerVariable<C>,
 
     pub is_complete: Var<C::N>,
+
+    pub total_core_shards: Var<C::N>,
 }
 
 impl SphinxRecursiveVerifier<InnerConfig, BabyBearPoseidon2> {
@@ -134,6 +137,7 @@ where
             leaf_challenger,
             initial_reconstruct_challenger,
             is_complete,
+            total_core_shards,
         } = input;
 
         // Initialize values we will commit to public outputs.
@@ -174,7 +178,6 @@ where
             let proof = builder.get(&shard_proofs, i);
 
             // Verify the shard proof.
-            let shard_idx = builder.eval(i + C::N::one());
             let mut challenger = leaf_challenger.copy(builder);
             StarkVerifier::<C, SC>::verify_shard(
                 builder,
@@ -183,7 +186,7 @@ where
                 machine,
                 &mut challenger,
                 &proof,
-                shard_idx,
+                total_core_shards,
             );
 
             // Extract public values.
@@ -228,10 +231,10 @@ where
                 builder.assign(&exit_code, public_values.exit_code);
             });
 
-            // If the shard is zero, verify the global initial conditions hold on challenger and pc.
+            // If it's first shard, verify the global initial conditions hold on challenger and pc.
             let shard = felt2var(builder, public_values.shard);
             builder.if_eq(shard, C::N::one()).then(|builder| {
-                // This should be the first proof as well
+                // This should be the 0th proof in this batch.
                 builder.assert_var_eq(i, C::N::zero());
 
                 // Start pc should be vk.pc_start
@@ -338,6 +341,7 @@ where
         let end_deferred_digest = [zero; POSEIDON_NUM_WORDS];
 
         let is_complete_felt = var2felt(builder, is_complete);
+        let total_core_shards_felt = var2felt(builder, total_core_shards);
 
         recursion_public_values.committed_value_digest = committed_value_digest;
         recursion_public_values.deferred_proofs_digest = deferred_proofs_digest;
@@ -353,6 +357,7 @@ where
         recursion_public_values.start_reconstruct_deferred_digest = start_deferred_digest;
         recursion_public_values.end_reconstruct_deferred_digest = end_deferred_digest;
         recursion_public_values.is_complete = is_complete_felt;
+        recursion_public_values.total_core_shards = total_core_shards_felt;
 
         // If the proof represents a complete proof, make completeness assertions.
         //
