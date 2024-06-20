@@ -64,7 +64,7 @@ mod utils;
 
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::AbstractField;
@@ -394,7 +394,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                         }
                         let mut alu_events = HashMap::new();
                         alu_events.insert(Opcode::ADD, add_events);
-                        output.add_alu_events(&alu_events);
+                        output.add_alu_events(&mut alu_events);
                     }
 
                     let mut lower_word = 0;

@@ -42,6 +42,7 @@ bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
+hashbrown = { workspace = true }
 hex = { workspace = true }
 hybrid-array = { workspace = true }
 k256 = { workspace = true, features = ["expose-field"] }
