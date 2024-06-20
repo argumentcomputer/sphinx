@@ -5,6 +5,10 @@ on:
     branches: [main, dev]
   pull_request:
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
