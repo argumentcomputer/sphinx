@@ -1,7 +1,7 @@
 use std::array;
-use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
+use hashbrown::HashMap;
 use p3_field::{AbstractField, PrimeField32};
 use sphinx_core::air::EventLens;
 use sphinx_core::stark::{Indexed, MachineRecord, PROOF_MAX_NUM_PVS};
@@ -23,7 +23,7 @@ pub struct ExecutionRecord<F: Default> {
     pub cpu_events: Vec<CpuEvent<F>>,
     pub poseidon2_events: Vec<Poseidon2Event<F>>,
     pub fri_fold_events: Vec<FriFoldEvent<F>>,
-    pub range_check_events: BTreeMap<RangeCheckEvent, usize>,
+    pub range_check_events: HashMap<RangeCheckEvent, usize>,
 
     // (address, value)
     pub first_memory_record: Vec<(F, Block<F>)>,
