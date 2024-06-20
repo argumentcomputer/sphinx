@@ -69,22 +69,22 @@ impl PlonkBn254Prover {
         build_plonk_bn254(build_dir.to_str().unwrap());
 
         // Write the corresponding asset files to the build dir.
-        let sphinx_mock_verifier_path = build_dir.join("SP1MockVerifier.sol");
-        let sphinx_mock_verifier_str = include_str!("../assets/SP1MockVerifier.txt");
+        let sphinx_mock_verifier_path = build_dir.join("SphinxMockVerifier.sol");
+        let sphinx_mock_verifier_str = include_str!("../assets/SphinxMockVerifier.txt");
         let mut mock_verifier_file = File::create(sphinx_mock_verifier_path).unwrap();
         mock_verifier_file
             .write_all(sphinx_mock_verifier_str.as_bytes())
             .unwrap();
 
-        let sphinx_verifier_path = build_dir.join("SP1Verifier.sol");
-        let sphinx_verifier_str = include_str!("../assets/SP1Verifier.txt");
+        let sphinx_verifier_path = build_dir.join("SphinxVerifier.sol");
+        let sphinx_verifier_str = include_str!("../assets/SphinxVerifier.txt");
         let mut sphinx_verifier_file = File::create(sphinx_verifier_path).unwrap();
         sphinx_verifier_file
             .write_all(sphinx_verifier_str.as_bytes())
             .unwrap();
 
-        let interface_sphinx_verifier_path = build_dir.join("ISP1Verifier.sol");
-        let interface_sphinx_verifier_str = include_str!("../assets/ISP1Verifier.txt");
+        let interface_sphinx_verifier_path = build_dir.join("ISphinxVerifier.sol");
+        let interface_sphinx_verifier_str = include_str!("../assets/ISphinxVerifier.txt");
         let mut interface_sphinx_verifier_file =
             File::create(interface_sphinx_verifier_path).unwrap();
         interface_sphinx_verifier_file
