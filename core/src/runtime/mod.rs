@@ -20,8 +20,8 @@ pub(crate) use state::*;
 pub use syscall::*;
 pub use utils::*;
 
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use hashbrown::hash_map::Entry;
+use hashbrown::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::File;
 use std::io::BufWriter;

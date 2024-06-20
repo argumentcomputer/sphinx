@@ -1,6 +1,7 @@
 use alloc::format;
 use core::marker::PhantomData;
-use std::{collections::HashMap, hash::Hash};
+use hashbrown::HashMap;
+use std::hash::Hash;
 
 use p3_field::{AbstractField, ExtensionField, Field};
 use serde::{Deserialize, Serialize};
