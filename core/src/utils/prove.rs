@@ -139,7 +139,7 @@ where
             .map_err(SphinxCoreProverError::ExecutionError)?;
 
         // If debugging is enabled, we will also debug the constraints.
-        #[cfg(feature = "debug")]
+        #[cfg(debug_assertions)]
         {
             machine.debug_constraints(&pk, runtime.record.clone());
         }
@@ -356,7 +356,7 @@ where
     OpeningProof<SC>: Send + Sync,
     ShardMainData<SC>: Serialize + DeserializeOwned,
 {
-    #[cfg(feature = "debug")]
+    #[cfg(debug_assertions)]
     {
         let record_clone = record.clone();
         machine.debug_constraints(pk, record_clone);
