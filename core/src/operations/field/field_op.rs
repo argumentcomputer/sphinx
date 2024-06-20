@@ -276,6 +276,7 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
         &self,
         builder: &mut AB,
         p_op: Polynomial<AB::Expr>,
+        p_result: Polynomial<AB::Expr>,
         modulus: Polynomial<AB::Expr>,
         shard: impl Into<AB::Expr> + Clone,
         channel: impl Into<AB::Expr> + Clone,
@@ -283,8 +284,6 @@ impl<V: Copy, P: FieldParameters> FieldOpCols<V, P> {
     ) where
         V: Into<AB::Expr>,
     {
-        let p_result: Polynomial<AB::Expr> = self.result.clone().into();
-
         let p_carry: Polynomial<AB::Expr> = self.carry.clone().into();
 
         let p_op_minus_result: Polynomial<AB::Expr> = p_op - &p_result;

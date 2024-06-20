@@ -77,7 +77,7 @@ impl<FP: FieldParameters> FieldMulSyscall<FP> {
     }
 }
 
-/// Fp subtraction event.
+/// Fp operation event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldEvent<FP: FieldParameters> {
     pub shard: u32,
@@ -151,7 +151,7 @@ pub fn create_fp_event<FP: FieldParameters>(
     }
 }
 
-/// A set of columns to compute field element subtraction where p, q are in some prime field `Fp`.
+/// A set of columns to compute field element operation where p, q are in some prime field `Fp`.
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct FieldCols<T, FP: FieldParameters> {
@@ -163,7 +163,7 @@ pub struct FieldCols<T, FP: FieldParameters> {
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: Array<MemoryReadWriteCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
     pub q_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
 
     pub op_cols: FieldOpCols<T, FP>,
@@ -225,8 +225,11 @@ where
 
         //r=a-b => r+b=a
         let a_op_b: Polynomial<AB::Expr> = (&a + &b) * row.is_add.into()
-            + (res + &b) * row.is_sub.into()
-            + (a * b) * row.is_mul.into();
+            // + (res + &b) * row.is_sub.into()
+            + (&res + &b) * row.is_sub.into()
+            + (&a * &b) * row.is_mul.into();
+
+        let p_result = res * (row.is_add.into() + row.is_mul.into()) + a * (row.is_sub.into());
 
         let p_limbs = FP::modulus_field_iter::<AB::F>()
             .map(AB::Expr::from)
@@ -234,6 +237,7 @@ where
         row.op_cols.eval_any_with_modulus(
             builder,
             a_op_b,
+            p_result,
             p_limbs,
             row.shard,
             row.channel,
@@ -243,10 +247,11 @@ where
         // Constraint self.p_access.value = [self.p_add_q.result]
         // This is to ensure that p_access is updated with the new value.
         for i in 0..FP::NB_LIMBS::USIZE {
-            let result = (row.is_add + row.is_mul) * r[i].clone() + row.is_sub * p[i].clone();
+            // let result = (row.is_add + row.is_mul) * r[i].clone() + row.is_sub * p[i].clone();
+            // let result = r[i].clone();
             builder
                 .when(is_real.clone())
-                .assert_eq(row.op_cols.result[i], result);
+                .assert_eq(row.op_cols.result[i], r[i].clone());
         }
 
         builder.eval_memory_access_slice(
