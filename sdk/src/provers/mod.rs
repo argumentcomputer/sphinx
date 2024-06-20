@@ -80,7 +80,7 @@ pub trait Prover: Send + Sync {
         let plonk_bn254_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
             sphinx_prover::build::plonk_bn254_artifacts_dev_dir()
         } else {
-            sphinx_prover::build::try_install_plonk_bn254_artifacts()
+            sphinx_prover::build::try_install_plonk_bn254_artifacts(true)
         };
         sphinx_prover.verify_plonk_bn254(
             &proof.proof,

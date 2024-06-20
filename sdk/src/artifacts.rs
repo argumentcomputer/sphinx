@@ -17,9 +17,9 @@ pub fn export_solidity_plonk_bn254_verifier(output_dir: impl Into<PathBuf>) -> R
     let artifacts_dir = if sphinx_prover::build::sphinx_dev_mode() {
         sphinx_prover::build::plonk_bn254_artifacts_dev_dir()
     } else {
-        try_install_plonk_bn254_artifacts()
+        try_install_plonk_bn254_artifacts(true)
     };
-    let verifier_path = artifacts_dir.join("SP1Verifier.sol");
+    let verifier_path = artifacts_dir.join("SphinxVerifier.sol");
 
     if !verifier_path.exists() {
         return Err(anyhow::anyhow!(
@@ -29,7 +29,7 @@ pub fn export_solidity_plonk_bn254_verifier(output_dir: impl Into<PathBuf>) -> R
     }
 
     std::fs::create_dir_all(&output_dir).context("Failed to create output directory.")?;
-    let output_path = output_dir.join("SP1Verifier.sol");
+    let output_path = output_dir.join("SphinxVerifier.sol");
     std::fs::copy(&verifier_path, &output_path).context("Failed to copy verifier file.")?;
     tracing::info!(
         "exported verifier from {} to {}",

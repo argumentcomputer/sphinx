@@ -17,7 +17,7 @@ use crate::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
 use crate::{OuterSC, SphinxProver};
 
 /// Tries to install the PLONK artifacts if they are not already installed.
-pub fn try_install_plonk_bn254_artifacts() -> PathBuf {
+pub fn try_install_plonk_bn254_artifacts(use_aws_cli: bool) -> PathBuf {
     let build_dir = plonk_bn254_artifacts_dir();
 
     if build_dir.exists() {
@@ -31,7 +31,7 @@ pub fn try_install_plonk_bn254_artifacts() -> PathBuf {
             PLONK_BN254_ARTIFACTS_COMMIT,
             build_dir.display()
         );
-        install_plonk_bn254_artifacts(&build_dir);
+        install_plonk_bn254_artifacts(&build_dir, use_aws_cli);
     }
     build_dir
 }

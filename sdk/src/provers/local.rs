@@ -82,7 +82,7 @@ impl Prover for LocalProver {
                         &outer_proof.proof,
                     )
                 } else {
-                    sphinx_prover::build::try_install_plonk_bn254_artifacts()
+                    sphinx_prover::build::try_install_plonk_bn254_artifacts(true)
                 };
                 let proof = self.prover.wrap_plonk_bn254(outer_proof, &plonk_bn254_aritfacts);
                 Ok(SphinxProofWithPublicValues {
