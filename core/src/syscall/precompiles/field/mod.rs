@@ -1,7 +1,7 @@
 use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, Polynomial, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
-use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryReadWriteCols, MemoryWriteCols};
 use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
 use crate::operations::field::params::{FieldParameters, FieldType, WORDS_FIELD_ELEMENT};
 use crate::runtime::SyscallContext;
@@ -163,7 +163,7 @@ pub struct FieldCols<T, FP: FieldParameters> {
     pub clk: T,
     pub p_ptr: T,
     pub q_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
+    pub p_access: Array<MemoryReadWriteCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
     pub q_access: Array<MemoryReadCols<T>, WORDS_FIELD_ELEMENT<FP::NB_LIMBS>>,
 
     pub op_cols: FieldOpCols<T, FP>,
@@ -174,7 +174,6 @@ where
     AB: AluAirBuilder + MemoryAirBuilder,
 {
     fn eval(&self, builder: &mut AB) {
-        let words_len = WORDS_FIELD_ELEMENT::<FP::NB_LIMBS>::USIZE;
         let main = builder.main();
         let local = main.row_slice(0);
         let row: &FieldCols<AB::Var, FP> = (*local).borrow();
@@ -214,9 +213,9 @@ where
         // let r: Polynomial<AB::Expr> = zip(p.into_iter(), r.into_iter())
         //     .map(|(a, r)| (row.is_add + row.is_mul) * r + row.is_sub * a)
         //     .collect();
-        let a: Polynomial<AB::Expr> = p.into_iter().map(Into::into).collect();
-        let b: Polynomial<AB::Expr> = q.into_iter().map(Into::into).collect();
-        let r: Polynomial<AB::Expr> = r.into_iter().map(Into::into).collect();
+        let a: Polynomial<AB::Expr> = p.clone().into_iter().collect();
+        let b: Polynomial<AB::Expr> = q.clone().into_iter().collect();
+        let res: Polynomial<AB::Expr> = r.clone().into_iter().collect();
 
         // let a_add_b: Polynomial<AB::Expr> = a.clone() + &b;
         // let a_mul_b: Polynomial<AB::Expr> = a * b;
@@ -224,8 +223,9 @@ where
         // let a_op_b: Polynomial<AB::Expr> =
         //     a_add_b * (row.is_add.into() + row.is_sub.into()) + a_mul_b * row.is_mul.into();
 
+        //r=a-b => r+b=a
         let a_op_b: Polynomial<AB::Expr> = (&a + &b) * row.is_add.into()
-            + (r + &b) * row.is_sub.into()
+            + (res + &b) * row.is_sub.into()
             + (a * b) * row.is_mul.into();
 
         let p_limbs = FP::modulus_field_iter::<AB::F>()
@@ -243,8 +243,7 @@ where
         // Constraint self.p_access.value = [self.p_add_q.result]
         // This is to ensure that p_access is updated with the new value.
         for i in 0..FP::NB_LIMBS::USIZE {
-            let result = (row.is_add + row.is_mul) * row.p_access[i / 4].value()[i % 4]
-                + row.is_sub * row.p_access[i / 4].prev_value()[i % 4];
+            let result = (row.is_add + row.is_mul) * r[i].clone() + row.is_sub * p[i].clone();
             builder
                 .when(is_real.clone())
                 .assert_eq(row.op_cols.result[i], result);
