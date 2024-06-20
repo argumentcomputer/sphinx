@@ -50,7 +50,6 @@ pub struct WeierstrassDoubleAssignCols<T, P: FieldParameters> {
     pub is_real: T,
     pub shard: T,
     pub channel: T,
-    pub nonce: T,
     pub clk: T,
     pub p_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
@@ -296,21 +295,10 @@ where
         });
 
         // Convert the trace to a row major matrix.
-        let mut trace = RowMajorMatrix::new(
+        RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
             num_weierstrass_double_cols::<E::BaseField>(),
-        );
-
-        // Write the nonces to the trace.
-        for i in 0..trace.height() {
-            let cols: &mut WeierstrassDoubleAssignCols<F, E::BaseField> = trace.values[i
-                * num_weierstrass_double_cols::<E::BaseField>()
-                ..(i + 1) * num_weierstrass_double_cols::<E::BaseField>()]
-                .borrow_mut();
-            cols.nonce = F::from_canonical_usize(i);
-        }
-
-        trace
+        )
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -337,14 +325,6 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let local: &WeierstrassDoubleAssignCols<AB::Var, E::BaseField> = (*local).borrow();
-        let next = main.row_slice(1);
-        let next: &WeierstrassDoubleAssignCols<AB::Var, E::BaseField> = (*next).borrow();
-
-        // Constrain the incrementing nonce.
-        builder.when_first_row().assert_zero(local.nonce);
-        builder
-            .when_transition()
-            .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
         let num_words_field_element = WORDS_FIELD_ELEMENT::<BaseLimbWidth<E>>::USIZE;
         let p_x: Limbs<_, BaseLimbWidth<E>> =
@@ -514,7 +494,6 @@ where
             local.shard,
             local.channel,
             local.clk,
-            local.nonce,
             syscall_id_fe,
             local.p_ptr,
             AB::Expr::zero(),

@@ -8,7 +8,6 @@ use hybrid_array::{typenum::Unsigned, Array};
 use num::BigUint;
 use num::Zero;
 
-use p3_air::AirBuilder;
 use p3_air::{Air, BaseAir};
 use p3_field::AbstractField;
 use p3_field::PrimeField32;
@@ -61,7 +60,6 @@ pub struct EdAddAssignCols<T, P: FieldParameters> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
-    pub nonce: T,
     pub p_ptr: T,
     pub q_ptr: T,
     pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
@@ -246,19 +244,10 @@ where
         });
 
         // Convert the trace to a row major matrix.
-        let mut trace = RowMajorMatrix::new(
+        RowMajorMatrix::new(
             rows.into_iter().flatten().collect::<Vec<_>>(),
             NUM_ED_ADD_COLS,
-        );
-
-        // Write the nonces to the trace.
-        for i in 0..trace.height() {
-            let cols: &mut EdAddAssignCols<F, E::BaseField> =
-                trace.values[i * NUM_ED_ADD_COLS..(i + 1) * NUM_ED_ADD_COLS].borrow_mut();
-            cols.nonce = F::from_canonical_usize(i);
-        }
-
-        trace
+        )
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -280,14 +269,6 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let local: &EdAddAssignCols<AB::Var, E::BaseField> = (*local).borrow();
-        let next = main.row_slice(1);
-        let next: &EdAddAssignCols<AB::Var, E::BaseField> = (*next).borrow();
-
-        // Constrain the incrementing nonce.
-        builder.when_first_row().assert_zero(local.nonce);
-        builder
-            .when_transition()
-            .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
         let x1 = limbs_from_prev_access(&local.p_access[0..8]);
         let x2 = limbs_from_prev_access(&local.q_access[0..8]);
@@ -419,7 +400,6 @@ where
             local.shard,
             local.channel,
             local.clk,
-            local.nonce,
             AB::F::from_canonical_u32(SyscallCode::ED_ADD.syscall_id()),
             local.p_ptr,
             local.q_ptr,

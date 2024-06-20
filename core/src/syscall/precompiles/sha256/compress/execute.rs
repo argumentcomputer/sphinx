@@ -78,9 +78,7 @@ impl Syscall for ShaCompressChip {
         // Push the SHA extend event.
         let shard = rt.current_shard();
         let channel = rt.current_channel();
-        let lookup_id = rt.syscall_lookup_id;
         rt.record_mut().sha_compress_events.push(ShaCompressEvent {
-            lookup_id,
             shard,
             channel,
             clk: start_clk,

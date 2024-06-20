@@ -19,7 +19,6 @@ pub(crate) struct KeccakMemCols<T> {
     pub(crate) shard: T,
     pub(crate) channel: T,
     pub(crate) clk: T,
-    pub(crate) nonce: T,
     pub(crate) state_addr: T,
 
     /// Memory columns for the state.

@@ -63,7 +63,6 @@ pub fn secp256k1_decompress(bytes_be: &[u8], sign: u32) -> AffinePoint<Secp256k1
 /// Secp256k1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Secp256k1DecompressEvent {
-    pub lookup_id: usize,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -108,7 +107,6 @@ pub fn create_secp256k1_decompress_event(
     let y_memory_records = (&rt.mw_slice(slice_ptr, &y_words)[..]).try_into().unwrap();
 
     Secp256k1DecompressEvent {
-        lookup_id: rt.syscall_lookup_id,
         shard: rt.current_shard(),
         channel: rt.current_channel(),
         clk: start_clk,
@@ -137,7 +135,6 @@ pub struct Secp256k1DecompressCols<T> {
     pub shard: T,
     pub channel: T,
     pub clk: T,
-    pub nonce: T,
     pub ptr: T,
     pub is_odd: T,
     pub x_access: Array<
@@ -301,17 +298,7 @@ impl<F: PrimeField32> MachineAir<F> for Secp256k1DecompressChip {
 
         let num_cols = size_of::<Secp256k1DecompressCols<u8>>();
 
-        let mut trace =
-            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols);
-
-        // Write the nonces to the trace.
-        for i in 0..trace.height() {
-            let cols: &mut Secp256k1DecompressCols<F> =
-                trace.values[i * num_cols..(i + 1) * num_cols].borrow_mut();
-            cols.nonce = F::from_canonical_usize(i);
-        }
-
-        trace
+        RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_cols)
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -334,17 +321,9 @@ where
         let main = builder.main();
         let row = main.row_slice(0);
         let row: &Secp256k1DecompressCols<AB::Var> = (*row).borrow();
-        let next = main.row_slice(1);
-        let next: &Secp256k1DecompressCols<AB::Var> = (*next).borrow();
 
         let num_limbs = DEFAULT_NUM_LIMBS_T::USIZE;
         let num_words_field_element = num_limbs / 4;
-
-        // Constrain the incrementing nonce.
-        builder.when_first_row().assert_zero(row.nonce);
-        builder
-            .when_transition()
-            .assert_eq(row.nonce + AB::Expr::one(), next.nonce);
 
         builder.assert_bool(row.is_odd);
 
@@ -448,7 +427,6 @@ where
             row.shard,
             row.channel,
             row.clk,
-            row.nonce,
             AB::F::from_canonical_u32(SyscallCode::SECP256K1_DECOMPRESS.syscall_id()),
             row.ptr,
             row.is_odd,

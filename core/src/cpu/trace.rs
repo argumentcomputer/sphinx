@@ -11,7 +11,6 @@ use super::columns::{CPU_COL_MAP, NUM_CPU_COLS};
 use super::{CpuChip, CpuEvent};
 use crate::air::Word;
 use crate::air::{EventLens, MachineAir, WithEvents};
-use crate::alu::create_alu_lookups;
 use crate::alu::AluEvent;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::{ByteLookupEvent, ByteOpcode};
@@ -23,7 +22,7 @@ use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
 impl<'a> WithEvents<'a> for CpuChip {
-    type Events = (&'a [CpuEvent], &'a HashMap<usize, u32>);
+    type Events = &'a [CpuEvent];
 }
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
@@ -43,12 +42,12 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         let mut new_alu_events = HashMap::new();
         let mut new_blu_events = Vec::new();
 
-        let (events, nonce_lookup) = input.events();
+        let events = input.events();
 
         // Generate the trace rows for each event.
         let mut rows_with_events = events
             .par_iter()
-            .map(|op: &CpuEvent| self.event_to_row::<F>(*op, nonce_lookup))
+            .map(|op: &CpuEvent| self.event_to_row::<F>(*op))
             .collect::<Vec<_>>();
 
         // No need to sort by the shard, since the cpu events are already partitioned by that.
@@ -89,16 +88,15 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
     #[instrument(name = "generate cpu dependencies", level = "debug", skip_all)]
     fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut ExecutionRecord) {
         // Generate the trace rows for each event.
-        let chunk_size = std::cmp::max(input.events().0.len() / num_cpus::get(), 1);
+        let chunk_size = std::cmp::max(input.events().len() / num_cpus::get(), 1);
         let events = input
             .events()
-            .0
             .par_chunks(chunk_size)
             .map(|ops: &[CpuEvent]| {
                 let mut alu = HashMap::new();
                 let mut blu: Vec<_> = Vec::default();
                 for op in ops.iter() {
-                    let (_, alu_events, blu_events) = self.event_to_row::<F>(*op, &HashMap::new());
+                    let (_, alu_events, blu_events) = self.event_to_row::<F>(*op);
                     for (key, value) in alu_events {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
                     }
@@ -129,7 +127,6 @@ impl CpuChip {
     fn event_to_row<F: PrimeField32>(
         &self,
         event: CpuEvent,
-        nonce_lookup: &HashMap<usize, u32>,
     ) -> (
         [F; NUM_CPU_COLS],
         HashMap<Opcode, Vec<AluEvent>>,
@@ -143,14 +140,6 @@ impl CpuChip {
 
         // Populate shard and clk columns.
         self.populate_shard_clk(cols, event, &mut new_blu_events);
-
-        // Populate the nonce.
-        cols.nonce = F::from_canonical_u32(
-            nonce_lookup
-                .get(&event.alu_lookup_id)
-                .copied()
-                .unwrap_or_default(),
-        );
 
         // Populate basic fields.
         cols.pc = F::from_canonical_u32(event.pc);
@@ -213,17 +202,11 @@ impl CpuChip {
         }
 
         // Populate memory, branch, jump, and auipc specific fields.
-        self.populate_memory(
-            cols,
-            event,
-            &mut new_alu_events,
-            &mut new_blu_events,
-            nonce_lookup,
-        );
-        self.populate_branch(cols, event, &mut new_alu_events, nonce_lookup);
-        self.populate_jump(cols, event, &mut new_alu_events, nonce_lookup);
-        self.populate_auipc(cols, event, &mut new_alu_events, nonce_lookup);
-        let is_halt = self.populate_ecall(cols, event, nonce_lookup);
+        self.populate_memory(cols, event, &mut new_alu_events, &mut new_blu_events);
+        self.populate_branch(cols, event, &mut new_alu_events);
+        self.populate_jump(cols, event, &mut new_alu_events);
+        self.populate_auipc(cols, event, &mut new_alu_events);
+        let is_halt = self.populate_ecall(cols, event);
 
         cols.is_sequential_instr = F::from_bool(
             !event.instruction.is_branch_instruction()
@@ -289,7 +272,6 @@ impl CpuChip {
         event: CpuEvent,
         new_alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         new_blu_events: &mut Vec<ByteLookupEvent>,
-        nonce_lookup: &HashMap<usize, u32>,
     ) {
         if !matches!(
             event.instruction.opcode,
@@ -321,7 +303,6 @@ impl CpuChip {
 
         // Add event to ALU check to check that addr == b + c
         let add_event = AluEvent {
-            lookup_id: event.memory_add_lookup_id,
             shard: event.shard,
             channel: event.channel,
             clk: event.clk,
@@ -329,18 +310,11 @@ impl CpuChip {
             a: memory_addr,
             b: event.b,
             c: event.c,
-            sub_lookups: create_alu_lookups(),
         };
         new_alu_events
             .entry(Opcode::ADD)
             .and_modify(|op_new_events| op_new_events.push(add_event))
             .or_insert(vec![add_event]);
-        memory_columns.addr_word_nonce = F::from_canonical_u32(
-            nonce_lookup
-                .get(&event.memory_add_lookup_id)
-                .copied()
-                .unwrap_or_default(),
-        );
 
         // Populate memory offsets.
         let addr_offset = (memory_addr % WORD_SIZE as u32) as u8;
@@ -394,7 +368,6 @@ impl CpuChip {
                 if memory_columns.most_sig_byte_decomp[7] == F::one() {
                     cols.mem_value_is_neg = F::one();
                     let sub_event = AluEvent {
-                        lookup_id: event.memory_sub_lookup_id,
                         shard: event.shard,
                         channel: event.channel,
                         clk: event.clk,
@@ -402,14 +375,7 @@ impl CpuChip {
                         a: event.a,
                         b: cols.unsigned_mem_val.to_u32(),
                         c: sign_value,
-                        sub_lookups: create_alu_lookups(),
                     };
-                    cols.unsigned_mem_val_nonce = F::from_canonical_u32(
-                        nonce_lookup
-                            .get(&event.memory_sub_lookup_id)
-                            .copied()
-                            .unwrap_or_default(),
-                    );
 
                     new_alu_events
                         .entry(Opcode::SUB)
@@ -440,7 +406,6 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
     ) {
         if event.instruction.is_branch_instruction() {
             let branch_columns = cols.opcode_specific_columns.branch_mut();
@@ -469,7 +434,6 @@ impl CpuChip {
 
             // Add the ALU events for the comparisons
             let lt_comp_event = AluEvent {
-                lookup_id: event.branch_lt_lookup_id,
                 shard: event.shard,
                 channel: event.channel,
                 clk: event.clk,
@@ -477,14 +441,7 @@ impl CpuChip {
                 a: u32::from(a_lt_b),
                 b: event.a,
                 c: event.b,
-                sub_lookups: create_alu_lookups(),
             };
-            branch_columns.a_lt_b_nonce = F::from_canonical_u32(
-                nonce_lookup
-                    .get(&event.branch_lt_lookup_id)
-                    .copied()
-                    .unwrap_or_default(),
-            );
 
             alu_events
                 .entry(alu_op_code)
@@ -492,7 +449,6 @@ impl CpuChip {
                 .or_insert(vec![lt_comp_event]);
 
             let gt_comp_event = AluEvent {
-                lookup_id: event.branch_gt_lookup_id,
                 shard: event.shard,
                 channel: event.channel,
                 clk: event.clk,
@@ -500,14 +456,7 @@ impl CpuChip {
                 a: u32::from(a_gt_b),
                 b: event.b,
                 c: event.a,
-                sub_lookups: create_alu_lookups(),
             };
-            branch_columns.a_gt_b_nonce = F::from_canonical_u32(
-                nonce_lookup
-                    .get(&event.branch_gt_lookup_id)
-                    .copied()
-                    .unwrap_or_default(),
-            );
 
             alu_events
                 .entry(alu_op_code)
@@ -536,7 +485,6 @@ impl CpuChip {
                 cols.branching = F::one();
 
                 let add_event = AluEvent {
-                    lookup_id: event.branch_add_lookup_id,
                     shard: event.shard,
                     channel: event.channel,
                     clk: event.clk,
@@ -544,14 +492,7 @@ impl CpuChip {
                     a: next_pc,
                     b: event.pc,
                     c: event.c,
-                    sub_lookups: create_alu_lookups(),
                 };
-                branch_columns.next_pc_nonce = F::from_canonical_u32(
-                    nonce_lookup
-                        .get(&event.branch_add_lookup_id)
-                        .copied()
-                        .unwrap_or_default(),
-                );
 
                 alu_events
                     .entry(Opcode::ADD)
@@ -569,7 +510,6 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
     ) {
         if event.instruction.is_jump_instruction() {
             let jump_columns = cols.opcode_specific_columns.jump_mut();
@@ -584,7 +524,6 @@ impl CpuChip {
                     jump_columns.next_pc_range_checker.populate(next_pc);
 
                     let add_event = AluEvent {
-                        lookup_id: event.jump_jal_lookup_id,
                         shard: event.shard,
                         channel: event.channel,
                         clk: event.clk,
@@ -592,14 +531,7 @@ impl CpuChip {
                         a: next_pc,
                         b: event.pc,
                         c: event.b,
-                        sub_lookups: create_alu_lookups(),
                     };
-                    jump_columns.jal_nonce = F::from_canonical_u32(
-                        nonce_lookup
-                            .get(&event.jump_jal_lookup_id)
-                            .copied()
-                            .unwrap_or_default(),
-                    );
 
                     alu_events
                         .entry(Opcode::ADD)
@@ -613,7 +545,6 @@ impl CpuChip {
                     jump_columns.next_pc_range_checker.populate(next_pc);
 
                     let add_event = AluEvent {
-                        lookup_id: event.jump_jalr_lookup_id,
                         shard: event.shard,
                         channel: event.channel,
                         clk: event.clk,
@@ -621,14 +552,7 @@ impl CpuChip {
                         a: next_pc,
                         b: event.b,
                         c: event.c,
-                        sub_lookups: create_alu_lookups(),
                     };
-                    jump_columns.jalr_nonce = F::from_canonical_u32(
-                        nonce_lookup
-                            .get(&event.jump_jalr_lookup_id)
-                            .copied()
-                            .unwrap_or_default(),
-                    );
 
                     alu_events
                         .entry(Opcode::ADD)
@@ -646,7 +570,6 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
     ) {
         if matches!(event.instruction.opcode, Opcode::AUIPC) {
             let auipc_columns = cols.opcode_specific_columns.auipc_mut();
@@ -655,7 +578,6 @@ impl CpuChip {
             auipc_columns.pc_range_checker.populate(event.pc);
 
             let add_event = AluEvent {
-                lookup_id: event.auipc_lookup_id,
                 shard: event.shard,
                 channel: event.channel,
                 clk: event.clk,
@@ -663,14 +585,7 @@ impl CpuChip {
                 a: event.a,
                 b: event.pc,
                 c: event.b,
-                sub_lookups: create_alu_lookups(),
             };
-            auipc_columns.auipc_nonce = F::from_canonical_u32(
-                nonce_lookup
-                    .get(&event.auipc_lookup_id)
-                    .copied()
-                    .unwrap_or_default(),
-            );
 
             alu_events
                 .entry(Opcode::ADD)
@@ -680,12 +595,7 @@ impl CpuChip {
     }
 
     /// Populate columns related to ECALL.
-    fn populate_ecall<F: PrimeField>(
-        &self,
-        cols: &mut CpuCols<F>,
-        event: CpuEvent,
-        nonce_lookup: &HashMap<usize, u32>,
-    ) -> bool {
+    fn populate_ecall<F: PrimeField>(&self, cols: &mut CpuCols<F>, _event: CpuEvent) -> bool {
         let mut is_halt = false;
 
         if cols.selectors.is_ecall == F::one() {
@@ -738,14 +648,6 @@ impl CpuChip {
                 let digest_idx = cols.op_b_access.value().to_u32() as usize;
                 ecall_cols.index_bitmap[digest_idx] = F::one();
             }
-
-            // Write the syscall nonce.
-            ecall_cols.syscall_nonce = F::from_canonical_u32(
-                nonce_lookup
-                    .get(&event.syscall_lookup_id)
-                    .copied()
-                    .unwrap_or_default(),
-            );
 
             is_halt = syscall_id == F::from_canonical_u32(SyscallCode::HALT.syscall_id());
         }
