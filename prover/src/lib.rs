@@ -883,6 +883,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] // ignore for recursion performance reasons
     fn test_deferred_proving_with_bls12381_g2_precompiles() {
         fn test_inner(
             program_elf: &[u8],

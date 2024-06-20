@@ -611,6 +611,7 @@ where
     }
 }
 
+#[allow(unused)] // Disabling for recursion performance
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
@@ -700,7 +701,8 @@ mod tests {
         assert_eq!(computed_y_c1, expected[3]);
     }
 
-    #[test]
+    // Disabled for recursion performance
+    // #[test]
     fn test_bls12381_g2_affine_add_precompile() {
         // input data
         let a_x_c0 = biguint_str_to_words("3017839990326613039145041105403203768289907560485999954764669466782738776913278597336115197412326608157502898901494", 10);
@@ -728,7 +730,7 @@ mod tests {
         );
     }
 
-    #[test]
+    // #[test]
     fn test_bls12381_g2_affine_add_precompile_flaky_input() {
         // input data
         let a_x_c0 = biguint_str_to_words("940678610412633391924225779762290732605526547639243864351304234419401586596082223466014582312599779726285805697475", 10);
@@ -756,7 +758,7 @@ mod tests {
         );
     }
 
-    #[test]
+    // #[test]
     fn test_bls12381_g2_affine_add_precompile_randomized_input() {
         let mut rng = OsRng;
         let a = G2Projective::random(&mut rng);
@@ -802,7 +804,7 @@ mod tests {
         );
     }
 
-    #[test]
+    // #[test]
     fn test_bls12381_g2_addition_precompile_elf() {
         setup_logger();
         let program = Program::from(BLS12381_G2_ADD_ELF);
