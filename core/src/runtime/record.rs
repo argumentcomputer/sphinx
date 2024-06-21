@@ -492,10 +492,6 @@ impl MachineRecord for ExecutionRecord {
             self.secp256k1_decompress_events.len(),
         );
         stats.insert(
-            "bls12381_g1_add_events".to_string(),
-            self.bls12381_g1_add_events.len(),
-        );
-        stats.insert(
             "bls12381_fp_add_events".to_string(),
             self.bls12381_fp_add_events.len(),
         );
