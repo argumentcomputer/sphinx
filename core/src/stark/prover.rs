@@ -321,8 +321,8 @@ where
         let domains_and_perm_traces =
             tracing::debug_span!("flatten permutation traces and collect domains").in_scope(|| {
                 permutation_traces
-                    .into_iter()
-                    .zip(trace_domains.iter())
+                    .into_par_iter()
+                    .zip(trace_domains.par_iter())
                     .map(|(perm_trace, domain)| {
                         let trace = perm_trace.flatten_to_base();
                         (*domain, trace.clone())
@@ -354,7 +354,7 @@ where
         let quotient_values =
             parent_span.in_scope(|| {
                 quotient_domains
-                .into_par_iter()
+                .par_iter()
                 .enumerate()
                 .map(|(i, quotient_domain)| {
                     tracing::debug_span!(parent: &parent_span, "compute quotient values for domain")
