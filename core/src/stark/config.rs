@@ -49,7 +49,7 @@ pub type Challenger<SC> = <SC as StarkGenericConfig>::Challenger;
 pub trait StarkGenericConfig: Send + Sync + Serialize + DeserializeOwned + Clone {
     type Val: PrimeField;
 
-    type Domain: PolynomialSpace<Val = Self::Val> + Sync;
+    type Domain: PolynomialSpace<Val = Self::Val> + Sync + Send;
 
     /// The PCS used to commit to trace polynomials.
     type Pcs: Pcs<Self::Challenge, Self::Challenger, Domain = Self::Domain> + Sync;
