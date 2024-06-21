@@ -713,6 +713,7 @@ mod tests {
     use self::build::try_build_plonk_bn254_artifacts_dev;
     use super::*;
 
+    use crate::build::try_install_plonk_bn254_artifacts;
     use anyhow::Result;
     use p3_field::PrimeField32;
     use serial_test::serial;
@@ -720,15 +721,7 @@ mod tests {
     use sphinx_core::utils::setup_logger;
     use types::HashableKey;
 
-    /// Tests an end-to-end workflow of proving a program across the entire proof generation
-    /// pipeline.
-    ///
-    /// Add `FRI_QUERIES`=1 to your environment for faster execution. Should only take a few minutes
-    /// on a Mac M2. Note: This test always re-builds the plonk bn254 artifacts, so setting SP1_DEV is
-    /// not needed.
-    #[test]
-    #[serial]
-    fn test_e2e() -> Result<()> {
+    fn test_e2e_inner(build_artifacts: bool) -> Result<()> {
         setup_logger();
         let elf = include_bytes!("../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
 
@@ -785,14 +778,39 @@ mod tests {
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
         tracing::info!("generate plonk bn254 proof");
-        let artifacts_dir =
-            try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof);
+        let artifacts_dir = if build_artifacts {
+            try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof)
+        } else {
+            try_install_plonk_bn254_artifacts(false)
+        };
+
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
         println!("{:?}", plonk_bn254_proof);
 
         prover.verify_plonk_bn254(&plonk_bn254_proof, &vk, &public_values, &artifacts_dir)?;
 
         Ok(())
+    }
+
+    /// Tests an end-to-end workflow of proving a program across the entire proof generation
+    /// pipeline.
+    ///
+    /// Add `FRI_QUERIES`=1 to your environment for faster execution. Should only take a few minutes
+    /// on a Mac M2. Note: This test always re-builds the plonk bn254 artifacts, so setting SP1_DEV is
+    /// not needed.
+    #[test]
+    #[serial]
+    fn test_e2e() -> Result<()> {
+        test_e2e_inner(true)
+    }
+
+    /// Tests an end-to-end workflow of proving a program across the entire proof generation
+    /// pipeline. This test tries to install plonk artifacts, so it is useful to run in in order to check if
+    /// newly installed parameters work
+    #[test]
+    #[ignore]
+    fn test_e2e_check_parameters() -> Result<()> {
+        test_e2e_inner(false)
     }
 
     /// Tests an end-to-end workflow of proving a program across the entire proof generation
