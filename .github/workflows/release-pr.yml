@@ -19,10 +19,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      # Crates from which the version will be bumped
-      CRATES: './cli, ./core, ./derive, ./eval, ./helper, ./primitives, ./prover, ./recursion/circuit, ./recursion/compiler, ./recursion/core, ./recursion/gnark-ffi, ./recursion/program, ./sdk, ./tutorials, ./zkvm/entrypoint, ./zkvm/precompiles'
-
     steps:
       - name: Git config
         run: |
@@ -34,6 +30,12 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install `tq-rs`
+        run: cargo install tq-rs
 
       # The `release/1.0` branch is always truncated, so that patch version merges still are valid Semver
       # However, when we make the initial `release/1.0` version bump, we include the full `1.0.0` in `Cargo.toml`
@@ -75,19 +77,31 @@ jobs:
 
       - name: Update version in Cargo.toml
         run: |
-          echo "Updating version in Cargo.toml..."
-          IFS=',' read -ra CRATE_PATHS <<< "$CRATES"
-          for path in "${CRATE_PATHS[@]}"; do
-            cd $path
+          members=$(tq workspace.members -f Cargo.toml | jq -r '.[]')
+
+          bump_version() {
+            cd "$1"
             OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml)
             if [[ "${{ env.VERSION }}" > "$OLD_VERSION" ]]; then
-              sed -i 's/version = "'$OLD_VERSION'"/version = "${{ env.VERSION }}"/' Cargo.toml
+              sed -i "s/version = \"$OLD_VERSION\"/version = \"${{ env.VERSION }}\"/" Cargo.toml
             else
-              echo "New version is not greater than the current version for $path. Aborting..."
+              echo "New version is not greater than the current version for $1. Aborting..."
               exit 1
             fi
-            cd $GITHUB_WORKSPACE
-          done
+            cd ${{ github.workspace }}
+          }
+
+          while IFS= read -r path; do
+            if [[ "$path" == *"/*" ]]; then
+              for dir in "${path%/*}"/*; do
+                if [ -d "$dir" ] && [ -f "$dir/Cargo.toml" ]; then
+                  bump_version "$dir"
+                fi
+              done
+            else
+              bump_version "$path"
+            fi
+          done <<< "$members"
 
       - name: Commit changes
         run: |
