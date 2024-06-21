@@ -12,7 +12,7 @@ use reqwest::Client;
 use crate::utils::block_on;
 
 /// The base URL for the S3 bucket containing the plonk bn254 artifacts.
-pub const PLONK_BN254_ARTIFACTS_URL_BASE: &str = "s3://sphinx-plonk-params";
+pub const PLONK_BN254_ARTIFACTS_URL_BASE: &str = "https://sphinx-plonk-params.s3.amazonaws.com";
 
 /// The current version of the plonk bn254 artifacts.
 pub const PLONK_BN254_ARTIFACTS_COMMIT: &str = "4a525e9f";

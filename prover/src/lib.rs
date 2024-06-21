@@ -781,7 +781,7 @@ mod tests {
         let artifacts_dir = if build_artifacts {
             try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof)
         } else {
-            try_install_plonk_bn254_artifacts(true)
+            try_install_plonk_bn254_artifacts(false)
         };
 
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
