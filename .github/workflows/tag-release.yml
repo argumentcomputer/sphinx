@@ -1,0 +1,55 @@
+name: Tag release
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - dev
+      - release/*
+
+jobs:
+  # Creates a new tag if a release branch is merged
+  tag-bump:
+    if: |
+      github.event.pull_request.merged == true &&
+      ((startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.base.ref == 'dev') ||
+      (startsWith(github.event.pull_request.head.ref, 'hotfix/') && startsWith(github.event.pull_request.base.ref, 'release/')))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com/".insteadOf ssh://git@github.com
+          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com".insteadOf https://github.com
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | cut -d'/' -f 2)
+          RELEASE_BRANCH="${{ startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.head.ref || github.event.pull_request.base.ref }}"
+
+          git tag -a $VERSION -m "$VERSION" $RELEASE_BRANCH
+          git push origin $VERSION -f
+          echo "version=$VERSION" | tee -a "$GITHUB_OUTPUT"
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a "$GITHUB_ENV"
+
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          toTag: ${{ steps.get-version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          body: ${{ steps.github_release.outputs.changelog }}
+          tag: ${{ steps.get-version.outputs.version }}
+          commit: ${{ env.RELEASE_BRANCH }}
+          allowUpdates: true
