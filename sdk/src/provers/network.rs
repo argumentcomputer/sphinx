@@ -4,7 +4,7 @@ use crate::proto::network::ProofMode;
 use crate::{
     client::NetworkClient,
     proto::network::{ProofStatus, TransactionStatus},
-    Prover,
+    Prover, SphinxEthProof,
 };
 use crate::{
     SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof, SphinxProvingKey,
@@ -186,6 +186,10 @@ impl Prover for NetworkProver {
 
     fn prove_plonk(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxPlonkProof> {
         block_on(self.prove_async(&pk.elf, stdin, ProofMode::Plonk))
+    }
+
+    fn prove_eth(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxEthProof> {
+        todo!()
     }
 }
 

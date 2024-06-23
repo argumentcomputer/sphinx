@@ -2,7 +2,9 @@ mod local;
 mod mock;
 mod network;
 
-use crate::{SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof};
+use crate::{
+    SphinxCompressedProof, SphinxEthProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
+};
 use anyhow::Result;
 pub use local::LocalProver;
 pub use mock::MockProver;
@@ -33,6 +35,8 @@ pub trait Prover: Send + Sync {
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
     ) -> Result<SphinxCompressedProof>;
+
+    fn prove_eth(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxEthProof>;
 
     /// Given an SP1 program and input, generate a Groth16 proof that can be verified on-chain.
     fn prove_groth16(

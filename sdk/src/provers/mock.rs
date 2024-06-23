@@ -1,7 +1,7 @@
 #![allow(unused_variables)]
 use crate::{
-    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
-    SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey,
+    Prover, SphinxCompressedProof, SphinxEthProof, SphinxGroth16Proof, SphinxPlonkProof,
+    SphinxProof, SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey,
     SphinxVerifyingKey,
 };
 use anyhow::Result;
@@ -101,6 +101,10 @@ impl Prover for MockProver {
 
     fn verify_plonk(&self, _proof: &SphinxPlonkProof, _vkey: &SphinxVerifyingKey) -> Result<()> {
         Ok(())
+    }
+
+    fn prove_eth(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxEthProof> {
+        todo!()
     }
 }
 

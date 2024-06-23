@@ -2,8 +2,8 @@ use anyhow::Result;
 use sphinx_prover::{SphinxProver, SphinxStdin};
 
 use crate::{
-    Prover, SphinxCompressedProof, SphinxGroth16Proof, SphinxPlonkProof, SphinxProof,
-    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
+    Prover, SphinxCompressedProof, SphinxEthProof, SphinxGroth16Proof, SphinxPlonkProof,
+    SphinxProof, SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
@@ -80,6 +80,19 @@ impl Prover for LocalProver {
         let proof = self.prover.wrap_groth16(outer_proof, &groth16_aritfacts);
         Ok(SphinxProofWithPublicValues {
             proof,
+            stdin,
+            public_values,
+        })
+    }
+
+    fn prove_eth(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxEthProof> {
+        let proof = self.prover.prove_core(pk, &stdin)?;
+        let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
+        let public_values = proof.public_values.clone();
+        let reduce_proof = self.prover.compress(&pk.vk, proof, deferred_proofs)?;
+        let compress_proof = self.prover.shrink_eth(reduce_proof)?;
+        Ok(SphinxProofWithPublicValues {
+            proof: compress_proof.proof,
             stdin,
             public_values,
         })
