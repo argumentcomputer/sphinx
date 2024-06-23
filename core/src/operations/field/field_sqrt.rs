@@ -120,8 +120,9 @@ mod tests {
     use super::{FieldSqrtCols, Limbs};
 
     use crate::air::WordAirBuilder;
-    use crate::air::{EventLens, MachineAir};
-    use crate::bytes::event::ByteRecord;
+    use crate::air::{EventLens, EventMutLens, MachineAir};
+
+    use crate::bytes::ByteLookupEvent;
     use crate::operations::field::params::{FieldParameters, DEFAULT_NUM_LIMBS_T};
     use crate::runtime::ExecutionRecord;
     use crate::runtime::Program;
@@ -152,11 +153,12 @@ mod tests {
     }
 
     impl<'a, P: FieldParameters> crate::air::WithEvents<'a> for EdSqrtChip<P> {
-        type Events = &'a ();
+        type InputEvents = &'a ();
+        type OutputEvents = &'a [ByteLookupEvent];
     }
 
     impl<P: FieldParameters> EventLens<EdSqrtChip<P>> for ExecutionRecord {
-        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents<'_>>::Events {
+        fn events(&self) -> <EdSqrtChip<P> as crate::air::WithEvents<'_>>::InputEvents {
             &()
         }
     }
@@ -172,10 +174,10 @@ mod tests {
             "EdSqrtChip".to_string()
         }
 
-        fn generate_trace<EL: EventLens<Self>>(
+        fn generate_trace<EL: EventLens<Self>, OL: EventMutLens<Self>>(
             &self,
             _: &EL,
-            output: &mut ExecutionRecord,
+            output: &mut OL,
         ) -> RowMajorMatrix<F> {
             let mut rng = thread_rng();
             let num_rows = 1 << 8;
@@ -200,7 +202,7 @@ mod tests {
                     let cols: &mut TestCols<F, P> = row.as_mut_slice().borrow_mut();
                     cols.a = P::to_limbs_field::<F>(a);
                     cols.sqrt.populate(&mut blu_events, 1, a, ed25519_sqrt);
-                    output.add_byte_lookup_events(blu_events);
+                    output.add_events(&blu_events);
                     row
                 })
                 .collect::<Vec<_>>();
