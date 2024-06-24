@@ -10,8 +10,7 @@ pub use sphinx_prover::build::{
 
 /// Exports the solidity verifier for PLONK proofs to the specified output directory.
 ///
-/// WARNING: If you are on development mode, this function assumes that the PLONK artifacts have
-/// already been built.
+/// WARNING: If you are on development mode, this function will rebuild the PLONK artifacts.
 pub fn export_solidity_plonk_bn254_verifier(output_dir: impl Into<PathBuf>) -> Result<()> {
     let output_dir: PathBuf = output_dir.into();
     let artifacts_dir = if sphinx_prover::build::sphinx_dev_mode() {
@@ -20,6 +19,10 @@ pub fn export_solidity_plonk_bn254_verifier(output_dir: impl Into<PathBuf>) -> R
         try_install_plonk_bn254_artifacts(false)
     };
     let verifier_path = artifacts_dir.join("SphinxVerifier.sol");
+
+    if !verifier_path.exists() && sphinx_prover::build::sphinx_dev_mode() {
+        build_plonk_bn254_artifacts_with_dummy(artifacts_dir);
+    }
 
     if !verifier_path.exists() {
         return Err(anyhow::anyhow!(
