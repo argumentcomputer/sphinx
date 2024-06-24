@@ -745,7 +745,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-precompiles"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -759,7 +759,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-zkvm"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "bincode",
  "cfg-if",

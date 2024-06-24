@@ -4352,7 +4352,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-cli"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -4378,7 +4378,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-core"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -4441,7 +4441,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-derive"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4450,7 +4450,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-eval"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "clap",
  "csv",
@@ -4461,7 +4461,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-helper"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "cargo_metadata",
  "chrono",
@@ -4469,7 +4469,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-precompiles"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -4483,7 +4483,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-primitives"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "itertools 0.12.1",
  "lazy_static",
@@ -4495,7 +4495,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-prover"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -4536,7 +4536,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-recursion-circuit"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "bincode",
  "ff 0.13.0",
@@ -4567,7 +4567,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-recursion-compiler"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "backtrace",
  "hashbrown 0.14.5",
@@ -4595,7 +4595,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-recursion-core"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "arrayref",
  "backtrace",
@@ -4637,7 +4637,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-recursion-gnark-ffi"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "bindgen",
  "cfg-if",
@@ -4656,7 +4656,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-recursion-program"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "itertools 0.12.1",
  "p3-air",
@@ -4682,7 +4682,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-sdk"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "alloy-sol-types",
  "anyhow",
@@ -4719,7 +4719,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-zkvm"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "bincode",
  "cfg-if",
@@ -5223,7 +5223,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tutorials"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "itertools 0.12.1",
  "p3-air",
