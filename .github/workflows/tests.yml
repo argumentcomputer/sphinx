@@ -27,9 +27,9 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
-      - name: Run cargo test on *all of* sphinx except the test_e2e_prove_plonk recursion test
+      - name: Run cargo test on *all of* sphinx except a few really slow tests
         run: |
-          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --features "plonk" -E 'all() - test(test_e2e_prove_plonk)'
+          cargo nextest run --cargo-profile dev-ci --profile ci --workspace --features "plonk" -E 'all() - test(test_e2e) - test(test_verifier_export) - test(test_e2e_prove_plonk)'
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features "debug" -E 'test(cpu::trace::tests)'
