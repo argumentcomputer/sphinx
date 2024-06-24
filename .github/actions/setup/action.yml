@@ -4,7 +4,7 @@ inputs:
     description: "Token to use for private repo access"
     required: true
   perf:
-    description: "Set env to optimize performance"
+    description: "Set env to optimize CI latency"
     required: false
     default: "true"
 runs:
@@ -21,6 +21,7 @@ runs:
         if [[ "${{ inputs.perf }}" == "true" ]]; then
           echo "RUSTFLAGS=${{env.RUSTFLAGS}} -Copt-level=3 -Cdebug-assertions -Coverflow-checks=y -Cdebuginfo=0 -Ctarget-cpu=native" | tee -a $GITHUB_ENV
           echo "FRI_QUERIES=1" | tee -a $GITHUB_ENV
+          echo "SP1_DEV=true" | tee -a $GITHUB_ENV
         fi
         echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" | tee -a $GITHUB_ENV
         echo "RUST_LOG=info" | tee -a $GITHUB_ENV
