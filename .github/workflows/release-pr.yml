@@ -48,12 +48,12 @@ jobs:
             VERSION=${{ inputs.version }}
             BASE_BRANCH="release/v$BASE_VERSION_SHORT"
             PR_BRANCH="${{ inputs.type }}/v${{ inputs.version }}"
-            git checkout ${{ env.PR_BRANCH }}
+            git checkout $PR_BRANCH
           else
             VERSION=$BASE_VERSION
             BASE_BRANCH="dev"
             PR_BRANCH="release/v$BASE_VERSION_SHORT"
-            git checkout -b ${{ env.PR_BRANCH }}
+            git checkout -b $PR_BRANCH
           fi
 
           echo "BASE_BRANCH=$BASE_BRANCH" | tee -a $GITHUB_ENV
