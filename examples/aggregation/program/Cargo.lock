@@ -585,7 +585,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-precompiles"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -599,7 +599,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-primitives"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "itertools",
  "lazy_static",
@@ -611,7 +611,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-zkvm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bincode",
  "cfg-if",
