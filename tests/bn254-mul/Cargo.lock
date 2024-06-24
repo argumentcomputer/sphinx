@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-derive"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -420,7 +420,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-precompiles"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -434,7 +434,7 @@ dependencies = [
 
 [[package]]
 name = "sphinx-zkvm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bincode",
  "cfg-if",
