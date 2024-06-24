@@ -46,13 +46,13 @@ jobs:
           BASE_VERSION="${BASE_VERSION_SHORT}.0"
           if [[ "${{ inputs.type }}" == "hotfix" ]]; then
             VERSION=${{ inputs.version }}
-            BASE_BRANCH="release/$BASE_VERSION_SHORT"
-            PR_BRANCH="${{ inputs.type }}/${{ inputs.version }}"
+            BASE_BRANCH="release/v$BASE_VERSION_SHORT"
+            PR_BRANCH="${{ inputs.type }}/v${{ inputs.version }}"
             git checkout ${{ env.PR_BRANCH }}
           else
             VERSION=$BASE_VERSION
-            BASE_BRANCH="main"
-            PR_BRANCH="release/$BASE_VERSION_SHORT"
+            BASE_BRANCH="dev"
+            PR_BRANCH="release/v$BASE_VERSION_SHORT"
             git checkout -b ${{ env.PR_BRANCH }}
           fi
 
@@ -116,7 +116,7 @@ jobs:
           cat << 'EOF' > body.md
           This is an automated release PR for the patched version of `${{ env.VERSION }}`.
 
-          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `{{ env.VERSION }}`.
+          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `v${{ env.VERSION }}`.
 
           [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           EOF
