@@ -3,7 +3,7 @@ set -e
 
 # Specify the file to upload and the S3 bucket name
 FILE_TO_UPLOAD="./build"
-S3_BUCKET="sp1-circuits"
+S3_BUCKET="sphinx-plonk-params"
 
 # Check for unstaged changes in the Git repository
 if ! git diff --quiet; then
