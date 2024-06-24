@@ -1905,6 +1905,7 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
  "allocator-api2",
+ "serde",
 ]
 
 [[package]]
@@ -4230,6 +4231,7 @@ dependencies = [
  "curve25519-dalek",
  "elf",
  "elliptic-curve",
+ "hashbrown 0.14.5",
  "hex",
  "hybrid-array",
  "itertools 0.12.1",
@@ -4257,6 +4259,7 @@ dependencies = [
  "p3-symmetric",
  "p3-uni-stark",
  "p3-util",
+ "rand",
  "rayon-scan",
  "rrs-lib",
  "serde",
@@ -4372,6 +4375,7 @@ name = "sphinx-recursion-compiler"
 version = "0.1.0"
 dependencies = [
  "backtrace",
+ "hashbrown 0.14.5",
  "itertools 0.12.1",
  "p3-air",
  "p3-baby-bear",
@@ -4441,9 +4445,11 @@ dependencies = [
  "num-bigint 0.4.5",
  "p3-baby-bear",
  "p3-field",
+ "p3-symmetric",
  "rand",
  "serde",
  "serde_json",
+ "sphinx-core",
  "sphinx-recursion-compiler",
  "tempfile",
 ]
