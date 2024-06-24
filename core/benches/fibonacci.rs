@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use sphinx_core::{
@@ -14,7 +14,7 @@ fn elf_path(p: &str) -> String {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let programs = ["fibonacci"];
-    let mut cycles_map = HashMap::new();
+    let mut cycles_map = HashMap::default();
     for p in programs {
         let elf_path = elf_path(p);
         let program = Program::from_elf(&elf_path);

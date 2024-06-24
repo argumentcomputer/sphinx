@@ -1,4 +1,3 @@
-use hashbrown::HashMap;
 use itertools::Itertools;
 use p3_air::Air;
 use p3_challenger::CanObserve;
@@ -11,6 +10,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Dimensions;
 use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::*;
+use rustc_hash::FxHashMap as HashMap;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;

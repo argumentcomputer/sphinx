@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 use std::fmt;
 use std::sync::Arc;
 

@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 use p3_field::AbstractField;
 

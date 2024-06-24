@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use crate::runtime::{ForkState, Syscall, SyscallContext};
 

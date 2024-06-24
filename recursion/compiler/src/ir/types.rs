@@ -1,6 +1,6 @@
 use alloc::format;
 use core::marker::PhantomData;
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 use std::hash::Hash;
 
 use p3_field::{AbstractField, ExtensionField, Field};
@@ -407,7 +407,7 @@ impl<C: Config> Variable<C> for Var<C::N> {
     }
 
     fn assign(&self, src: Self::Expression, builder: &mut Builder<C>) {
-        self.assign_with_cache(src, builder, &mut HashMap::new());
+        self.assign_with_cache(src, builder, &mut HashMap::default());
     }
 
     fn assert_eq(
@@ -750,7 +750,7 @@ impl<C: Config> Variable<C> for Felt<C::F> {
     }
 
     fn assign(&self, src: Self::Expression, builder: &mut Builder<C>) {
-        self.assign_with_cache(src, builder, &mut HashMap::new());
+        self.assign_with_cache(src, builder, &mut HashMap::default());
     }
 
     fn assert_eq(
@@ -1144,7 +1144,12 @@ impl<C: Config> Variable<C> for Ext<C::F, C::EF> {
     }
 
     fn assign(&self, src: Self::Expression, builder: &mut Builder<C>) {
-        self.assign_with_caches(src, builder, &mut HashMap::new(), &mut HashMap::new());
+        self.assign_with_caches(
+            src,
+            builder,
+            &mut HashMap::default(),
+            &mut HashMap::default(),
+        );
     }
 
     fn assert_eq(

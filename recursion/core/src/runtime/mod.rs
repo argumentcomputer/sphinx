@@ -8,7 +8,6 @@ use std::collections::VecDeque;
 use std::process::exit;
 use std::{marker::PhantomData, sync::Arc};
 
-use hashbrown::HashMap;
 pub use instruction::*;
 use itertools::Itertools;
 pub use opcode::*;
@@ -17,6 +16,7 @@ use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
 use p3_symmetric::{CryptographicPermutation, Permutation};
 pub use program::*;
 pub use record::*;
+use rustc_hash::FxHashMap as HashMap;
 pub use utils::*;
 
 use crate::air::{Block, RECURSION_PUBLIC_VALUES_COL_MAP, RECURSIVE_PROOF_NUM_PV_ELTS};
@@ -169,13 +169,13 @@ where
             program: program.clone(),
             fp: F::from_canonical_usize(STACK_SIZE),
             pc: F::zero(),
-            memory: HashMap::new(),
-            uninitialized_memory: HashMap::new(),
+            memory: HashMap::default(),
+            uninitialized_memory: HashMap::default(),
             record,
             perm: Some(perm),
             access: CpuRecord::default(),
             witness_stream: VecDeque::new(),
-            cycle_tracker: HashMap::new(),
+            cycle_tracker: HashMap::default(),
             _marker: PhantomData,
         }
     }
@@ -199,13 +199,13 @@ where
             program: program.clone(),
             fp: F::from_canonical_usize(STACK_SIZE),
             pc: F::zero(),
-            memory: HashMap::new(),
-            uninitialized_memory: HashMap::new(),
+            memory: HashMap::default(),
+            uninitialized_memory: HashMap::default(),
             record,
             perm: None,
             access: CpuRecord::default(),
             witness_stream: VecDeque::new(),
-            cycle_tracker: HashMap::new(),
+            cycle_tracker: HashMap::default(),
             _marker: PhantomData,
         }
     }

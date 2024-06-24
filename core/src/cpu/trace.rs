@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 use std::array;
 use std::borrow::BorrowMut;
 
@@ -78,13 +78,13 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
             .0
             .par_chunks(chunk_size)
             .map(|ops: &[CpuEvent]| {
-                let mut alu = HashMap::new();
+                let mut alu = HashMap::default();
                 let mut blu: Vec<_> = Vec::with_capacity(ops.len() * 8);
                 for op in ops.iter() {
                     let mut row = [F::zero(); NUM_CPU_COLS];
                     let cols: &mut CpuCols<F> = row.as_mut_slice().borrow_mut();
                     let (alu_events, blu_events) =
-                        self.event_to_row::<F>(op, &HashMap::new(), cols);
+                        self.event_to_row::<F>(op, &HashMap::default(), cols);
                     for (key, value) in alu_events {
                         alu.entry(key).or_insert(Vec::default()).extend(value);
                     }
@@ -119,7 +119,7 @@ impl CpuChip {
         nonce_lookup: &HashMap<usize, u32>,
         cols: &mut CpuCols<F>,
     ) -> (HashMap<Opcode, Vec<AluEvent>>, Vec<ByteLookupEvent>) {
-        let mut new_alu_events = HashMap::new();
+        let mut new_alu_events = HashMap::default();
         let mut new_blu_events = Vec::new();
 
         // Populate shard and clk columns.

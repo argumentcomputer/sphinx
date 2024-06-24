@@ -2,7 +2,7 @@ use core::{
     borrow::{Borrow, BorrowMut},
     mem::size_of,
 };
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField;
@@ -122,7 +122,7 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
         let (cpu_events, program) = input.events();
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.
-        let mut instruction_counts = HashMap::new();
+        let mut instruction_counts = HashMap::default();
         for event in cpu_events.iter() {
             let pc = event.pc;
             instruction_counts

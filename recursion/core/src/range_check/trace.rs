@@ -1,8 +1,8 @@
 use std::borrow::BorrowMut;
 
-use hashbrown::HashMap;
 use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
+use rustc_hash::FxHashMap as HashMap;
 use sphinx_core::air::{EventLens, MachineAir, WithEvents};
 
 use super::{

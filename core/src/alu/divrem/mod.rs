@@ -64,7 +64,7 @@ mod utils;
 
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::AbstractField;
@@ -392,7 +392,7 @@ impl<F: PrimeField> MachineAir<F> for DivRemChip {
                                 sub_lookups: create_alu_lookups(),
                             })
                         }
-                        let mut alu_events = HashMap::new();
+                        let mut alu_events = HashMap::default();
                         alu_events.insert(Opcode::ADD, add_events);
                         output.add_alu_events(&mut alu_events);
                     }

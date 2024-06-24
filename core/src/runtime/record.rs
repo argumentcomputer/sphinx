@@ -1,7 +1,7 @@
 use std::{mem::take, sync::Arc};
 
-use hashbrown::HashMap;
 use p3_field::{AbstractField, Field};
+use rustc_hash::FxHashMap as HashMap;
 use serde::{Deserialize, Serialize};
 
 use super::{program::Program, Opcode};
@@ -431,7 +431,7 @@ impl MachineRecord for ExecutionRecord {
     }
 
     fn stats(&self) -> HashMap<String, usize> {
-        let mut stats = HashMap::new();
+        let mut stats = HashMap::default();
         stats.insert("cpu_events".to_string(), self.cpu_events.len());
         stats.insert("add_events".to_string(), self.add_events.len());
         stats.insert("mul_events".to_string(), self.mul_events.len());

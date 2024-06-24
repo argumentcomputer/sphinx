@@ -20,8 +20,8 @@ pub(crate) use state::*;
 pub use syscall::*;
 pub use utils::*;
 
-use hashbrown::hash_map::Entry;
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap as HashMap;
+use std::collections::hash_map::Entry;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::File;
 use std::io::BufWriter;
@@ -183,8 +183,8 @@ impl Runtime {
             memory_accesses: MemoryAccessRecord::default(),
             shard_size: (opts.shard_size as u32) * 4,
             shard_batch_size: opts.shard_batch_size as u32,
-            cycle_tracker: HashMap::new(),
-            io_buf: HashMap::new(),
+            cycle_tracker: HashMap::default(),
+            io_buf: HashMap::default(),
             trace_buf,
             unconstrained: false,
             unconstrained_state: ForkState::default(),
@@ -1244,7 +1244,8 @@ pub mod tests {
                     (MUL, 3735),
                     (BLTU, 39475),
                 ]
-                .into(),
+                .into_iter()
+                .collect(),
                 syscall_counts: [
                     (COMMIT_DEFERRED_PROOFS, 8),
                     (SHA_COMPRESS, 1091),
@@ -1253,7 +1254,8 @@ pub mod tests {
                     (COMMIT, 8),
                     (SHA_EXTEND, 1091),
                 ]
-                .into(),
+                .into_iter()
+                .collect(),
             }
         });
         assert_eq!(runtime.report.total_instruction_count(), 2383101);

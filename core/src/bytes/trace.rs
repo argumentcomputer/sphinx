@@ -1,8 +1,8 @@
 use std::borrow::BorrowMut;
 
-use hashbrown::HashMap;
 use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
+use rustc_hash::FxHashMap as HashMap;
 
 use super::{
     columns::{ByteMultCols, NUM_BYTE_MULT_COLS, NUM_BYTE_PREPROCESSED_COLS},
