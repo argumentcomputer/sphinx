@@ -81,7 +81,7 @@ jobs:
 
           bump_version() {
             cd "$1"
-            OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml)
+            OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml | head -n1)
             if [[ "${{ env.VERSION }}" > "$OLD_VERSION" ]]; then
               sed -i "s/version = \"$OLD_VERSION\"/version = \"${{ env.VERSION }}\"/" Cargo.toml
             else
