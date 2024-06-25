@@ -16,7 +16,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, WithEvents};
+use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, Polynomial, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryCols;
@@ -28,6 +28,7 @@ use crate::operations::field::params::{FieldParameters, Limbs, WORDS_FIELD_ELEME
 use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::SyscallCode;
+use crate::syscall::precompiles::weierstrass::PointCols;
 use crate::syscall::precompiles::{ECAddEvent, WORDS_CURVEPOINT};
 use crate::utils::ec::weierstrass::WeierstrassParameters;
 use crate::utils::ec::AffinePoint;
@@ -44,15 +45,6 @@ pub const fn num_weierstrass_add_cols<P: FieldParameters>() -> usize {
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
 pub struct WeierstrassAddAssignCols<T, P: FieldParameters> {
-    pub is_real: T,
-    pub shard: T,
-    pub channel: T,
-    pub nonce: T,
-    pub clk: T,
-    pub p_ptr: T,
-    pub q_ptr: T,
-    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
-    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
     pub(crate) slope_denominator: FieldOpCols<T, P>,
     pub(crate) slope_numerator: FieldOpCols<T, P>,
     pub(crate) slope: FieldOpCols<T, P>,
@@ -62,6 +54,21 @@ pub struct WeierstrassAddAssignCols<T, P: FieldParameters> {
     pub(crate) p_x_minus_x: FieldOpCols<T, P>,
     pub(crate) y3_ins: FieldOpCols<T, P>,
     pub(crate) slope_times_p_x_minus_x: FieldOpCols<T, P>,
+}
+
+#[derive(Debug, Clone, AlignedBorrow)]
+#[repr(C)]
+pub struct WeierstrassAddAssignSyscallCols<T, P: FieldParameters> {
+    pub is_real: T,
+    pub shard: T,
+    pub channel: T,
+    pub nonce: T,
+    pub clk: T,
+    pub p_ptr: T,
+    pub q_ptr: T,
+    pub p_access: Array<MemoryWriteCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
+    pub q_access: Array<MemoryReadCols<T>, WORDS_CURVEPOINT<P::NB_LIMBS>>,
+    pub op_cols: WeierstrassAddAssignCols<T, P>,
 }
 
 #[derive(Default)]
@@ -208,7 +215,7 @@ where
         for i in 0..events.len() {
             let event = &events[i];
             let mut row = vec![F::zero(); num_weierstrass_add_cols::<E::BaseField>()];
-            let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> =
+            let cols: &mut WeierstrassAddAssignSyscallCols<F, E::BaseField> =
                 row.as_mut_slice().borrow_mut();
 
             // Decode affine points.
@@ -231,7 +238,7 @@ where
                 &mut new_byte_lookup_events,
                 event.shard,
                 event.channel,
-                cols,
+                &mut cols.op_cols,
                 &p_x,
                 &p_y,
                 &q_x,
@@ -275,7 +282,7 @@ where
 
         // Write the nonces to the trace.
         for i in 0..trace.height() {
-            let cols: &mut WeierstrassAddAssignCols<F, E::BaseField> = trace.values[i
+            let cols: &mut WeierstrassAddAssignSyscallCols<F, E::BaseField> = trace.values[i
                 * num_weierstrass_add_cols::<E::BaseField>()
                 ..(i + 1) * num_weierstrass_add_cols::<E::BaseField>()]
                 .borrow_mut();
@@ -308,9 +315,9 @@ where
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
         let local = main.row_slice(0);
-        let local: &WeierstrassAddAssignCols<AB::Var, E::BaseField> = (*local).borrow();
+        let local: &WeierstrassAddAssignSyscallCols<AB::Var, E::BaseField> = (*local).borrow();
         let next = main.row_slice(1);
-        let next: &WeierstrassAddAssignCols<AB::Var, E::BaseField> = (*next).borrow();
+        let next: &WeierstrassAddAssignSyscallCols<AB::Var, E::BaseField> = (*next).borrow();
 
         // Constrain the incrementing nonce.
         builder.when_first_row().assert_zero(local.nonce);
@@ -323,123 +330,37 @@ where
             limbs_from_prev_access(&local.p_access[0..num_words_field_element]);
         let p_y: Limbs<_, BaseLimbWidth<E>> =
             limbs_from_prev_access(&local.p_access[num_words_field_element..]);
+        let p = PointCols {
+            x: p_x.into(),
+            y: p_y.into(),
+        };
 
         let q_x: Limbs<_, BaseLimbWidth<E>> =
             limbs_from_prev_access(&local.q_access[0..num_words_field_element]);
         let q_y: Limbs<_, BaseLimbWidth<E>> =
             limbs_from_prev_access(&local.q_access[num_words_field_element..]);
-
-        // slope = (q.y - p.y) / (q.x - p.x).
-        let slope = {
-            local.slope_numerator.eval(
-                builder,
-                &q_y,
-                &p_y,
-                FieldOperation::Sub,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.slope_denominator.eval(
-                builder,
-                &q_x,
-                &p_x,
-                FieldOperation::Sub,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.slope.eval(
-                builder,
-                &local.slope_numerator.result,
-                &local.slope_denominator.result,
-                FieldOperation::Div,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            &local.slope.result
+        let q = PointCols {
+            x: q_x.into(),
+            y: q_y.into(),
         };
 
-        // x = slope * slope - self.x - other.x.
-        let x = {
-            local.slope_squared.eval(
-                builder,
-                slope,
-                slope,
-                FieldOperation::Mul,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.p_x_plus_q_x.eval(
-                builder,
-                &p_x,
-                &q_x,
-                FieldOperation::Add,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.x3_ins.eval(
-                builder,
-                &local.slope_squared.result,
-                &local.p_x_plus_q_x.result,
-                FieldOperation::Sub,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            &local.x3_ins.result
-        };
-
-        // y = slope * (p.x - x_3n) - q.y.
-        {
-            local.p_x_minus_x.eval(
-                builder,
-                &p_x,
-                x,
-                FieldOperation::Sub,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.slope_times_p_x_minus_x.eval(
-                builder,
-                slope,
-                &local.p_x_minus_x.result,
-                FieldOperation::Mul,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-
-            local.y3_ins.eval(
-                builder,
-                &local.slope_times_p_x_minus_x.result,
-                &p_y,
-                FieldOperation::Sub,
-                local.shard,
-                local.channel,
-                local.is_real,
-            );
-        }
+        let result = local.op_cols.eval(
+            builder,
+            p,
+            q,
+            local.shard.into(),
+            local.channel.into(),
+            local.is_real.into(),
+        );
 
         // Constraint self.p_access.value = [self.x3_ins.result, self.y3_ins.result]. This is to
         // ensure that p_access is updated with the new value.
         for i in 0..BaseLimbWidth::<E>::USIZE {
             builder
                 .when(local.is_real)
-                .assert_eq(local.x3_ins.result[i], local.p_access[i / 4].value()[i % 4]);
+                .assert_eq(result.x[i].clone(), local.p_access[i / 4].value()[i % 4]);
             builder.when(local.is_real).assert_eq(
-                local.y3_ins.result[i],
+                result.y[i].clone(),
                 local.p_access[num_words_field_element + i / 4].value()[i % 4],
             );
         }
@@ -483,6 +404,130 @@ where
             local.q_ptr,
             local.is_real,
         );
+    }
+}
+
+impl<T, P: FieldParameters> WeierstrassAddAssignCols<T, P> {
+    fn eval<AB>(
+        &self,
+        builder: &mut AB,
+        p: PointCols<AB::Expr>,
+        q: PointCols<AB::Expr>,
+        shard: AB::Expr,
+        channel: AB::Expr,
+        is_real: AB::Expr,
+    ) -> PointCols<AB::Expr>
+    where
+        AB: MemoryAirBuilder + AluAirBuilder + AirBuilder<Var = T>,
+        T: Copy + Into<AB::Expr>,
+    {
+        // slope = (q.y - p.y) / (q.x - p.x).
+        let slope = {
+            self.slope_numerator.eval(
+                builder,
+                &q.y,
+                &p.y,
+                FieldOperation::Sub,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.slope_denominator.eval(
+                builder,
+                &q.x,
+                &p.x,
+                FieldOperation::Sub,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.slope.eval(
+                builder,
+                &self.slope_numerator.result,
+                &self.slope_denominator.result,
+                FieldOperation::Div,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            &self.slope.result
+        };
+
+        // x = slope * slope - self.x - other.x.
+        let x = {
+            self.slope_squared.eval(
+                builder,
+                slope,
+                slope,
+                FieldOperation::Mul,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.p_x_plus_q_x.eval(
+                builder,
+                &p.x,
+                &q.x,
+                FieldOperation::Add,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.x3_ins.eval(
+                builder,
+                &self.slope_squared.result,
+                &self.p_x_plus_q_x.result,
+                FieldOperation::Sub,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.x3_ins.result.clone()
+        };
+
+        // y = slope * (p.x - x_3n) - q.y.
+        let y = {
+            self.p_x_minus_x.eval(
+                builder,
+                &p.x,
+                &x,
+                FieldOperation::Sub,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.slope_times_p_x_minus_x.eval(
+                builder,
+                slope,
+                &self.p_x_minus_x.result,
+                FieldOperation::Mul,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+
+            self.y3_ins.eval(
+                builder,
+                &self.slope_times_p_x_minus_x.result,
+                &p.y,
+                FieldOperation::Sub,
+                shard.clone(),
+                channel.clone(),
+                is_real.clone(),
+            );
+            self.y3_ins.result.clone()
+        };
+        PointCols {
+            x: x.into(),
+            y: y.into(),
+        }
     }
 }
 

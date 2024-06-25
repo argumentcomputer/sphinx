@@ -2,6 +2,7 @@ use core::{
     fmt::Debug,
     ops::{Add, AddAssign, Mul, Neg, Sub},
 };
+use std::ops::Index;
 
 use itertools::Itertools;
 use p3_field::{AbstractExtensionField, AbstractField, Field};
@@ -10,6 +11,14 @@ use p3_field::{AbstractExtensionField, AbstractField, Field};
 #[derive(Debug, Clone)]
 pub struct Polynomial<T> {
     coefficients: Vec<T>,
+}
+
+impl<T> Index<usize> for Polynomial<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coefficients[index]
+    }
 }
 
 impl<T> Polynomial<T> {
