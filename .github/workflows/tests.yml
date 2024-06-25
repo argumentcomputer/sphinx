@@ -2,16 +2,12 @@ name: Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: dev
   pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
 
 jobs:
   test:
@@ -174,8 +170,8 @@ jobs:
       - uses: ./ci-workflows/.github/actions/ci-env
       - name: Set env
         run: |
-          echo "DOWNSTREAM_REPO=$(echo "lurk-lab/zk-light-clients" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
-          echo "UPSTREAM_REPO=$(echo "lurk-lab/sphinx" | awk -F'/' '{ print $2 }')" | tee -a $GITHUB_ENV
+          echo "DOWNSTREAM_REPO=zk-light-clients" | tee -a $GITHUB_ENV
+          echo "UPSTREAM_REPO=sphinx" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
           path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
@@ -200,4 +196,35 @@ jobs:
         with:
           upstream-path: "${{ env.UPSTREAM_REPO }}"
           downstream-path: "${{ env.DOWNSTREAM_REPO }}/aptos"
+          patch-ssh: true
+
+  check-loam-compiles:
+    runs-on: warp-ubuntu-latest-x64-16x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+          path: ci-workflows
+      - uses: ./ci-workflows/.github/actions/ci-env
+      - name: Set env
+        run: |
+          echo "DOWNSTREAM_REPO=loam" | tee -a $GITHUB_ENV
+          echo "UPSTREAM_REPO=sphinx" | tee -a $GITHUB_ENV
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
+      - name: Setup CI
+        uses: ./sphinx/.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+          perf: false
+      - uses: actions/checkout@v4
+        with:
+          repository: "lurk-lab/${{ env.DOWNSTREAM_REPO }}"
+          path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
+          token: ${{ secrets.REPO_TOKEN }}
+      - uses: ./ci-workflows/.github/actions/check-downstream-compiles
+        with:
+          upstream-path: "${{ env.UPSTREAM_REPO }}"
+          downstream-path: "${{ env.DOWNSTREAM_REPO }}"
           patch-ssh: true
