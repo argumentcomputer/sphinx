@@ -35,3 +35,6 @@ static_assertions = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
+
+[features]
+icicle = []

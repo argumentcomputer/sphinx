@@ -31,26 +31,26 @@ debug = true
 debug-assertions = true
 
 [workspace.dependencies]
-p3-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-field = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-commit = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-matrix = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-baby-bear = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1", features = [
+p3-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-field = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-commit = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-matrix = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-baby-bear = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle", features = [
   "nightly-features",
 ]}
-p3-util = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-challenger = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-dft = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-fri = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-keccak = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-keccak-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-blake3 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-merkle-tree = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-poseidon2 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-symmetric = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-uni-stark = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
-p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "sp1" }
+p3-util = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-challenger = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-dft = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-fri = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-keccak = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-keccak-air = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-blake3 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-merkle-tree = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-poseidon2 = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-symmetric = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-uni-stark = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-maybe-rayon = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
+p3-bn254-fr = { git = "https://github.com/lurk-lab/Plonky3.git", branch = "whz/icicle" }
 alloy = { git = "https://github.com/alloy-rs/alloy", rev = "bfd0fda" }
 anstyle = "1.0.7"
 anyhow = "1.0.86"

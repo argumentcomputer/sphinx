@@ -436,7 +436,6 @@ pub mod baby_bear_poseidon2 {
     use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
     use p3_challenger::DuplexChallenger;
     use p3_commit::ExtensionMmcs;
-    use p3_dft::Radix2DitParallel;
     use p3_field::{extension::BinomialExtensionField, Field};
     use p3_fri::{FriConfig, TwoAdicFriPcs};
     use p3_merkle_tree::FieldMerkleTreeMmcs;
@@ -461,7 +460,12 @@ pub mod baby_bear_poseidon2 {
         8,
     >;
     pub type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
-    pub type Dft = Radix2DitParallel;
+
+    #[cfg(feature = "icicle")]
+    pub(crate) type Dft = p3_baby_bear::BabyBearIcicleDft;
+    #[cfg(not(feature = "icicle"))]
+    pub(crate) type Dft = p3_dft::Radix2DitParallel;
+
     pub type Challenger = DuplexChallenger<Val, Perm, 16, 8>;
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
 
@@ -618,7 +622,6 @@ pub(super) mod baby_bear_keccak {
     use p3_baby_bear::BabyBear;
     use p3_challenger::{HashChallenger, SerializingChallenger32};
     use p3_commit::ExtensionMmcs;
-    use p3_dft::Radix2DitParallel;
     use p3_field::extension::BinomialExtensionField;
     use p3_fri::{FriConfig, TwoAdicFriPcs};
     use p3_keccak::Keccak256Hash;
@@ -641,7 +644,10 @@ pub(super) mod baby_bear_keccak {
     pub(crate) type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
     pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
 
-    pub(crate) type Dft = Radix2DitParallel;
+    #[cfg(feature = "icicle")]
+    pub(crate) type Dft = p3_baby_bear::BabyBearIcicleDft;
+    #[cfg(not(feature = "icicle"))]
+    pub(crate) type Dft = p3_dft::Radix2DitParallel;
 
     type Challenger = SerializingChallenger32<Val, HashChallenger<u8, ByteHash, 32>>;
 
@@ -731,7 +737,7 @@ pub(super) mod baby_bear_blake3 {
     use p3_blake3::Blake3;
     use p3_challenger::{HashChallenger, SerializingChallenger32};
     use p3_commit::ExtensionMmcs;
-    use p3_dft::Radix2DitParallel;
+    // use p3_dft::Radix2DitParallel;
     use p3_field::extension::BinomialExtensionField;
     use p3_fri::{FriConfig, TwoAdicFriPcs};
     use p3_merkle_tree::FieldMerkleTreeMmcs;
@@ -753,7 +759,10 @@ pub(super) mod baby_bear_blake3 {
     pub(crate) type ValMmcs = FieldMerkleTreeMmcs<Val, u8, FieldHash, MyCompress, 32>;
     pub(crate) type ChallengeMmcs = ExtensionMmcs<Val, Challenge, ValMmcs>;
 
-    pub(crate) type Dft = Radix2DitParallel;
+    #[cfg(feature = "icicle")]
+    pub(crate) type Dft = p3_baby_bear::BabyBearIcicleDft;
+    #[cfg(not(feature = "icicle"))]
+    pub(crate) type Dft = p3_dft::Radix2DitParallel;
 
     type Challenger = SerializingChallenger32<Val, HashChallenger<u8, ByteHash, 32>>;
 

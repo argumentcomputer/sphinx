@@ -47,7 +47,7 @@ pub fn setup_logger() {
             "texray" => {
                 Registry::default()
                     .with(env_filter)
-                    .with(TeXRayLayer::new())
+                    .with(TeXRayLayer::new().width(180))
                     .init();
             }
             _ => {

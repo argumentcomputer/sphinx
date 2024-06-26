@@ -2,7 +2,6 @@ use crate::stark::StarkGenericConfig;
 use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
 use p3_challenger::DuplexChallenger;
 use p3_commit::ExtensionMmcs;
-use p3_dft::Radix2DitParallel;
 use p3_field::{extension::BinomialExtensionField, Field};
 use p3_fri::BatchOpening;
 use p3_fri::CommitPhaseProofStep;
@@ -37,7 +36,12 @@ pub type InnerValMmcs = FieldMerkleTreeMmcs<
 >;
 pub type InnerChallengeMmcs = ExtensionMmcs<InnerVal, InnerChallenge, InnerValMmcs>;
 pub type InnerChallenger = DuplexChallenger<InnerVal, InnerPerm, 16, 8>;
-pub type InnerDft = Radix2DitParallel;
+
+#[cfg(feature = "icicle")]
+pub type InnerDft = p3_baby_bear::BabyBearIcicleDft;
+#[cfg(not(feature = "icicle"))]
+pub type InnerDft = p3_dft::Radix2DitParallel;
+
 pub type InnerPcs = TwoAdicFriPcs<InnerVal, InnerDft, InnerValMmcs, InnerChallengeMmcs>;
 pub type InnerQueryProof = QueryProof<InnerChallenge, InnerChallengeMmcs>;
 pub type InnerCommitPhaseStep = CommitPhaseProofStep<InnerChallenge, InnerChallengeMmcs>;

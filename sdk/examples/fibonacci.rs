@@ -19,7 +19,7 @@ fn main() {
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
     let mut proof = tracing_texray::examine(tracing::info_span!("bang!"))
-        .in_scope(|| client.prove_plonk(&pk, stdin).unwrap());
+        .in_scope(|| client.prove_compressed(&pk, stdin).unwrap());
 
     println!("generated proof");
 
@@ -33,7 +33,7 @@ fn main() {
 
     // Verify proof and public values
     client
-        .verify_plonk(&proof, &vk)
+        .verify_compressed(&proof, &vk)
         .expect("verification failed");
 
     // Save the proof.

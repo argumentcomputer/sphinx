@@ -77,6 +77,7 @@ keccak = []
 neon = ["p3-blake3/neon"]
 serial = []
 avx512 = ["p3-baby-bear/nightly-features"]
+icicle = []
 
 [[bench]]
 harness = false

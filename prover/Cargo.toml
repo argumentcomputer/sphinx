@@ -53,3 +53,4 @@ path = "scripts/e2e.rs"
 [features]
 neon = ["sphinx-core/neon"]
 plonk = ["sphinx-recursion-gnark-ffi/plonk"]
+icicle = ["sphinx-recursion-core/icicle"]

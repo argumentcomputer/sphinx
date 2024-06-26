@@ -1,0 +1,293 @@
+   Compiling sphinx-core v1.0.0 (/home/winston/lurk-lab/sphinx/core)
+   Compiling sphinx-sdk v1.0.0 (/home/winston/lurk-lab/sphinx/sdk)
+   Compiling sphinx-recursion-core v1.0.0 (/home/winston/lurk-lab/sphinx/recursion/core)
+   Compiling sphinx-recursion-compiler v1.0.0 (/home/winston/lurk-lab/sphinx/recursion/compiler)
+   Compiling sphinx-recursion-program v1.0.0 (/home/winston/lurk-lab/sphinx/recursion/program)
+   Compiling sphinx-recursion-gnark-ffi v1.0.0 (/home/winston/lurk-lab/sphinx/recursion/gnark-ffi)
+   Compiling sphinx-recursion-circuit v1.0.0 (/home/winston/lurk-lab/sphinx/recursion/circuit)
+   Compiling sphinx-prover v1.0.0 (/home/winston/lurk-lab/sphinx/prover)
+    Finished `release` profile [optimized] target(s) in 49.41s
+     Running `target/release/examples/fibonacci`
+bang!                                                                                                                     116.205048966s ├──────────────────────────────────────────────────────────────────────────────────────┤
+  prove_core                                                                                                                 3.48583789s ├─┤
+    construct RiscvAir machine                                                                                               200.98256ms ┆
+      infer constraint degree                                                                                                  814.235µs ┆
+        evaluate constraints symbolically                                                                                      775.308µs ┆
+      infer constraint degree                                                                                                   24.792µs ┆
+        evaluate constraints symbolically                                                                                       22.234µs ┆
+      infer constraint degree                                                                                                  150.611µs ┆
+        evaluate constraints symbolically                                                                                      147.528µs ┆
+      infer constraint degree                                                                                                  344.764µs ┆
+        evaluate constraints symbolically                                                                                      340.866µs ┆
+      infer constraint degree                                                                                                 3.904861ms ┆
+        evaluate constraints symbolically                                                                                     3.899435ms ┆
+      infer constraint degree                                                                                                 2.529263ms ┆
+        evaluate constraints symbolically                                                                                     2.521789ms ┆
+      infer constraint degree                                                                                                 1.951212ms ┆
+        evaluate constraints symbolically                                                                                     1.946704ms ┆
+      infer constraint degree                                                                                                 2.692221ms ┆
+        evaluate constraints symbolically                                                                                     2.687397ms ┆
+      infer constraint degree                                                                                                 3.627664ms ┆
+        evaluate constraints symbolically                                                                                     3.621963ms ┆
+      infer constraint degree                                                                                                 3.510613ms ┆
+        evaluate constraints symbolically                                                                                     3.502419ms ┆
+      infer constraint degree                                                                                                 2.697721ms ┆
+        evaluate constraints symbolically                                                                                     2.692418ms ┆
+      infer constraint degree                                                                                                 3.632282ms ┆
+        evaluate constraints symbolically                                                                                     3.626385ms ┆
+      infer constraint degree                                                                                                 5.511381ms ┆
+        evaluate constraints symbolically                                                                                     5.501225ms ┆
+      infer constraint degree                                                                                                 7.755209ms ┆
+        evaluate constraints symbolically                                                                                     7.748474ms ┆
+      infer constraint degree                                                                                                  554.767µs ┆
+        evaluate constraints symbolically                                                                                      550.789µs ┆
+      infer constraint degree                                                                                                  541.509µs ┆
+        evaluate constraints symbolically                                                                                      538.188µs ┆
+      infer constraint degree                                                                                                  896.496µs ┆
+        evaluate constraints symbolically                                                                                      892.975µs ┆
+      infer constraint degree                                                                                                 1.095871ms ┆
+        evaluate constraints symbolically                                                                                     1.091916ms ┆
+      infer constraint degree                                                                                                 1.068616ms ┆
+        evaluate constraints symbolically                                                                                     1.064809ms ┆
+      infer constraint degree                                                                                                 2.901745ms ┆
+        evaluate constraints symbolically                                                                                     2.896939ms ┆
+      infer constraint degree                                                                                                 4.128884ms ┆
+        evaluate constraints symbolically                                                                                     4.122756ms ┆
+      infer constraint degree                                                                                                  115.714µs ┆
+        evaluate constraints symbolically                                                                                      111.931µs ┆
+      infer constraint degree                                                                                                   26.656µs ┆
+        evaluate constraints symbolically                                                                                       24.064µs ┆
+      infer constraint degree                                                                                                   29.315µs ┆
+        evaluate constraints symbolically                                                                                       26.837µs ┆
+      infer constraint degree                                                                                                   28.653µs ┆
+        evaluate constraints symbolically                                                                                       25.924µs ┆
+      infer constraint degree                                                                                                   87.879µs ┆
+        evaluate constraints symbolically                                                                                       85.401µs ┆
+      infer constraint degree                                                                                                    32.51µs ┆
+        evaluate constraints symbolically                                                                                       21.599µs ┆
+      infer constraint degree                                                                                                   38.013µs ┆
+        evaluate constraints symbolically                                                                                       35.595µs ┆
+      infer constraint degree                                                                                                  143.663µs ┆
+        evaluate constraints symbolically                                                                                      140.942µs ┆
+      infer constraint degree                                                                                                  105.249µs ┆
+        evaluate constraints symbolically                                                                                      102.528µs ┆
+      infer constraint degree                                                                                                   12.746µs ┆
+        evaluate constraints symbolically                                                                                       10.229µs ┆
+      infer constraint degree                                                                                                   15.567µs ┆
+        evaluate constraints symbolically                                                                                       13.196µs ┆
+    setup machine                                                                                                            92.589013ms ┆
+      generate preprocessed traces                                                                                           19.825529ms ┆
+      commit to preprocessed traces                                                                                          68.976275ms ┆
+        build merkle tree{dimensions: "[11x131072, 37x32768, 6x32768]"}                                                       42.24308ms ┆
+    runtime.trace                                                                                                            11.489679ms ┆
+    shard                                                                                                                    62.632702ms ┆
+      collect record events from chips                                                                                       60.105129ms ┆
+        generate cpu dependencies                                                                                            14.721946ms ┆
+        generate field add trace                                                                                               514.594µs ┆
+        generate field sub trace                                                                                               266.923µs ┆
+        generate field mul trace                                                                                                508.06µs ┆
+        generate bls12381 fp2 add trace                                                                                        825.896µs ┆
+        generate bls12381 fp2 sub trace                                                                                        701.298µs ┆
+        generate bls12381 fp2 mul trace                                                                                        720.917µs ┆
+    commit                                                                                                                  581.264516ms ┆
+      commit to all shards                                                                                                  581.237089ms ┆
+        commit to shard                                                                                                     581.206338ms ┆
+          generate traces for shard                                                                                         572.490989ms ┆
+            generate trace for chip{chip_name: Mul}                                                                           2.005898ms ┆
+            generate trace for chip{chip_name: ShiftLeft}                                                                      638.941µs ┆
+            generate trace for chip{chip_name: AddSub}                                                                        5.344963ms ┆
+            generate trace for chip{chip_name: CPU}                                                                          13.196727ms ┆
+            generate trace for chip{chip_name: Lt}                                                                            1.469026ms ┆
+            generate trace for chip{chip_name: MemoryFinalize}                                                                8.179231ms ┆
+            generate trace for chip{chip_name: ShiftRight}                                                                    3.714063ms ┆
+            generate trace for chip{chip_name: MemoryProgram}                                                                  382.124µs ┆
+            generate trace for chip{chip_name: Bitwise}                                                                        940.378µs ┆
+            generate trace for chip{chip_name: MemoryInit}                                                                     278.961µs ┆
+            generate trace for chip{chip_name: Byte}                                                                         24.504511ms ┆
+            generate trace for chip{chip_name: Program}                                                                       1.340615ms ┆
+          build merkle tree{dimensions: "[145x131072, 151x65536, 2x32768, 20x32768, 168x32768, 3x32768, 71x8192, 37x8192    305.570422ms ┆
+    runtime.trace                                                                                                            11.528215ms  ┆
+    shard                                                                                                                    56.247966ms  ┆
+      collect record events from chips                                                                                        53.87751ms  ┆
+        generate cpu dependencies                                                                                            13.162266ms  ┆
+        generate field add trace                                                                                               539.743µs  ┆
+        generate field sub trace                                                                                               222.805µs  ┆
+        generate field mul trace                                                                                               215.876µs  ┆
+        generate bls12381 fp2 add trace                                                                                        423.107µs  ┆
+        generate bls12381 fp2 sub trace                                                                                        416.185µs  ┆
+        generate bls12381 fp2 mul trace                                                                                        667.368µs  ┆
+    generate traces for shard                                                                                               572.279109ms  ┆
+      generate trace for chip{chip_name: CPU}                                                                                 4.542957ms  ┆
+      generate trace for chip{chip_name: Program}                                                                             1.175885ms  ┆
+      generate trace for chip{chip_name: AddSub}                                                                              5.139617ms  ┆
+      generate trace for chip{chip_name: MemoryProgram}                                                                        335.387µs  ┆
+      generate trace for chip{chip_name: Lt}                                                                                  1.059163ms  ┆
+      generate trace for chip{chip_name: Mul}                                                                                 1.690423ms  ┆
+      generate trace for chip{chip_name: MemoryFinalize}                                                                      3.055312ms  ┆
+      generate trace for chip{chip_name: ShiftRight}                                                                          4.118368ms  ┆
+      generate trace for chip{chip_name: Byte}                                                                               24.206196ms  ┆
+      generate trace for chip{chip_name: Bitwise}                                                                              793.549µs  ┆
+      generate trace for chip{chip_name: MemoryInit}                                                                           309.761µs  ┆
+      generate trace for chip{chip_name: ShiftLeft}                                                                            420.848µs  ┆
+    build merkle tree{dimensions: "[145x131072, 151x65536, 2x32768, 20x32768, 168x32768, 3x32768, 71x8192, 37x8192, 18x4    305.600362ms  ┆
+    generate permutation traces                                                                                             326.058036ms  ┆
+    flatten permutation traces and collect domains                                                                          132.409424ms  ┆
+    commit to permutation traces                                                                                            606.378211ms   ┆
+      build merkle tree{dimensions: "[292x131072, 72x65536, 8x32768, 20x32768, 8x32768, 8x32768, 56x8192, 12x8192, 16x40     368.26347ms   ┆
+    compute quotient values                                                                                                 795.950157ms   │
+      compute quotient values for domain                                                                                    121.567782ms   ┆
+      compute quotient values for domain                                                                                     23.602994ms   ┆
+      compute quotient values for domain                                                                                     46.096365ms   ┆
+      compute quotient values for domain                                                                                    291.350871ms   ┆
+      compute quotient values for domain                                                                                      8.439295ms   ┆
+      compute quotient values for domain                                                                                      23.21943ms   ┆
+      compute quotient values for domain                                                                                      3.206003ms   ┆
+      compute quotient values for domain                                                                                      3.132097ms   ┆
+      compute quotient values for domain                                                                                      8.377741ms   ┆
+      compute quotient values for domain                                                                                      4.683693ms   ┆
+      compute quotient values for domain                                                                                     22.712047ms   ┆
+      compute quotient values for domain                                                                                      2.832845ms   ┆
+    commit to quotient traces                                                                                                98.115651ms   ┆
+      build merkle tree{dimensions: "[4x131072, 4x131072, 4x65536, 4x65536, 4x32768, 4x32768, 4x32768, 4x32768, 4x32768,     43.940785ms   ┆
+    compute preprocessed opening points                                                                                          38.12µs   ┆
+    compute trace opening points                                                                                                 2.934µs   ┆
+    open multi batches                                                                                                      399.198001ms   ┆
+      build merkle tree{dimensions: "[8x65536]"}                                                                             11.617216ms    ┆
+      build merkle tree{dimensions: "[8x32768]"}                                                                              5.985827ms    ┆
+      build merkle tree{dimensions: "[8x16384]"}                                                                              3.244946ms    ┆
+      build merkle tree{dimensions: "[8x8192]"}                                                                               1.713205ms    ┆
+      build merkle tree{dimensions: "[8x4096]"}                                                                               1.244437ms    ┆
+      build merkle tree{dimensions: "[8x2048]"}                                                                                774.629µs    ┆
+      build merkle tree{dimensions: "[8x1024]"}                                                                                511.628µs    ┆
+      build merkle tree{dimensions: "[8x512]"}                                                                                 383.096µs    ┆
+      build merkle tree{dimensions: "[8x256]"}                                                                                 379.438µs    ┆
+      build merkle tree{dimensions: "[8x128]"}                                                                                 256.176µs    ┆
+      build merkle tree{dimensions: "[8x64]"}                                                                                  254.657µs    ┆
+      build merkle tree{dimensions: "[8x32]"}                                                                                  620.116µs    ┆
+      build merkle tree{dimensions: "[8x16]"}                                                                                  487.791µs    ┆
+      build merkle tree{dimensions: "[8x8]"}                                                                                   290.615µs    ┆
+      build merkle tree{dimensions: "[8x4]"}                                                                                   120.177µs    ┆
+      build merkle tree{dimensions: "[8x2]"}                                                                                    39.226µs    ┆
+  compress                                                                                                                112.718483286s    ├───────────────────────────────────────────────────────────────────────────────────┤
+    shard_record                                                                                                                69.853µs      ┆
+      collect record events from chips                                                                                          52.428µs      ┆
+    prove_shards                                                                                                           54.294378093s      ├───────────────────────────────────────┤
+      commit to all shards                                                                                                 15.822166889s      ├──────────┤
+        commit to shard                                                                                                    15.822041792s      ├──────────┤
+          generate traces for shard                                                                                        15.821965649s      ├──────────┤
+            generate trace for chip{chip_name: Program}                                                                     245.071696ms      ┆
+              generate program trace{rows: 1081141}                                                                         245.055721ms      ┆
+            generate trace for chip{chip_name: Poseidon2Wide 3}                                                              374.96694ms      ┆
+            generate trace for chip{chip_name: CPU}                                                                         1.685030045s      │
+              generate poseidon2 wide trace{rows: 44265}                                                                    374.926132ms      ┆
+            generate trace for chip{chip_name: MemoryGlobalChip}                                                             65.185348ms      ┆
+              generate memory trace{first_rows: 511520, last_rows: 511520}                                                   65.172326ms      ┆
+            generate trace for chip{chip_name: FriFold}                                                                     178.634119ms      ┆
+              generate fri fold trace{rows: 304400}                                                                         178.617039ms      ┆
+              generate cpu trace{rows: 3397464}                                                                             1.684913952s      │
+            generate trace for chip{chip_name: RangeCheck}                                                                   28.988642ms      ┆
+          build merkle tree{dimensions: "[75x8388608, 1x2097152, 8x2097152, 79x1048576, 446x131072, 2x131072]"}             7.371209331s            ├────┤
+      observing all challenges                                                                                                  87.918µs                  ┆
+      open_shards                                                                                                          38.471980008s                  ├───────────────────────────┤
+        prove shard opening                                                                                                38.333234864s                  ├───────────────────────────┤
+          generate permutation traces                                                                                       3.636088598s                  ├─┤
+          flatten permutation traces and collect domains                                                                    1.156883486s                    │
+          commit to permutation traces                                                                                      9.210838527s                     ├─────┤
+            build merkle tree{dimensions: "[44x8388608, 8x2097152, 8x2097152, 104x1048576, 264x131072, 8x131072]"}          5.366598528s                        ├──┤
+          compute quotient values                                                                                          23.994693713s                            ├────────────────┤
+            compute quotient values for domain                                                                              655.652615ms                            ┆
+            compute quotient values for domain                                                                               26.807454ms                            ┆
+            compute quotient values for domain                                                                               1.24590419s                            │
+            compute quotient values for domain                                                                              7.533917498s                            ├────┤
+            compute quotient values for domain                                                                              838.546596ms                            │
+            compute quotient values for domain                                                                              637.957377ms                            ┆
+          commit to quotient traces                                                                                         3.199249041s                                  ├┤
+            build merkle tree{dimensions: "[4x8388608, 4x8388608, 4x2097152, 4x2097152, 4x2097152, 4x2097152, 4x1048576,    1.783275217s                                   │
+          compute preprocessed opening points                                                                                   56.588µs                                     ┆
+          compute trace opening points                                                                                           2.554µs                                     ┆
+          open multi batches                                                                                               12.832559607s                                     ├────────┤
+            build merkle tree{dimensions: "[8x4194304]"}                                                                    655.536935ms                                             ┆
+            build merkle tree{dimensions: "[8x2097152]"}                                                                    331.677968ms                                              ┆
+            build merkle tree{dimensions: "[8x1048576]"}                                                                    160.858163ms                                              ┆
+            build merkle tree{dimensions: "[8x524288]"}                                                                      85.473572ms                                              ┆
+            build merkle tree{dimensions: "[8x262144]"}                                                                      36.071227ms                                              ┆
+            build merkle tree{dimensions: "[8x131072]"}                                                                      18.612342ms                                              ┆
+            build merkle tree{dimensions: "[8x65536]"}                                                                       10.358294ms                                              ┆
+            build merkle tree{dimensions: "[8x32768]"}                                                                        5.387444ms                                              ┆
+            build merkle tree{dimensions: "[8x16384]"}                                                                        3.202476ms                                              ┆
+            build merkle tree{dimensions: "[8x8192]"}                                                                         1.733728ms                                              ┆
+            build merkle tree{dimensions: "[8x4096]"}                                                                         1.125243ms                                              ┆
+            build merkle tree{dimensions: "[8x2048]"}                                                                           740.63µs                                              ┆
+            build merkle tree{dimensions: "[8x1024]"}                                                                          535.106µs                                              ┆
+            build merkle tree{dimensions: "[8x512]"}                                                                           392.827µs                                              ┆
+            build merkle tree{dimensions: "[8x256]"}                                                                           359.768µs                                              ┆
+            build merkle tree{dimensions: "[8x128]"}                                                                           220.476µs                                              ┆
+            build merkle tree{dimensions: "[8x64]"}                                                                            171.294µs                                              ┆
+            build merkle tree{dimensions: "[8x32]"}                                                                            848.171µs                                              ┆
+            build merkle tree{dimensions: "[8x16]"}                                                                            531.288µs                                              ┆
+            build merkle tree{dimensions: "[8x8]"}                                                                              279.69µs                                              ┆
+            build merkle tree{dimensions: "[8x4]"}                                                                               139.6µs                                              ┆
+            build merkle tree{dimensions: "[8x2]"}                                                                              34.294µs                                              ┆
+    shard_record                                                                                                               116.113µs                                                ┆
+      collect record events from chips                                                                                          40.838µs                                                ┆
+    prove_shards                                                                                                           53.536602559s                                                ├───────────────────────────────────────┤
+      commit to all shards                                                                                                 15.220242378s                                                ├──────────┤
+        commit to shard                                                                                                    15.219986597s                                                ├──────────┤
+          generate traces for shard                                                                                        15.219938722s                                                ├──────────┤
+            generate trace for chip{chip_name: Program}                                                                     197.826503ms                                                ┆
+            generate trace for chip{chip_name: CPU}                                                                         1.631611423s                                                │
+            generate trace for chip{chip_name: MemoryGlobalChip}                                                            120.299441ms                                                ┆
+              generate memory trace{first_rows: 603218, last_rows: 603218}                                                    120.2877ms                                                ┆
+              generate program trace{rows: 54960}                                                                           197.763728ms                                                ┆
+            generate trace for chip{chip_name: FriFold}                                                                      94.013544ms                                                ┆
+            generate trace for chip{chip_name: Poseidon2Wide 3}                                                             304.255991ms                                                ┆
+              generate fri fold trace{rows: 221600}                                                                          93.962481ms                                                ┆
+            generate trace for chip{chip_name: RangeCheck}                                                                   31.961826ms                                                ┆
+              generate cpu trace{rows: 3073852}                                                                             1.631427701s                                                │
+              generate poseidon2 wide trace{rows: 52125}                                                                     304.14643ms                                                ┆
+          build merkle tree{dimensions: "[75x8388608, 8x4194304, 79x524288, 1x131072, 446x131072, 2x131072]"}               7.088702666s                                                       ├───┤
+      observing all challenges                                                                                                  54.922µs                                                            ┆
+      open_shards                                                                                                          38.316207769s                                                            ├───────────────────────────┤
+        prove shard opening                                                                                                38.210199067s                                                            ├───────────────────────────┤
+          generate permutation traces                                                                                       3.457139523s                                                            ├─┤
+          flatten permutation traces and collect domains                                                                     1.15787234s                                                               │
+          commit to permutation traces                                                                                      8.891900503s                                                               ├─────┤
+            build merkle tree{dimensions: "[44x8388608, 8x4194304, 104x524288, 8x131072, 264x131072, 8x131072]"}            5.034654631s                                                                  ├──┤
+          compute quotient values                                                                                          24.392583206s                                                                      ├────────────────┤
+            compute quotient values for domain                                                                              1.336623962s                                                                      │
+            compute quotient values for domain                                                                              762.651905ms                                                                      │
+            compute quotient values for domain                                                                              7.969362344s                                                                      ├────┤
+            compute quotient values for domain                                                                               33.431875ms                                                                      ┆
+            compute quotient values for domain                                                                              510.018053ms                                                                      ┆
+            compute quotient values for domain                                                                               35.591363ms                                                                      ┆
+          commit to quotient traces                                                                                         3.316712841s                                                                             ├─┤
+            build merkle tree{dimensions: "[4x8388608, 4x8388608, 4x4194304, 4x4194304, 4x524288, 4x524288, 4x131072, 4x    1.862798149s                                                                              │
+          compute preprocessed opening points                                                                                   54.514µs                                                                               ┆
+          compute trace opening points                                                                                          19.042µs                                                                               ┆
+          open multi batches                                                                                               12.680981482s                                                                               ├────────┤
+            build merkle tree{dimensions: "[8x4194304]"}                                                                     649.31859ms                                                                                       ┆
+            build merkle tree{dimensions: "[8x2097152]"}                                                                    323.594969ms                                                                                        ┆
+            build merkle tree{dimensions: "[8x1048576]"}                                                                    159.656778ms                                                                                        ┆
+            build merkle tree{dimensions: "[8x524288]"}                                                                      84.665268ms                                                                                        ┆
+            build merkle tree{dimensions: "[8x262144]"}                                                                      36.168026ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x131072]"}                                                                      18.467939ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x65536]"}                                                                          9.9568ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x32768]"}                                                                        5.361646ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x16384]"}                                                                        3.329964ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x8192]"}                                                                         1.991064ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x4096]"}                                                                         1.072876ms                                                                                         ┆
+            build merkle tree{dimensions: "[8x2048]"}                                                                           814.23µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x1024]"}                                                                          576.821µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x512]"}                                                                           366.583µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x256]"}                                                                           296.865µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x128]"}                                                                            264.12µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x64]"}                                                                            278.617µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x32]"}                                                                            781.153µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x16]"}                                                                            548.692µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x8]"}                                                                             260.892µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x4]"}                                                                              124.25µs                                                                                         ┆
+            build merkle tree{dimensions: "[8x2]"}                                                                              39.043µs                                                                                         ┆
+generated proof
+a: 5965
+b: 3651
+successfully generated and verified plonk proof for the program!
