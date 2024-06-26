@@ -54,6 +54,7 @@ tempfile = { workspace = true }
 tracing = { workspace = true }
 tracing-forest = { workspace = true, features = ["ansi", "smallvec"] }
 tracing-subscriber = { workspace = true, features = ["std", "env-filter"] }
+tracing-texray = { workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
 web-time = { workspace = true }

@@ -114,6 +114,7 @@ tokio = "1.38.0"
 tracing = "0.1.40"
 tracing-forest = "0.1.6"
 tracing-subscriber = "0.3.17"
+tracing-texray = { git = "https://github.com/winston-h-zhang/tracing-texray.git", branch = "shim" }
 twirp = { git = "https://github.com/github/twirp-rs.git", rev = "c85f31f9c54957374e7dcb3534fc52cff0aa2dc5" }
 vergen = { version = "8", default-features = false }
 web-time = "1.1.0"

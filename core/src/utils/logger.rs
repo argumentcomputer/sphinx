@@ -5,6 +5,7 @@ use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry};
+use tracing_texray::TeXRayLayer;
 
 static INIT: Once = Once::new();
 
@@ -41,6 +42,12 @@ pub fn setup_logger() {
                     .with_env_filter(env_filter)
                     .with_span_events(FmtSpan::CLOSE)
                     .finish()
+                    .init();
+            }
+            "texray" => {
+                Registry::default()
+                    .with(env_filter)
+                    .with(TeXRayLayer::new())
                     .init();
             }
             _ => {
