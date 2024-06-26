@@ -4873,6 +4873,7 @@ dependencies = [
  "sha2",
  "sphinx-core",
  "sphinx-prover",
+ "sphinx-recursion-core",
  "strum",
  "strum_macros",
  "tempfile",

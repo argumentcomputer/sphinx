@@ -168,6 +168,18 @@ pub struct SphinxReduceProof<SC: StarkGenericConfig> {
     pub proof: ShardProof<SC>,
 }
 
+impl<SC: Serialize + DeserializeOwned + Clone + StarkGenericConfig> SphinxReduceProof<SC> {
+    pub fn save(&self, path: impl AsRef<Path>) -> Result<()> {
+        bincode::serialize_into(File::create(path).expect("failed to open file"), self)
+            .map_err(Into::into)
+    }
+
+    pub fn load(path: impl AsRef<Path>) -> Result<Self> {
+        bincode::deserialize_from(File::open(path).expect("failed to open file"))
+            .map_err(Into::into)
+    }
+}
+
 impl SphinxReduceProof<BabyBearPoseidon2Outer> {
     pub fn sphinx_vkey_digest_babybear(&self) -> [BabyBear; 8] {
         let proof = &self.proof;

@@ -15,6 +15,7 @@ reqwest-middleware = { workspace = true }
 reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
 sphinx-prover = { path = "../prover" }
+sphinx-recursion-core = { path = "../recursion/core" }
 sphinx-core = { path = "../core" }
 futures = { workspace = true }
 bincode = { workspace = true }

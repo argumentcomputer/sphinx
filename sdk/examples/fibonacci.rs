@@ -4,13 +4,14 @@ use sphinx_sdk::{utils, ProverClient, SphinxStdin};
 const ELF: &[u8] =
     include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
 
-/// RUST_LOG=debug RUST_LOGGER=texray cargo run --release --example fibonacci --package sphinx-sdk
+/// RUST_LOG=debug RUST_LOGGER=texray RUSTFLAGS="-C target-cpu=native --cfg tokio_unstable -C opt-level=3"
+/// SHARD_BATCH_SIZE=0 CHECKPOINT="checkpoint.pi" cargo run --release --example fibonacci --package sphinx-sdk --features plonk
 fn main() {
     // Setup logging.
     utils::setup_logger();
 
     // Create an input stream and write '500' to it.
-    let n = 1000u32;
+    let n = 10u32;
 
     let mut stdin = SphinxStdin::new();
     stdin.write(&n);
@@ -19,7 +20,7 @@ fn main() {
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
     let mut proof = tracing_texray::examine(tracing::info_span!("bang!"))
-        .in_scope(|| client.prove_compressed(&pk, stdin).unwrap());
+        .in_scope(|| client.prove_plonk(&pk, stdin).unwrap());
 
     println!("generated proof");
 
@@ -33,7 +34,7 @@ fn main() {
 
     // Verify proof and public values
     client
-        .verify_compressed(&proof, &vk)
+        .verify_plonk(&proof, &vk)
         .expect("verification failed");
 
     // Save the proof.
