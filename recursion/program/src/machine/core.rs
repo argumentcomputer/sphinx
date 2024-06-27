@@ -11,6 +11,7 @@ use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
 use sphinx_core::stark::StarkMachine;
 use sphinx_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
 use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_primitives::types::RecursionProgramType;
 use sphinx_recursion_compiler::config::InnerConfig;
 use sphinx_recursion_compiler::ir::{Array, Builder, Config, Ext, ExtConst, Felt, Var};
 use sphinx_recursion_compiler::prelude::DslVariable;
@@ -64,7 +65,7 @@ impl SphinxRecursiveVerifier<InnerConfig, BabyBearPoseidon2> {
     pub fn build(
         machine: &StarkMachine<BabyBearPoseidon2, RiscvAir<BabyBear>>,
     ) -> RecursionProgram<BabyBear> {
-        let mut builder = Builder::<InnerConfig>::default();
+        let mut builder = Builder::<InnerConfig>::new(RecursionProgramType::Core);
 
         let input: SphinxRecursionMemoryLayoutVariable<_> = builder.uninit();
         SphinxRecursionMemoryLayout::<BabyBearPoseidon2, RiscvAir<_>>::witness(

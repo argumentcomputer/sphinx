@@ -11,6 +11,7 @@ use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
 use sphinx_core::stark::StarkMachine;
 use sphinx_core::stark::{Com, RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey};
 use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_primitives::types::RecursionProgramType;
 use sphinx_recursion_compiler::config::InnerConfig;
 use sphinx_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
 use sphinx_recursion_compiler::prelude::DslVariable;
@@ -83,7 +84,7 @@ where
 {
     /// Create a new instance of the program for the [BabyBearPoseidon2] config.
     pub fn build(machine: &StarkMachine<BabyBearPoseidon2, A>) -> RecursionProgram<BabyBear> {
-        let mut builder = Builder::<InnerConfig>::default();
+        let mut builder = Builder::<InnerConfig>::new(RecursionProgramType::Deferred);
         let input: SphinxDeferredMemoryLayoutVariable<_> = builder.uninit();
         SphinxDeferredMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
 

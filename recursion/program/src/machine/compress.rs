@@ -14,6 +14,7 @@ use sphinx_core::air::{Word, POSEIDON_NUM_WORDS, PV_DIGEST_NUM_WORDS};
 use sphinx_core::stark::StarkMachine;
 use sphinx_core::stark::{Com, ShardProof, StarkGenericConfig, StarkVerifyingKey};
 use sphinx_core::utils::BabyBearPoseidon2;
+use sphinx_primitives::types::RecursionProgramType;
 use sphinx_recursion_compiler::config::InnerConfig;
 use sphinx_recursion_compiler::ir::{Array, Builder, Config, Felt, Var};
 use sphinx_recursion_compiler::prelude::DslVariable;
@@ -81,7 +82,7 @@ where
         recursive_vk: &StarkVerifyingKey<BabyBearPoseidon2>,
         deferred_vk: &StarkVerifyingKey<BabyBearPoseidon2>,
     ) -> RecursionProgram<BabyBear> {
-        let mut builder = Builder::<InnerConfig>::default();
+        let mut builder = Builder::<InnerConfig>::new(RecursionProgramType::Compress);
 
         let input: SphinxReduceMemoryLayoutVariable<_> = builder.uninit();
         SphinxReduceMemoryLayout::<BabyBearPoseidon2, A>::witness(&input, &mut builder);
