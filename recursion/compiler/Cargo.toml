@@ -17,6 +17,7 @@ sphinx-recursion-core = { path = "../core" }
 sphinx-core = { path = "../../core" }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+sphinx-primitives = { path = "../../primitives"}
 sphinx-recursion-derive = { path = "../derive" }
 p3-bn254-fr = { workspace = true }
 p3-baby-bear = { workspace = true }

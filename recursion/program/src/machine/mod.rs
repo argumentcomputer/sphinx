@@ -23,6 +23,7 @@ mod tests {
         runtime::Program,
         stark::{Challenge, LocalProver},
     };
+    use sphinx_primitives::types::RecursionProgramType;
     use sphinx_recursion_compiler::config::InnerConfig;
     use sphinx_recursion_core::{
         runtime::Runtime,
@@ -74,14 +75,20 @@ mod tests {
 
         // Make the compress program.
         let compress_machine = RecursionAir::<_, 9>::machine(SC::compressed());
-        let compress_program =
-            SphinxRootVerifier::<InnerConfig, _, _>::build(&recursive_machine, &compress_vk, true);
+        let compress_program = SphinxRootVerifier::<InnerConfig, _, _>::build(
+            &recursive_machine,
+            &compress_vk,
+            RecursionProgramType::Shrink,
+        );
         let (compress_pk, compress_vk) = compress_machine.setup(&compress_program);
 
         // Make the wrap program.
-        let wrap_machine = RecursionAir::<_, 17>::machine(BabyBearPoseidon2Outer::default());
-        let wrap_program =
-            SphinxRootVerifier::<InnerConfig, _, _>::build(&compress_machine, &compress_vk, false);
+        let wrap_machine = RecursionAir::<_, 17>::wrap_machine(BabyBearPoseidon2Outer::default());
+        let wrap_program = SphinxRootVerifier::<InnerConfig, _, _>::build(
+            &compress_machine,
+            &compress_vk,
+            RecursionProgramType::Wrap,
+        );
 
         let mut challenger = machine.config().challenger();
         let time = std::time::Instant::now();
