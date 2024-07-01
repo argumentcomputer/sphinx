@@ -400,11 +400,12 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     //         &p_a[0] * &p_b[1] + &p_a[1] * &p_b[0],
     //     ],
     // };
-    pub fn eval_any<AB: WordAirBuilder<Var = V>>(
+    pub fn eval_any_with_modulus<AB: WordAirBuilder<Var = V>>(
         &self,
         builder: &mut AB,
         p_op: &[Polynomial<AB::Expr>; 2],
         p_result: &[Polynomial<AB::Expr>; 2],
+        modulus: &Polynomial<AB::Expr>,
         shard: impl Into<AB::Expr> + Clone,
         channel: impl Into<AB::Expr> + Clone,
         is_real: impl Into<AB::Expr> + Clone,
@@ -413,16 +414,13 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
     {
         let p_carry: [Polynomial<<AB as AirBuilder>::Expr>; 2] =
             self.carry.clone().map(|c| c.into());
-        let p_modulus = P::modulus_field_iter::<AB::F>()
-            .map(AB::Expr::from)
-            .collect();
         let p_op_minus_result: [Polynomial<AB::Expr>; 2] = [
             p_op[0].clone() - &p_result[0],
             p_op[1].clone() - &p_result[1],
         ];
         let p_vanishing = [
-            p_op_minus_result[0].clone() - &(&p_carry[0] * &p_modulus),
-            p_op_minus_result[1].clone() - &(&p_carry[1] * &p_modulus),
+            p_op_minus_result[0].clone() - &(&p_carry[0] * modulus),
+            p_op_minus_result[1].clone() - &(&p_carry[1] * modulus),
         ];
         let p_witness_low = self.witness_low.each_ref().map(|w| w.iter().into());
         let p_witness_high = self.witness_high.each_ref().map(|w| w.iter().into());

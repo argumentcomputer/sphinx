@@ -392,22 +392,25 @@ where
                 }
             })
             .collect();
-        let a_op_b0 = (&a0 + &b0) * row.is_add.into()
-            + (&res0 + &b0) * row.is_sub.into()
-            + (&p_modulus * &p_modulus_minus_one + &a0 * &b0 - &a1 * &b1) * row.is_mul.into();
-        let a_op_b1 = (&a1 + &b1) * row.is_add.into()
-            + (&res1 + &b1) * row.is_sub.into()
-            + (&a0 * &b1 + &a1 * &b0) * row.is_mul.into();
+        let a_op_b = [
+            (&a0 + &b0) * row.is_add.into()
+                + (&res0 + &b0) * row.is_sub.into()
+                + (&p_modulus * &p_modulus_minus_one + &a0 * &b0 - &a1 * &b1) * row.is_mul.into(),
+            (&a1 + &b1) * row.is_add.into()
+                + (&res1 + &b1) * row.is_sub.into()
+                + (&a0 * &b1 + &a1 * &b0) * row.is_mul.into(),
+        ];
 
         let p_result = [
             res0 * (row.is_add.into() + row.is_mul.into()) + a0 * (row.is_sub.into()),
             res1 * (row.is_add.into() + row.is_mul.into()) + a1 * (row.is_sub.into()),
         ];
 
-        row.p_op_q.eval_any(
+        row.p_op_q.eval_any_with_modulus(
             builder,
-            &[a_op_b0, a_op_b1],
+            &a_op_b,
             &p_result,
+            &p_modulus,
             row.shard,
             row.channel,
             row.is_real,
