@@ -15,7 +15,7 @@ use crate::utils::block_on;
 pub const PLONK_BN254_ARTIFACTS_URL_BASE: &str = "https://sphinx-plonk-params.s3.amazonaws.com";
 
 /// The current version of the plonk bn254 artifacts.
-pub const PLONK_BN254_ARTIFACTS_COMMIT: &str = "v1.0.0";
+pub const PLONK_BN254_ARTIFACTS_COMMIT: &str = "sphinx_dev";
 
 /// Install the latest plonk bn254 artifacts.
 ///
