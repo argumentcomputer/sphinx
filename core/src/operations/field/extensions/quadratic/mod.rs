@@ -6,6 +6,7 @@ use hybrid_array::{typenum::Unsigned, Array};
 use num::{BigUint, Integer, One, Zero};
 use p3_air::AirBuilder;
 use p3_field::{AbstractField, PrimeField32};
+use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
 use crate::air::{Polynomial, WordAirBuilder};
@@ -18,7 +19,7 @@ use crate::operations::field::util_air::eval_field_operation;
 
 /// Quadratic field operation for a field extension where `\beta = -1`, i.e. over
 /// `(1 + u)` where `u^2 + 1 = 0`
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum QuadFieldOperation {
     Add,
     Mul,
@@ -316,6 +317,105 @@ impl<V: Copy, P: FieldParameters> QuadFieldOpCols<V, P> {
                 &p_a[0] * &p_b[1] + &p_a[1] * &p_b[0],
             ],
         };
+        let p_op_minus_result: [Polynomial<AB::Expr>; 2] = [
+            p_op[0].clone() - &p_result[0],
+            p_op[1].clone() - &p_result[1],
+        ];
+        let p_vanishing = [
+            p_op_minus_result[0].clone() - &(&p_carry[0] * &p_modulus),
+            p_op_minus_result[1].clone() - &(&p_carry[1] * &p_modulus),
+        ];
+        let p_witness_low = self.witness_low.each_ref().map(|w| w.iter().into());
+        let p_witness_high = self.witness_high.each_ref().map(|w| w.iter().into());
+        eval_field_operation::<AB, P>(
+            builder,
+            &p_vanishing[0],
+            &p_witness_low[0],
+            &p_witness_high[0],
+        );
+        eval_field_operation::<AB, P>(
+            builder,
+            &p_vanishing[1],
+            &p_witness_low[1],
+            &p_witness_high[1],
+        );
+
+        // Range checks for the result, carry, and witness columns.
+        builder.slice_range_check_u8(
+            &self.result[0],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.result[1],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.carry[0],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            &self.carry[1],
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            p_witness_low[0].coefficients(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            p_witness_low[1].coefficients(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(
+            p_witness_high[0].coefficients(),
+            shard.clone(),
+            channel.clone(),
+            is_real.clone(),
+        );
+        builder.slice_range_check_u8(p_witness_high[1].coefficients(), shard, channel, is_real);
+    }
+
+    // Here p_op and p_result needs to be:
+    // let (p_a, p_result): (Polynomial<_>, Polynomial<_>) = match op {
+    //     QuadFieldOperation::Add | QuadFieldOperation::Mul => (p_a, p_result),
+    //     QuadFieldOperation::Sub | QuadFieldOperation::Div => (p_result, p_a),
+    // };
+    // let p_op = match op {
+    //     QuadFieldOperation::Add | QuadFieldOperation::Sub => {
+    //         [&p_a[0] + &p_b[0], &p_a[1] + &p_b[1]]
+    //     }
+    //     QuadFieldOperation::Mul | QuadFieldOperation::Div => [
+    //         &p_modulus * &p_modulus_minus_one + &p_a[0] * &p_b[0] - &p_a[1] * &p_b[1],
+    //         &p_a[0] * &p_b[1] + &p_a[1] * &p_b[0],
+    //     ],
+    // };
+    pub fn eval_any<AB: WordAirBuilder<Var = V>>(
+        &self,
+        builder: &mut AB,
+        p_op: &[Polynomial<AB::Expr>; 2],
+        p_result: &[Polynomial<AB::Expr>; 2],
+        shard: impl Into<AB::Expr> + Clone,
+        channel: impl Into<AB::Expr> + Clone,
+        is_real: impl Into<AB::Expr> + Clone,
+    ) where
+        V: Into<AB::Expr>,
+    {
+        let p_carry: [Polynomial<<AB as AirBuilder>::Expr>; 2] =
+            self.carry.clone().map(|c| c.into());
+        let p_modulus = P::modulus_field_iter::<AB::F>()
+            .map(AB::Expr::from)
+            .collect();
         let p_op_minus_result: [Polynomial<AB::Expr>; 2] = [
             p_op[0].clone() - &p_result[0],
             p_op[1].clone() - &p_result[1],

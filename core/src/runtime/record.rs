@@ -27,7 +27,7 @@ use crate::{
             g2_double::{Bls12381G2AffineDoubleChip, Bls12381G2AffineDoubleEvent},
         },
         field::{FieldChip, FieldEvent},
-        quad_field::{add::QuadFieldAddEvent, mul::QuadFieldMulEvent, sub::QuadFieldSubEvent},
+        quad_field::{QuadFieldChip, QuadFieldEvent},
         secp256k1::decompress::{Secp256k1DecompressChip, Secp256k1DecompressEvent},
     },
     utils::ec::{
@@ -46,9 +46,6 @@ use crate::{
         EdDecompressChip, KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip,
         ShaCompressChip, ShaExtendChip, ShiftLeft, ShiftRightChip, WeierstrassAddAssignChip,
         WeierstrassDoubleAssignChip,
-    },
-    syscall::precompiles::quad_field::{
-        add::QuadFieldAddChip, mul::QuadFieldMulChip, sub::QuadFieldSubChip,
     },
 };
 
@@ -121,9 +118,7 @@ pub struct ExecutionRecord {
     pub secp256k1_decompress_events: Vec<Secp256k1DecompressEvent>,
 
     pub bls12381_fp_events: Vec<FieldEvent<Bls12381BaseField>>,
-    pub bls12381_fp2_add_events: Vec<QuadFieldAddEvent<Bls12381BaseField>>,
-    pub bls12381_fp2_sub_events: Vec<QuadFieldSubEvent<Bls12381BaseField>>,
-    pub bls12381_fp2_mul_events: Vec<QuadFieldMulEvent<Bls12381BaseField>>,
+    pub bls12381_fp2_events: Vec<QuadFieldEvent<Bls12381BaseField>>,
     pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
     pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
     pub bls12381_g2_double_events: Vec<Bls12381G2AffineDoubleEvent>,
@@ -259,27 +254,9 @@ impl EventLens<FieldChip<Bls12381BaseField>> for ExecutionRecord {
     }
 }
 
-impl EventLens<QuadFieldAddChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(
-        &self,
-    ) -> <QuadFieldAddChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp2_add_events
-    }
-}
-
-impl EventLens<QuadFieldSubChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(
-        &self,
-    ) -> <QuadFieldSubChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp2_sub_events
-    }
-}
-
-impl EventLens<QuadFieldMulChip<Bls12381BaseField>> for ExecutionRecord {
-    fn events(
-        &self,
-    ) -> <QuadFieldMulChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_fp2_mul_events
+impl EventLens<QuadFieldChip<Bls12381BaseField>> for ExecutionRecord {
+    fn events(&self) -> <QuadFieldChip<Bls12381BaseField> as crate::air::WithEvents<'_>>::Events {
+        &self.bls12381_fp2_events
     }
 }
 
@@ -358,9 +335,7 @@ pub struct ShardingConfig {
     pub bls12381_g1_add_len: usize,
     pub bls12381_g1_double_len: usize,
     pub bls12381_fp_len: usize,
-    pub bls12381_fp2_add_len: usize,
-    pub bls12381_fp2_sub_len: usize,
-    pub bls12381_fp2_mul_len: usize,
+    pub bls12381_fp2_len: usize,
 }
 
 impl ShardingConfig {
@@ -391,9 +366,7 @@ impl Default for ShardingConfig {
             bls12381_g1_add_len: shard_size,
             bls12381_g1_double_len: shard_size,
             bls12381_fp_len: shard_size,
-            bls12381_fp2_add_len: shard_size,
-            bls12381_fp2_sub_len: shard_size,
-            bls12381_fp2_mul_len: shard_size,
+            bls12381_fp2_len: shard_size,
         }
     }
 }
@@ -479,16 +452,8 @@ impl MachineRecord for ExecutionRecord {
             self.bls12381_fp_events.len(),
         );
         stats.insert(
-            "bls12381_fp2_add_events".to_string(),
-            self.bls12381_fp2_add_events.len(),
-        );
-        stats.insert(
-            "bls12381_fp2_sub_events".to_string(),
-            self.bls12381_fp2_sub_events.len(),
-        );
-        stats.insert(
-            "bls12381_fp2_mul_events".to_string(),
-            self.bls12381_fp2_mul_events.len(),
+            "bls12381_fp2_events".to_string(),
+            self.bls12381_fp2_events.len(),
         );
         stats.insert(
             "bls12381_g2_add_events".to_string(),
@@ -535,12 +500,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.secp256k1_decompress_events);
         self.bls12381_fp_events
             .append(&mut other.bls12381_fp_events);
-        self.bls12381_fp2_add_events
-            .append(&mut other.bls12381_fp2_add_events);
-        self.bls12381_fp2_sub_events
-            .append(&mut other.bls12381_fp2_sub_events);
-        self.bls12381_fp2_mul_events
-            .append(&mut other.bls12381_fp2_mul_events);
+        self.bls12381_fp2_events
+            .append(&mut other.bls12381_fp2_events);
         self.bls12381_g1_decompress_events
             .append(&mut other.bls12381_g1_decompress_events);
         self.bls12381_g2_add_events
@@ -811,36 +772,14 @@ impl MachineRecord for ExecutionRecord {
                 self.nonce_lookup.insert(event.lookup_id, i as u32);
             }
         }
-        for (bls12381_fp2_add_chunk, shard) in take(&mut self.bls12381_fp2_add_events)
-            .chunks_mut(config.bls12381_fp2_add_len)
+        for (bls12381_fp2_chunk, shard) in take(&mut self.bls12381_fp2_events)
+            .chunks_mut(config.bls12381_fp2_len)
             .zip(shards.iter_mut())
         {
             shard
-                .bls12381_fp2_add_events
-                .extend_from_slice(bls12381_fp2_add_chunk);
-            for (i, event) in bls12381_fp2_add_chunk.iter().enumerate() {
-                self.nonce_lookup.insert(event.lookup_id, i as u32);
-            }
-        }
-        for (bls12381_fp2_sub_chunk, shard) in take(&mut self.bls12381_fp2_sub_events)
-            .chunks_mut(config.bls12381_fp2_sub_len)
-            .zip(shards.iter_mut())
-        {
-            shard
-                .bls12381_fp2_sub_events
-                .extend_from_slice(bls12381_fp2_sub_chunk);
-            for (i, event) in bls12381_fp2_sub_chunk.iter().enumerate() {
-                self.nonce_lookup.insert(event.lookup_id, i as u32);
-            }
-        }
-        for (bls12381_fp2_mul_chunk, shard) in take(&mut self.bls12381_fp2_mul_events)
-            .chunks_mut(config.bls12381_fp2_mul_len)
-            .zip(shards.iter_mut())
-        {
-            shard
-                .bls12381_fp2_mul_events
-                .extend_from_slice(bls12381_fp2_mul_chunk);
-            for (i, event) in bls12381_fp2_mul_chunk.iter().enumerate() {
+                .bls12381_fp2_events
+                .extend_from_slice(bls12381_fp2_chunk);
+            for (i, event) in bls12381_fp2_chunk.iter().enumerate() {
                 self.nonce_lookup.insert(event.lookup_id, i as u32);
             }
         }

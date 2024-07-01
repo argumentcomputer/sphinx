@@ -5,9 +5,7 @@ use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
-use crate::syscall::precompiles::quad_field::add::QuadFieldAddChip;
-use crate::syscall::precompiles::quad_field::mul::QuadFieldMulChip;
-use crate::syscall::precompiles::quad_field::sub::QuadFieldSubChip;
+use crate::syscall::precompiles::quad_field::QuadFieldChip;
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::utils::ec::weierstrass::bls12_381::Bls12381BaseField;
 use crate::StarkGenericConfig;
@@ -104,12 +102,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Double(WeierstrassDoubleAssignChip<SwCurve<Bls12381Parameters>>),
     /// A precompile for arithmetic of BLS12-381 field elements.
     Bls12381FpOp(FieldChip<Bls12381BaseField>),
-    /// A precompile for addition of BLS12-381 quadratic extension field elements.
-    Bls12381Fp2Add(QuadFieldAddChip<Bls12381BaseField>),
-    /// A precompile for subtraction of BLS12-381 quadratic field elements.
-    Bls12381Fp2Sub(QuadFieldSubChip<Bls12381BaseField>),
-    /// A precompile for multiplication of BLS12-381 quadratic field elements.
-    Bls12381Fp2Mul(QuadFieldMulChip<Bls12381BaseField>),
+    /// A precompile for arithmetic of BLS12-381 quadratic extension field elements.
+    Bls12381Fp2Op(QuadFieldChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
 }
@@ -160,12 +154,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Double(bls12381_g1_double));
         let bls12381_fp_op = FieldChip::<Bls12381BaseField>::new();
         chips.push(RiscvAir::Bls12381FpOp(bls12381_fp_op));
-        let bls12381_fp2_add = QuadFieldAddChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Add(bls12381_fp2_add));
-        let bls12381_fp2_sub = QuadFieldSubChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Sub(bls12381_fp2_sub));
-        let bls12381_fp2_mul = QuadFieldMulChip::<Bls12381BaseField>::new();
-        chips.push(RiscvAir::Bls12381Fp2Mul(bls12381_fp2_mul));
+        let bls12381_fp2_op = QuadFieldChip::<Bls12381BaseField>::new();
+        chips.push(RiscvAir::Bls12381Fp2Op(bls12381_fp2_op));
         let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
         chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
         let div_rem = DivRemChip;

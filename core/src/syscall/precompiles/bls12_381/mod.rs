@@ -4,13 +4,10 @@ pub mod g2_double;
 
 use super::{
     field::{create_fp_event, FieldAddSyscall, FieldMulSyscall, FieldSubSyscall},
-    quad_field::{
-        add::{create_fp2_add_event, QuadFieldAddChip},
-        mul::{create_fp2_mul_event, QuadFieldMulChip},
-        sub::{create_fp2_sub_event, QuadFieldSubChip},
-    },
+    quad_field::{create_fp2_event, QuadFieldAddSyscall, QuadFieldMulSyscall, QuadFieldSubSyscall},
 };
 use crate::{
+    operations::field::extensions::quadratic::QuadFieldOperation,
     operations::field::field_op::FieldOperation,
     operations::field::params::{FieldParameters, WORDS_FIELD_ELEMENT},
     runtime::{Syscall, SyscallContext},
@@ -59,38 +56,38 @@ impl Syscall for FieldMulSyscall<Bls12381BaseField> {
     }
 }
 
-impl Syscall for QuadFieldAddChip<Bls12381BaseField> {
+impl Syscall for QuadFieldAddSyscall<Bls12381BaseField> {
     fn num_extra_cycles(&self) -> u32 {
         1
     }
 
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_fp2_add_event::<Bls12381BaseField>(rt, arg1, arg2);
-        rt.record_mut().bls12381_fp2_add_events.push(event);
+        let event = create_fp2_event::<Bls12381BaseField>(rt, QuadFieldOperation::Add, arg1, arg2);
+        rt.record_mut().bls12381_fp2_events.push(event);
         None
     }
 }
 
-impl Syscall for QuadFieldSubChip<Bls12381BaseField> {
+impl Syscall for QuadFieldSubSyscall<Bls12381BaseField> {
     fn num_extra_cycles(&self) -> u32 {
         1
     }
 
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_fp2_sub_event::<Bls12381BaseField>(rt, arg1, arg2);
-        rt.record_mut().bls12381_fp2_sub_events.push(event);
+        let event = create_fp2_event::<Bls12381BaseField>(rt, QuadFieldOperation::Sub, arg1, arg2);
+        rt.record_mut().bls12381_fp2_events.push(event);
         None
     }
 }
 
-impl Syscall for QuadFieldMulChip<Bls12381BaseField> {
+impl Syscall for QuadFieldMulSyscall<Bls12381BaseField> {
     fn num_extra_cycles(&self) -> u32 {
         1
     }
 
     fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
-        let event = create_fp2_mul_event::<Bls12381BaseField>(rt, arg1, arg2);
-        rt.record_mut().bls12381_fp2_mul_events.push(event);
+        let event = create_fp2_event::<Bls12381BaseField>(rt, QuadFieldOperation::Mul, arg1, arg2);
+        rt.record_mut().bls12381_fp2_events.push(event);
         None
     }
 }

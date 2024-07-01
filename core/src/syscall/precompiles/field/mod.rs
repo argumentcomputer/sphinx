@@ -1,12 +1,12 @@
 use crate::air::{AluAirBuilder, EventLens, MachineAir, MemoryAirBuilder, Polynomial, WithEvents};
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
-use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::memory::{MemoryReadCols, MemoryWriteCols};
 use crate::operations::field::field_op::{FieldOpCols, FieldOperation};
-use crate::operations::field::params::{FieldParameters, FieldType, WORDS_FIELD_ELEMENT};
+use crate::operations::field::params::{FieldParameters, FieldType, Limbs, WORDS_FIELD_ELEMENT};
 use crate::runtime::SyscallContext;
 use crate::runtime::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord, Program, SyscallCode};
-use crate::utils::{bytes_to_words_le, pad_rows};
+use crate::utils::{bytes_to_words_le, limbs_from_access, limbs_from_prev_access, pad_rows};
 use core::{
     borrow::{Borrow, BorrowMut},
     mem::size_of,
@@ -195,28 +195,13 @@ where
         let is_real = row.is_add + row.is_sub + row.is_mul;
         builder.assert_bool(is_real.clone());
 
-        let p: Vec<AB::Expr> = row
-            .p_access
-            .iter()
-            .flat_map(|x| x.prev_value().0)
-            .map(Into::into)
-            .collect();
-        let q: Vec<AB::Expr> = row
-            .q_access
-            .iter()
-            .flat_map(|x| x.prev_value().0)
-            .map(Into::into)
-            .collect();
-        let r: Vec<AB::Expr> = row
-            .p_access
-            .iter()
-            .flat_map(|x| x.value().0)
-            .map(Into::into)
-            .collect();
+        let p: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.p_access);
+        let q: Limbs<_, FP::NB_LIMBS> = limbs_from_prev_access(&row.q_access);
+        let r: Limbs<_, FP::NB_LIMBS> = limbs_from_access(&row.p_access);
 
-        let a: Polynomial<AB::Expr> = p.clone().into_iter().collect();
-        let b: Polynomial<AB::Expr> = q.clone().into_iter().collect();
-        let res: Polynomial<AB::Expr> = r.clone().into_iter().collect();
+        let a: Polynomial<AB::Expr> = p.into();
+        let b: Polynomial<AB::Expr> = q.into();
+        let res: Polynomial<AB::Expr> = r.clone().into();
 
         let a_op_b: Polynomial<AB::Expr> = (&a + &b) * row.is_add.into()
             + (&res + &b) * row.is_sub.into()
@@ -242,7 +227,7 @@ where
         for i in 0..FP::NB_LIMBS::USIZE {
             builder
                 .when(is_real.clone())
-                .assert_eq(row.op_cols.result[i], r[i].clone());
+                .assert_eq(row.op_cols.result[i], r[i]);
         }
 
         builder.eval_memory_access_slice(
