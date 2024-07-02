@@ -1,11 +1,17 @@
-#![allow(unused_variables)]
 use crate::{
     Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
     SphinxVerificationError, SphinxVerifyingKey,
 };
 use anyhow::Result;
-use p3_field::PrimeField;
-use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
+use hashbrown::HashMap;
+use p3_baby_bear::BabyBear;
+use p3_field::{AbstractField, PrimeField};
+use p3_fri::{FriProof, TwoAdicFriPcsProof};
+use sphinx_core::{
+    runtime::SphinxContext,
+    stark::{ShardCommitment, ShardOpenedValues, ShardProof},
+    utils::SphinxProverOpts,
+};
 use sphinx_prover::{
     types::HashableKey, verify::verify_plonk_bn254_public_inputs, PlonkBn254Proof, SphinxProver,
     SphinxStdin,
@@ -36,14 +42,14 @@ impl Prover for MockProver {
     }
 
     fn sphinx_prover(&self) -> &SphinxProver {
-        unimplemented!("MockProver does not support SP1Prover")
+        &self.prover
     }
 
     fn prove<'a>(
         &'a self,
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
-        opts: SphinxProverOpts,
+        _opts: SphinxProverOpts,
         context: SphinxContext<'a>,
         kind: SphinxProofKind,
     ) -> Result<SphinxProofWithPublicValues> {
@@ -57,7 +63,33 @@ impl Prover for MockProver {
                     sphinx_version: self.version().to_string(),
                 })
             }
-            SphinxProofKind::Compressed => unimplemented!(),
+            SphinxProofKind::Compressed => {
+                let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin, context)?;
+                Ok(SphinxProofWithPublicValues {
+                    proof: SphinxProof::Compressed(ShardProof {
+                        commitment: ShardCommitment {
+                            main_commit: [BabyBear::zero(); 8].into(),
+                            permutation_commit: [BabyBear::zero(); 8].into(),
+                            quotient_commit: [BabyBear::zero(); 8].into(),
+                        },
+                        opened_values: ShardOpenedValues { chips: vec![] },
+                        opening_proof: TwoAdicFriPcsProof {
+                            fri_proof: FriProof {
+                                commit_phase_commits: vec![],
+                                query_proofs: vec![],
+                                final_poly: Default::default(),
+                                pow_witness: BabyBear::zero(),
+                            },
+                            query_openings: vec![],
+                        },
+                        chip_ordering: HashMap::new(),
+                        public_values: vec![],
+                    }),
+                    stdin,
+                    public_values,
+                    sphinx_version: self.version().to_string(),
+                })
+            }
             SphinxProofKind::Plonk => {
                 let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin, context)?;
                 Ok(SphinxProofWithPublicValues {
