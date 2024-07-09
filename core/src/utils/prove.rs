@@ -121,8 +121,7 @@ where
         // If debugging is enabled, we will also debug the constraints.
         #[cfg(feature = "debug")]
         {
-            let mut challenger = machine.config().challenger();
-            machine.debug_constraints(&pk, runtime.record.clone(), &mut challenger);
+            machine.debug_constraints(&pk, runtime.record.clone());
         }
 
         // Generate the proof and return the proof and public values.
@@ -318,9 +317,8 @@ where
 {
     #[cfg(feature = "debug")]
     {
-        let mut challenger_clone = machine.config().challenger();
         let record_clone = record.clone();
-        machine.debug_constraints(pk, record_clone, &mut challenger_clone);
+        machine.debug_constraints(pk, record_clone);
     }
     let stats = record.stats().clone();
     let cycles = stats.get("cpu_events").unwrap();

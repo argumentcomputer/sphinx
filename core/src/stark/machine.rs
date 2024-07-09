@@ -355,12 +355,8 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
     }
 
     #[instrument("debug constraints", level = "debug", skip_all)]
-    pub fn debug_constraints(
-        &self,
-        pk: &StarkProvingKey<SC>,
-        record: A::Record,
-        challenger: &mut SC::Challenger,
-    ) where
+    pub fn debug_constraints(&self, pk: &StarkProvingKey<SC>, record: A::Record)
+    where
         SC::Val: PrimeField32,
         A: for<'a> Air<DebugConstraintBuilder<'a, Val<SC>, SC::Challenge>>,
     {
@@ -371,6 +367,7 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
 
         let mut cumulative_sum = SC::Challenge::zero();
         for shard in shards.iter() {
+            let mut challenger = self.config().challenger();
             // Filter the chips based on what is used.
             let chips = self.shard_chips(shard).collect::<Vec<_>>();
 
