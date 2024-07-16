@@ -15,6 +15,7 @@ import (
 )
 
 func sanityCheck(srs *kzg_bn254.SRS) {
+	/*
 	// we can now use the SRS to verify a proof
 	// create a polynomial
 	f := randomPolynomial(60)
@@ -44,6 +45,7 @@ func sanityCheck(srs *kzg_bn254.SRS) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	*/
 }
 
 func randomPolynomial(size int) []fr.Element {

@@ -2,16 +2,16 @@ module github.com/succinctlabs/sp1-recursion-gnark
 
 go 1.22
 
+replace github.com/consensys/gnark => ../../../../gnark
+
+replace github.com/consensys/gnark-crypto => ../../../../gnark-crypto
+
 require (
 	github.com/consensys/gnark v0.10.1-0.20240504023521-d9bfacd7cb60
 	github.com/consensys/gnark-crypto v0.12.2-0.20240504013751-564b6f724c3b
 )
 
-require (
-	github.com/ingonyama-zk/icicle v0.0.0-20230928131117-97f0079e5c71 // indirect
-	github.com/ingonyama-zk/iciclegnark v0.1.0 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
-)
+require github.com/ingonyama-zk/icicle/v2 v2.0.0-20240620074550-c92881fb7d1c // indirect
 
 // require github.com/ingonyama-zk/icicle/v2 v2.0.0-20240620074550-c92881fb7d1c // indirect
 
@@ -27,7 +27,6 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/ronanh/intcomp v1.1.0 // indirect
 	github.com/rs/zerolog v1.30.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

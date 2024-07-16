@@ -10,8 +10,6 @@ use bindgen::CargoCallbacks;
 
 /// Build the go library, generate Rust bindings for the exposed functions, and link the library.
 fn main() {
-    cfg_if! {
-        if #[cfg(feature = "plonk")] {
             println!("cargo:rerun-if-changed=go");
             // Define the output directory
             let out_dir = env::var("OUT_DIR").unwrap();
@@ -66,11 +64,13 @@ fn main() {
             println!("cargo:rustc-link-search=native={}", dest_path.display());
             println!("cargo:rustc-link-lib=static={}", lib_name);
 
+            println!("cargo:rustc-link-search=native=/home/w/dev/w/icicle/icicle/build/lib");
+            println!("cargo:rustc-link-lib=static=ingo_curve_bn254");
+            println!("cargo:rustc-link-lib=static=ingo_field_bn254");
+
             // Static linking doesn't really work on macos, so we need to link some system libs
             if cfg!(target_os = "macos") {
                 println!("cargo:rustc-link-lib=framework=CoreFoundation");
                 println!("cargo:rustc-link-lib=framework=Security");
             }
-        }
-    }
 }
