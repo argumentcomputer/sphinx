@@ -32,7 +32,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sphinx_core::{
     runtime::ExecutionReport,
     stark::{MachineVerificationError, ShardProof},
-    SP1_CIRCUIT_VERSION,
+    SPHINX_CIRCUIT_VERSION,
 };
 pub use sphinx_prover::{
     types::HashableKey, types::SphinxProvingKey, types::SphinxVerifyingKey, CoreSC, InnerSC,
@@ -176,7 +176,7 @@ impl ProverClient {
     ///
     /// Note: This is not the same as the version of the SP1 SDK.
     pub fn version(&self) -> String {
-        SP1_CIRCUIT_VERSION.to_string()
+        SPHINX_CIRCUIT_VERSION.to_string()
     }
 
     /// Executes the given program on the given input (without generating a proof).

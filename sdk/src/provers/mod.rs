@@ -6,7 +6,7 @@ use anyhow::Result;
 pub use local::LocalProver;
 pub use mock::MockProver;
 use sphinx_core::stark::MachineVerificationError;
-use sphinx_core::SP1_CIRCUIT_VERSION;
+use sphinx_core::SPHINX_CIRCUIT_VERSION;
 use sphinx_prover::CoreSC;
 use sphinx_prover::InnerSC;
 use sphinx_prover::SphinxCoreProofData;
@@ -43,7 +43,7 @@ pub trait Prover: Send + Sync {
     fn sphinx_prover(&self) -> &SphinxProver;
 
     fn version(&self) -> &str {
-        SP1_CIRCUIT_VERSION
+        SPHINX_CIRCUIT_VERSION
     }
 
     fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey);

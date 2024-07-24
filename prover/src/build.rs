@@ -14,7 +14,7 @@ use sphinx_recursion_gnark_ffi::PlonkBn254Prover;
 
 use crate::install::install_plonk_bn254_artifacts;
 use crate::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
-use crate::{OuterSC, SphinxProver, SP1_CIRCUIT_VERSION};
+use crate::{OuterSC, SphinxProver, SPHINX_CIRCUIT_VERSION};
 
 /// Tries to install the PLONK artifacts if they are not already installed.
 pub fn try_install_plonk_bn254_artifacts(use_aws_cli: bool) -> PathBuf {
@@ -28,7 +28,7 @@ pub fn try_install_plonk_bn254_artifacts(use_aws_cli: bool) -> PathBuf {
     } else {
         println!(
             "[sp1] plonk bn254 artifacts for version {} do not exist at {}. downloading...",
-            SP1_CIRCUIT_VERSION,
+            SPHINX_CIRCUIT_VERSION,
             build_dir.display()
         );
         install_plonk_bn254_artifacts(&build_dir, use_aws_cli);
@@ -54,7 +54,7 @@ fn plonk_bn254_artifacts_dir() -> PathBuf {
         .join(".sp1")
         .join("circuits")
         .join("plonk_bn254")
-        .join(SP1_CIRCUIT_VERSION)
+        .join(SPHINX_CIRCUIT_VERSION)
 }
 
 /// Gets the directory where the PLONK artifacts are installed in development mode.

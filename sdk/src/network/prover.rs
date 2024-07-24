@@ -12,7 +12,7 @@ use crate::{
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 use sphinx_prover::utils::block_on;
-use sphinx_prover::{SphinxProver, SphinxStdin, SP1_CIRCUIT_VERSION};
+use sphinx_prover::{SphinxProver, SphinxStdin, SPHINX_CIRCUIT_VERSION};
 use tokio::time::sleep;
 
 use crate::provers::{LocalProver, ProverType};
@@ -33,7 +33,7 @@ impl NetworkProver {
 
     /// Creates a new [NetworkProver] with the given private key.
     pub fn new_from_key(private_key: &str) -> Self {
-        let version = SP1_CIRCUIT_VERSION;
+        let version = SPHINX_CIRCUIT_VERSION;
         log::info!("Client circuit version: {}", version);
 
         let local_prover = LocalProver::new();
@@ -66,7 +66,7 @@ impl NetworkProver {
             log::info!("Skipping simulation");
         }
 
-        let version = SP1_CIRCUIT_VERSION;
+        let version = SPHINX_CIRCUIT_VERSION;
         let proof_id = client.create_proof(elf, &stdin, mode, version).await?;
         log::info!("Created {}", proof_id);
 
