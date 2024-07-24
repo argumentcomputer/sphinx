@@ -28,4 +28,6 @@ bindgen = { workspace = true }
 cfg-if = { workspace = true }
 
 [features]
+default = ["native"]
 plonk = []
+native = []
