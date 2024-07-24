@@ -1,3 +1,4 @@
+mod hooks;
 mod instruction;
 mod io;
 mod memory;
@@ -5,24 +6,28 @@ mod opcode;
 mod program;
 mod record;
 mod register;
+mod report;
 mod state;
 mod syscall;
 #[macro_use]
 mod utils;
+pub mod subproof;
 
+pub use hooks::*;
 pub use instruction::*;
 pub use memory::*;
 pub use opcode::*;
 pub use program::*;
 pub use record::*;
 pub use register::*;
+pub use report::ExecutionReport;
 pub(crate) use state::*;
+use subproof::{DefaultSubproofVerifier, SubproofVerifier};
 pub use syscall::*;
 pub use utils::*;
 
 use hashbrown::hash_map::Entry;
 use hashbrown::HashMap;
-use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
@@ -44,7 +49,7 @@ use crate::{alu::AluEvent, cpu::CpuEvent};
 ///
 /// For more information on the RV32IM instruction set, see the following:
 /// https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
-pub struct Runtime {
+pub struct Runtime<'a> {
     /// The program.
     pub program: Arc<Program>,
 
@@ -89,49 +94,13 @@ pub struct Runtime {
     pub report: ExecutionReport,
 
     /// Whether we should write to the report.
-    pub should_report: bool,
-}
+    pub print_report: bool,
 
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct ExecutionReport {
-    pub instruction_counts: HashMap<Opcode, u64>,
-    pub syscall_counts: HashMap<SyscallCode, u64>,
-}
+    /// Verifier used to sanity check `verify_sp1_proof` during runtime.
+    pub subproof_verifier: Arc<dyn SubproofVerifier + 'a>,
 
-impl ExecutionReport {
-    pub fn total_instruction_count(&self) -> u64 {
-        self.instruction_counts.values().sum()
-    }
-
-    pub fn total_syscall_count(&self) -> u64 {
-        self.syscall_counts.values().sum()
-    }
-}
-
-impl Display for ExecutionReport {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        writeln!(f, "Instruction Counts:")?;
-        let mut sorted_instructions = self.instruction_counts.iter().collect::<Vec<_>>();
-
-        // Sort instructions by opcode name
-        sorted_instructions.sort_by_key(|&(opcode, _)| opcode.to_string());
-        for (opcode, count) in sorted_instructions {
-            writeln!(f, "  {}: {}", opcode, count)?;
-        }
-        writeln!(f, "Total Instructions: {}", self.total_instruction_count())?;
-
-        writeln!(f, "Syscall Counts:")?;
-        let mut sorted_syscalls = self.syscall_counts.iter().collect::<Vec<_>>();
-
-        // Sort syscalls by syscall name
-        sorted_syscalls.sort_by_key(|&(syscall, _)| format!("{:?}", syscall));
-        for (syscall, count) in sorted_syscalls {
-            writeln!(f, "  {}: {}", syscall, count)?;
-        }
-        writeln!(f, "Total Syscall Count: {}", self.total_syscall_count())?;
-
-        Ok(())
-    }
+    /// Registry of hooks, to be invoked by writing to certain file descriptors.
+    pub hook_registry: HookRegistry<'a>,
 }
 
 #[derive(Error, Debug)]
@@ -148,7 +117,7 @@ pub enum ExecutionError {
     Unimplemented(),
 }
 
-impl Runtime {
+impl<'a> Runtime<'a> {
     // Create a new runtime from a program.
     pub fn new(program: Program, opts: SphinxCoreOpts) -> Self {
         // Create a shared reference to the program.
@@ -191,9 +160,22 @@ impl Runtime {
             syscall_map,
             emit_events: true,
             max_syscall_cycles,
-            report: Default::default(),
-            should_report: false,
+            report: ExecutionReport::default(),
+            print_report: false,
+            subproof_verifier: Arc::new(DefaultSubproofVerifier::new()),
+            hook_registry: HookRegistry::default(),
         }
+    }
+
+    /// Invokes the hook corresponding to the given file descriptor `fd` with the data `buf`,
+    /// returning the resulting data.
+    pub fn hook(&self, fd: u32, buf: &[u8]) -> Vec<Vec<u8>> {
+        self.hook_registry.table[&fd](self.hook_env(), buf)
+    }
+
+    /// Prepare a `HookEnv` for use by hooks.
+    pub fn hook_env(&self) -> HookEnv<'_, '_> {
+        HookEnv { runtime: self }
     }
 
     /// Recover runtime state from a program and existing execution state.
@@ -612,9 +594,9 @@ impl Runtime {
         let lookup_id = create_alu_lookup_id();
         let syscall_lookup_id = create_alu_lookup_id();
 
-        if self.should_report && !self.unconstrained {
+        if self.print_report && !self.unconstrained {
             self.report
-                .instruction_counts
+                .opcode_counts
                 .entry(instruction.opcode)
                 .and_modify(|c| *c += 1)
                 .or_insert(1);
@@ -834,7 +816,7 @@ impl Runtime {
                 b = self.rr(Register::X10, MemoryAccessPosition::B);
                 let syscall = SyscallCode::from_u32(syscall_id);
 
-                if self.should_report && !self.unconstrained {
+                if self.print_report && !self.unconstrained {
                     self.report
                         .syscall_counts
                         .entry(syscall)
@@ -1014,6 +996,7 @@ impl Runtime {
     /// Execute up to `self.shard_batch_size` cycles, returning the events emitted and whether the program ended.
     pub fn execute_record(&mut self) -> Result<(ExecutionRecord, bool), ExecutionError> {
         self.emit_events = true;
+        self.print_report = true;
         let done = self.execute()?;
         Ok((std::mem::take(&mut self.record), done))
     }
@@ -1021,6 +1004,7 @@ impl Runtime {
     /// Execute up to `self.shard_batch_size` cycles, returning a copy of the prestate and whether the program ended.
     pub fn execute_state(&mut self) -> Result<(ExecutionState, bool), ExecutionError> {
         self.emit_events = false;
+        self.print_report = false;
         let state = self.state.clone();
         let done = self.execute()?;
         Ok((state, done))
@@ -1030,7 +1014,7 @@ impl Runtime {
         self.state.clk = 0;
         self.state.channel = 0;
 
-        tracing::info!("loading memory image");
+        tracing::debug!("loading memory image");
         for (addr, value) in self.program.memory_image.iter() {
             self.state.memory.insert(
                 *addr,
@@ -1046,20 +1030,18 @@ impl Runtime {
         self.record
             .memory_initialize_events
             .push(MemoryInitializeFinalizeEvent::initialize(0, 0, true));
-
-        tracing::info!("starting execution");
     }
 
     pub fn run_untraced(&mut self) -> Result<(), ExecutionError> {
         self.emit_events = false;
-        self.should_report = true;
+        self.print_report = true;
         while !self.execute()? {}
         Ok(())
     }
 
     pub fn run(&mut self) -> Result<(), ExecutionError> {
         self.emit_events = true;
-        self.should_report = true;
+        self.print_report = true;
         while !self.execute()? {}
         Ok(())
     }
@@ -1103,11 +1085,6 @@ impl Runtime {
     }
 
     fn postprocess(&mut self) {
-        tracing::info!(
-            "finished execution clk = {} pc = 0x{:x?}",
-            self.state.global_clk,
-            self.state.pc
-        );
         // Flush remaining stdout/stderr
         for (fd, buf) in self.io_buf.iter() {
             if !buf.is_empty() {
@@ -1126,6 +1103,12 @@ impl Runtime {
         // Flush trace buf
         if let Some(ref mut buf) = self.trace_buf {
             buf.flush().unwrap();
+        }
+
+        // Ensure that all proofs and input bytes were read, otherwise warn the user.
+        assert!(self.state.proof_stream_ptr == self.state.proof_stream.len(), "Not all proofs were read. Proving will fail during recursion. Did you pass too many proofs in or forget to call verify_sp1_proof?");
+        if self.state.input_stream_ptr != self.state.input_stream.len() {
+            log::warn!("Not all input bytes were read.");
         }
 
         // SECTION: Set up all MemoryInitializeFinalizeEvents needed for memory argument.
@@ -1199,64 +1182,19 @@ pub mod tests {
         Program::from(PANIC_ELF)
     }
 
+    fn _assert_send<T: Send>() {}
+
+    /// Runtime needs to be Send so we can use it across async calls.
+    fn _assert_runtime_is_send() {
+        _assert_send::<Runtime<'_>>();
+    }
+
     #[test]
     fn test_simple_program_run() {
         let program = simple_program();
         let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
         assert_eq!(runtime.register(Register::X31), 42);
-    }
-
-    #[test]
-    fn test_ssz_withdrawals_program_run_report() {
-        let program = ssz_withdrawals_program();
-        let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
-        runtime.run().unwrap();
-        assert_eq!(runtime.report, {
-            use super::Opcode::*;
-            use super::SyscallCode::*;
-            super::ExecutionReport {
-                instruction_counts: [
-                    (BEQ, 19867),
-                    (JAL, 3921),
-                    (SRL, 288860),
-                    (MULHU, 1152),
-                    (SUB, 10433),
-                    (SB, 55807),
-                    (LB, 10995),
-                    (SLL, 257511),
-                    (JALR, 19801),
-                    (BGEU, 4487),
-                    (ECALL, 2264),
-                    (DIVU, 5),
-                    (XOR, 241804),
-                    (BGE, 393),
-                    (SW, 239570),
-                    (AND, 142566),
-                    (LW, 146149),
-                    (BNE, 42547),
-                    (SLTU, 13270),
-                    (BLT, 917),
-                    (LBU, 32925),
-                    (ADD, 511695),
-                    (OR, 283019),
-                    (AUIPC, 9933),
-                    (MUL, 3735),
-                    (BLTU, 39475),
-                ]
-                .into(),
-                syscall_counts: [
-                    (COMMIT_DEFERRED_PROOFS, 8),
-                    (SHA_COMPRESS, 1091),
-                    (WRITE, 65),
-                    (HALT, 1),
-                    (COMMIT, 8),
-                    (SHA_EXTEND, 1091),
-                ]
-                .into(),
-            }
-        });
-        assert_eq!(runtime.report.total_instruction_count(), 2383101);
     }
 
     #[test]

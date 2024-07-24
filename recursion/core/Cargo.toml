@@ -13,6 +13,7 @@ p3-matrix = { workspace = true }
 p3-maybe-rayon = { workspace = true, features = ["parallel"] }
 p3-poseidon2 = { workspace = true }
 p3-symmetric = { workspace = true }
+p3-util = { workspace = true }
 sphinx-derive = { path = "../../derive" }
 sphinx-primitives = { path = "../../primitives" }
 tracing = { workspace = true }

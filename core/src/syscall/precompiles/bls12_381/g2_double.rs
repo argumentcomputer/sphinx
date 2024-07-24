@@ -170,7 +170,7 @@ pub struct Bls12381G2AffineDoubleEvent {
 }
 
 impl Syscall for Bls12381G2AffineDoubleChip {
-    fn execute(&self, ctx: &mut SyscallContext<'_>, p_ptr: u32, _unused: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, p_ptr: u32, _unused: u32) -> Option<u32> {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
         let channel = ctx.current_channel();

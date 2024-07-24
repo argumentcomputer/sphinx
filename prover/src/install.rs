@@ -9,13 +9,10 @@ use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
 
-use crate::utils::block_on;
+use crate::{utils::block_on, SP1_CIRCUIT_VERSION};
 
 /// The base URL for the S3 bucket containing the plonk bn254 artifacts.
 pub const PLONK_BN254_ARTIFACTS_URL_BASE: &str = "https://sphinx-plonk-params.s3.amazonaws.com";
-
-/// The current version of the plonk bn254 artifacts.
-pub const PLONK_BN254_ARTIFACTS_COMMIT: &str = "sphinx_dev";
 
 /// Install the latest plonk bn254 artifacts.
 ///
@@ -28,7 +25,7 @@ pub fn install_plonk_bn254_artifacts(build_dir: &Path, use_aws_cli: bool) {
     // Download the artifacts.
     let download_url = format!(
         "{}/{}.tar.gz",
-        PLONK_BN254_ARTIFACTS_URL_BASE, PLONK_BN254_ARTIFACTS_COMMIT
+        PLONK_BN254_ARTIFACTS_URL_BASE, SP1_CIRCUIT_VERSION
     );
     let mut artifacts_tar_gz_file =
         tempfile::NamedTempFile::new().expect("failed to create tempfile");
@@ -74,7 +71,7 @@ pub fn install_plonk_bn254_artifacts_dir() -> PathBuf {
         .unwrap()
         .join(".sp1")
         .join("circuits")
-        .join(PLONK_BN254_ARTIFACTS_COMMIT)
+        .join(SP1_CIRCUIT_VERSION)
 }
 
 /// Download the file with a progress bar that indicates the progress.

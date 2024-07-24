@@ -126,7 +126,7 @@ pub struct QuadFieldEvent<FP: FieldParameters> {
 }
 
 pub fn create_fp2_event<FP: FieldParameters>(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     op: QuadFieldOperation,
     arg1: u32,
     arg2: u32,

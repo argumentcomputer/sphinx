@@ -8,9 +8,9 @@ use sphinx_derive::{EventLens, MachineAir, WithEvents};
 
 use crate::runtime::D;
 use crate::{
-    cpu::CpuChip, fri_fold::FriFoldChip, memory::MemoryGlobalChip, multi::MultiChip,
-    poseidon2::Poseidon2Chip, poseidon2_wide::Poseidon2WideChip, program::ProgramChip,
-    range_check::RangeCheckChip,
+    cpu::CpuChip, exp_reverse_bits::ExpReverseBitsLenChip, fri_fold::FriFoldChip,
+    memory::MemoryGlobalChip, multi::MultiChip, poseidon2::Poseidon2Chip,
+    poseidon2_wide::Poseidon2WideChip, program::ProgramChip, range_check::RangeCheckChip,
 };
 use core::iter::once;
 use std::marker::PhantomData;
@@ -33,6 +33,7 @@ pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: u
     FriFold(FriFoldChip<F, DEGREE>),
     RangeCheck(RangeCheckChip<F>),
     Multi(MultiChip<F, DEGREE>),
+    ExpReverseBitsLen(ExpReverseBitsLenChip<F, DEGREE>),
 }
 
 impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAir<F, DEGREE> {
@@ -83,8 +84,16 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
             .chain(once(RecursionAir::FriFold(FriFoldChip::<F, DEGREE> {
                 fixed_log2_rows: None,
                 _phantom: PhantomData,
+                pad: true,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
+            .chain(once(RecursionAir::ExpReverseBitsLen(
+                ExpReverseBitsLenChip::<_, DEGREE> {
+                    fixed_log2_rows: None,
+                    pad: true,
+                    _phantom: PhantomData,
+                },
+            )))
             .collect()
     }
 
@@ -103,6 +112,13 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
+            .chain(once(RecursionAir::ExpReverseBitsLen(
+                ExpReverseBitsLenChip::<_, DEGREE> {
+                    fixed_log2_rows: None,
+                    pad: true,
+                    _phantom: PhantomData,
+                },
+            )))
             .collect()
     }
 
@@ -117,10 +133,17 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Multi(MultiChip {
-                fixed_log2_rows: Some(20),
+                fixed_log2_rows: Some(19),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
+            .chain(once(RecursionAir::ExpReverseBitsLen(
+                ExpReverseBitsLenChip::<F, DEGREE> {
+                    fixed_log2_rows: None,
+                    pad: true,
+                    _phantom: PhantomData,
+                },
+            )))
             .collect()
     }
 }

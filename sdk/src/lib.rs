@@ -21,6 +21,7 @@ pub mod utils {
 }
 
 use cfg_if::cfg_if;
+pub use provers::SphinxVerificationError;
 use std::{env, fmt::Debug, fs::File, path::Path};
 
 use anyhow::{Ok, Result};
@@ -31,6 +32,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sphinx_core::{
     runtime::ExecutionReport,
     stark::{MachineVerificationError, ShardProof},
+    SP1_CIRCUIT_VERSION,
 };
 pub use sphinx_prover::{
     types::HashableKey, types::SphinxProvingKey, types::SphinxVerifyingKey, CoreSC, InnerSC,
@@ -51,6 +53,7 @@ pub struct SphinxProofWithPublicValues<P> {
     pub proof: P,
     pub stdin: SphinxStdin,
     pub public_values: SphinxPublicValues,
+    pub sphinx_version: String,
 }
 
 /// A [SP1ProofWithPublicValues] generated with [ProverClient::prove].
@@ -102,7 +105,7 @@ impl ProverClient {
                         panic!("network feature is not enabled")
                     }
                 }
-            },
+            }
             _ => panic!(
                 "invalid value for SP1_PROVER enviroment variable: expected 'local', 'mock', or 'network'"
             ),
@@ -167,6 +170,13 @@ impl ProverClient {
                 panic!("network feature is not enabled")
             }
         }
+    }
+
+    /// Gets the current version of the SP1 zkVM.
+    ///
+    /// Note: This is not the same as the version of the SP1 SDK.
+    pub fn version(&self) -> String {
+        SP1_CIRCUIT_VERSION.to_string()
     }
 
     /// Executes the given program on the given input (without generating a proof).
@@ -335,7 +345,7 @@ impl ProverClient {
         &self,
         proof: &SphinxProof,
         vkey: &SphinxVerifyingKey,
-    ) -> Result<(), SphinxProofVerificationError> {
+    ) -> Result<(), SphinxVerificationError> {
         self.prover.verify(proof, vkey)
     }
 
@@ -367,7 +377,7 @@ impl ProverClient {
         &self,
         proof: &SphinxCompressedProof,
         vkey: &SphinxVerifyingKey,
-    ) -> Result<()> {
+    ) -> Result<(), SphinxVerificationError> {
         self.prover.verify_compressed(proof, vkey)
     }
 
@@ -401,7 +411,7 @@ impl ProverClient {
         &self,
         proof: &SphinxPlonkBn254Proof,
         vkey: &SphinxVerifyingKey,
-    ) -> Result<()> {
+    ) -> Result<(), SphinxVerificationError> {
         self.prover.verify_plonk(proof, vkey)
     }
 }
@@ -427,8 +437,13 @@ impl<P: Debug + Clone + Serialize + DeserializeOwned> SphinxProofWithPublicValue
 }
 
 impl SphinxPlonkBn254Proof {
+    /// Returns the encoded proof bytes with a prefix of the VK hash.
     pub fn bytes(&self) -> String {
-        format!("0x{}", self.proof.encoded_proof.clone())
+        format!(
+            "0x{}{}",
+            hex::encode(&self.proof.plonk_vkey_hash[..4]),
+            &self.proof.encoded_proof
+        )
     }
 }
 

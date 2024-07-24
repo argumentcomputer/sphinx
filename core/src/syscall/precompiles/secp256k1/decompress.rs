@@ -80,7 +80,7 @@ pub struct Secp256k1DecompressEvent {
 }
 
 pub fn create_secp256k1_decompress_event(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     slice_ptr: u32,
     is_odd: u32,
 ) -> Secp256k1DecompressEvent {
@@ -122,7 +122,7 @@ pub fn create_secp256k1_decompress_event(
 }
 
 impl Syscall for Secp256k1DecompressChip {
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_secp256k1_decompress_event(rt, arg1, arg2);
         rt.record_mut().secp256k1_decompress_events.push(event);
         None

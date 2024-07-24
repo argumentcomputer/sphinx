@@ -2,7 +2,13 @@ use rsa::{
     pkcs8::{DecodePrivateKey, DecodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
+<<<<<<< HEAD
 use sphinx_sdk::{utils, ProverClient, SphinxStdin};
+||||||| parent of 642efdd62 (feat: catch-up to testnet v1.0.7)
+use sphinx_sdk::{utils, ProverClient, SphinxStdin};
+=======
+use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
+>>>>>>> 642efdd62 (feat: catch-up to testnet v1.0.7)
 use std::vec;
 
 /// The ELF we want to execute inside the zkVM.
@@ -59,10 +65,14 @@ fn main() {
     // Verify proof.
     client.verify(&proof, &vk).expect("verification failed");
 
-    // Save the proof.
-    proof
-        .save("proof-with-pis.json")
-        .expect("saving proof failed");
+    // Test a round trip of proof serialization and deserialization.
+    proof.save("proof-with-pis").expect("saving proof failed");
+    let deserialized_proof = SphinxProof::load("proof-with-pis").expect("loading proof failed");
+
+    // Verify the deserialized proof.
+    client
+        .verify(&deserialized_proof, &vk)
+        .expect("verification failed");
 
     println!("successfully generated and verified proof for the program!")
 }

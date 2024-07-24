@@ -25,7 +25,8 @@ pub(crate) const WIDTH: usize = 16;
 #[derive(Default)]
 pub struct Poseidon2Chip<F> {
     pub fixed_log2_rows: Option<usize>,
-    _phantom: PhantomData<F>,
+    pub _phantom: PhantomData<F>,
+    pub pad: bool,
 }
 
 impl<F: Field> BaseAir<F> for Poseidon2Chip<F> {
@@ -67,7 +68,7 @@ impl<F: Field> Poseidon2Chip<F> {
             .sum::<AB::Expr>();
         let is_memory_write = local.rounds[local.rounds.len() - 1];
 
-        self.eval_control_flow_and_inputs::<AB>(builder, local, next);
+        self.eval_control_flow_and_inputs(builder, local, next);
 
         self.eval_syscall(builder, local, receive_table);
 
@@ -449,6 +450,7 @@ mod tests {
         let chip = Poseidon2Chip {
             fixed_log2_rows: None,
             _phantom: PhantomData,
+            pad: true,
         };
 
         let rng = &mut rand::thread_rng();
@@ -499,6 +501,7 @@ mod tests {
         let chip = Poseidon2Chip {
             fixed_log2_rows: None,
             _phantom: PhantomData,
+            pad: true,
         };
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&input_exec, &mut ExecutionRecord::<BabyBear>::default());

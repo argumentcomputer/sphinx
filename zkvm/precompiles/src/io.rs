@@ -7,6 +7,9 @@ use crate::{syscall_hint_len, syscall_hint_read, syscall_write};
 
 const FD_HINT: u32 = 4;
 pub const FD_PUBLIC_VALUES: u32 = 3;
+// Runtime hook file descriptors. Make sure these match the FDs in the HookRegistry.
+// The default hooks can be found in `core/src/runtime/hooks.rs`.
+pub const FD_ECRECOVER_HOOK: u32 = 5;
 
 pub struct SyscallWriter {
     fd: u32,
@@ -78,4 +81,9 @@ pub fn hint<T: Serialize>(value: &T) {
 pub fn hint_slice(buf: &[u8]) {
     let mut my_reader = SyscallWriter { fd: FD_HINT };
     my_reader.write_all(buf).unwrap();
+}
+
+/// Write the data `buf` to the file descriptor `fd` using `Write::write_all` .
+pub fn write(fd: u32, buf: &[u8]) {
+    SyscallWriter { fd }.write_all(buf).unwrap();
 }

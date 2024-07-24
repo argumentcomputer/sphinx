@@ -3,6 +3,7 @@ use nohash_hasher::BuildNoHashHasher;
 use std::fs::File;
 use std::io;
 use std::io::{Seek, Write};
+use std::sync::Arc;
 use web_time::Instant;
 
 pub use baby_bear_blake3::BabyBearBlake3;
@@ -15,8 +16,9 @@ use thiserror::Error;
 use crate::air::MachineAir;
 use crate::io::{SphinxPublicValues, SphinxStdin};
 use crate::lookup::InteractionBuilder;
+use crate::runtime::subproof::{DefaultSubproofVerifier, NoOpSubproofVerifier, SubproofVerifier};
 use crate::runtime::ExecutionError;
-use crate::runtime::{ExecutionRecord, MemoryRecord, ShardingConfig};
+use crate::runtime::{ExecutionRecord, ExecutionReport, MemoryRecord, ShardingConfig};
 use crate::stark::DebugConstraintBuilder;
 use crate::stark::Indexed;
 use crate::stark::MachineProof;
@@ -46,7 +48,7 @@ pub enum SphinxCoreProverError {
 
 pub fn prove_simple<SC: StarkGenericConfig>(
     config: SC,
-    runtime: Runtime,
+    runtime: Runtime<'_>,
 ) -> Result<MachineProof<SC>, SphinxCoreProverError>
 where
     SC::Challenger: Clone,
@@ -98,6 +100,24 @@ where
     ShardMainData<SC>: Serialize + DeserializeOwned,
     <SC as StarkGenericConfig>::Val: PrimeField32,
 {
+    prove_with_subproof_verifier::<SC, DefaultSubproofVerifier>(program, stdin, config, opts, &None)
+}
+
+pub fn prove_with_subproof_verifier<SC: StarkGenericConfig + Send + Sync, V: SubproofVerifier>(
+    program: &Program,
+    stdin: &SphinxStdin,
+    config: SC,
+    opts: SphinxCoreOpts,
+    subproof_verifier: &Option<Arc<V>>,
+) -> Result<(MachineProof<SC>, Vec<u8>), SphinxCoreProverError>
+where
+    SC::Challenger: Clone,
+    OpeningProof<SC>: Send + Sync,
+    Com<SC>: Send + Sync,
+    PcsProverData<SC>: Send + Sync,
+    ShardMainData<SC>: Serialize + DeserializeOwned,
+    <SC as StarkGenericConfig>::Val: PrimeField32,
+{
     let proving_start = Instant::now();
 
     // Execute the program.
@@ -105,6 +125,9 @@ where
     runtime.write_vecs(&stdin.buffer);
     for proof in stdin.proofs.iter() {
         runtime.write_proof(proof.0.clone(), proof.1.clone());
+    }
+    if let Some(deferred_fn) = subproof_verifier.clone() {
+        runtime.subproof_verifier = deferred_fn;
     }
 
     // Setup the machine.
@@ -134,8 +157,8 @@ where
     let mut checkpoints = Vec::new();
     let (public_values_stream, public_values) = loop {
         // Execute the runtime until we reach a checkpoint.
-        let (checkpoint, done) = runtime
-            .execute_state()
+        let (checkpoint, done) = tracing::info_span!("collect_checkpoints")
+            .in_scope(|| runtime.execute_state())
             .map_err(SphinxCoreProverError::ExecutionError)?;
 
         // Save the checkpoint to a temp file.
@@ -164,8 +187,9 @@ where
     let mut shard_main_datas = Vec::new();
     let mut challenger = machine.config().challenger();
     vk.observe_into(&mut challenger);
-    for checkpoint_file in checkpoints.iter_mut() {
-        let mut record = trace_checkpoint(program, checkpoint_file, opts);
+    for (num, checkpoint_file) in checkpoints.iter_mut().enumerate() {
+        let (mut record, _) = tracing::info_span!("commit_checkpoint", num)
+            .in_scope(|| trace_checkpoint(program, checkpoint_file, opts));
         record.public_values = public_values;
         reset_seek(&mut *checkpoint_file);
 
@@ -187,9 +211,12 @@ where
 
     // For each checkpoint, generate events and shard again, then prove the shards.
     let mut shard_proofs = Vec::<ShardProof<SC>>::new();
-    for mut checkpoint_file in checkpoints {
+    let mut report_aggregate = ExecutionReport::default();
+    for (num, mut checkpoint_file) in checkpoints.into_iter().enumerate() {
         let checkpoint_shards = {
-            let mut events = trace_checkpoint(program, &checkpoint_file, opts);
+            let (mut events, report) = tracing::info_span!("prove_checkpoint", num)
+                .in_scope(|| trace_checkpoint(program, &checkpoint_file, opts));
+            report_aggregate += report;
             events.public_values = public_values;
             reset_seek(&mut checkpoint_file);
             tracing::debug_span!("shard").in_scope(|| machine.shard(events, &sharding_config))
@@ -217,6 +244,23 @@ where
             .collect::<Vec<_>>();
         shard_proofs.append(&mut checkpoint_proofs);
     }
+    // Log some of the `ExecutionReport` information.
+    tracing::info!(
+        "execution report (totals): total_cycles={}, total_syscall_cycles={}",
+        report_aggregate.total_instruction_count(),
+        report_aggregate.total_syscall_count()
+    );
+    // Print the opcode and syscall count tables like `du`:
+    // sorted by count (descending) and with the count in the first column.
+    tracing::info!("execution report (opcode counts):");
+    for line in ExecutionReport::sorted_table_lines(&report_aggregate.opcode_counts) {
+        tracing::info!("  {line}");
+    }
+    tracing::info!("execution report (syscall counts):");
+    for line in ExecutionReport::sorted_table_lines(&report_aggregate.syscall_counts) {
+        tracing::info!("  {line}");
+    }
+
     let proof = MachineProof::<SC> { shard_proofs };
 
     // Print the summary.
@@ -281,7 +325,7 @@ pub fn run_test(
 
 #[allow(unused_variables)]
 pub fn run_test_core(
-    runtime: Runtime,
+    runtime: Runtime<'_>,
 ) -> Result<
     MachineProof<BabyBearPoseidon2>,
     crate::stark::MachineVerificationError<BabyBearPoseidon2>,
@@ -345,13 +389,20 @@ where
     Ok(proof)
 }
 
-fn trace_checkpoint(program: &Program, file: &File, opts: SphinxCoreOpts) -> ExecutionRecord {
+fn trace_checkpoint(
+    program: &Program,
+    file: &File,
+    opts: SphinxCoreOpts,
+) -> (ExecutionRecord, ExecutionReport) {
     let mut reader = io::BufReader::new(file);
     let state = bincode::deserialize_from(&mut reader).expect("failed to deserialize state");
     let mut runtime = Runtime::recover(program.clone(), state, opts);
+    // We already passed the deferred proof verifier when creating checkpoints, so the proofs were
+    // already verified. So here we use a noop verifier to not print any warnings.
+    runtime.subproof_verifier = Arc::new(NoOpSubproofVerifier);
     let (events, _) =
         tracing::debug_span!("runtime.trace").in_scope(|| runtime.execute_record().unwrap());
-    events
+    (events, runtime.report)
 }
 
 fn reset_seek(file: &mut File) {

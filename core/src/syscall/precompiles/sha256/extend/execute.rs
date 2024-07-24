@@ -9,7 +9,7 @@ impl Syscall for ShaExtendChip {
         48
     }
 
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let clk_init = rt.clk;
         let w_ptr = arg1;
         assert!(arg2 == 0, "arg2 must be 0");
@@ -57,9 +57,9 @@ impl Syscall for ShaExtendChip {
         }
 
         // Push the SHA extend event.
+        let lookup_id = rt.syscall_lookup_id;
         let shard = rt.current_shard();
         let channel = rt.current_channel();
-        let lookup_id = rt.syscall_lookup_id;
         rt.record_mut().sha_extend_events.push(ShaExtendEvent {
             lookup_id,
             shard,

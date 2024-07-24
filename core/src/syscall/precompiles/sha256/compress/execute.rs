@@ -12,7 +12,7 @@ impl Syscall for ShaCompressChip {
         1
     }
 
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let w_ptr = arg1;
         let h_ptr = arg2;
         assert_ne!(w_ptr, h_ptr);
@@ -76,9 +76,9 @@ impl Syscall for ShaCompressChip {
         }
 
         // Push the SHA extend event.
+        let lookup_id = rt.syscall_lookup_id;
         let shard = rt.current_shard();
         let channel = rt.current_channel();
-        let lookup_id = rt.syscall_lookup_id;
         rt.record_mut().sha_compress_events.push(ShaCompressEvent {
             lookup_id,
             shard,

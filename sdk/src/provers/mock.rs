@@ -1,8 +1,7 @@
 #![allow(unused_variables)]
 use crate::{
-    Prover, SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof,
-    SphinxProofVerificationError, SphinxProofWithPublicValues, SphinxProvingKey,
-    SphinxVerifyingKey,
+    Prover, SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProofWithPublicValues,
+    SphinxProvingKey, SphinxVerificationError, SphinxVerifyingKey,
 };
 use anyhow::Result;
 use p3_field::PrimeField;
@@ -45,6 +44,7 @@ impl Prover for MockProver {
             proof: vec![],
             stdin,
             public_values,
+            sphinx_version: self.version().to_string(),
         })
     }
 
@@ -70,9 +70,11 @@ impl Prover for MockProver {
                 ],
                 encoded_proof: "".to_string(),
                 raw_proof: "".to_string(),
+                plonk_vkey_hash: [0; 32],
             },
             stdin,
             public_values,
+            sphinx_version: self.version().to_string(),
         })
     }
 
@@ -80,7 +82,7 @@ impl Prover for MockProver {
         &self,
         _proof: &SphinxProof,
         _vkey: &SphinxVerifyingKey,
-    ) -> Result<(), SphinxProofVerificationError> {
+    ) -> Result<(), SphinxVerificationError> {
         Ok(())
     }
 
@@ -88,12 +90,17 @@ impl Prover for MockProver {
         &self,
         _proof: &SphinxCompressedProof,
         _vkey: &SphinxVerifyingKey,
-    ) -> Result<()> {
+    ) -> Result<(), SphinxVerificationError> {
         Ok(())
     }
 
-    fn verify_plonk(&self, proof: &SphinxPlonkBn254Proof, vkey: &SphinxVerifyingKey) -> Result<()> {
-        verify_plonk_bn254_public_inputs(vkey, &proof.public_values, &proof.proof.public_inputs)?;
+    fn verify_plonk(
+        &self,
+        proof: &SphinxPlonkBn254Proof,
+        vkey: &SphinxVerifyingKey,
+    ) -> Result<(), SphinxVerificationError> {
+        verify_plonk_bn254_public_inputs(vkey, &proof.public_values, &proof.proof.public_inputs)
+            .map_err(SphinxVerificationError::Plonk)?;
         Ok(())
     }
 }

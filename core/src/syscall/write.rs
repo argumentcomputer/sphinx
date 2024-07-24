@@ -18,72 +18,76 @@ impl Default for SyscallWrite {
 }
 
 impl Syscall for SyscallWrite {
-    fn execute(&self, ctx: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let a2 = Register::X12;
         let rt = &mut ctx.rt;
         let fd = arg1;
-        if fd == 1 || fd == 2 || fd == 3 || fd == 4 {
-            let write_buf = arg2;
-            let nbytes = rt.register(a2);
-            // Read nbytes from memory starting at write_buf.
-            let bytes = (0..nbytes)
-                .map(|i| rt.byte(write_buf + i))
-                .collect::<Vec<u8>>();
-            let slice = bytes.as_slice();
-            if fd == 1 {
-                let s = core::str::from_utf8(slice).unwrap();
-                if s.contains("cycle-tracker-start:") {
-                    let fn_name = s
-                        .split("cycle-tracker-start:")
-                        .last()
-                        .unwrap()
-                        .trim_end()
-                        .trim_start();
-                    let depth = rt.cycle_tracker.len() as u32;
-                    rt.cycle_tracker
-                        .insert(fn_name.to_string(), (rt.state.global_clk, depth));
-                    let padding = (0..depth).map(|_| "│ ").collect::<String>();
-                    log::debug!("{}┌╴{}", padding, fn_name);
-                } else if s.contains("cycle-tracker-end:") {
-                    let fn_name = s
-                        .split("cycle-tracker-end:")
-                        .last()
-                        .unwrap()
-                        .trim_end()
-                        .trim_start();
-                    let (start, depth) = rt.cycle_tracker.remove(fn_name).unwrap_or((0, 0));
-                    // Leftpad by 2 spaces for each depth.
-                    let padding = (0..depth).map(|_| "│ ").collect::<String>();
-                    log::info!(
-                        "{}└╴{} cycles",
-                        padding,
-                        num_to_comma_separated(rt.state.global_clk - start)
-                    );
-                } else {
-                    let flush_s = update_io_buf(ctx, fd, s);
+        let write_buf = arg2;
+        let nbytes = rt.register(a2);
+        // Read nbytes from memory starting at write_buf.
+        let bytes = (0..nbytes)
+            .map(|i| rt.byte(write_buf + i))
+            .collect::<Vec<u8>>();
+        let slice = bytes.as_slice();
+        if fd == 1 {
+            let s = core::str::from_utf8(slice).unwrap();
+            if s.contains("cycle-tracker-start:") {
+                let fn_name = s
+                    .split("cycle-tracker-start:")
+                    .last()
+                    .unwrap()
+                    .trim_end()
+                    .trim_start();
+                let depth = rt.cycle_tracker.len() as u32;
+                rt.cycle_tracker
+                    .insert(fn_name.to_string(), (rt.state.global_clk, depth));
+                let padding = (0..depth).map(|_| "│ ").collect::<String>();
+                log::debug!("{}┌╴{}", padding, fn_name);
+            } else if s.contains("cycle-tracker-end:") {
+                let fn_name = s
+                    .split("cycle-tracker-end:")
+                    .last()
+                    .unwrap()
+                    .trim_end()
+                    .trim_start();
+                let (start, depth) = rt.cycle_tracker.remove(fn_name).unwrap_or((0, 0));
+                // Leftpad by 2 spaces for each depth.
+                let padding = (0..depth).map(|_| "│ ").collect::<String>();
+                log::info!(
+                    "{}└╴{} cycles",
+                    padding,
+                    num_to_comma_separated(rt.state.global_clk - start)
+                );
+            } else {
+                let flush_s = update_io_buf(ctx, fd, s);
+                if !flush_s.is_empty() {
                     for line in flush_s {
-                        println!("stdout: {line}");
+                        println!("stdout: {}", line);
                     }
                 }
-            } else if fd == 2 {
-                let s = core::str::from_utf8(slice).unwrap();
-                let flush_s = update_io_buf(ctx, fd, s);
-                for line in flush_s {
-                    println!("stderr: {line}");
-                }
-            } else if fd == 3 {
-                rt.state.public_values_stream.extend_from_slice(slice);
-            } else if fd == 4 {
-                rt.state.input_stream.push(slice.to_vec());
-            } else {
-                unreachable!()
             }
+        } else if fd == 2 {
+            let s = core::str::from_utf8(slice).unwrap();
+            let flush_s = update_io_buf(ctx, fd, s);
+            if !flush_s.is_empty() {
+                for line in flush_s {
+                    println!("stderr: {}", line);
+                }
+            }
+        } else if fd == 3 {
+            rt.state.public_values_stream.extend_from_slice(slice);
+        } else if fd == 4 {
+            rt.state.input_stream.push(slice.to_vec());
+        } else if let Some(hook) = rt.hook_registry.table.get(&fd) {
+            rt.state.input_stream.extend(hook(rt.hook_env(), slice));
+        } else {
+            log::warn!("tried to write to unknown file descriptor {fd}");
         }
         None
     }
 }
 
-pub fn update_io_buf(ctx: &mut SyscallContext<'_>, fd: u32, s: &str) -> Vec<String> {
+pub fn update_io_buf(ctx: &mut SyscallContext<'_, '_>, fd: u32, s: &str) -> Vec<String> {
     let rt = &mut ctx.rt;
     let entry = rt.io_buf.entry(fd).or_default();
     entry.push_str(s);

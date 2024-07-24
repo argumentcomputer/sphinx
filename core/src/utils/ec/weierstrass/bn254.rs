@@ -59,7 +59,7 @@ impl EllipticCurveParameters for Bn254Parameters {
 impl Syscall for WeierstrassAddAssignChip<Bn254> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {
@@ -76,7 +76,7 @@ impl Syscall for WeierstrassAddAssignChip<Bn254> {
 impl Syscall for WeierstrassDoubleAssignChip<Bn254> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {

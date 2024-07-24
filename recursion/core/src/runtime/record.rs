@@ -1,4 +1,5 @@
 use std::array;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use hashbrown::HashMap;
@@ -9,6 +10,7 @@ use sphinx_core::stark::{Indexed, MachineRecord, PROOF_MAX_NUM_PVS};
 use super::RecursionProgram;
 use crate::air::Block;
 use crate::cpu::{CpuChip, CpuEvent};
+use crate::exp_reverse_bits::{ExpReverseBitsLenChip, ExpReverseBitsLenEvent};
 use crate::fri_fold::{FriFoldChip, FriFoldEvent};
 use crate::memory::MemoryGlobalChip;
 use crate::multi::MultiChip;
@@ -23,8 +25,8 @@ pub struct ExecutionRecord<F: Default> {
     pub cpu_events: Vec<CpuEvent<F>>,
     pub poseidon2_events: Vec<Poseidon2Event<F>>,
     pub fri_fold_events: Vec<FriFoldEvent<F>>,
-    pub range_check_events: HashMap<RangeCheckEvent, usize>,
-
+    pub range_check_events: BTreeMap<RangeCheckEvent, usize>,
+    pub exp_reverse_bits_len_events: Vec<ExpReverseBitsLenEvent<F>>,
     // (address, value)
     pub first_memory_record: Vec<(F, Block<F>)>,
 
@@ -62,6 +64,10 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
         stats.insert(
             "range_check_events".to_string(),
             self.range_check_events.len(),
+        );
+        stats.insert(
+            "exp_reverse_bits_len_events".to_string(),
+            self.exp_reverse_bits_len_events.len(),
         );
         stats
     }
@@ -152,5 +158,15 @@ impl<F: PrimeField32, const DEGREE: usize> EventLens<MultiChip<F, DEGREE>> for E
             <Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self),
             <Self as EventLens<Poseidon2Chip<F>>>::events(self),
         )
+    }
+}
+
+impl<F: PrimeField32, const DEGREE: usize> EventLens<ExpReverseBitsLenChip<F, DEGREE>>
+    for ExecutionRecord<F>
+{
+    fn events(
+        &self,
+    ) -> <ExpReverseBitsLenChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
+        &self.exp_reverse_bits_len_events
     }
 }

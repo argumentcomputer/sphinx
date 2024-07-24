@@ -1,4 +1,4 @@
-use sphinx_sdk::{ProverClient, SphinxStdin};
+use sphinx_sdk::{ProverClient, SphinxProof, SphinxStdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -24,10 +24,16 @@ fn main() {
     // Verify proof.
     client.verify(&proof, &vk).expect("verification failed");
 
-    // Save proof.
+    // Test a round trip of proof serialization and deserialization.
     proof
-        .save("proof-with-io.json")
+        .save("proof-with-io.bin")
         .expect("saving proof failed");
+    let deserialized_proof = SphinxProof::load("proof-with-io.bin").expect("loading proof failed");
+
+    // Verify the deserialized proof.
+    client
+        .verify(&deserialized_proof, &vk)
+        .expect("verification failed");
 
     println!("successfully generated and verified proof for the program!")
 }

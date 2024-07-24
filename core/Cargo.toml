@@ -39,6 +39,7 @@ anyhow = { workspace = true }
 arrayref = { workspace = true }
 blake3 = { workspace = true }
 bls12_381 = { workspace = true }
+bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 curve25519-dalek = { workspace = true }
 elliptic-curve = { workspace = true }
@@ -74,6 +75,7 @@ debug = []
 default = ["avx512"]
 keccak = []
 neon = ["p3-blake3/neon"]
+programs = []
 serial = []
 avx512 = ["p3-baby-bear/nightly-features"]
 

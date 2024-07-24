@@ -181,7 +181,7 @@ pub trait Syscall: Send + Sync {
     /// is that the return value is only for system calls such as `HALT`. Most precompiles use `arg1`
     /// and `arg2` to denote the addresses of the input data, and write the result to the memory at
     /// `arg1`.
-    fn execute(&self, ctx: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32>;
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32>;
 
     /// The number of extra cycles that the syscall takes to execute. Unless this syscall is complex
     /// and requires many cycles, this should be zero.
@@ -191,19 +191,19 @@ pub trait Syscall: Send + Sync {
 }
 
 /// A runtime for syscalls that is protected so that developers cannot arbitrarily modify the runtime.
-pub struct SyscallContext<'a> {
+pub struct SyscallContext<'a, 'b> {
     current_shard: u32,
     pub clk: u32,
 
     pub(crate) next_pc: u32,
     /// This is the exit_code used for the HALT syscall
     pub(crate) exit_code: u32,
-    pub(crate) rt: &'a mut Runtime,
+    pub(crate) rt: &'a mut Runtime<'b>,
     pub syscall_lookup_id: usize,
 }
 
-impl<'a> SyscallContext<'a> {
-    pub fn new(runtime: &'a mut Runtime) -> Self {
+impl<'a, 'b> SyscallContext<'a, 'b> {
+    pub fn new(runtime: &'a mut Runtime<'b>) -> Self {
         let current_shard = runtime.shard();
         let clk = runtime.state.clk;
         Self {

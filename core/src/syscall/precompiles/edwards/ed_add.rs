@@ -150,7 +150,7 @@ impl<
         1
     }
 
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_add_event::<E>(rt, arg1, arg2);
         rt.record_mut().ed_add_events.push(event);
         None

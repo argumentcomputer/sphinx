@@ -18,7 +18,13 @@ pub fn main() {
             101, 196, 163, 38, 119, 218, 58, 72,
         ];
 
+<<<<<<< HEAD
         let mut a_point = AffinePoint::<Secp256k1Operations, U16>::from_le_bytes(&a);
+||||||| parent of 642efdd62 (feat: catch-up to testnet v1.0.7)
+    let mut a_point = AffinePoint::<Secp256k1Operations, 16>::from_le_bytes(&a);
+=======
+        let mut a_point = AffinePoint::<Secp256k1Operations, 16>::from_le_bytes(&a);
+>>>>>>> 642efdd62 (feat: catch-up to testnet v1.0.7)
 
         // scalar.
         // 3

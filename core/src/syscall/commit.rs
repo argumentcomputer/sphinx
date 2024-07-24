@@ -18,7 +18,7 @@ impl Default for SyscallCommit {
 impl Syscall for SyscallCommit {
     fn execute(
         &self,
-        ctx: &mut SyscallContext<'_>,
+        ctx: &mut SyscallContext<'_, '_>,
         word_idx: u32,
         public_values_digest_word: u32,
     ) -> Option<u32> {
@@ -47,7 +47,7 @@ impl Default for SyscallCommitDeferred {
 }
 
 impl Syscall for SyscallCommitDeferred {
-    fn execute(&self, ctx: &mut SyscallContext<'_>, word_idx: u32, word: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, word_idx: u32, word: u32) -> Option<u32> {
         let rt = &mut ctx.rt;
 
         rt.record.public_values.deferred_proofs_digest[word_idx as usize] = word;

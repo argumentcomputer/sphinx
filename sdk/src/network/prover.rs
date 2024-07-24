@@ -3,18 +3,17 @@ use std::{env, time::Duration};
 use crate::proto::network::ProofMode;
 use crate::{
     network::client::{NetworkClient, DEFAULT_PROVER_NETWORK_RPC},
-    proto::network::{ProofStatus, TransactionStatus},
+    proto::network::ProofStatus,
     Prover,
 };
 use crate::{
     SphinxCompressedProof, SphinxPlonkBn254Proof, SphinxProof, SphinxProvingKey, SphinxVerifyingKey,
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::de::DeserializeOwned;
-use sphinx_prover::install::PLONK_BN254_ARTIFACTS_COMMIT;
 use sphinx_prover::utils::block_on;
-use sphinx_prover::{SphinxProver, SphinxStdin};
-use tokio::{runtime, time::sleep};
+use sphinx_prover::{SphinxProver, SphinxStdin, SP1_CIRCUIT_VERSION};
+use tokio::time::sleep;
 
 use crate::provers::{LocalProver, ProverType};
 
@@ -25,23 +24,32 @@ pub struct NetworkProver {
 }
 
 impl NetworkProver {
-    /// Creates a new [NetworkProver].
+    /// Creates a new [NetworkProver] with the private key set in `SP1_PRIVATE_KEY`.
     pub fn new() -> Self {
         let private_key = env::var("SP1_PRIVATE_KEY")
             .unwrap_or_else(|_| panic!("SP1_PRIVATE_KEY must be set for remote proving"));
+        Self::new_from_key(&private_key)
+    }
+
+    /// Creates a new [NetworkProver] with the given private key.
+    pub fn new_from_key(private_key: &str) -> Self {
+        let version = SP1_CIRCUIT_VERSION;
+        log::info!("Client circuit version: {}", version);
+
         let local_prover = LocalProver::new();
         Self {
-            client: NetworkClient::new(&private_key),
+            client: NetworkClient::new(private_key),
             local_prover,
         }
     }
 
-    pub(crate) async fn prove_async<P: DeserializeOwned>(
+    /// Requests a proof from the prover network, returning the proof ID.
+    pub async fn request_proof(
         &self,
         elf: &[u8],
         stdin: SphinxStdin,
         mode: ProofMode,
-    ) -> Result<P> {
+    ) -> Result<String> {
         let client = &self.client;
 
         let skip_simulation = env::var("SKIP_SIMULATION")
@@ -58,22 +66,25 @@ impl NetworkProver {
             log::info!("Skipping simulation");
         }
 
-        let version = PLONK_BN254_ARTIFACTS_COMMIT;
-        log::info!("Client version {}", version);
-
+        let version = SP1_CIRCUIT_VERSION;
         let proof_id = client.create_proof(elf, &stdin, mode, version).await?;
         log::info!("Created {}", proof_id);
 
         if NetworkClient::rpc_url() == DEFAULT_PROVER_NETWORK_RPC {
             log::info!(
                 "View in explorer: https://explorer.succinct.xyz/{}",
-                proof_id.split('_').last().unwrap_or(&proof_id)
+                proof_id
             );
         }
+        Ok(proof_id)
+    }
 
+    /// Waits for a proof to be generated and returns the proof.
+    pub async fn wait_proof<P: DeserializeOwned>(&self, proof_id: &str) -> Result<P> {
+        let client = &self.client;
         let mut is_claimed = false;
         loop {
-            let (status, maybe_proof) = client.get_proof_status::<P>(&proof_id).await?;
+            let (status, maybe_proof) = client.get_proof_status::<P>(proof_id).await?;
 
             match status.status() {
                 ProofStatus::ProofFulfilled => {
@@ -97,68 +108,10 @@ impl NetworkProver {
         }
     }
 
-    #[allow(dead_code)]
-    /// Remotely relay a proof to a set of chains with their callback contracts.
-    pub(crate) fn remote_relay(
-        &self,
-        proof_id: &str,
-        chain_ids: &[u32],
-        callbacks: &[[u8; 20]],
-        callback_datas: &[Vec<u8>],
-    ) -> Result<Vec<String>> {
-        let rt = runtime::Runtime::new()?;
-        rt.block_on(async {
-            let client = &self.client;
-
-            let verifier = NetworkClient::get_sphinx_verifier_address();
-
-            let mut tx_details = Vec::new();
-            for ((i, callback), callback_data) in
-                callbacks.iter().enumerate().zip(callback_datas.iter())
-            {
-                if let Some(&chain_id) = chain_ids.get(i) {
-                    let tx_id = client
-                        .relay_proof(proof_id, chain_id, verifier, *callback, callback_data)
-                        .await
-                        .with_context(|| format!("Failed to relay proof to chain {}", chain_id))?;
-                    tx_details.push((tx_id.clone(), chain_id));
-                }
-            }
-
-            let mut tx_ids = Vec::new();
-            for (tx_id, chain_id) in tx_details.iter() {
-                loop {
-                    let (status_res, maybe_tx_hash, maybe_simulation_url) =
-                        client.get_relay_status(tx_id).await?;
-
-                    match status_res.status() {
-                        TransactionStatus::TransactionFinalized => {
-                            println!(
-                                "Relaying to chain {} succeeded with tx hash: {:?}",
-                                chain_id,
-                                maybe_tx_hash.as_deref().unwrap_or("None")
-                            );
-                            tx_ids.push(tx_id.clone());
-                            break;
-                        }
-                        TransactionStatus::TransactionFailed
-                        | TransactionStatus::TransactionTimedout => {
-                            return Err(anyhow::anyhow!(
-                                "Relaying to chain {} failed with tx hash: {:?}, simulation url: {:?}",
-                                chain_id,
-                                maybe_tx_hash.as_deref().unwrap_or("None"),
-                                maybe_simulation_url.as_deref().unwrap_or("None")
-                            ));
-                        }
-                        _ => {
-                            sleep(Duration::from_secs(5)).await;
-                        }
-                    }
-                }
-            }
-
-            Ok(tx_ids)
-        })
+    /// Requests a proof from the prover network and waits for it to be generated.
+    pub async fn prove<P: ProofType>(&self, elf: &[u8], stdin: SphinxStdin) -> Result<P> {
+        let proof_id = self.request_proof(elf, stdin, P::PROOF_MODE).await?;
+        self.wait_proof(&proof_id).await
     }
 }
 
@@ -176,7 +129,7 @@ impl Prover for NetworkProver {
     }
 
     fn prove(&self, pk: &SphinxProvingKey, stdin: SphinxStdin) -> Result<SphinxProof> {
-        block_on(self.prove_async(&pk.elf, stdin, ProofMode::Core))
+        block_on(self.prove(&pk.elf, stdin))
     }
 
     fn prove_compressed(
@@ -184,7 +137,7 @@ impl Prover for NetworkProver {
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
     ) -> Result<SphinxCompressedProof> {
-        block_on(self.prove_async(&pk.elf, stdin, ProofMode::Compressed))
+        block_on(self.prove(&pk.elf, stdin))
     }
 
     fn prove_plonk(
@@ -192,7 +145,7 @@ impl Prover for NetworkProver {
         pk: &SphinxProvingKey,
         stdin: SphinxStdin,
     ) -> Result<SphinxPlonkBn254Proof> {
-        block_on(self.prove_async(&pk.elf, stdin, ProofMode::Plonk))
+        block_on(self.prove(&pk.elf, stdin))
     }
 }
 
@@ -200,4 +153,21 @@ impl Default for NetworkProver {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// A deserializable proof struct that has an associated ProofMode.
+pub trait ProofType: DeserializeOwned {
+    const PROOF_MODE: ProofMode;
+}
+
+impl ProofType for SphinxProof {
+    const PROOF_MODE: ProofMode = ProofMode::Core;
+}
+
+impl ProofType for SphinxCompressedProof {
+    const PROOF_MODE: ProofMode = ProofMode::Compressed;
+}
+
+impl ProofType for SphinxPlonkBn254Proof {
+    const PROOF_MODE: ProofMode = ProofMode::Plonk;
 }
