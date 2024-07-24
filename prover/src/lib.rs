@@ -62,7 +62,7 @@ pub use types::{
 };
 use utils::words_to_bytes;
 
-pub use sphinx_core::SP1_CIRCUIT_VERSION;
+pub use sphinx_core::SPHINX_CIRCUIT_VERSION;
 
 /// The configuration for the core prover.
 pub type CoreSC = BabyBearPoseidon2;

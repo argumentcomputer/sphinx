@@ -7,7 +7,7 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use sha2::Sha256;
-use sphinx_core::SP1_CIRCUIT_VERSION;
+use sphinx_core::SPHINX_CIRCUIT_VERSION;
 use sphinx_recursion_compiler::{
     constraints::Constraint,
     ir::{Config, Witness},
@@ -87,7 +87,7 @@ impl PlonkBn254Prover {
         let sphinx_verifier_path = build_dir.join("SphinxVerifier.sol");
         let vkey_hash = Self::get_vkey_hash(build_dir);
         let sphinx_verifier_str = include_str!("../assets/SphinxVerifier.txt")
-            .replace("{SP1_CIRCUIT_VERSION}", SP1_CIRCUIT_VERSION)
+            .replace("{SPHINX_CIRCUIT_VERSION}", SPHINX_CIRCUIT_VERSION)
             .replace(
                 "{VKEY_HASH}",
                 format!("0x{}", hex::encode(vkey_hash)).as_str(),

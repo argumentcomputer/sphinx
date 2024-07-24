@@ -11,7 +11,7 @@ contract SphinxVerifier is PlonkVerifier {
     error WrongVersionProof();
 
     function VERSION() external pure returns (string memory) {
-        return "{SP1_CIRCUIT_VERSION}";
+        return "{SPHINX_CIRCUIT_VERSION}";
     }
 
     function VKEY_HASH() public pure returns (bytes32) {

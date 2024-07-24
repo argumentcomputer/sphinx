@@ -1,4 +1,4 @@
-use sphinx_core::SP1_CIRCUIT_VERSION;
+use sphinx_core::SPHINX_CIRCUIT_VERSION;
 
 use crate::PlonkBn254Proof;
 use std::io::Write;
@@ -18,8 +18,8 @@ fn assert_docker() {
 }
 
 fn get_docker_image() -> String {
-    std::env::var("SP1_GNARK_IMAGE")
-        .unwrap_or_else(|_| format!("ghcr.io/succinctlabs/sp1-gnark:{}", SP1_CIRCUIT_VERSION))
+    std::env::var("SPHINX_GNARK_IMAGE")
+        .unwrap_or_else(|_| format!("ghcr.io/succinctlabs/sp1-gnark:{}", SPHINX_CIRCUIT_VERSION))
 }
 
 /// Calls `docker run` with the given arguments and bind mounts.

@@ -7,7 +7,7 @@
 
 use crate::PlonkBn254Proof;
 use cfg_if::cfg_if;
-use sphinx_core::SP1_CIRCUIT_VERSION;
+use sphinx_core::SPHINX_CIRCUIT_VERSION;
 use std::ffi::{c_char, CString};
 
 #[allow(warnings, clippy::all)]
