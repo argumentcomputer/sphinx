@@ -2,13 +2,7 @@ use rsa::{
     pkcs8::{DecodePrivateKey, DecodePublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
-<<<<<<< HEAD
-use sphinx_sdk::{utils, ProverClient, SphinxStdin};
-||||||| parent of 642efdd62 (feat: catch-up to testnet v1.0.7)
-use sphinx_sdk::{utils, ProverClient, SphinxStdin};
-=======
 use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
->>>>>>> 642efdd62 (feat: catch-up to testnet v1.0.7)
 use std::vec;
 
 /// The ELF we want to execute inside the zkVM.

@@ -617,6 +617,7 @@ dependencies = [
  "cfg-if",
  "getrandom",
  "k256",
+ "lazy_static",
  "once_cell",
  "p3-baby-bear",
  "p3-field",

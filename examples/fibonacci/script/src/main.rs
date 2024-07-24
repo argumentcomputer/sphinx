@@ -1,4 +1,4 @@
-use sphinx_sdk::{utils, ProverClient, SPhinxProof, SphinxStdin};
+use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");

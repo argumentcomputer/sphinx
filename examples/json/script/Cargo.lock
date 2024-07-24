@@ -621,16 +621,16 @@ dependencies = [
 
 [[package]]
 name = "blake3"
-version = "1.5.1"
+version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30cca6d3674597c30ddf2c587bf8d9d65c9a84d2326d941cc79c9842dfe0ef52"
+checksum = "e9ec96fe9a81b5e365f9db71fe00edc4fe4ca2cc7dcb7861f0603012a7caa210"
 dependencies = [
  "arrayref",
  "arrayvec",
  "cc",
  "cfg-if",
  "constant_time_eq",
- "rayon",
+ "rayon-core",
 ]
 
 [[package]]
@@ -689,6 +689,12 @@ name = "byte-slice-cast"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3ac9f8b63eca6fd385229b3675f6cc0dc5c8a5c8a54a59d4f52ffd670d87b0c"
+
+[[package]]
+name = "bytemuck"
+version = "1.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b236fc92302c97ed75b38da1f4917b5cdda4984745740f153a5d3059e48d725e"
 
 [[package]]
 name = "byteorder"
@@ -4221,6 +4227,7 @@ dependencies = [
  "bincode",
  "blake3",
  "bls12_381 0.8.0",
+ "bytemuck",
  "cfg-if",
  "curve25519-dalek",
  "elf",
@@ -4410,6 +4417,7 @@ dependencies = [
  "p3-merkle-tree",
  "p3-poseidon2",
  "p3-symmetric",
+ "p3-util",
  "serde",
  "serde_with",
  "sphinx-core",
@@ -4433,8 +4441,11 @@ dependencies = [
 name = "sphinx-recursion-gnark-ffi"
 version = "1.0.0"
 dependencies = [
+ "anyhow",
+ "bincode",
  "bindgen",
  "cfg-if",
+ "hex",
  "log",
  "num-bigint 0.4.5",
  "p3-baby-bear",
@@ -4443,6 +4454,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "sha2",
  "sphinx-core",
  "sphinx-recursion-compiler",
  "tempfile",
@@ -4505,6 +4517,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
+ "thiserror",
  "tokio",
  "tracing",
  "twirp",
