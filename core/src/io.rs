@@ -45,7 +45,7 @@ impl SphinxStdin {
     }
 
     /// Read a value from the buffer.
-    pub fn read<T: Serialize + DeserializeOwned>(&mut self) -> T {
+    pub fn read<T: DeserializeOwned>(&mut self) -> T {
         let result: T =
             bincode::deserialize(&self.buffer[self.ptr]).expect("failed to deserialize");
         self.ptr += 1;
@@ -127,7 +127,7 @@ impl SphinxPublicValues {
     }
 
     /// Write a value to the buffer.
-    pub fn write<T: Serialize + DeserializeOwned>(&mut self, data: &T) {
+    pub fn write<T: Serialize>(&mut self, data: &T) {
         self.buffer.write(data);
     }
 

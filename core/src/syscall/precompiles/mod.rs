@@ -39,7 +39,7 @@ pub struct ECAddEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 }
 
 pub fn create_ec_add_event<E: EllipticCurve>(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     arg1: u32,
     arg2: u32,
 ) -> ECAddEvent<BaseLimbWidth<E>> {
@@ -95,7 +95,7 @@ pub struct ECDoubleEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
 }
 
 pub fn create_ec_double_event<E: EllipticCurve>(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     arg1: u32,
     _: u32,
 ) -> ECDoubleEvent<BaseLimbWidth<E>> {

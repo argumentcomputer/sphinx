@@ -181,11 +181,21 @@ impl<F: PrimeField32> MachineAir<F> for Poseidon2Chip<F> {
         let num_real_rows = rows.len();
 
         // Pad the trace to a power of two.
-        pad_rows_fixed(
-            &mut rows,
-            || [F::zero(); NUM_POSEIDON2_COLS],
-            self.fixed_log2_rows,
-        );
+        if self.pad {
+            pad_rows_fixed(
+                &mut rows,
+                || [F::zero(); NUM_POSEIDON2_COLS],
+                self.fixed_log2_rows,
+            );
+        }
+
+        let mut round_num = 0;
+        for row in rows[num_real_rows..].iter_mut() {
+            let cols: &mut Poseidon2Cols<F> = row.as_mut_slice().borrow_mut();
+            cols.rounds[round_num] = F::one();
+
+            round_num = (round_num + 1) % rounds;
+        }
 
         let mut round_num = 0;
         for row in rows[num_real_rows..].iter_mut() {

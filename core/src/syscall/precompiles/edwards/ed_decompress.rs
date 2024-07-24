@@ -301,7 +301,7 @@ pub struct EdDecompressChip<E> {
 impl<F: FieldParameters<NB_LIMBS = DEFAULT_NUM_LIMBS_T>, E: EdwardsParameters<BaseField = F>>
     Syscall for EdDecompressChip<E>
 {
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, sign: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, sign: u32) -> Option<u32> {
         let start_clk = rt.clk;
         let slice_ptr = arg1;
         assert!(slice_ptr % 4 == 0, "Pointer must be 4-byte aligned.");

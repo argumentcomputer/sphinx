@@ -96,7 +96,7 @@ impl WeierstrassParameters for Secp256k1Parameters {
 impl Syscall for WeierstrassAddAssignChip<Secp256k1> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {
@@ -113,7 +113,7 @@ impl Syscall for WeierstrassAddAssignChip<Secp256k1> {
 impl Syscall for WeierstrassDoubleAssignChip<Secp256k1> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {

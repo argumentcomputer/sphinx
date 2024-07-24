@@ -3,6 +3,8 @@ use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractField;
 use p3_field::TwoAdicField;
 use sphinx_core::air::MachineAir;
+use sphinx_core::air::PublicValues;
+use sphinx_core::air::Word;
 use sphinx_core::stark::Com;
 use sphinx_core::stark::GenericVerifierConstraintFolder;
 use sphinx_core::stark::ShardProof;
@@ -132,6 +134,14 @@ where
             opening_proof,
             ..
         } = proof;
+
+        // Extract public values.
+        let mut pv_elements = Vec::new();
+        for i in 0..machine.num_pv_elts() {
+            let element = builder.get(&proof.public_values, i);
+            pv_elements.push(element);
+        }
+        let public_values = PublicValues::<Word<Felt<_>>, Felt<_>>::from_vec(&pv_elements);
 
         let ShardCommitmentVariable {
             main_commit,
@@ -302,16 +312,41 @@ where
         builder.cycle_tracker("stage-d-verify-pcs");
 
         builder.cycle_tracker("stage-e-verify-constraints");
+
+        let shard_bits = builder.num2bits_f(public_values.shard);
+        let shard = builder.bits2num_v(&shard_bits);
         for (i, chip) in machine.chips().iter().enumerate() {
             tracing::debug!("verifying constraints for chip: {}", chip.as_ref().name());
             let index = builder.get(&proof.sorted_idxs, i);
+
+            if chip.as_ref().name() == "CPU" {
+                builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+            }
 
             if chip.as_ref().preprocessed_width() > 0 {
                 builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
             }
 
-            if chip.as_ref().name() == "CPU" {
-                builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+            if chip.as_ref().name() == "MemoryInit" {
+                builder.if_eq(shard, C::N::one()).then_or_else(
+                    |builder| {
+                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+                    },
+                    |builder| {
+                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
+                    },
+                );
+            }
+
+            if chip.as_ref().name() == "MemoryFinalize" {
+                builder.if_eq(shard, C::N::one()).then_or_else(
+                    |builder| {
+                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
+                    },
+                    |builder| {
+                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
+                    },
+                );
             }
 
             // TODO(wwared): Update and uncomment these constraints with future security ports, see issue #38

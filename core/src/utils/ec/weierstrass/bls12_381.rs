@@ -230,7 +230,7 @@ impl WeierstrassParameters for Bls12381Parameters {
 impl Syscall for WeierstrassAddAssignChip<Bls12381> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {
@@ -246,7 +246,7 @@ impl Syscall for WeierstrassAddAssignChip<Bls12381> {
 impl Syscall for WeierstrassDoubleAssignChip<Bls12381> {
     fn execute(
         &self,
-        rt: &mut crate::runtime::SyscallContext<'_>,
+        rt: &mut crate::runtime::SyscallContext<'_, '_>,
         arg1: u32,
         arg2: u32,
     ) -> Option<u32> {

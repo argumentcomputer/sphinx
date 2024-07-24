@@ -170,7 +170,7 @@ pub struct Bls12381G2AffineAddEvent {
 }
 
 impl Syscall for Bls12381G2AffineAddChip {
-    fn execute(&self, ctx: &mut SyscallContext<'_>, a_ptr: u32, b_ptr: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, a_ptr: u32, b_ptr: u32) -> Option<u32> {
         let clk = ctx.clk;
         let shard = ctx.current_shard();
         let channel = ctx.current_channel();

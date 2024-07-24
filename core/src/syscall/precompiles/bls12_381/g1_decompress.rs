@@ -84,7 +84,7 @@ pub struct Bls12381G1DecompressEvent {
 }
 
 pub fn create_bls12381_g1_decompress_event(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     slice_ptr: u32,
 ) -> Bls12381G1DecompressEvent {
     let start_clk = rt.clk;
@@ -132,7 +132,7 @@ pub fn create_bls12381_g1_decompress_event(
 }
 
 impl Syscall for Bls12381G1DecompressChip {
-    fn execute(&self, rt: &mut SyscallContext<'_>, arg1: u32, _arg2: u32) -> Option<u32> {
+    fn execute(&self, rt: &mut SyscallContext<'_, '_>, arg1: u32, _arg2: u32) -> Option<u32> {
         let event = create_bls12381_g1_decompress_event(rt, arg1);
         rt.record_mut().bls12381_g1_decompress_events.push(event);
         None

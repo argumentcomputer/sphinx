@@ -103,7 +103,7 @@ impl<'a, FP: FieldParameters> WithEvents<'a> for FieldChip<FP> {
 }
 
 pub fn create_fp_event<FP: FieldParameters>(
-    rt: &mut SyscallContext<'_>,
+    rt: &mut SyscallContext<'_, '_>,
     op: FieldOperation,
     arg1: u32,
     arg2: u32,
