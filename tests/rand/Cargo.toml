@@ -1,0 +1,11 @@
+[workspace]
+[package]
+name = "rand-test"
+version = "1.0.0-rc.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }
+sphinx-derive = { path = "../../derive" }
+rand = "0.8.5"

@@ -1,13 +1,7 @@
 //! A simple script to generate and verify the proof of a given program.
 
 use lib::{Account, Transaction};
-<<<<<<< HEAD
-use sphinx_sdk::{utils, ProverClient, SphinxStdin};
-||||||| parent of 642efdd62 (feat: catch-up to testnet v1.0.7)
-use sphinx_sdk::{utils, ProverClient, SphinxStdin};
-=======
 use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
->>>>>>> 642efdd62 (feat: catch-up to testnet v1.0.7)
 
 const JSON_ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
 

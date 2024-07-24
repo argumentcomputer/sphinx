@@ -17,13 +17,7 @@ pub fn main() {
             0, 0, 0, 0, 0, 0,
         ];
 
-<<<<<<< HEAD
         let mut a_point = AffinePoint::<Bn254, U16>::from_le_bytes(&a);
-||||||| parent of 642efdd62 (feat: catch-up to testnet v1.0.7)
-    let mut a_point = AffinePoint::<Bn254, 16>::from_le_bytes(&a);
-=======
-        let mut a_point = AffinePoint::<Bn254, 16>::from_le_bytes(&a);
->>>>>>> 642efdd62 (feat: catch-up to testnet v1.0.7)
 
         // scalar.
         // 3
