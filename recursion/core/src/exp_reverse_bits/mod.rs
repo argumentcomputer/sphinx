@@ -4,6 +4,7 @@ use crate::air::{Block, IsZeroOperation, RecursionMemoryAirBuilder};
 use crate::memory::{MemoryReadSingleCols, MemoryReadWriteSingleCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
+use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::PrimeField32;
@@ -24,7 +25,7 @@ use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryRecord;
 use crate::runtime::{ExecutionRecord, RecursionProgram};
 
-pub const NUM_EXP_REVERSE_BITS_LEN_COLS: usize = core::mem::size_of::<ExpReverseBitsLenCols<u8>>();
+pub const NUM_EXP_REVERSE_BITS_LEN_COLS: usize = size_of::<ExpReverseBitsLenCols<u8>>();
 
 #[derive(Default)]
 pub struct ExpReverseBitsLenChip<F: Field, const DEGREE: usize> {

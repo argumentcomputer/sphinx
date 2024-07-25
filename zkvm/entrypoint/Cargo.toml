@@ -13,6 +13,7 @@ p3-field = { workspace = true, optional = true }
 bincode = { workspace = true }
 cfg-if = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
+libm = { workspace = true, optional = true }
 k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
 lazy_static = { workspace = true }
 once_cell = { workspace = true }
@@ -20,7 +21,8 @@ rand = { workspace = true }
 sha2 = { workspace = true }
 
 [features]
-default = []
+default = ["libm"]
+libm = ["dep:libm"]
 verify = ["dep:sphinx-primitives", "dep:p3-baby-bear", "dep:p3-field", "sphinx-precompiles/verify"]
 
 

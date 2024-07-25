@@ -1,6 +1,7 @@
 use std::borrow::{Borrow, BorrowMut};
 use std::marker::PhantomData;
 
+use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::{Field, PrimeField32};
@@ -15,7 +16,7 @@ use crate::fri_fold::{FriFoldChip, FriFoldCols};
 use crate::poseidon2::{Poseidon2Chip, Poseidon2Cols};
 use crate::runtime::{ExecutionRecord, RecursionProgram};
 
-pub const NUM_MULTI_COLS: usize = core::mem::size_of::<MultiCols<u8>>();
+pub const NUM_MULTI_COLS: usize = size_of::<MultiCols<u8>>();
 
 #[derive(Default)]
 pub struct MultiChip<F, const DEGREE: usize> {

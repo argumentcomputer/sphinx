@@ -36,7 +36,7 @@ use anyhow::Result;
 /// Decompresses a compressed public key using bls12381_g1_decompress precompile.
 pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
     cfg_if::cfg_if! {
-        if #[cfg(all(target_os = "zkvm", target_vendor = "succinct"))] {
+        if #[cfg(target_os = "zkvm")] {
             let mut decompressed_key = [0u8; 96];
             decompressed_key[..48].copy_from_slice(compressed_key);
             unsafe {

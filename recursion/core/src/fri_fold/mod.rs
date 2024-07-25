@@ -2,6 +2,7 @@ use crate::air::RecursionMemoryAirBuilder;
 use crate::memory::{MemoryReadCols, MemoryReadSingleCols, MemoryReadWriteCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
+use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::PrimeField32;
@@ -21,7 +22,7 @@ use crate::air::SphinxRecursionAirBuilder;
 use crate::memory::MemoryRecord;
 use crate::runtime::{ExecutionRecord, RecursionProgram};
 
-pub const NUM_FRI_FOLD_COLS: usize = core::mem::size_of::<FriFoldCols<u8>>();
+pub const NUM_FRI_FOLD_COLS: usize = size_of::<FriFoldCols<u8>>();
 
 #[derive(Default)]
 pub struct FriFoldChip<F: Field, const DEGREE: usize> {
