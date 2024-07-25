@@ -12,7 +12,7 @@ serde_json = { workspace = true }
 twirp = { workspace = true }
 async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
-reqwest = { workspace = true, features = ["default-tls", "trust-dns", "stream"] }
+reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
 sphinx-prover = { path = "../prover" }
 sphinx-core = { path = "../core" }
