@@ -43,7 +43,7 @@ impl CurveOperations for Secp256k1Operations {
 /// Decompresses a compressed public key using secp256k1_decompress precompile.
 pub fn decompress_pubkey(compressed_key: &[u8; 33]) -> Result<[u8; 65]> {
     cfg_if::cfg_if! {
-        if #[cfg(all(target_os = "zkvm", target_vendor = "succinct"))] {
+        if #[cfg(target_os = "zkvm")] {
             let mut decompressed_key: [u8; 64] = [0; 64];
             decompressed_key[..32].copy_from_slice(&compressed_key[1..]);
             let is_odd = match compressed_key[0] {
@@ -81,7 +81,7 @@ pub fn verify_signature(
     s_inverse: Option<&Scalar>,
 ) -> bool {
     cfg_if::cfg_if! {
-        if #[cfg(all(target_os = "zkvm", target_vendor = "succinct"))] {
+        if #[cfg(target_os = "zkvm")] {
             let pubkey_x = Scalar::from_repr(bits2field::<Secp256k1>(&pubkey[1..33]).unwrap()).unwrap();
             let pubkey_y = Scalar::from_repr(bits2field::<Secp256k1>(&pubkey[33..]).unwrap()).unwrap();
 

@@ -37,9 +37,9 @@ impl<F: Field> ByteChip<F> {
     /// Creates the preprocessed byte trace and event map.
     ///
     /// This function returns a pair `(trace, map)`, where:
-    ///  - `trace` is a matrix containing all possible byte operations.
+    /// - `trace` is a matrix containing all possible byte operations.
     /// - `map` is a map from a byte lookup to the corresponding row it appears in the table and
-    /// the index of the result in the array of multiplicities.
+    ///   the index of the result in the array of multiplicities.
     pub fn trace_and_map(
         shard: u32,
     ) -> (RowMajorMatrix<F>, BTreeMap<ByteLookupEvent, (usize, usize)>) {

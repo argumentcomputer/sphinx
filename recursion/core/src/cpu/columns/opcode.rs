@@ -1,3 +1,4 @@
+use core::mem::size_of;
 use p3_field::PrimeField32;
 use sphinx_derive::AlignedBorrow;
 
@@ -6,7 +7,7 @@ use crate::{
     runtime::{instruction_is_heap_expand, Opcode},
 };
 
-const OPCODE_COUNT: usize = core::mem::size_of::<OpcodeSelectorCols<u8>>();
+const OPCODE_COUNT: usize = size_of::<OpcodeSelectorCols<u8>>();
 
 /// Selectors for the opcode.
 ///
