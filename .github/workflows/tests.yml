@@ -29,7 +29,6 @@ jobs:
       - name: Run cargo test with no default features
         run: |
           cargo nextest run -p sphinx-core --cargo-profile dev-ci --profile ci --no-default-features --features "debug" -E 'test(cpu::trace::tests)'
-        working-directory: ${{ github.workspace }}/examples
 
   test-recursion-circuit:
     name: Test recursion circuit

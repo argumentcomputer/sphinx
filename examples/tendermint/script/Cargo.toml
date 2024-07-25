@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 sphinx-core = { path = "../../../core", features = ["neon"] }
 sphinx-sdk = { path = "../../../sdk" }
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "default-tls"] }
 tokio = { version = "1", features = ["full"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
