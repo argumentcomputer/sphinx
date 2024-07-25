@@ -142,10 +142,10 @@ default = "deny"
 confidence-threshold = 0.8
 # Allow 1 or more licenses on a per-crate basis, so that particular licenses
 # aren't accepted for every possible crate as with the normal allow list
-exceptions = [
-    # Each entry is the crate and version constraint, and its specific allow
-    # list
-]
+[[licenses.exceptions]]
+allow = ["MPL-2.0"]
+name = "webpki-roots"
+version = "0.26.3"
 
 # Some crates don't have (easily) machine readable licensing information,
 # adding a clarification entry for it allows you to manually specify the
@@ -202,7 +202,6 @@ expression = "MIT OR Apache-2.0"
 license-files = [
     { path = "COPYING", hash = 0x106164e0 }
 ]
-
 
 [licenses.private]
 # If true, ignores workspace crates that aren't published, or are only
