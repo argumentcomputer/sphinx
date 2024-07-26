@@ -1,0 +1,9 @@
+[workspace]
+[package]
+name = "lcs2-program"
+version = "1.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+sphinx-zkvm = { path = "../../../zkvm/entrypoint" }
