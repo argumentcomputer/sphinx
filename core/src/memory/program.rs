@@ -1,4 +1,3 @@
-// TODO(wwared): Update this file to include MemoryProgram only in the first shard, see issue #38
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir, PairBuilder};
