@@ -1,4 +1,4 @@
-use sphinx_sdk::{utils, ProverClient, SphinxStdin};
+use sphinx_sdk::{utils, ProverClient, SphinxProof, SphinxStdin};
 
 /// The ELF we want to execute inside the zkVM.
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
@@ -18,10 +18,16 @@ fn main() {
     // Verify proof.
     client.verify(&proof, &vk).expect("verification failed");
 
-    // Save the proof.
+    // Test a round trip of proof serialization and deserialization.
     proof
-        .save("proof-with-pis.json")
+        .save("proof-with-io.bin")
         .expect("saving proof failed");
+    let deserialized_proof = SphinxProof::load("proof-with-io.bin").expect("loading proof failed");
+
+    // Verify the deserialized proof.
+    client
+        .verify(&deserialized_proof, &vk)
+        .expect("verification failed");
 
     println!("successfully generated and verified proof for the program!")
 }
