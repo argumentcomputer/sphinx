@@ -159,21 +159,26 @@ jobs:
         with:
           filename: .github/templates/M1_MAC.md
 
-  check-aptos-lc-compiles:
+  check-downstream-compiles:
     runs-on: warp-ubuntu-latest-x64-16x
+    strategy:
+      matrix:
+        include:
+          - repo: zk-light-clients
+            path: aptos
+          - repo: zk-light-clients
+            path: ethereum
+          - repo: loam
+            path: ""
     steps:
       - uses: actions/checkout@v4
         with:
           repository: lurk-lab/ci-workflows
           path: ci-workflows
       - uses: ./ci-workflows/.github/actions/ci-env
-      - name: Set env
-        run: |
-          echo "DOWNSTREAM_REPO=zk-light-clients" | tee -a $GITHUB_ENV
-          echo "UPSTREAM_REPO=sphinx" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
-          path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
+          path: ${{ github.workspace }}/sphinx
       - name: Setup CI
         uses: ./sphinx/.github/actions/setup
         with:
@@ -181,49 +186,21 @@ jobs:
           perf: false
       - name: Install deps
         run: |
-          sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev libudev-dev cmake
-          cd sphinx/cli
-          cargo install --locked --force --path .
-          cargo prove install-toolchain   
-          echo "RUSTFLAGS=${{env.RUSTFLAGS}} --cfg tokio_unstable" | tee -a $GITHUB_ENV
+          if [[ "${{ matrix.downstream-path }}" == "aptos" || "${{ matrix.downstream-path }}" == "ethereum" ]]; then
+            sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev libudev-dev cmake
+            cd sphinx/cli
+            cargo install --locked --force --path .
+            cargo prove install-toolchain
+            echo "RUSTFLAGS=${{env.RUSTFLAGS}} --cfg tokio_unstable" | tee -a $GITHUB_ENV
+          fi
       - uses: actions/checkout@v4
         with:
-          repository: "lurk-lab/${{ env.DOWNSTREAM_REPO }}"
-          path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
+          repository: lurk-lab/${{ matrix.repo }}
+          path: ${{ github.workspace }}/${{ matrix.repo }}
           token: ${{ secrets.REPO_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles
         with:
-          upstream-path: "${{ env.UPSTREAM_REPO }}"
-          downstream-path: "${{ env.DOWNSTREAM_REPO }}/aptos"
+          upstream-path: "sphinx"
+          downstream-path: "${{ matrix.repo }}/${{ matrix.path }}"
           patch-ssh: true
 
-  check-loam-compiles:
-    runs-on: warp-ubuntu-latest-x64-16x
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: lurk-lab/ci-workflows
-          path: ci-workflows
-      - uses: ./ci-workflows/.github/actions/ci-env
-      - name: Set env
-        run: |
-          echo "DOWNSTREAM_REPO=loam" | tee -a $GITHUB_ENV
-          echo "UPSTREAM_REPO=sphinx" | tee -a $GITHUB_ENV
-      - uses: actions/checkout@v4
-        with:
-          path: ${{ github.workspace }}/${{ env.UPSTREAM_REPO }}
-      - name: Setup CI
-        uses: ./sphinx/.github/actions/setup
-        with:
-          pull_token: ${{ secrets.REPO_TOKEN }}
-          perf: false
-      - uses: actions/checkout@v4
-        with:
-          repository: "lurk-lab/${{ env.DOWNSTREAM_REPO }}"
-          path: ${{ github.workspace }}/${{ env.DOWNSTREAM_REPO }}
-          token: ${{ secrets.REPO_TOKEN }}
-      - uses: ./ci-workflows/.github/actions/check-downstream-compiles
-        with:
-          upstream-path: "${{ env.UPSTREAM_REPO }}"
-          downstream-path: "${{ env.DOWNSTREAM_REPO }}"
-          patch-ssh: true

@@ -70,6 +70,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
+          update_existing: true
           filename: .github/templates/NIGHTLY_TESTS.md
 
   prove:
@@ -112,4 +113,5 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
+          update_existing: true
           filename: .github/templates/NIGHTLY_TESTS.md
