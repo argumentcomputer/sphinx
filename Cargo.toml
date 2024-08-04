@@ -1,3 +1,4 @@
+# Test
 [workspace]
 members = [
   "cli",
