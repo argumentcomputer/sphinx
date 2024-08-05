@@ -8,7 +8,7 @@ the execution of [RISC-V](https://en.wikipedia.org/wiki/RISC-V) bytecode, with
 initial tooling support for programs written in
 [Rust](https://en.wikipedia.org/wiki/Rust_(programming_language)). Additionally,
 Sphinx aims to support other reduction engines, including the evaluator for the
-[Lurk programming language](https://www.lurk-lang.org) , which could be extended
+[Lurk programming language](https://www.argument.xyz) , which could be extended
 to other functional languages like JavaScript or Lean.
 
 ## Acknowledgements
@@ -20,7 +20,7 @@ zero-sum game, and that when we make our work freely available for others to
 build on, the whole world benefits:
 
 - [Wormhole Foundation](https://wormhole.foundation/) who has generously
-  supported the project from the beginning both through awarding Lurk Lab a [contributor
+  supported the project from the beginning both through awarding Argument a [contributor
   grant](https://wormhole.foundation/blog/wormhole-foundation-awards-contributor-grant-to-lurk-lab-to-bring-trustless-transfers-to-wormhole-with-zk-proofs),
   and through their broader ecosystem work.
 - [Succinct Labs](https://www.succinct.xyz), a fellow Wormhole ecosystem

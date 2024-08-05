@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Setup CI
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Setup CI
@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Setup CI
@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Setup CI
@@ -104,7 +104,7 @@ jobs:
           cd cargo-prove-test/program
           cat << EOF | tee -a Cargo.toml
 
-          [patch.'ssh://git@github.com/lurk-lab/sphinx.git']
+          [patch.'ssh://git@github.com/argumentcomputer/sphinx.git']
           sphinx-zkvm = { path = "../../zkvm/entrypoint" }
           EOF
           cd ../..
@@ -112,7 +112,7 @@ jobs:
           cd cargo-prove-test/script
           cat << EOF | tee -a Cargo.toml
 
-          [patch.'ssh://git@github.com/lurk-lab/sphinx.git']
+          [patch.'ssh://git@github.com/argumentcomputer/sphinx.git']
           sphinx-sdk = { path = "../../sdk" }
           sphinx-helper = { path = "../../helper" }
           EOF
@@ -125,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
       - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Setup CI
@@ -173,7 +173,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-workflows
+          repository: argumentcomputer/ci-workflows
           path: ci-workflows
       - uses: ./ci-workflows/.github/actions/ci-env
       - uses: actions/checkout@v4
@@ -195,7 +195,7 @@ jobs:
           fi
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/${{ matrix.repo }}
+          repository: argumentcomputer/${{ matrix.repo }}
           path: ${{ github.workspace }}/${{ matrix.repo }}
           token: ${{ secrets.REPO_TOKEN }}
       - uses: ./ci-workflows/.github/actions/check-downstream-compiles

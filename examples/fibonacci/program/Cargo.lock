@@ -53,7 +53,7 @@ dependencies = [
 [[package]]
 name = "bls12_381"
 version = "0.8.0"
-source = "git+https://github.com/lurk-lab/bls12_381.git?branch=zkvm#811d00a5b776b606cbcc091e82e7828bd5b5372c"
+source = "git+https://github.com/argumentcomputer/bls12_381.git?branch=zkvm#811d00a5b776b606cbcc091e82e7828bd5b5372c"
 dependencies = [
  "cfg-if",
  "ff",

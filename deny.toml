@@ -252,7 +252,7 @@ deny = [
     # is a direct dependency of the otherwise banned crate
     #{ name = "ansi_term", version = "=0.11.0", wrappers = [] },
     "dirs", # use https://crates.io/crates/home instead
-    "amcl", # use https://github.com/lurk-lab/bls12_381/ instead
+    "amcl", # use https://github.com/argumentcomputer/bls12_381/ instead
 ]
 
 # List of features to allow/deny
