@@ -279,7 +279,7 @@ dependencies = [
  "ecdsa",
  "elliptic-curve",
  "once_cell",
- "sha2",
+ "sha2 0.10.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "signature",
 ]
 
@@ -294,6 +294,12 @@ name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
+
+[[package]]
+name = "libm"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 
 [[package]]
 name = "num-bigint"
@@ -332,7 +338,7 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "num-bigint",
  "p3-field",
@@ -346,7 +352,7 @@ dependencies = [
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -358,7 +364,7 @@ dependencies = [
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "itertools",
  "num-bigint",
@@ -371,7 +377,7 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "itertools",
  "p3-field",
@@ -385,12 +391,12 @@ dependencies = [
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "itertools",
  "p3-dft",
@@ -404,7 +410,7 @@ dependencies = [
 [[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "gcd",
  "p3-field",
@@ -416,7 +422,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "itertools",
  "p3-field",
@@ -426,7 +432,7 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
 dependencies = [
  "serde",
 ]
@@ -542,18 +548,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.203"
+version = "1.0.205"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7253ab4de971e72fb7be983802300c30b5a7f0c2e56fab8abfc6a214307c0094"
+checksum = "e33aedb1a7135da52b7c21791455563facbbcc43d0f0f66165b42c21b3dfb150"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.203"
+version = "1.0.205"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "500cbc0ebeb6f46627f50f3f5811ccf6bf00643be300b4c3eabc0ef55dc5b5ba"
+checksum = "692d6f5ac90220161d6774db30c662202721e64aed9058d2c394f451261420c1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -565,6 +571,16 @@ name = "sha2"
 version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "793db75ad2bcafc3ffa7c68b215fee268f537982cd901d132f89c6343f3a3dc8"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "digest",
+]
+
+[[package]]
+name = "sha2"
+version = "0.10.8"
+source = "git+https://github.com/sp1-patches/RustCrypto-hashes?branch=patch-v0.10.8#1f224388fdede7cef649bce0d63876d1a9e3f515"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -616,11 +632,12 @@ dependencies = [
  "getrandom",
  "k256",
  "lazy_static",
+ "libm",
  "once_cell",
  "p3-baby-bear",
  "p3-field",
  "rand",
- "sha2",
+ "sha2 0.10.8 (git+https://github.com/sp1-patches/RustCrypto-hashes?branch=patch-v0.10.8)",
  "sphinx-precompiles",
  "sphinx-primitives",
 ]
@@ -707,7 +724,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "hex-literal",
- "sha2",
+ "sha2 0.10.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "sphinx-zkvm",
 ]
 
