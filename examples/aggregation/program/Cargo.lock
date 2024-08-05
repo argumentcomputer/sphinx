@@ -68,7 +68,7 @@ dependencies = [
 [[package]]
 name = "bls12_381"
 version = "0.8.0"
-source = "git+https://github.com/lurk-lab/bls12_381.git?branch=zkvm#0d57d6ac0af6a464c4764809b5bf994d15920762"
+source = "git+https://github.com/argumentcomputer/bls12_381.git?branch=zkvm#0d57d6ac0af6a464c4764809b5bf994d15920762"
 dependencies = [
  "cfg-if",
  "ff",
@@ -335,7 +335,7 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "num-bigint",
  "p3-field",
@@ -349,7 +349,7 @@ dependencies = [
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -361,7 +361,7 @@ dependencies = [
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "itertools",
  "num-bigint",
@@ -374,7 +374,7 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "itertools",
  "p3-field",
@@ -388,12 +388,12 @@ dependencies = [
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "itertools",
  "p3-dft",
@@ -407,7 +407,7 @@ dependencies = [
 [[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "gcd",
  "p3-field",
@@ -419,7 +419,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "itertools",
  "p3-field",
@@ -429,7 +429,7 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+https://github.com/lurk-lab/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#03f2b272e1b33ed91f8dfb0336f0a791071ef458"
 dependencies = [
  "serde",
 ]
