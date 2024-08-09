@@ -203,4 +203,3 @@ jobs:
         with:
           upstream-path: "sphinx"
           downstream-path: "${{ matrix.repo }}/${{ matrix.path }}"
-          patch-ssh: false
