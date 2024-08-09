@@ -33,7 +33,6 @@ extern "C" {
     pub fn syscall_bls12381_g1_double(p: *mut u32);
     pub fn syscall_bls12381_g1_decompress(point: &mut [u8; 96]);
     pub fn syscall_keccak_permute(state: *mut u64);
-    pub fn syscall_blake3_compress_inner(p: *mut u32, q: *const u32);
     pub fn syscall_bls12381_fp_add(p: *mut u32, q: *const u32);
     pub fn syscall_bls12381_fp_sub(p: *mut u32, q: *const u32);
     pub fn syscall_bls12381_fp_mul(p: *mut u32, q: *const u32);
