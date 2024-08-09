@@ -116,7 +116,7 @@ jobs:
           sphinx-sdk = { path = "../../sdk" }
           sphinx-helper = { path = "../../helper" }
           EOF
-          cargo run --release
+          cargo run --release -- --prove
 
   mac-m1:
     name: Check OSX ARM compiles
@@ -162,6 +162,7 @@ jobs:
   check-downstream-compiles:
     runs-on: warp-ubuntu-latest-x64-16x
     strategy:
+      fail-fast: false
       matrix:
         include:
           - repo: zk-light-clients
