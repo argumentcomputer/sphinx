@@ -686,7 +686,18 @@ pub mod tests {
     }
 
     #[test]
-    #[serial]
+    fn test_fibonacci_prove_checkpoints() {
+        setup_logger();
+
+        let program = fibonacci_program();
+        let stdin = SphinxStdin::new();
+        let mut opts = SphinxCoreOpts::default();
+        opts.shard_size = 1024;
+        opts.shard_batch_size = 2;
+        prove(&program, &stdin, BabyBearPoseidon2::new(), opts).unwrap();
+    }
+
+    #[test]
     fn test_fibonacci_prove_batch() {
         std::env::set_var("SHARD_BATCH_SIZE", "1");
         std::env::set_var("SHARD_SIZE", "16384");

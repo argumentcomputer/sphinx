@@ -107,7 +107,7 @@ where
             challenger.observe(builder, element);
         }
         // verify proof.
-        let shard_idx = builder.eval(C::N::one());
+        let one = builder.constant(C::N::one());
         StarkVerifier::<C, SC>::verify_shard(
             builder,
             &vk,
@@ -115,7 +115,7 @@ where
             machine,
             &mut challenger,
             proof,
-            shard_idx,
+            one,
         );
 
         // Get the public inputs from the proof.
