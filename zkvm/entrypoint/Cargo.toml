@@ -18,7 +18,8 @@ k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
 lazy_static = { workspace = true }
 once_cell = { workspace = true }
 rand = { workspace = true }
-sha2 = { workspace = true }
+# Not using the workspace dependency or a patch here to ensure that downstream users always use the patched crate
+sha2 = { version = "0.10.8", git = "https://github.com/sp1-patches/RustCrypto-hashes", branch = "patch-v0.10.8" }
 
 [features]
 default = ["libm"]
