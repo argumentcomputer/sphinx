@@ -185,15 +185,6 @@ jobs:
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
-      - name: Install deps
-        run: |
-          if [[ "${{ matrix.downstream-path }}" == "aptos" || "${{ matrix.downstream-path }}" == "ethereum" ]]; then
-            sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev libudev-dev cmake
-            cd sphinx/cli
-            cargo install --locked --force --path .
-            cargo prove install-toolchain
-            echo "RUSTFLAGS=${{env.RUSTFLAGS}} --cfg tokio_unstable" | tee -a $GITHUB_ENV
-          fi
       - uses: actions/checkout@v4
         with:
           repository: argumentcomputer/${{ matrix.repo }}
