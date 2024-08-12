@@ -176,7 +176,6 @@ jobs:
         with:
           repository: argumentcomputer/ci-workflows
           path: ci-workflows
-          ref: fix-workspace
       - uses: ./ci-workflows/.github/actions/ci-env
       - uses: actions/checkout@v4
         with:
