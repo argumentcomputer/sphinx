@@ -13,7 +13,7 @@ use crate::exp_reverse_bits::{ExpReverseBitsLenChip, ExpReverseBitsLenEvent};
 use crate::fri_fold::{FriFoldChip, FriFoldEvent};
 use crate::memory::MemoryGlobalChip;
 use crate::multi::MultiChip;
-use crate::poseidon2::{Poseidon2Chip, Poseidon2Event};
+use crate::poseidon2_wide::events::{Poseidon2CompressEvent, Poseidon2HashEvent};
 use crate::poseidon2_wide::Poseidon2WideChip;
 use crate::program::ProgramChip;
 use crate::range_check::{RangeCheckChip, RangeCheckEvent};
@@ -22,7 +22,8 @@ use crate::range_check::{RangeCheckChip, RangeCheckEvent};
 pub struct ExecutionRecord<F: Default> {
     pub program: Arc<RecursionProgram<F>>,
     pub cpu_events: Vec<CpuEvent<F>>,
-    pub poseidon2_events: Vec<Poseidon2Event<F>>,
+    pub poseidon2_compress_events: Vec<Poseidon2CompressEvent<F>>,
+    pub poseidon2_hash_events: Vec<Poseidon2HashEvent<F>>,
     pub fri_fold_events: Vec<FriFoldEvent<F>>,
     pub range_check_events: HashMap<RangeCheckEvent, usize>,
     pub exp_reverse_bits_len_events: Vec<ExpReverseBitsLenEvent<F>>,
@@ -58,7 +59,14 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
     fn stats(&self) -> HashMap<String, usize> {
         let mut stats = HashMap::new();
         stats.insert("cpu_events".to_string(), self.cpu_events.len());
-        stats.insert("poseidon2_events".to_string(), self.poseidon2_events.len());
+        stats.insert(
+            "poseidon2_events".to_string(),
+            self.poseidon2_compress_events.len(),
+        );
+        stats.insert(
+            "poseidon2_events".to_string(),
+            self.poseidon2_hash_events.len(),
+        );
         stats.insert("fri_fold_events".to_string(), self.fri_fold_events.len());
         stats.insert(
             "range_check_events".to_string(),
@@ -119,17 +127,11 @@ impl<F: PrimeField32, const DEGREE: usize> EventLens<FriFoldChip<F, DEGREE>>
     }
 }
 
-impl<F: PrimeField32> EventLens<Poseidon2Chip<F>> for ExecutionRecord<F> {
-    fn events(&self) -> <Poseidon2Chip<F> as sphinx_core::air::WithEvents<'_>>::Events {
-        &self.poseidon2_events
-    }
-}
-
 impl<F: PrimeField32, const DEGREE: usize> EventLens<Poseidon2WideChip<F, DEGREE>>
     for ExecutionRecord<F>
 {
     fn events(&self) -> <Poseidon2WideChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
-        &self.poseidon2_events
+        (&self.poseidon2_hash_events, &self.poseidon2_compress_events)
     }
 }
 
@@ -155,7 +157,7 @@ impl<F: PrimeField32, const DEGREE: usize> EventLens<MultiChip<F, DEGREE>> for E
     fn events(&self) -> <MultiChip<F, DEGREE> as sphinx_core::air::WithEvents<'_>>::Events {
         (
             <Self as EventLens<FriFoldChip<F, DEGREE>>>::events(self),
-            <Self as EventLens<Poseidon2Chip<F>>>::events(self),
+            <Self as EventLens<Poseidon2WideChip<F, DEGREE>>>::events(self),
         )
     }
 }

@@ -1,4 +1,5 @@
-use crate::air::RecursionMemoryAirBuilder;
+#![allow(clippy::needless_range_loop)]
+
 use crate::memory::{MemoryReadCols, MemoryReadSingleCols, MemoryReadWriteCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
@@ -9,9 +10,7 @@ use p3_field::PrimeField32;
 use p3_field::{AbstractField, Field};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use sphinx_core::air::{
-    BaseAirBuilder, BinomialExtension, EventLens, ExtensionAirBuilder, MachineAir, WithEvents,
-};
+use sphinx_core::air::{BaseAirBuilder, BinomialExtension, EventLens, MachineAir, WithEvents};
 use sphinx_core::utils::pad_rows_fixed;
 use sphinx_derive::AlignedBorrow;
 use std::borrow::BorrowMut;
@@ -178,7 +177,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGR
 }
 
 impl<F: Field, const DEGREE: usize> FriFoldChip<F, DEGREE> {
-    pub fn eval_fri_fold<AB: BaseAirBuilder + ExtensionAirBuilder + RecursionMemoryAirBuilder>(
+    pub fn eval_fri_fold<AB: SphinxRecursionAirBuilder>(
         &self,
         builder: &mut AB,
         local: &FriFoldCols<AB::Var>,
@@ -186,16 +185,6 @@ impl<F: Field, const DEGREE: usize> FriFoldChip<F, DEGREE> {
         receive_table: AB::Var,
         memory_access: AB::Var,
     ) {
-        // Dummy constraints to normalize to DEGREE when DEGREE > 3.
-        if DEGREE > 3 {
-            let lhs = (0..DEGREE)
-                .map(|_| local.is_real.into())
-                .product::<AB::Expr>();
-            let rhs = (0..DEGREE)
-                .map(|_| local.is_real.into())
-                .product::<AB::Expr>();
-            builder.assert_eq(lhs, rhs);
-        }
         // Constraint that the operands are sent from the CPU table.
         let first_iteration_clk = local.clk.into() - local.m.into();
         let total_num_iterations = local.m.into() + AB::Expr::one();
@@ -407,6 +396,16 @@ where
         let (local, next) = (main.row_slice(0), main.row_slice(1));
         let local: &FriFoldCols<AB::Var> = (*local).borrow();
         let next: &FriFoldCols<AB::Var> = (*next).borrow();
+
+        // Dummy constraints to normalize to DEGREE.
+        let lhs = (0..DEGREE)
+            .map(|_| local.is_real.into())
+            .product::<AB::Expr>();
+        let rhs = (0..DEGREE)
+            .map(|_| local.is_real.into())
+            .product::<AB::Expr>();
+        builder.assert_eq(lhs, rhs);
+
         self.eval_fri_fold::<AB>(
             builder,
             local,

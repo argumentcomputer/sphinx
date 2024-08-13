@@ -182,7 +182,7 @@ mod tests {
     use super::*;
 
     #[test]
-    pub fn test_trace_and_map() {
+    pub(crate) fn test_trace_and_map() {
         let start = Instant::now();
         ByteChip::<BabyBear>::trace();
         println!("trace and map: {:?}", start.elapsed());
