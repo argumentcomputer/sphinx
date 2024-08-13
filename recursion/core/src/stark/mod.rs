@@ -135,7 +135,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Multi(MultiChip {
-                fixed_log2_rows: Some(14),
+                fixed_log2_rows: Some(17),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))
