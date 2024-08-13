@@ -23,7 +23,7 @@ use sphinx_recursion_compiler::ir::{Usize, Witness};
 use sphinx_recursion_compiler::prelude::SymbolicVar;
 use sphinx_recursion_core::air::{RecursionPublicValues, NUM_PV_ELMS_TO_HASH};
 use sphinx_recursion_core::stark::config::{outer_fri_config, BabyBearPoseidon2Outer};
-use sphinx_recursion_core::stark::RecursionAirSkinnyDeg9;
+use sphinx_recursion_core::stark::RecursionAirWideDeg17;
 use sphinx_recursion_program::commit::PolynomialSpaceVariable;
 use sphinx_recursion_program::stark::RecursiveVerifierConstraintFolder;
 use sphinx_recursion_program::types::QuotientDataValues;
@@ -245,7 +245,7 @@ pub fn build_wrap_circuit(
     template_proof: &ShardProof<OuterSC>,
 ) -> Vec<Constraint> {
     let outer_config = OuterSC::new();
-    let outer_machine = RecursionAirSkinnyDeg9::<OuterF>::wrap_machine(outer_config);
+    let outer_machine = RecursionAirWideDeg17::<OuterF>::wrap_machine(outer_config);
 
     let mut builder = Builder::<OuterConfig>::default();
     let mut challenger = MultiField32ChallengerVariable::new(&mut builder);

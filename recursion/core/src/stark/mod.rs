@@ -9,27 +9,28 @@ use sphinx_derive::{EventLens, MachineAir, WithEvents};
 use crate::runtime::D;
 use crate::{
     cpu::CpuChip, exp_reverse_bits::ExpReverseBitsLenChip, fri_fold::FriFoldChip,
-    memory::MemoryGlobalChip, multi::MultiChip, poseidon2::Poseidon2Chip,
-    poseidon2_wide::Poseidon2WideChip, program::ProgramChip, range_check::RangeCheckChip,
+    memory::MemoryGlobalChip, multi::MultiChip, poseidon2_wide::Poseidon2WideChip,
+    program::ProgramChip, range_check::RangeCheckChip,
 };
 use core::iter::once;
 use std::marker::PhantomData;
 
 pub type RecursionAirWideDeg3<F> = RecursionAir<F, 3>;
-pub type RecursionAirSkinnyDeg9<F> = RecursionAir<F, 9>;
+pub type RecursionAirWideDeg9<F> = RecursionAir<F, 9>;
+pub type RecursionAirWideDeg17<F> = RecursionAir<F, 17>;
 
 #[derive(WithEvents, EventLens, MachineAir)]
 #[sphinx_core_path = "sphinx_core"]
 #[execution_record_path = "crate::runtime::ExecutionRecord<F>"]
+#[record_type = "crate::runtime::ExecutionRecord<F>"]
 #[program_path = "crate::runtime::RecursionProgram<F>"]
 #[builder_path = "crate::air::SphinxRecursionAirBuilder<F = F>"]
-#[record_type = "crate::runtime::ExecutionRecord<F>"]
+#[eval_trait_bound = "AB::Var: 'static"]
 pub enum RecursionAir<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> {
     Program(ProgramChip<F>),
     Cpu(CpuChip<F, DEGREE>),
     MemoryGlobal(MemoryGlobalChip<F>),
     Poseidon2Wide(Poseidon2WideChip<F, DEGREE>),
-    Poseidon2Skinny(Poseidon2Chip<F>),
     FriFold(FriFoldChip<F, DEGREE>),
     RangeCheck(RangeCheckChip<F>),
     Multi(MultiChip<F, DEGREE>),
@@ -79,6 +80,7 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
                 DEGREE,
             > {
                 fixed_log2_rows: None,
+                pad: true,
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::FriFold(FriFoldChip::<F, DEGREE> {
@@ -125,15 +127,15 @@ impl<F: PrimeField32 + BinomiallyExtendable<D>, const DEGREE: usize> RecursionAi
     pub fn get_wrap_all() -> Vec<Self> {
         once(RecursionAir::Program(ProgramChip(PhantomData)))
             .chain(once(RecursionAir::Cpu(CpuChip {
-                fixed_log2_rows: Some(20),
+                fixed_log2_rows: Some(19),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::MemoryGlobal(MemoryGlobalChip {
-                fixed_log2_rows: Some(20), // TODO: We should be able to lower this value, see issue #60
+                fixed_log2_rows: Some(20),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::Multi(MultiChip {
-                fixed_log2_rows: Some(19),
+                fixed_log2_rows: Some(14),
                 _phantom: PhantomData,
             })))
             .chain(once(RecursionAir::RangeCheck(RangeCheckChip::default())))

@@ -37,9 +37,9 @@ pub fn verify_shape_and_sample_challenges<C: Config>(
 
     // Observe the final polynomial.
     let final_poly_felts = builder.ext2felt_circuit(proof.final_poly);
-    final_poly_felts.iter().for_each(|felt| {
+    for felt in final_poly_felts.iter() {
         challenger.observe(builder, *felt);
-    });
+    }
 
     assert_eq!(proof.query_proofs.len(), config.num_queries);
     challenger.check_witness(builder, config.proof_of_work_bits, proof.pow_witness);
