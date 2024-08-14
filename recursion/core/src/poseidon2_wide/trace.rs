@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 
 use p3_air::BaseAir;
 use p3_field::{Field, PrimeField32};
+#[allow(unused_imports)]
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::air::{EventLens, WithEvents};
 use sphinx_core::{air::MachineAir, utils::pad_rows_fixed};
