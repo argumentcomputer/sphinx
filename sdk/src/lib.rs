@@ -1,9 +1,9 @@
-//! # SP1 SDK
+//! # Sphinx SDK
 //!
-//! A library for interacting with the SP1 RISC-V zkVM.
+//! A library for interacting with the Sphinx RISC-V zkVM.
 //!
-//! Visit the [Getting Started](https://succinctlabs.github.io/sp1/getting-started.html) section
-//! in the official SP1 documentation for a quick start guide.
+//! Visit the [Getting Started](https://succinctlabs.github.io/Sphinx/getting-started.html) section
+//! in the official Sphinx documentation for a quick start guide.
 
 #[rustfmt::skip]
 pub mod proto {
@@ -36,7 +36,7 @@ pub use sphinx_prover::{
     SphinxPublicValues, SphinxStdin, SphinxVerifyingKey,
 };
 
-/// A client for interacting with SP1.
+/// A client for interacting with Sphinx.
 pub struct ProverClient {
     /// The underlying prover implementation.
     pub prover: Box<dyn Prover>,
@@ -45,7 +45,7 @@ pub struct ProverClient {
 impl ProverClient {
     /// Creates a new [ProverClient].
     ///
-    /// Setting the `SP1_PROVER` enviroment variable can change the prover used under the hood.
+    /// Setting the `SPHINX_PROVER` enviroment variable can change the prover used under the hood.
     /// - `local` (default): Uses [LocalProver]. Recommended for proving end-to-end locally.
     /// - `mock`: Uses [MockProver]. Recommended for testing and development.
     /// - `network`: Uses [NetworkProver]. Recommended for outsourcing proof generation to an RPC.
@@ -55,11 +55,11 @@ impl ProverClient {
     /// ```no_run
     /// use sphinx_sdk::ProverClient;
     ///
-    /// std::env::set_var("SP1_PROVER", "local");
+    /// std::env::set_var("SPHINX_PROVER", "local");
     /// let client = ProverClient::new();
     /// ```
     pub fn new() -> Self {
-        match env::var("SP1_PROVER")
+        match env::var("SPHINX_PROVER")
             .unwrap_or("local".to_string())
             .to_lowercase()
             .as_str()
@@ -82,7 +82,7 @@ impl ProverClient {
                 }
             }
             _ => panic!(
-                "invalid value for SP1_PROVER enviroment variable: expected 'local', 'mock', or 'network'"
+                "invalid value for SPHINX_PROVER enviroment variable: expected 'local', 'mock', or 'network'"
             ),
         }
     }
@@ -90,7 +90,7 @@ impl ProverClient {
     /// Creates a new [ProverClient] with the mock prover.
     ///
     /// Recommended for testing and development. You can also use [ProverClient::new] to set the
-    /// prover to `mock` with the `SP1_PROVER` enviroment variable.
+    /// prover to `mock` with the `SPHINX_PROVER` enviroment variable.
     ///
     /// ### Examples
     ///
@@ -108,7 +108,7 @@ impl ProverClient {
     /// Creates a new [ProverClient] with the local prover.
     ///
     /// Recommended for proving end-to-end locally. You can also use [ProverClient::new] to set the
-    /// prover to `local` with the `SP1_PROVER` enviroment variable.
+    /// prover to `local` with the `SPHINX_PROVER` enviroment variable.
     ///
     /// ### Examples
     ///
@@ -126,7 +126,7 @@ impl ProverClient {
     /// Creates a new [ProverClient] with the network prover.
     ///
     /// Recommended for outsourcing proof generation to an RPC. You can also use [ProverClient::new]
-    /// to set the prover to `network` with the `SP1_PROVER` enviroment variable.
+    /// to set the prover to `network` with the `SPHINX_PROVER` enviroment variable.
     ///
     /// ### Examples
     ///
@@ -156,7 +156,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use sphinx_sdk::{ProverClient, SP1Stdin, SP1Context};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin, SphinxContext};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -186,7 +186,7 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use sp1_sdk::{ProverClient, SP1Stdin, SP1Context};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin, SphinxContext};
     ///
     /// // Load the program.
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
@@ -198,7 +198,7 @@ impl ProverClient {
     /// let (pk, vk) = client.setup(elf);
     ///
     /// // Setup the inputs.
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     ///
     /// // Generate the proof.
@@ -213,12 +213,12 @@ impl ProverClient {
     ///
     /// ### Examples
     /// ```no_run
-    /// use sp1_sdk::{ProverClient, SP1Stdin};
+    /// use sphinx_sdk::{ProverClient, SphinxStdin};
     ///
     /// let elf = include_bytes!("../../examples/fibonacci/program/elf/riscv32im-succinct-zkvm-elf");
     /// let client = ProverClient::new();
     /// let (pk, vk) = client.setup(elf);
-    /// let mut stdin = SP1Stdin::new();
+    /// let mut stdin = SphinxStdin::new();
     /// stdin.write(&10usize);
     /// let proof = client.prove(&pk, stdin).run().unwrap();
     /// client.verify(&proof, &vk).unwrap();
@@ -231,14 +231,14 @@ impl ProverClient {
         self.prover.verify(proof, vk)
     }
 
-    /// Gets the current version of the SP1 zkVM.
+    /// Gets the current version of the Sphinx zkVM.
     ///
-    /// Note: This is not the same as the version of the SP1 SDK.
+    /// Note: This is not the same as the version of the Sphinx SDK.
     pub fn version(&self) -> String {
         SPHINX_CIRCUIT_VERSION.to_string()
     }
 
-    /// Setup a program to be proven and verified by the SP1 RISC-V zkVM by computing the proving
+    /// Setup a program to be proven and verified by the Sphinx RISC-V zkVM by computing the proving
     /// and verifying keys.
     ///
     /// The proving key and verifying key essentially embed the program, as well as other auxiliary
