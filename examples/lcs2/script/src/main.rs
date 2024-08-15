@@ -16,7 +16,7 @@ fn main() {
     // Generate the proof for the given program and input.
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove_compressed(&pk, stdin).unwrap();
+    let mut proof = client.prove(&pk, stdin).run().unwrap();
 
     println!("generated proof");
 
@@ -30,7 +30,7 @@ fn main() {
 
     // Verify proof and public values
     client
-        .verify_compressed(&proof, &vk)
+        .verify(&proof, &vk)
         .expect("verification failed");
 
     // Test a round trip of proof serialization and deserialization.
