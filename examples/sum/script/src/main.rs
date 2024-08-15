@@ -8,7 +8,7 @@ fn main() {
     utils::setup_logger();
 
     // Create an input stream and write input to it.
-    let nums = (0..1000).map(|i| i as u64).collect::<Vec<_>>();
+    let nums: Vec<u64> = (0..1000).collect::<Vec<_>>();
 
     let mut stdin = SphinxStdin::new();
     stdin.write(&nums);
