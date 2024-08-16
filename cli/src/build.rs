@@ -114,10 +114,13 @@ pub(crate) fn build_program(args: &BuildArgs) -> Result<Utf8PathBuf> {
         if args.ignore_rust_version {
             cargo_args.push("--ignore-rust-version");
         }
+        cargo_args.push("-Ztrim-paths");
 
         let result = Command::new("cargo")
             .env("RUSTUP_TOOLCHAIN", "succinct")
             .env("CARGO_ENCODED_RUSTFLAGS", rust_flags.join("\x1f"))
+            // TODO: remove once trim-paths is supported - https://github.com/rust-lang/rust/issues/111540
+            .env("RUSTC_BOOTSTRAP", "1") // allows trim-paths.
             .args(&cargo_args)
             .status()
             .context("Failed to run cargo command.")?;
