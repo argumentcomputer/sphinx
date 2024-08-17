@@ -167,8 +167,10 @@ jobs:
         include:
           - repo: zk-light-clients
             path: aptos
+            features: aptos
           - repo: zk-light-clients
             path: ethereum
+            features: ethereum
           - repo: loam
             path: ""
     steps:
@@ -185,6 +187,11 @@ jobs:
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
           perf: false
+      - name: Set `zk-light-clients` env
+        if: ${{ matrix.repo == 'zk-light-clients' }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev libudev-dev cmake clang
+          echo "RUSTFLAGS=${{ env.RUSTFLAGS }} --cfg tokio_unstable" | tee -a $GITHUB_ENV
       - uses: actions/checkout@v4
         with:
           repository: argumentcomputer/${{ matrix.repo }}
@@ -194,3 +201,4 @@ jobs:
         with:
           upstream-path: "sphinx"
           downstream-path: "${{ matrix.repo }}/${{ matrix.path }}"
+          features: "${{ matrix.features }}"
