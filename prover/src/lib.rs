@@ -994,26 +994,26 @@ mod tests {
 
         tracing::info!("prove core");
         let stdin = SphinxStdin::new();
-        let core_proof = prover.prove_core(&pk, &stdin)?;
+        let core_proof = prover.prove_core(&pk, &stdin).unwrap();
         let public_values = core_proof.public_values.clone();
 
         tracing::info!("verify core");
-        prover.verify(&core_proof.proof, &vk)?;
+        prover.verify(&core_proof.proof, &vk).unwrap();
 
         tracing::info!("compress");
-        let compressed_proof = prover.compress(&vk, core_proof, vec![])?;
+        let compressed_proof = prover.compress(&vk, core_proof, vec![]).unwrap();
 
         tracing::info!("verify compressed");
-        prover.verify_compressed(&compressed_proof, &vk)?;
+        prover.verify_compressed(&compressed_proof, &vk).unwrap();
 
         tracing::info!("shrink");
-        let shrink_proof = prover.shrink(compressed_proof)?;
+        let shrink_proof = prover.shrink(compressed_proof).unwrap();
 
         tracing::info!("verify shrink");
         prover.verify_shrink(&shrink_proof, &vk)?;
 
         tracing::info!("wrap bn254");
-        let wrapped_bn254_proof = prover.wrap_bn254(shrink_proof)?;
+        let wrapped_bn254_proof = prover.wrap_bn254(shrink_proof).unwrap();
         let bytes = bincode::serialize(&wrapped_bn254_proof).unwrap();
 
         // Save the proof.
@@ -1047,6 +1047,6 @@ mod tests {
 
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
 
-        prover.verify_plonk_bn254(&plonk_bn254_proof, &vk, &public_values, &artifacts_dir)?;
+        prover.verify_plonk_bn254(&plonk_bn254_proof, &vk, &public_values, &artifacts_dir).unwrap();
     }
 }
