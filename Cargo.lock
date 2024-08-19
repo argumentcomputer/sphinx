@@ -791,8 +791,10 @@ checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.5",
 ]
 
@@ -1877,6 +1879,18 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
+]
+
+[[package]]
+name = "getset"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e45727250e75cc04ff2846a66397da8ef2b3db8e40e0cef4df67950a07621eb9"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -4729,9 +4743,12 @@ dependencies = [
 name = "sphinx-zkvm"
 version = "1.0.0"
 dependencies = [
+ "base64 0.22.1",
  "bincode",
  "cfg-if",
+ "chrono",
  "getrandom",
+ "getset",
  "k256",
  "lazy_static",
  "libm",
@@ -4742,6 +4759,7 @@ dependencies = [
  "sha2 0.10.8 (git+https://github.com/sp1-patches/RustCrypto-hashes?branch=patch-v0.10.8)",
  "sphinx-precompiles",
  "sphinx-primitives",
+ "uint",
 ]
 
 [[package]]

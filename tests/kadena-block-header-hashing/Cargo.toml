@@ -1,0 +1,8 @@
+[workspace]
+[package]
+version = "0.1.0"
+name = "kadena-block-header-hashing"
+edition = "2021"
+
+[dependencies]
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }

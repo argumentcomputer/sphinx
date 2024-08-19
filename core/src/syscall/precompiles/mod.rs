@@ -6,6 +6,7 @@ pub mod quad_field;
 pub mod secp256k1;
 pub mod sha256;
 pub mod weierstrass;
+pub mod sha512;
 
 use crate::runtime::SyscallContext;
 use crate::utils::ec::{AffinePoint, EllipticCurve};

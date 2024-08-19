@@ -21,6 +21,11 @@ rand = { workspace = true }
 # Not using the workspace dependency or a patch here to ensure that downstream users always use the patched crate
 sha2 = { version = "0.10.8", git = "https://github.com/sp1-patches/RustCrypto-hashes", branch = "patch-v0.10.8" }
 
+getset = "0.1.2"
+base64 = "0.22.1"
+uint = "0.9.5"
+chrono = "0.4.38"
+
 [features]
 default = ["libm"]
 libm = ["dep:libm"]
