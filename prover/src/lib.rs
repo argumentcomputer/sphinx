@@ -1039,7 +1039,7 @@ mod tests {
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
         tracing::info!("generate plonk bn254 proof");
-        try_install_plonk_bn254_artifacts(false);
+        let artifacts_dir = try_install_plonk_bn254_artifacts(false);
 
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
 
