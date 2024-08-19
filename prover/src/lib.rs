@@ -1010,7 +1010,7 @@ mod tests {
         let shrink_proof = prover.shrink(compressed_proof).unwrap();
 
         tracing::info!("verify shrink");
-        prover.verify_shrink(&shrink_proof, &vk)?;
+        prover.verify_shrink(&shrink_proof, &vk).unwrap();
 
         tracing::info!("wrap bn254");
         let wrapped_bn254_proof = prover.wrap_bn254(shrink_proof).unwrap();
@@ -1039,11 +1039,7 @@ mod tests {
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
         tracing::info!("generate plonk bn254 proof");
-        let artifacts_dir = if build_artifacts {
-            try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof)
-        } else {
-            try_install_plonk_bn254_artifacts(false)
-        };
+        try_install_plonk_bn254_artifacts(false);
 
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
 
