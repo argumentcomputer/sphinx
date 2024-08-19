@@ -993,7 +993,11 @@ mod tests {
         let (pk, vk) = prover.setup(elf);
 
         tracing::info!("prove core");
-        let stdin = SphinxStdin::new();
+        let valid_kadena_header = b"AAAAAAAAAADagen7WaIFAASBaVOSlhojqQjImJ0F2PR258lozvJLjkLfXfsEIjPCAwAAAAAAHHEJ8CfvcweMTfvSMBYlXLWv0v25Mt-4bK3RUi_L6lsBAAAAi0pTBul2AUh0jWNPs2LXCdc_sgEyFK01O_bmHgDwkWAIAAAAYzOtui7Ns_-SQp472GrIlRUmIl9UsDagsuZ-Xuzf_L3__________________________________________4dF0GK2zmpsHFv5NYbuvc0pyhXfXwxxJRM0uvq8InFUAwAAAAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAHAAAACH1lqeSNBQAAAAAAAAAAAJhcOUndKMtEn5_aPlk_LbLgU-vK_gpvrf14eFWrgEFW".to_vec();
+        let mut stdin = SphinxStdin::new();
+        stdin.write(&valid_kadena_header);
+
+
         let core_proof = prover.prove_core(&pk, &stdin).unwrap();
         let public_values = core_proof.public_values.clone();
 
