@@ -35,27 +35,11 @@ use anyhow::Result;
 
 /// Decompresses a compressed public key using bls12381_g1_decompress precompile.
 pub fn decompress_pubkey(compressed_key: &[u8; 48]) -> Result<[u8; 96]> {
-    cfg_if::cfg_if! {
-        if #[cfg(target_os = "zkvm")] {
-            let mut decompressed_key = [0u8; 96];
-            decompressed_key[..48].copy_from_slice(compressed_key);
-            unsafe {
-                syscall_bls12381_g1_decompress(&mut decompressed_key);
-            }
-
-            Ok(decompressed_key)
-        } else {
-            let point = bls12_381::G1Affine::from_compressed(compressed_key).unwrap();
-            let mut result = point.to_uncompressed();
-            // Note: bls12_381 here produces the uncompressed serialization format
-            // which will light the infinity bit on the point at infinity:
-            // compressed_key[0] >> 6 |= 1.
-            // This is handled out-of-circuit in the zkvm case, inside the `syscall_bls12381_g1_decompress`
-            // function, which sets the corresponding bit flag in the return value.
-            // In-circuit, for non-infinity points, the output is a simple X, Y point array with none of the
-            // bits set.
-            // Thus we can just return the bls12_381 return value as-is since it is equivalent.
-            Ok(result)
-        }
+    let mut decompressed_key = [0u8; 96];
+    decompressed_key[..48].copy_from_slice(compressed_key);
+    unsafe {
+        syscall_bls12381_g1_decompress(&mut decompressed_key);
     }
+
+    Ok(decompressed_key)
 }
