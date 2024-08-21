@@ -8,7 +8,6 @@ license.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 bincode = { workspace = true }
-bls12_381 = { workspace = true }
 cfg-if = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
 hybrid-array = { workspace = true }

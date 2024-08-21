@@ -4475,7 +4475,6 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "bincode",
- "bls12_381 0.8.0",
  "cfg-if",
  "getrandom",
  "hybrid-array",
