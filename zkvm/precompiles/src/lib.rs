@@ -5,6 +5,7 @@
 //! function impls must live in sp1-zkvm, which is only imported into the end user program crate.
 //! In contrast, sp1-precompiles can be imported into any crate in the dependency tree.
 
+#[cfg(target_os = "zkvm")]
 pub mod bls12_381;
 pub mod bn254;
 pub mod io;
