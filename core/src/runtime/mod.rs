@@ -1037,6 +1037,10 @@ impl<'a> Runtime<'a> {
         self.emit_events = false;
         self.print_report = true;
         while !self.execute()? {}
+
+        // Print the summary.
+        tracing::info!("summary: cycles={}", self.state.global_clk,);
+
         Ok(())
     }
 
