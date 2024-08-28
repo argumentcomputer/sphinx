@@ -3,8 +3,6 @@ use p3_commit::TwoAdicMultiplicativeCoset;
 use p3_field::AbstractField;
 use p3_field::TwoAdicField;
 use sphinx_core::air::MachineAir;
-use sphinx_core::air::PublicValues;
-use sphinx_core::air::Word;
 use sphinx_core::stark::Com;
 use sphinx_core::stark::GenericVerifierConstraintFolder;
 use sphinx_core::stark::ShardProof;
@@ -14,6 +12,7 @@ use sphinx_core::stark::StarkMachine;
 use sphinx_core::stark::StarkVerifyingKey;
 use sphinx_recursion_compiler::ir::Array;
 use sphinx_recursion_compiler::ir::Ext;
+use sphinx_recursion_compiler::ir::ExtConst;
 use sphinx_recursion_compiler::ir::SymbolicExt;
 use sphinx_recursion_compiler::ir::SymbolicVar;
 use sphinx_recursion_compiler::ir::Var;
@@ -120,7 +119,7 @@ where
         machine: &StarkMachine<SC, A>,
         challenger: &mut DuplexChallengerVariable<C>,
         proof: &ShardProofVariable<C>,
-        total_shards: Var<C::N>,
+        check_cumulative_sum: bool,
     ) where
         A: MachineAir<C::F> + for<'a> Air<RecursiveVerifierConstraintFolder<'a, C>>,
         C::F: TwoAdicField,
@@ -135,14 +134,6 @@ where
             ..
         } = proof;
 
-        // Extract public values.
-        let mut pv_elements = Vec::new();
-        for i in 0..machine.num_pv_elts() {
-            let element = builder.get(&proof.public_values, i);
-            pv_elements.push(element);
-        }
-        let public_values = PublicValues::<Word<Felt<_>>, Felt<_>>::from_vec(&pv_elements);
-
         let ShardCommitmentVariable {
             main_commit,
             permutation_commit,
@@ -155,7 +146,6 @@ where
 
         challenger.observe(builder, permutation_commit.clone());
 
-        #[allow(unused_variables)]
         let alpha = challenger.sample_ext(builder);
 
         challenger.observe(builder, quotient_commit.clone());
@@ -233,7 +223,6 @@ where
             builder.set_value(&mut quotient_domains, i, &quotient_domain);
 
             // Get trace_opening_points.
-
             let mut trace_points = builder.dyn_array::<Ext<_, _>>(2);
             let zeta_next = domain.next_point(builder, zeta);
             builder.set_value(&mut trace_points, 0, &zeta);
@@ -262,7 +251,6 @@ where
             builder.set_value(&mut perm_mats, i, &perm_mat);
 
             // Get the quotient matrices and values.
-
             let qc_domains =
                 quotient_domain.split_domains(builder, log_quotient_degree, quotient_size);
 
@@ -313,40 +301,13 @@ where
 
         builder.cycle_tracker("stage-e-verify-constraints");
 
-        let shard_bits = builder.num2bits_f(public_values.shard);
-        let shard = builder.bits2num_v(&shard_bits);
+        let num_shard_chips_enabled: Var<_> = builder.eval(C::N::zero());
         for (i, chip) in machine.chips().iter().enumerate() {
             tracing::debug!("verifying constraints for chip: {}", chip.as_ref().name());
             let index = builder.get(&proof.sorted_idxs, i);
 
-            if chip.as_ref().name() == "CPU" {
-                builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-            }
-
             if chip.as_ref().preprocessed_width() > 0 {
                 builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-            }
-
-            if chip.as_ref().name() == "MemoryInit" {
-                builder.if_eq(shard, total_shards).then_or_else(
-                    |builder| {
-                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                    |builder| {
-                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                );
-            }
-
-            if chip.as_ref().name() == "MemoryFinalize" {
-                builder.if_eq(shard, total_shards).then_or_else(
-                    |builder| {
-                        builder.assert_var_ne(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                    |builder| {
-                        builder.assert_var_eq(index, C::N::from_canonical_usize(EMPTY));
-                    },
-                );
             }
 
             builder
@@ -386,8 +347,30 @@ where
                             &permutation_challenges,
                         );
                     });
+
+                    // Increment the number of shard chips that are enabled.
+                    builder.assign(
+                        &num_shard_chips_enabled,
+                        num_shard_chips_enabled + C::N::one(),
+                    );
                 });
         }
+
+        // Assert that the number of chips in `opened_values` matches the number of shard chips enabled.
+        builder.assert_var_eq(num_shard_chips_enabled, num_shard_chips);
+
+        // If we're checking the cumulative sum, assert that the sum of the cumulative sums is zero.
+        if check_cumulative_sum {
+            let sum: Ext<_, _> = builder.eval(C::EF::zero().cons());
+            builder
+                .range(0, proof.opened_values.chips.len())
+                .for_each(|i, builder| {
+                    let cumulative_sum = builder.get(&proof.opened_values.chips, i).cumulative_sum;
+                    builder.assign(&sum, sum + cumulative_sum);
+                });
+            builder.assert_ext_eq(sum, C::EF::zero().cons());
+        }
+
         builder.cycle_tracker("stage-e-verify-constraints");
     }
 }
@@ -411,7 +394,8 @@ pub(crate) mod tests {
     use sphinx_core::air::POSEIDON_NUM_WORDS;
     use sphinx_core::io::SphinxStdin;
     use sphinx_core::runtime::Program;
-    use sphinx_core::stark::LocalProver;
+    use sphinx_core::stark::DefaultProver;
+    use sphinx_core::stark::MachineProver;
     use sphinx_core::utils::setup_logger;
     use sphinx_core::utils::InnerChallenge;
     use sphinx_core::utils::InnerVal;
@@ -457,7 +441,7 @@ pub(crate) mod tests {
         let machine = A::machine(SC::default());
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger_val = machine.config().challenger();
-        let (proof, _) = sphinx_core::utils::prove(
+        let (proof, _) = sphinx_core::utils::prove::<_, DefaultProver<_, _>>(
             &Program::from(elf),
             &SphinxStdin::new(),
             SC::default(),
@@ -539,7 +523,7 @@ pub(crate) mod tests {
 
         public_values.sphinx_vk_digest = [builder.constant(<C as Config>::F::zero()); DIGEST_SIZE];
         public_values.next_pc = builder.constant(<C as Config>::F::one());
-        public_values.next_shard = builder.constant(<C as Config>::F::two());
+        public_values.next_execution_shard = builder.constant(<C as Config>::F::two());
         public_values.end_reconstruct_deferred_digest =
             [builder.constant(<C as Config>::F::from_canonical_usize(3)); POSEIDON_NUM_WORDS];
 
@@ -565,19 +549,22 @@ pub(crate) mod tests {
         runtime.run();
 
         let machine = RecursionAir::<_, 3>::machine(SC::default());
-        let (pk, vk) = machine.setup(&program);
+        let prover = DefaultProver::new(machine);
+        let (pk, vk) = prover.setup(&program);
         let record = runtime.record.clone();
 
-        let mut challenger = machine.config().challenger();
-        let mut proof = machine.prove::<LocalProver<SC, RecursionAir<_, 3>>>(
-            &pk,
-            record,
-            &mut challenger,
-            SphinxCoreOpts::recursion(),
-        );
+        let mut challenger = prover.config().challenger();
+        let mut proof = prover
+            .prove(
+                &pk,
+                vec![record],
+                &mut challenger,
+                SphinxCoreOpts::recursion(),
+            )
+            .unwrap();
 
-        let mut challenger = machine.config().challenger();
-        let verification_result = machine.verify(&vk, &proof, &mut challenger);
+        let mut challenger = prover.config().challenger();
+        let verification_result = prover.machine().verify(&vk, &proof, &mut challenger);
         assert!(
             verification_result.is_ok(),
             "Proof should verify successfully"
@@ -586,11 +573,11 @@ pub(crate) mod tests {
         // Corrupt the public values.
         proof.shard_proofs[0].public_values[RECURSION_PUBLIC_VALUES_COL_MAP.digest[0]] =
             InnerVal::zero();
-        let verification_result = machine.verify(&vk, &proof, &mut challenger);
+        let verification_result = prover.machine().verify(&vk, &proof, &mut challenger);
         assert!(
             verification_result.is_err(),
             "Proof should not verify successfully"
-        );
+        )
     }
 
     #[test]

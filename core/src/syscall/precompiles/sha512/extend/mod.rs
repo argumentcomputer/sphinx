@@ -46,12 +46,10 @@ pub mod extend_tests {
 
     use super::Sha512ExtendChip;
     use crate::{
-        air::MachineAir,
-        runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode},
-        utils::{
+        air::MachineAir, runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode}, stark::DefaultProver, utils::{
             self, run_test,
             tests::{SHA512_ELF, SHA512_EXTEND_ELF},
-        },
+        }
     };
 
     pub fn sha512_extend_program() -> Program {
@@ -97,20 +95,20 @@ pub mod extend_tests {
     fn test_sha512_prove() {
         utils::setup_logger();
         let program = sha512_extend_program();
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_sha512_program() {
         utils::setup_logger();
         let program = Program::from(SHA512_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_sha512_extend_program() {
         utils::setup_logger();
         let program = Program::from(SHA512_EXTEND_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

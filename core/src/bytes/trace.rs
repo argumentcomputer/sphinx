@@ -1,7 +1,7 @@
 use std::borrow::BorrowMut;
 
 use hashbrown::HashMap;
-use p3_field::Field;
+use p3_field::{Field, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 
 use super::{
@@ -9,7 +9,7 @@ use super::{
     ByteChip, ByteLookupEvent,
 };
 use crate::{
-    air::{EventLens, MachineAir, WithEvents},
+    air::{EventLens, MachineAir, PublicValues, WithEvents, Word},
     bytes::ByteOpcode,
     runtime::{ExecutionRecord, Program},
 };
@@ -21,7 +21,7 @@ impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
     type Events = &'a HashMap<u32, HashMap<ByteLookupEvent, usize>>;
 }
 
-impl<F: Field> MachineAir<F> for ByteChip<F> {
+impl<F: PrimeField32> MachineAir<F> for ByteChip<F> {
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -57,8 +57,10 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
             NUM_BYTE_MULT_COLS,
         );
 
-        let shard = input.index();
-        for (lookup, mult) in input.events()[&shard].iter() {
+        let pv: PublicValues<Word<F>, F> = input.public_values();
+
+        let shard = pv.execution_shard.as_canonical_u32();
+        for (lookup, mult) in input.events().get(&shard).unwrap_or(&HashMap::new()).iter() {
             let row = if lookup.opcode != ByteOpcode::U16Range {
                 ((lookup.b << 8) + lookup.c) as usize
             } else {
@@ -69,7 +71,7 @@ impl<F: Field> MachineAir<F> for ByteChip<F> {
 
             let cols: &mut ByteMultCols<F> = trace.row_mut(row).borrow_mut();
             cols.mult_channels[channel].multiplicities[index] += F::from_canonical_usize(*mult);
-            cols.shard = F::from_canonical_u32(shard);
+            cols.shard = pv.execution_shard;
         }
 
         trace

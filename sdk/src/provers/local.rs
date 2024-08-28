@@ -1,6 +1,6 @@
 use anyhow::Result;
 use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
-use sphinx_prover::{SphinxProver, SphinxStdin};
+use sphinx_prover::{components::SphinxProverComponents, SphinxProver, SphinxStdin};
 use sysinfo::System;
 
 use crate::{
@@ -11,19 +11,24 @@ use crate::{
 use super::ProverType;
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
-pub struct LocalProver {
-    prover: SphinxProver,
+pub struct LocalProver<C: SphinxProverComponents> {
+    prover: SphinxProver<C>,
 }
 
-impl LocalProver {
+impl<C: SphinxProverComponents> LocalProver<C> {
     /// Creates a new [LocalProver].
     pub fn new() -> Self {
         let prover = SphinxProver::new();
         Self { prover }
     }
+
+    /// Creates a new [LocalProver] from an existing [SP1Prover].
+    pub fn from_prover(prover: SphinxProver<C>) -> Self {
+        Self { prover }
+    }
 }
 
-impl Prover for LocalProver {
+impl<C: SphinxProverComponents> Prover<C> for LocalProver<C> {
     fn id(&self) -> ProverType {
         ProverType::Local
     }
@@ -32,7 +37,7 @@ impl Prover for LocalProver {
         self.prover.setup(elf)
     }
 
-    fn sphinx_prover(&self) -> &SphinxProver {
+    fn sphinx_prover(&self) -> &SphinxProver<C> {
         &self.prover
     }
 
@@ -97,7 +102,7 @@ impl Prover for LocalProver {
     }
 }
 
-impl Default for LocalProver {
+impl<C: SphinxProverComponents> Default for LocalProver<C> {
     fn default() -> Self {
         Self::new()
     }

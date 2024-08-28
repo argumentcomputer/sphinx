@@ -1,10 +1,12 @@
 use hashbrown::HashMap;
-use sphinx_core::air::EventLens;
+use sphinx_core::air::{EventLens, PublicValues, Word};
+use sphinx_core::utils::SphinxCoreOpts;
 use std::array;
+use std::borrow::Borrow;
 use std::sync::Arc;
 
 use p3_field::{AbstractField, PrimeField32};
-use sphinx_core::stark::{Indexed, MachineRecord, PROOF_MAX_NUM_PVS};
+use sphinx_core::stark::{MachineRecord, PublicValued, PROOF_MAX_NUM_PVS};
 
 use super::RecursionProgram;
 use crate::air::Block;
@@ -45,16 +47,16 @@ impl<F: Default> ExecutionRecord<F> {
     }
 }
 
-impl<F: PrimeField32> Indexed for ExecutionRecord<F> {
-    fn index(&self) -> u32 {
-        0
+impl<FF: PrimeField32> PublicValued for ExecutionRecord<FF> {
+    fn public_values<F: AbstractField + Clone>(&self) -> PublicValues<Word<F>, F> {
+        let pvs: Vec<F> = MachineRecord::public_values::<F>(self);
+        let pv: &PublicValues<Word<F>, F> = Borrow::borrow(&pvs[..]);
+        pv.clone()
     }
 }
 
 impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
-    type Config = ();
-
-    fn set_index(&mut self, _: u32) {}
+    type Config = SphinxCoreOpts;
 
     fn stats(&self) -> HashMap<String, usize> {
         let mut stats = HashMap::new();
@@ -94,10 +96,6 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
                 .entry(range_check_event)
                 .or_insert(0) += count;
         }
-    }
-
-    fn shard(self, _: &Self::Config) -> Vec<Self> {
-        vec![self]
     }
 
     fn public_values<T: AbstractField>(&self) -> Vec<T> {

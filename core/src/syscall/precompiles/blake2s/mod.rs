@@ -156,6 +156,7 @@ pub fn blake2s_round(v: &mut [u32], m: &[u32]) {
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use crate::stark::DefaultProver;
     use crate::syscall::precompiles::blake2s::blake2s_round;
     use crate::syscall::precompiles::blake2s::{quarter_round, round, shuffle, unshuffle};
     use crate::utils::tests::BLAKE2S_ROUND_ELF;
@@ -223,7 +224,7 @@ mod tests {
 
         let program = risc_v_program(a_ptr, b_ptr, a, b);
 
-        let (_, memory) = run_test_with_memory_inspection(program);
+        let (_, memory) = run_test_with_memory_inspection::<DefaultProver<_, _>>(program);
         let mut result = vec![];
         // result is 4 words, written to a_ptr
         for i in 0..16 {
@@ -237,7 +238,7 @@ mod tests {
     fn test_blake2s_round_program() {
         setup_logger();
         let program = Program::from(BLAKE2S_ROUND_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
