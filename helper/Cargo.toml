@@ -8,3 +8,4 @@ license.workspace = true
 [dependencies]
 cargo_metadata = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
+sphinx-build = { path = "../build/"}
