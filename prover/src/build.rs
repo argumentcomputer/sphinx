@@ -14,29 +14,8 @@ use sphinx_recursion_core::air::RecursionPublicValues;
 pub use sphinx_recursion_core::stark::utils::sphinx_dev_mode;
 use sphinx_recursion_gnark_ffi::PlonkBn254Prover;
 
-use crate::install::install_plonk_bn254_artifacts;
 use crate::utils::{babybear_bytes_to_bn254, babybears_to_bn254, words_to_bytes};
-use crate::{OuterSC, SphinxProver, SPHINX_CIRCUIT_VERSION};
-
-/// Tries to install the PLONK artifacts if they are not already installed.
-pub fn try_install_plonk_bn254_artifacts(use_aws_cli: bool) -> PathBuf {
-    let build_dir = plonk_bn254_artifacts_dir();
-
-    if build_dir.exists() {
-        println!(
-            "[sp1] plonk bn254 artifacts already seem to exist at {}. if you want to re-download them, delete the directory",
-            build_dir.display()
-        );
-    } else {
-        println!(
-            "[sp1] plonk bn254 artifacts for version {} do not exist at {}. downloading...",
-            SPHINX_CIRCUIT_VERSION,
-            build_dir.display()
-        );
-        install_plonk_bn254_artifacts(&build_dir, use_aws_cli);
-    }
-    build_dir
-}
+use crate::{OuterSC, SphinxProver};
 
 /// Tries to build the PLONK artifacts inside the development directory.
 pub fn try_build_plonk_bn254_artifacts_dev(
@@ -47,16 +26,6 @@ pub fn try_build_plonk_bn254_artifacts_dev(
     println!("[sp1] building plonk bn254 artifacts in development mode");
     build_plonk_bn254_artifacts(template_vk, template_proof, &build_dir);
     build_dir
-}
-
-/// Gets the directory where the PLONK artifacts are installed.
-fn plonk_bn254_artifacts_dir() -> PathBuf {
-    home::home_dir()
-        .unwrap()
-        .join(".sp1")
-        .join("circuits")
-        .join("plonk_bn254")
-        .join(SPHINX_CIRCUIT_VERSION)
 }
 
 /// Gets the directory where the PLONK artifacts are installed in development mode.

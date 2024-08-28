@@ -18,6 +18,7 @@ use sphinx_prover::{SphinxProvingKey, SphinxStdin, SphinxVerifyingKey};
 use strum_macros::EnumString;
 use thiserror::Error;
 
+use crate::install::try_install_plonk_bn254_artifacts;
 use crate::SphinxProof;
 use crate::SphinxProofKind;
 use crate::SphinxProofWithPublicValues;
@@ -95,7 +96,7 @@ pub trait Prover<C: SphinxProverComponents>: Send + Sync {
                     &if sphinx_prover::build::sphinx_dev_mode() {
                         sphinx_prover::build::plonk_bn254_artifacts_dev_dir()
                     } else {
-                        sphinx_prover::build::try_install_plonk_bn254_artifacts(false)
+                        try_install_plonk_bn254_artifacts()
                     },
                 )
                 .map_err(SphinxVerificationError::Plonk),

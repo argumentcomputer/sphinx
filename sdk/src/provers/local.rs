@@ -4,8 +4,8 @@ use sphinx_prover::{components::SphinxProverComponents, SphinxProver, SphinxStdi
 use sysinfo::System;
 
 use crate::{
-    Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
-    SphinxVerifyingKey,
+    install::try_install_plonk_bn254_artifacts, Prover, SphinxProof, SphinxProofKind,
+    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 
 use super::ProverType;
@@ -85,7 +85,7 @@ impl<C: SphinxProverComponents> Prover<C> for LocalProver<C> {
                 &outer_proof.proof,
             )
         } else {
-            sphinx_prover::build::try_install_plonk_bn254_artifacts(false)
+            try_install_plonk_bn254_artifacts()
         };
         let proof = self
             .prover
