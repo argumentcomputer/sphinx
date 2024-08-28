@@ -261,19 +261,21 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         context
             .subproof_verifier
             .get_or_insert_with(|| Arc::new(self));
-        let config = CoreSC::default();
         let program = Program::from(&pk.elf);
-        let (proof, public_values_stream) = sphinx_core::utils::prove_with_context::<
-            _,
-            C::CoreProver,
-        >(
-            &program, stdin, config, opts.core_opts, context
-        )?;
+        let (proof, public_values_stream, cycles) =
+            sphinx_core::utils::prove_with_context::<_, C::CoreProver>(
+                &self.core_prover,
+                &program,
+                stdin,
+                opts.core_opts,
+                context,
+            )?;
         let public_values = SphinxPublicValues::from(&public_values_stream);
         Ok(SphinxCoreProof {
             proof: SphinxCoreProofData(proof.shard_proofs),
             stdin: stdin.clone(),
             public_values,
+            cycles,
         })
     }
 

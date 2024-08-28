@@ -114,6 +114,7 @@ pub struct SphinxProofWithMetadata<P: Clone> {
     pub proof: P,
     pub stdin: SphinxStdin,
     pub public_values: SphinxPublicValues,
+    pub cycles: u64,
 }
 
 impl<P: Serialize + DeserializeOwned + Clone> SphinxProofWithMetadata<P> {

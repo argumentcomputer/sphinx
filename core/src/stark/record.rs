@@ -9,7 +9,7 @@ pub trait PublicValued {
 }
 
 pub trait MachineRecord: Default + Sized + Send + Sync + Clone {
-    type Config;
+    type Config: 'static + Copy + Send + Sync;
 
     fn stats(&self) -> HashMap<String, usize>;
 

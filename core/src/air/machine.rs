@@ -88,7 +88,9 @@ where
 //////////////// end of shenanigans destined for the derive macros. ////////////////
 
 /// An AIR that is part of a multi table AIR arithmetization.
-pub trait MachineAir<F: Field>: BaseAir<F> + for<'a> WithEvents<'a> + 'static {
+pub trait MachineAir<F: Field>:
+    BaseAir<F> + for<'a> WithEvents<'a> + 'static + Send + Sync
+{
     /// The execution record containing events for producing the air trace.
     type Record: MachineRecord + EventLens<Self>;
 
