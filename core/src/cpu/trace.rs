@@ -29,7 +29,7 @@ use crate::runtime::{ExecutionRecord, Opcode, Program};
 use crate::runtime::{MemoryRecordEnum, SyscallCode};
 
 impl<'a> WithEvents<'a> for CpuChip {
-    type Events = (&'a [CpuEvent], &'a HashMap<usize, u32>);
+    type Events = (&'a [CpuEvent], &'a HashMap<u128, u32>);
 }
 
 impl<F: PrimeField32> MachineAir<F> for CpuChip {
@@ -120,7 +120,7 @@ impl CpuChip {
     fn event_to_row<F: PrimeField32>(
         &self,
         event: &CpuEvent,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
         cols: &mut CpuCols<F>,
         blu_events: &mut impl ByteRecord,
     ) -> HashMap<Opcode, Vec<AluEvent>> {
@@ -267,7 +267,7 @@ impl CpuChip {
         event: &CpuEvent,
         new_alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
         blu_events: &mut impl ByteRecord,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
     ) {
         if !matches!(
             event.instruction.opcode,
@@ -418,7 +418,7 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: &CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
     ) {
         if event.instruction.is_branch_instruction() {
             let branch_columns = cols.opcode_specific_columns.branch_mut();
@@ -547,7 +547,7 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: &CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
     ) {
         if event.instruction.is_jump_instruction() {
             let jump_columns = cols.opcode_specific_columns.jump_mut();
@@ -624,7 +624,7 @@ impl CpuChip {
         cols: &mut CpuCols<F>,
         event: &CpuEvent,
         alu_events: &mut HashMap<Opcode, Vec<AluEvent>>,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
     ) {
         if matches!(event.instruction.opcode, Opcode::AUIPC) {
             let auipc_columns = cols.opcode_specific_columns.auipc_mut();
@@ -662,7 +662,7 @@ impl CpuChip {
         &self,
         cols: &mut CpuCols<F>,
         event: &CpuEvent,
-        nonce_lookup: &HashMap<usize, u32>,
+        nonce_lookup: &HashMap<u128, u32>,
     ) -> bool {
         let mut is_halt = false;
 

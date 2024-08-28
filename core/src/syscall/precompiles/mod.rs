@@ -24,7 +24,7 @@ use crate::{
 /// Elliptic curve add event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ECAddEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -85,7 +85,7 @@ pub fn create_ec_add_event<E: EllipticCurve>(
 /// Elliptic curve double event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ECDoubleEvent<U: LimbWidth = DEFAULT_NUM_LIMBS_T> {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,

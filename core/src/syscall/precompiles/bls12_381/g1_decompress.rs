@@ -67,7 +67,7 @@ pub fn bls12_381_g1_decompress(bytes_be: &[u8]) -> AffinePoint<SwCurve<Bls12381P
 /// BLS12-381 G1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G1DecompressEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,

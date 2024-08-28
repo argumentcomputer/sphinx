@@ -155,7 +155,7 @@ impl Bls12381G2AffineDoubleChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G2AffineDoubleEvent {
-    pub(crate) lookup_id: usize,
+    pub(crate) lookup_id: u128,
     clk: u32,
     shard: u32,
     channel: u32,
