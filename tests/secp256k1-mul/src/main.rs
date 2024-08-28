@@ -1,9 +1,9 @@
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
+use sphinx_lib::secp256k1::Secp256k1Operations;
+use sphinx_lib::utils::AffinePoint;
 use hybrid_array::typenum::U16;
-use sphinx_zkvm::precompiles::secp256k1::Secp256k1Operations;
-use sphinx_zkvm::precompiles::utils::AffinePoint;
 
 #[sphinx_derive::cycle_tracker]
 pub fn main() {

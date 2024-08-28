@@ -1,10 +1,14 @@
 pub mod heap;
 pub mod syscalls;
+
+#[cfg(feature = "lib")]
 pub mod io {
-    pub use sphinx_precompiles::io::*;
+    pub use sphinx_lib::io::*;
 }
-pub mod precompiles {
-    pub use sphinx_precompiles::*;
+
+#[cfg(feature = "lib")]
+pub mod lib {
+    pub use sphinx_lib::*;
 }
 
 #[allow(unused_extern_crates)]

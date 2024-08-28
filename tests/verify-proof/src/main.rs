@@ -1,11 +1,10 @@
 //! This is a test program that takes in a sp1_core vkey and a list of inputs, and then verifies the
-//! SP1 proof for each input.
-
+//! Sphinx proof for each input.
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
 use sha2::{Digest, Sha256};
-use sphinx_zkvm::precompiles::verify::verify_sphinx_proof;
+use sphinx_lib::verify::verify_sphinx_proof;
 
 fn words_to_bytes(words: &[u32; 8]) -> [u8; 32] {
     let mut bytes = [0u8; 32];
