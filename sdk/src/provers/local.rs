@@ -1,6 +1,7 @@
 use anyhow::Result;
 use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
 use sphinx_prover::{SphinxProver, SphinxStdin};
+use sysinfo::System;
 
 use crate::{
     Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
@@ -66,6 +67,12 @@ impl Prover for LocalProver {
         let compress_proof = self.prover.shrink(reduce_proof, opts)?;
         let outer_proof = self.prover.wrap_bn254(compress_proof, opts)?;
 
+        let total_ram_gb = System::new_all().total_memory() / 1_000_000_000;
+        if total_ram_gb <= 120 {
+            return Err(anyhow::anyhow!(
+                "not enough memory to generate plonk proof. at least 128GB is required."
+            ));
+        }
         let plonk_bn254_aritfacts = if sphinx_prover::build::sphinx_dev_mode() {
             sphinx_prover::build::try_build_plonk_bn254_artifacts_dev(
                 &self.prover.wrap_vk,
