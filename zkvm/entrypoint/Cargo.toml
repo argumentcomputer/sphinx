@@ -6,35 +6,30 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-sphinx-precompiles = { path = "../lib" }
 bincode = { workspace = true }
 cfg-if = { workspace = true }
-getrandom = { workspace = true, features = ["custom"] }
-libm = { workspace = true, optional = true }
-k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
-lazy_static = { workspace = true }
+getrandom = { version = "0.2.14", features = ["custom"] }
 once_cell = { workspace = true }
 rand = { workspace = true }
-# Not using the workspace dependency or a patch here to ensure that downstream users always use the patched crate
-sha2 = { version = "0.10.8", git = "https://github.com/sp1-patches/RustCrypto-hashes", branch = "patch-v0.10.8" }
+serde = { workspace = true, features = ["derive"] }
+libm = { workspace = true, optional = true }
+sha2 = { workspace = true }
+lazy_static = { workspace = true }
 
-# verify
-sphinx-primitives = { path = "../../primitives" }
+# optional
+sphinx-lib = { path = "../lib", optional = true }
+sphinx-primitives = { path = "../../primitives", optional = true }
 p3-baby-bear = { workspace = true, optional = true }
 p3-field = { workspace = true, optional = true }
 
 [features]
-default = ["libm"]
+default = ["libm", "lib"]
 libm = ["dep:libm"]
-verify = ["dep:p3-baby-bear", "dep:p3-field", "sphinx-precompiles/verify"]
-bn254 = ["sphinx-precompiles/bn254"]
-secp256k1 = ["sphinx-precompiles/secp256k1"]
-
-[package.metadata.cargo-udeps.ignore] # used w/ verify feature & some examples
-normal = [
-    "p3-baby-bear",
-    "p3-field",
-    "sphinx-primitives",
-    "rand"
+lib = ["dep:sphinx-lib"]
+verify = [
+  "dep:sphinx-primitives",
+  "dep:p3-baby-bear",
+  "dep:p3-field",
+  "sphinx-lib/verify",
 ]
 
