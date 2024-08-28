@@ -16,7 +16,7 @@ impl SyscallHintLen {
 }
 
 impl Syscall for SyscallHintLen {
-    fn execute(&self, ctx: &mut SyscallContext, _arg1: u32, _arg2: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, _arg1: u32, _arg2: u32) -> Option<u32> {
         assert!(ctx.rt.state.input_stream_ptr < ctx.rt.state.input_stream.len(),
                 "failed reading stdin due to insufficient input data: input_stream_ptr={}, input_stream_len={}",
                 ctx.rt.state.input_stream_ptr,
@@ -42,7 +42,7 @@ impl SyscallHintRead {
 }
 
 impl Syscall for SyscallHintRead {
-    fn execute(&self, ctx: &mut SyscallContext, ptr: u32, len: u32) -> Option<u32> {
+    fn execute(&self, ctx: &mut SyscallContext<'_, '_>, ptr: u32, len: u32) -> Option<u32> {
         assert!(ctx.rt.state.input_stream_ptr < ctx.rt.state.input_stream.len(),
                 "failed reading stdin due to insufficient input data: input_stream_ptr={}, input_stream_len={}",
                 ctx.rt.state.input_stream_ptr,
