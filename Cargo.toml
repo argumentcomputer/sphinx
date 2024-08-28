@@ -133,6 +133,7 @@ alloy-primitives = "0.7.7"
 alloy-sol-types = "0.7.7"
 downloader = { version = "0.2", default-features = false }
 ethers = { version = "2", default-features = false }
+sysinfo = "0.31.2"
 
 [profile.dev-ci]
 inherits = "dev"
