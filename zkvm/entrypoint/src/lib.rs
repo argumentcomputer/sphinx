@@ -5,14 +5,10 @@ pub mod syscalls;
 pub mod io {
     pub use sphinx_lib::io::*;
 }
-
 #[cfg(feature = "lib")]
 pub mod lib {
     pub use sphinx_lib::*;
 }
-
-#[allow(unused_extern_crates)]
-extern crate alloc;
 
 #[macro_export]
 macro_rules! entrypoint {
