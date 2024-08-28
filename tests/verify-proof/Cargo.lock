@@ -57,19 +57,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bls12_381"
-version = "0.8.0"
-source = "git+https://github.com/argumentcomputer/bls12_381.git?branch=zkvm#0d57d6ac0af6a464c4764809b5bf994d15920762"
-dependencies = [
- "cfg-if",
- "ff",
- "group",
- "pairing",
- "rand_core",
- "subtle",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -338,7 +325,7 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 [[package]]
 name = "p3-baby-bear"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "num-bigint",
  "p3-field",
@@ -352,7 +339,7 @@ dependencies = [
 [[package]]
 name = "p3-dft"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "p3-field",
  "p3-matrix",
@@ -364,7 +351,7 @@ dependencies = [
 [[package]]
 name = "p3-field"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "itertools",
  "num-bigint",
@@ -377,7 +364,7 @@ dependencies = [
 [[package]]
 name = "p3-matrix"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "itertools",
  "p3-field",
@@ -391,12 +378,12 @@ dependencies = [
 [[package]]
 name = "p3-maybe-rayon"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 
 [[package]]
 name = "p3-mds"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "itertools",
  "p3-dft",
@@ -410,7 +397,7 @@ dependencies = [
 [[package]]
 name = "p3-poseidon2"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "gcd",
  "p3-field",
@@ -422,7 +409,7 @@ dependencies = [
 [[package]]
 name = "p3-symmetric"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "itertools",
  "p3-field",
@@ -432,18 +419,9 @@ dependencies = [
 [[package]]
 name = "p3-util"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1-new#c5ee5502813e9621641407b3d2e22afee057321a"
+source = "git+https://github.com/argumentcomputer/Plonky3.git?branch=sp1#b75d346d549d47ad91afcb6bb18ef757850c13c7"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "pairing"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
-dependencies = [
- "group",
 ]
 
 [[package]]
@@ -603,11 +581,9 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "bincode",
- "bls12_381",
  "cfg-if",
  "getrandom",
  "hybrid-array",
- "k256",
  "serde",
 ]
 
