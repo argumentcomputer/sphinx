@@ -1,5 +1,6 @@
 use std::{env, time::Duration};
 
+use crate::install::block_on;
 use crate::proto::network::ProofMode;
 use crate::{
     network::client::{NetworkClient, DEFAULT_PROVER_NETWORK_RPC},
@@ -14,7 +15,6 @@ use anyhow::Result;
 use serde::de::DeserializeOwned;
 use sphinx_core::utils::SphinxProverOpts;
 use sphinx_prover::components::DefaultProverComponents;
-use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin, SPHINX_CIRCUIT_VERSION};
 use tokio::time::sleep;
 
