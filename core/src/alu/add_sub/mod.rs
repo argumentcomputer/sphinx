@@ -3,22 +3,23 @@ use core::{
     mem::size_of,
 };
 
+use hashbrown::HashMap;
+use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
+use p3_field::{AbstractField, PrimeField};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
-use p3_maybe_rayon::prelude::ParallelIterator;
 use p3_maybe_rayon::prelude::ParallelSlice;
+use p3_maybe_rayon::prelude::{ParallelBridge, ParallelIterator};
 use sphinx_derive::AlignedBorrow;
 
-use crate::{
-    air::{AluAirBuilder, EventLens, MachineAir, WithEvents, Word},
-    operations::AddOperation,
-    runtime::{ExecutionRecord, Opcode, Program},
-    stark::MachineRecord,
-    utils::pad_to_power_of_two,
-};
+use crate::air::Word;
+use crate::air::{AluAirBuilder, EventLens, MachineAir, WithEvents};
+use crate::bytes::event::ByteRecord;
+use crate::bytes::ByteLookupEvent;
+use crate::operations::AddOperation;
+use crate::runtime::{ExecutionRecord, Opcode, Program};
+use crate::utils::pad_to_power_of_two;
 
 use super::AluEvent;
 
@@ -85,7 +86,7 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
     fn generate_trace<EL: EventLens<Self>>(
         &self,
         input: &EL,
-        output: &mut Self::Record,
+        _: &mut Self::Record,
     ) -> RowMajorMatrix<F> {
         let (add_events, sub_events) = input.events();
         // Generate the rows for the trace.
@@ -95,44 +96,26 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
             .chain(sub_events.iter())
             .collect::<Vec<_>>();
 
-        let rows_and_records = merged_events
+        let row_batches = merged_events
             .par_chunks(chunk_size)
             .map(|events| {
-                let mut record = ExecutionRecord::default();
                 let rows = events
                     .iter()
                     .map(|event| {
                         let mut row = [F::zero(); NUM_ADD_SUB_COLS];
                         let cols: &mut AddSubCols<F> = row.as_mut_slice().borrow_mut();
-                        let is_add = event.opcode == Opcode::ADD;
-                        cols.shard = F::from_canonical_u32(event.shard);
-                        cols.channel = F::from_canonical_u32(event.channel);
-                        cols.is_add = F::from_bool(is_add);
-                        cols.is_sub = F::from_bool(!is_add);
-
-                        let operand_1 = if is_add { event.b } else { event.a };
-                        let operand_2 = event.c;
-
-                        cols.add_operation.populate(
-                            &mut record,
-                            event.shard,
-                            event.channel,
-                            operand_1,
-                            operand_2,
-                        );
-                        cols.operand_1 = Word::from(operand_1);
-                        cols.operand_2 = Word::from(operand_2);
+                        let mut blu = Vec::new();
+                        self.event_to_row(event, cols, &mut blu);
                         row
                     })
                     .collect::<Vec<_>>();
-                (rows, record)
+                rows
             })
             .collect::<Vec<_>>();
 
         let mut rows: Vec<[F; NUM_ADD_SUB_COLS]> = vec![];
-        for mut row_and_record in rows_and_records {
-            rows.extend(row_and_record.0);
-            output.append(&mut row_and_record.1);
+        for row_batch in row_batches {
+            rows.extend(row_batch);
         }
 
         // Convert the trace to a row major matrix.
@@ -154,8 +137,56 @@ impl<F: PrimeField> MachineAir<F> for AddSubChip {
         trace
     }
 
+    fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut Self::Record) {
+        let (add_events, sub_events) = input.events();
+        let chunk_size = std::cmp::max((add_events.len() + sub_events.len()) / num_cpus::get(), 1);
+
+        let event_iter = add_events
+            .chunks(chunk_size)
+            .chain(sub_events.chunks(chunk_size));
+
+        let blu_batches = event_iter
+            .par_bridge()
+            .map(|events| {
+                let mut blu: HashMap<u32, HashMap<ByteLookupEvent, usize>> = HashMap::new();
+                for event in events.iter() {
+                    let mut row = [F::zero(); NUM_ADD_SUB_COLS];
+                    let cols: &mut AddSubCols<F> = row.as_mut_slice().borrow_mut();
+                    self.event_to_row(event, cols, &mut blu);
+                }
+                blu
+            })
+            .collect::<Vec<_>>();
+
+        output.add_sharded_byte_lookup_events(blu_batches.iter().collect_vec());
+    }
+
     fn included(&self, shard: &Self::Record) -> bool {
         !shard.add_events.is_empty() || !shard.sub_events.is_empty()
+    }
+}
+
+impl AddSubChip {
+    /// Create a row from an event.
+    fn event_to_row<F: PrimeField>(
+        &self,
+        event: &AluEvent,
+        cols: &mut AddSubCols<F>,
+        blu: &mut impl ByteRecord,
+    ) {
+        let is_add = event.opcode == Opcode::ADD;
+        cols.shard = F::from_canonical_u32(event.shard);
+        cols.channel = F::from_canonical_u32(event.channel);
+        cols.is_add = F::from_bool(is_add);
+        cols.is_sub = F::from_bool(!is_add);
+
+        let operand_1 = if is_add { event.b } else { event.a };
+        let operand_2 = event.c;
+
+        cols.add_operation
+            .populate(blu, event.shard, event.channel, operand_1, operand_2);
+        cols.operand_1 = Word::from(operand_1);
+        cols.operand_2 = Word::from(operand_2);
     }
 }
 

@@ -7,7 +7,6 @@ use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteLookupEvent;
 use crate::bytes::ByteOpcode;
 use crate::disassembler::WORD_SIZE;
-use crate::runtime::ExecutionRecord;
 
 /// A set of columns needed to compute the and of two words.
 #[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
@@ -20,7 +19,7 @@ pub struct AndOperation<T> {
 impl<F: Field> AndOperation<F> {
     pub fn populate(
         &mut self,
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
         shard: u32,
         channel: u32,
         x: u32,

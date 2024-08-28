@@ -4,7 +4,9 @@ use core::{
 };
 use std::{fmt::Debug, marker::PhantomData};
 
+use hashbrown::HashMap;
 use hybrid_array::{typenum::Unsigned, Array};
+use itertools::Itertools;
 use num::BigUint;
 use num::Zero;
 
@@ -16,9 +18,10 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_maybe_rayon::prelude::IntoParallelRefIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
+use p3_maybe_rayon::prelude::ParallelSlice;
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::BaseAirBuilder;
+use crate::air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents};
 use crate::bytes::ByteLookupEvent;
 use crate::memory::MemoryReadCols;
 use crate::memory::MemoryWriteCols;
@@ -33,10 +36,8 @@ use crate::runtime::ExecutionRecord;
 use crate::runtime::Program;
 use crate::runtime::Syscall;
 use crate::runtime::SyscallCode;
-use crate::syscall::precompiles::create_ec_add_event;
 use crate::syscall::precompiles::SyscallContext;
-use crate::syscall::precompiles::DEFAULT_NUM_LIMBS_T;
-use crate::syscall::precompiles::WORDS_CURVEPOINT;
+use crate::syscall::precompiles::{create_ec_add_event, ECAddEvent};
 use crate::utils::ec::edwards::ed25519::Ed25519BaseField;
 use crate::utils::ec::edwards::EdwardsParameters;
 use crate::utils::ec::AffinePoint;
@@ -44,11 +45,11 @@ use crate::utils::ec::BaseLimbWidth;
 use crate::utils::ec::EllipticCurve;
 use crate::utils::limbs_from_prev_access;
 use crate::utils::pad_rows;
-use crate::{air::MachineAir, utils::ec::EllipticCurveParameters};
 use crate::{
-    air::{AluAirBuilder, EventLens, MemoryAirBuilder, WithEvents},
-    syscall::precompiles::ECAddEvent,
+    air::BaseAirBuilder,
+    operations::field::params::{DEFAULT_NUM_LIMBS_T, WORDS_CURVEPOINT},
 };
+use crate::{air::MachineAir, utils::ec::EllipticCurveParameters};
 use crate::{bytes::event::ByteRecord, utils::limbs_from_access};
 
 pub const NUM_ED_ADD_COLS: usize = size_of::<EdAddAssignCols<u8, Ed25519BaseField>>();
@@ -176,69 +177,22 @@ where
     fn generate_trace<EL: EventLens<Self>>(
         &self,
         input: &EL,
-        output: &mut ExecutionRecord,
+        _: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let (mut rows, new_byte_lookup_events): (Vec<Vec<F>>, Vec<Vec<ByteLookupEvent>>) = input
+        let mut rows = input
             .events()
             .par_iter()
             .map(|event| {
-                let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
+                let mut row = [F::zero(); NUM_ED_ADD_COLS];
                 let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
-
-                // Decode affine points.
-                let p = &event.p;
-                let q = &event.q;
-                let p = AffinePoint::<E>::from_words_le(p);
-                let (p_x, p_y) = (p.x, p.y);
-                let q = AffinePoint::<E>::from_words_le(q);
-                let (q_x, q_y) = (q.x, q.y);
-
-                // Populate basic columns.
-                cols.is_real = F::one();
-                cols.shard = F::from_canonical_u32(event.shard);
-                cols.channel = F::from_canonical_u32(event.channel);
-                cols.clk = F::from_canonical_u32(event.clk);
-                cols.p_ptr = F::from_canonical_u32(event.p_ptr);
-                cols.q_ptr = F::from_canonical_u32(event.q_ptr);
-
-                let mut new_byte_lookup_events = Vec::new();
-                Self::populate_field_ops(
-                    &mut new_byte_lookup_events,
-                    event.shard,
-                    event.channel,
-                    cols,
-                    &p_x,
-                    &p_y,
-                    &q_x,
-                    &q_y,
-                );
-
-                // Populate the memory access columns.
-                for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
-                    cols.q_access[i].populate(
-                        event.channel,
-                        event.q_memory_records[i],
-                        &mut new_byte_lookup_events,
-                    );
-                }
-                for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
-                    cols.p_access[i].populate(
-                        event.channel,
-                        event.p_memory_records[i],
-                        &mut new_byte_lookup_events,
-                    );
-                }
-
-                (row, new_byte_lookup_events)
+                let mut blu = Vec::new();
+                self.event_to_row(event, cols, &mut blu);
+                row
             })
-            .unzip();
-
-        for byte_lookup_events in new_byte_lookup_events {
-            output.add_byte_lookup_events(byte_lookup_events);
-        }
+            .collect::<Vec<_>>();
 
         pad_rows(&mut rows, || {
-            let mut row = vec![F::zero(); size_of::<EdAddAssignCols<u8, E::BaseField>>()];
+            let mut row = [F::zero(); NUM_ED_ADD_COLS];
             let cols: &mut EdAddAssignCols<F, E::BaseField> = row.as_mut_slice().borrow_mut();
             let zero = BigUint::zero();
             Self::populate_field_ops(&mut vec![], 0, 0, cols, &zero, &zero, &zero, &zero);
@@ -261,8 +215,74 @@ where
         trace
     }
 
+    fn generate_dependencies<EL: EventLens<Self>>(&self, input: &EL, output: &mut ExecutionRecord) {
+        let chunk_size = std::cmp::max(input.events().len() / num_cpus::get(), 1);
+
+        let blu_batches = input
+            .events()
+            .par_chunks(chunk_size)
+            .map(|events| {
+                let mut blu: HashMap<u32, HashMap<ByteLookupEvent, usize>> = HashMap::new();
+                for event in events.iter() {
+                    let mut row = [F::zero(); NUM_ED_ADD_COLS];
+                    let cols: &mut EdAddAssignCols<F, E::BaseField> =
+                        row.as_mut_slice().borrow_mut();
+                    self.event_to_row(event, cols, &mut blu);
+                }
+                blu
+            })
+            .collect::<Vec<_>>();
+
+        output.add_sharded_byte_lookup_events(blu_batches.iter().collect_vec());
+    }
+
     fn included(&self, shard: &Self::Record) -> bool {
         !shard.ed_add_events.is_empty()
+    }
+}
+
+impl<E: EllipticCurve + EdwardsParameters> EdAddAssignChip<E> {
+    /// Create a row from an event.
+    fn event_to_row<F: PrimeField32>(
+        &self,
+        event: &ECAddEvent,
+        cols: &mut EdAddAssignCols<F, E::BaseField>,
+        blu: &mut impl ByteRecord,
+    ) {
+        // Decode affine points.
+        let p = &event.p;
+        let q = &event.q;
+        let p = AffinePoint::<E>::from_words_le(p);
+        let (p_x, p_y) = (p.x, p.y);
+        let q = AffinePoint::<E>::from_words_le(q);
+        let (q_x, q_y) = (q.x, q.y);
+
+        // Populate basic columns.
+        cols.is_real = F::one();
+        cols.shard = F::from_canonical_u32(event.shard);
+        cols.channel = F::from_canonical_u32(event.channel);
+        cols.clk = F::from_canonical_u32(event.clk);
+        cols.p_ptr = F::from_canonical_u32(event.p_ptr);
+        cols.q_ptr = F::from_canonical_u32(event.q_ptr);
+
+        Self::populate_field_ops(
+            blu,
+            event.shard,
+            event.channel,
+            cols,
+            &p_x,
+            &p_y,
+            &q_x,
+            &q_y,
+        );
+
+        // Populate the memory access columns.
+        for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
+            cols.q_access[i].populate(event.channel, event.q_memory_records[i], blu);
+        }
+        for i in 0..WORDS_CURVEPOINT::<BaseLimbWidth<E>>::USIZE {
+            cols.p_access[i].populate(event.channel, event.p_memory_records[i], blu);
+        }
     }
 }
 
