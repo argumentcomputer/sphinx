@@ -31,10 +31,12 @@ use std::env;
 
 pub use provers::{LocalProver, MockProver, Prover};
 
-pub use sphinx_core::runtime::{Hook, HookEnv, SphinxContext, SphinxContextBuilder};
+pub use sphinx_core::runtime::{
+    ExecutionReport, Hook, HookEnv, SphinxContext, SphinxContextBuilder,
+};
 use sphinx_core::SPHINX_CIRCUIT_VERSION;
 pub use sphinx_prover::{
-    types::HashableKey, CoreSC, InnerSC, OuterSC, PlonkBn254Proof, SphinxProver, SphinxProvingKey,
+    CoreSC, HashableKey, InnerSC, OuterSC, PlonkBn254Proof, SphinxProver, SphinxProvingKey,
     SphinxPublicValues, SphinxStdin, SphinxVerifyingKey,
 };
 
