@@ -198,4 +198,7 @@ pub enum SphinxReduceProofWrapper {
 }
 
 #[derive(Error, Debug)]
-pub enum SphinxRecursionProverError {}
+pub enum SphinxRecursionProverError {
+    #[error("Runtime error: {0}")]
+    RuntimeError(String),
+}
