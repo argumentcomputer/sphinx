@@ -4,6 +4,7 @@ use crate::air::{Block, IsZeroOperation, RecursionMemoryAirBuilder};
 use crate::memory::{MemoryReadSingleCols, MemoryReadWriteSingleCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
+use core::mem::size_of;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::PrimeField32;
 use p3_field::{AbstractField, Field};
