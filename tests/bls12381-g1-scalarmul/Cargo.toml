@@ -6,6 +6,6 @@ edition = "2021"
 
 [dependencies]
 sphinx-zkvm = { path = "../../zkvm/entrypoint" }
-sphinx-lib = { path = "../../zkvm/lib", features = ["bls12381"] }
+sphinx-lib = { path = "../../zkvm/lib" }
 sphinx-derive = { path = "../../derive" }
 hybrid-array = "0.2.0-rc"
