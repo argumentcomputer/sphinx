@@ -1,0 +1,11 @@
+[package]
+name = "sphinx-build"
+version = "0.1.0"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+cargo_metadata = "0.18.1"
+anyhow = { version = "1.0.83" }
+clap = { version = "4.5.7", features = ["derive", "env"] }

@@ -4357,6 +4357,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sphinx-build"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cargo_metadata",
+ "clap",
+]
+
+[[package]]
 name = "sphinx-cli"
 version = "1.0.0"
 dependencies = [
@@ -4372,6 +4381,7 @@ dependencies = [
  "reqwest 0.12.5",
  "serde",
  "serde_json",
+ "sphinx-build",
  "sphinx-core",
  "sphinx-prover",
  "sphinx-sdk",
@@ -4473,6 +4483,7 @@ version = "1.0.0"
 dependencies = [
  "cargo_metadata",
  "chrono",
+ "sphinx-build",
 ]
 
 [[package]]

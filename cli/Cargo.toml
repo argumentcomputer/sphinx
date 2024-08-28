@@ -12,6 +12,7 @@ vergen = { workspace = true, features = ["build", "git", "git2"] }
 anyhow = { workspace = true, features = ["backtrace"] }
 cargo_metadata = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
+sphinx-build = { path = "../build" }
 sphinx-prover = { path = "../prover" }
 sphinx-sdk = { path = "../sdk" }
 sphinx-core = { path = "../core" }
