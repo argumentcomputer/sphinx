@@ -312,9 +312,9 @@ impl<F: Field, const DEGREE: usize> ExpReverseBitsLenChip<F, DEGREE> {
 
         IsZeroOperation::<AB::F>::eval(
             builder,
-            local.iteration_num.into(),
+            &local.iteration_num.into(),
             local.is_first,
-            local.is_real.into(),
+            &local.is_real.into(),
         );
 
         // All real columns need to be in succession.

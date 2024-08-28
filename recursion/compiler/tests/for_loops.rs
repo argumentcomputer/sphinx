@@ -46,7 +46,7 @@ fn test_compiler_for_loops() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn test_compiler_nested_array_loop() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
 }
 
 #[test]
@@ -168,7 +168,7 @@ fn test_compiler_break() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
 }
 
 #[test]
@@ -195,7 +195,7 @@ fn test_compiler_step_by() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
 }
 
 #[test]
@@ -223,5 +223,5 @@ fn test_compiler_bneinc() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
 }

@@ -449,15 +449,10 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
             let proofs = inputs
                 .into_par_iter()
                 .map(|input| {
-                    let proof = self.compress_machine_proof(
-                        input,
-                        &self.recursion_program,
-                        &self.rec_pk,
-                        opts,
-                    );
-                    (proof, ReduceProgramType::Core)
+                    self.compress_machine_proof(input, &self.recursion_program, &self.rec_pk, opts)
+                        .map(|p| (p, ReduceProgramType::Core))
                 })
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, _>>()?;
             reduce_proofs.extend(proofs);
         }
 
@@ -466,15 +461,15 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
             let proofs = inputs
                 .into_par_iter()
                 .map(|input| {
-                    let proof = self.compress_machine_proof(
+                    self.compress_machine_proof(
                         input,
                         &self.deferred_program,
                         &self.deferred_pk,
                         opts,
-                    );
-                    (proof, ReduceProgramType::Deferred)
+                    )
+                    .map(|p| (p, ReduceProgramType::Deferred))
                 })
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, _>>()?;
             reduce_proofs.extend(proofs);
         }
 
@@ -488,7 +483,7 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
             let batched_compress_inputs =
                 compress_inputs.chunks(shard_batch_size).collect::<Vec<_>>();
             reduce_proofs = batched_compress_inputs
-                .into_iter()
+                .into_par_iter()
                 .flat_map(|batches| {
                     batches
                         .par_iter()
@@ -504,17 +499,17 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
                                 is_complete,
                             };
 
-                            let proof = self.compress_machine_proof(
+                            self.compress_machine_proof(
                                 input,
                                 &self.compress_program,
                                 &self.compress_pk,
                                 opts,
-                            );
-                            (proof, ReduceProgramType::Reduce)
+                            )
+                            .map(|p| (p, ReduceProgramType::Reduce))
                         })
                         .collect::<Vec<_>>()
                 })
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, _>>()?;
 
             if reduce_proofs.len() == 1 {
                 break;
@@ -534,7 +529,7 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         program: &RecursionProgram<BabyBear>,
         pk: &StarkProvingKey<InnerSC>,
         opts: SphinxProverOpts,
-    ) -> ShardProof<InnerSC> {
+    ) -> Result<ShardProof<InnerSC>, SphinxRecursionProverError> {
         let mut runtime = RecursionRuntime::<Val<InnerSC>, Challenge<InnerSC>, _>::new(
             program,
             self.compress_prover.config().perm.clone(),
@@ -544,11 +539,15 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         witness_stream.extend(input.write());
 
         runtime.witness_stream = witness_stream.into();
-        runtime.run();
+
+        runtime
+            .run()
+            .map_err(|e| SphinxRecursionProverError::RuntimeError(e.to_string()))?;
         runtime.print_stats();
 
         let mut recursive_challenger = self.compress_prover.config().challenger();
-        self.compress_prover
+        let proof = self
+            .compress_prover
             .prove(
                 pk,
                 vec![runtime.record],
@@ -558,7 +557,9 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
             .unwrap()
             .shard_proofs
             .pop()
-            .unwrap()
+            .unwrap();
+
+        Ok(proof)
     }
 
     /// Wrap a reduce proof into a STARK proven over a SNARK-friendly field.
@@ -585,7 +586,11 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         witness_stream.extend(input.write());
 
         runtime.witness_stream = witness_stream.into();
-        runtime.run();
+
+        runtime
+            .run()
+            .map_err(|e| SphinxRecursionProverError::RuntimeError(e.to_string()))?;
+
         runtime.print_stats();
         tracing::debug!("Compress program executed successfully");
 
@@ -629,7 +634,11 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         witness_stream.extend(input.write());
 
         runtime.witness_stream = witness_stream.into();
-        runtime.run();
+
+        runtime
+            .run()
+            .map_err(|e| SphinxRecursionProverError::RuntimeError(e.to_string()))?;
+
         runtime.print_stats();
         tracing::debug!("Wrap program executed successfully");
 
