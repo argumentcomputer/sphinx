@@ -1,6 +1,6 @@
-use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use p3_baby_bear::BabyBear;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Seek;
 use std::io::{self};
