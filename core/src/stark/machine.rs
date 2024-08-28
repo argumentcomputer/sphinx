@@ -244,14 +244,18 @@ impl<SC: StarkGenericConfig, A: MachineAir<Val<SC>>> StarkMachine<SC, A> {
         opts: &<A::Record as MachineRecord>::Config,
     ) {
         let chips = self.chips();
-        for record in records.iter_mut() {
+        records.iter_mut().for_each(|record| {
             for chip in chips.iter() {
-                let mut output = A::Record::default();
-                chip.as_ref().generate_dependencies(record, &mut output);
-                record.append(&mut output);
+                tracing::debug_span!("chip dependencies", chip = chip.as_ref().name()).in_scope(
+                    || {
+                        let mut output = A::Record::default();
+                        chip.as_ref().generate_dependencies(record, &mut output);
+                        record.append(&mut output);
+                    },
+                );
             }
-            record.register_nonces(opts);
-        }
+            tracing::debug_span!("register nonces").in_scope(|| record.register_nonces(opts));
+        })
     }
 
     pub const fn config(&self) -> &SC {
