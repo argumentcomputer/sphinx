@@ -28,8 +28,8 @@ use subproof::{DefaultSubproofVerifier, SubproofVerifier};
 pub use syscall::*;
 pub use utils::*;
 
-use hashbrown::hash_map::Entry;
 use hashbrown::HashMap;
+use std::collections::hash_map::Entry;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;

@@ -7,6 +7,7 @@ mod options;
 #[cfg(any(test, feature = "programs"))]
 mod programs;
 mod prove;
+mod serde;
 mod tracer;
 
 use std::borrow::Borrow;
@@ -19,6 +20,7 @@ pub use options::*;
 #[cfg(test)]
 pub use programs::tests;
 pub use prove::*;
+pub use serde::*;
 pub use tracer::*;
 
 use crate::{
