@@ -214,7 +214,7 @@ pub struct DivRemCols<T> {
 }
 
 impl<'a> WithEvents<'a> for DivRemChip {
-    type Events = (&'a [AluEvent], &'a HashMap<usize, u32>);
+    type Events = (&'a [AluEvent], &'a HashMap<u128, u32>);
 }
 
 impl<F: PrimeField> MachineAir<F> for DivRemChip {

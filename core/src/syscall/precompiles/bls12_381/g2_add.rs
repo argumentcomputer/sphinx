@@ -138,7 +138,7 @@ impl Bls12381G2AffineAddChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bls12381G2AffineAddEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,

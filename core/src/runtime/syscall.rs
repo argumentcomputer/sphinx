@@ -202,7 +202,7 @@ pub struct SyscallContext<'a, 'b> {
     /// This is the exit_code used for the HALT syscall
     pub(crate) exit_code: u32,
     pub(crate) rt: &'a mut Runtime<'b>,
-    pub syscall_lookup_id: usize,
+    pub syscall_lookup_id: u128,
 }
 
 impl<'a, 'b> SyscallContext<'a, 'b> {

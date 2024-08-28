@@ -80,7 +80,7 @@ impl<FP: FieldParameters> FieldMulSyscall<FP> {
 /// Fp operation event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldEvent<FP: FieldParameters> {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,

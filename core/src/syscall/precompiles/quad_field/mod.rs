@@ -104,7 +104,7 @@ impl<FP: FieldParameters> QuadFieldMulSyscall<FP> {
 /// Fp2 operation event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuadFieldEvent<FP: FieldParameters> {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,

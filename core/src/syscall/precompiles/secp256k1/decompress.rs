@@ -63,7 +63,7 @@ pub fn secp256k1_decompress(bytes_be: &[u8], sign: u32) -> AffinePoint<Secp256k1
 /// Secp256k1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Secp256k1DecompressEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
