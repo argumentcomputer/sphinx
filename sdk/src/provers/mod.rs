@@ -8,6 +8,7 @@ use sphinx_core::runtime::SphinxContext;
 use sphinx_core::stark::MachineVerificationError;
 use sphinx_core::utils::SphinxProverOpts;
 use sphinx_core::SPHINX_CIRCUIT_VERSION;
+use sphinx_prover::components::SphinxProverComponents;
 use sphinx_prover::CoreSC;
 use sphinx_prover::InnerSC;
 use sphinx_prover::SphinxCoreProofData;
@@ -42,10 +43,10 @@ pub enum SphinxVerificationError {
 }
 
 /// An implementation of [crate::ProverClient].
-pub trait Prover: Send + Sync {
+pub trait Prover<C: SphinxProverComponents>: Send + Sync {
     fn id(&self) -> ProverType;
 
-    fn sphinx_prover(&self) -> &SphinxProver;
+    fn sphinx_prover(&self) -> &SphinxProver<C>;
 
     fn version(&self) -> &str {
         SPHINX_CIRCUIT_VERSION

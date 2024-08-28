@@ -1,9 +1,11 @@
+#![allow(unused_variables)]
+use hashbrown::HashMap;
+
 use crate::{
     Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
     SphinxVerificationError, SphinxVerifyingKey,
 };
 use anyhow::Result;
-use hashbrown::HashMap;
 use p3_baby_bear::BabyBear;
 use p3_field::{AbstractField, PrimeField};
 use p3_fri::{FriProof, TwoAdicFriPcsProof};
@@ -13,8 +15,8 @@ use sphinx_core::{
     utils::SphinxProverOpts,
 };
 use sphinx_prover::{
-    types::HashableKey, verify::verify_plonk_bn254_public_inputs, PlonkBn254Proof, SphinxProver,
-    SphinxStdin,
+    components::DefaultProverComponents, types::HashableKey as _,
+    verify::verify_plonk_bn254_public_inputs, PlonkBn254Proof, SphinxProver, SphinxStdin,
 };
 
 use super::ProverType;
@@ -32,7 +34,7 @@ impl MockProver {
     }
 }
 
-impl Prover for MockProver {
+impl Prover<DefaultProverComponents> for MockProver {
     fn id(&self) -> ProverType {
         ProverType::Mock
     }
@@ -55,7 +57,8 @@ impl Prover for MockProver {
     ) -> Result<SphinxProofWithPublicValues> {
         match kind {
             SphinxProofKind::Core => {
-                let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin, context)?;
+                let (public_values, _) =
+                    SphinxProver::<DefaultProverComponents>::execute(&pk.elf, &stdin, context)?;
                 Ok(SphinxProofWithPublicValues {
                     proof: SphinxProof::Core(vec![]),
                     stdin,
@@ -64,7 +67,8 @@ impl Prover for MockProver {
                 })
             }
             SphinxProofKind::Compressed => {
-                let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin, context)?;
+                let (public_values, _) =
+                    SphinxProver::<DefaultProverComponents>::execute(&pk.elf, &stdin, context)?;
                 Ok(SphinxProofWithPublicValues {
                     proof: SphinxProof::Compressed(ShardProof {
                         commitment: ShardCommitment {
@@ -91,7 +95,8 @@ impl Prover for MockProver {
                 })
             }
             SphinxProofKind::Plonk => {
-                let (public_values, _) = SphinxProver::execute(&pk.elf, &stdin, context)?;
+                let (public_values, _) =
+                    SphinxProver::<DefaultProverComponents>::execute(&pk.elf, &stdin, context)?;
                 Ok(SphinxProofWithPublicValues {
                     proof: SphinxProof::Plonk(PlonkBn254Proof {
                         public_inputs: [

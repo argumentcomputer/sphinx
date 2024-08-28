@@ -2,6 +2,7 @@ use clap::{command, Parser};
 use csv::WriterBuilder;
 use serde::Serialize;
 use sphinx_core::runtime::{Program, Runtime};
+use sphinx_core::stark::DefaultProver;
 use sphinx_core::utils::{
     prove_simple, BabyBearBlake3, BabyBearKeccak, BabyBearPoseidon2, SphinxCoreOpts,
 };
@@ -143,7 +144,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, _elf: &[u8]) -> (f64, f6
 
             let config = BabyBearBlake3::new();
             let prove_start = Instant::now();
-            let _proof = prove_simple(config.clone(), runtime);
+            let _proof = prove_simple::<_, DefaultProver<_, _>>(config.clone(), runtime);
             let prove_duration = prove_start.elapsed().as_secs_f64();
 
             let verify_start = Instant::now();
@@ -161,7 +162,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, _elf: &[u8]) -> (f64, f6
 
             let config = BabyBearPoseidon2::new();
             let prove_start = Instant::now();
-            let _proof = prove_simple(config.clone(), runtime);
+            let _proof = prove_simple::<_, DefaultProver<_, _>>(config.clone(), runtime);
             let prove_duration = prove_start.elapsed().as_secs_f64();
 
             let verify_start = Instant::now();
@@ -179,7 +180,7 @@ fn run_evaluation(hashfn: &HashFnId, program: &Program, _elf: &[u8]) -> (f64, f6
 
             let config = BabyBearKeccak::new();
             let prove_start = Instant::now();
-            let _proof = prove_simple(config.clone(), runtime);
+            let _proof = prove_simple::<_, DefaultProver<_, _>>(config.clone(), runtime);
             let prove_duration = prove_start.elapsed().as_secs_f64();
 
             let verify_start = Instant::now();

@@ -62,7 +62,7 @@ impl CpuChip {
                 syscall_id
                     - AB::Expr::from_canonical_u32(SyscallCode::ENTER_UNCONSTRAINED.syscall_id()),
                 ecall_cols.is_enter_unconstrained,
-                is_ecall_instruction,
+                is_ecall_instruction.into(),
             );
             ecall_cols.is_enter_unconstrained.result
         };
@@ -73,7 +73,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HINT_LEN.syscall_id()),
                 ecall_cols.is_hint_len,
-                is_ecall_instruction,
+                is_ecall_instruction.into(),
             );
             ecall_cols.is_hint_len.result
         };
@@ -216,7 +216,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::HALT.syscall_id()),
                 ecall_cols.is_halt,
-                is_ecall_instruction,
+                is_ecall_instruction.into(),
             );
             ecall_cols.is_halt.result
         };
@@ -245,7 +245,7 @@ impl CpuChip {
                 builder,
                 syscall_id - AB::Expr::from_canonical_u32(SyscallCode::COMMIT.syscall_id()),
                 ecall_cols.is_commit,
-                is_ecall_instruction,
+                is_ecall_instruction.into(),
             );
             ecall_cols.is_commit.result
         };
@@ -259,7 +259,7 @@ impl CpuChip {
                         SyscallCode::COMMIT_DEFERRED_PROOFS.syscall_id(),
                     ),
                 ecall_cols.is_commit_deferred_proofs,
-                is_ecall_instruction,
+                is_ecall_instruction.into(),
             );
             ecall_cols.is_commit_deferred_proofs.result
         };

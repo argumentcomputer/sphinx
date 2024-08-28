@@ -4,7 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use sphinx_core::{
     io::SphinxStdin,
     runtime::{Program, Runtime},
-    stark::RiscvAir,
+    stark::{DefaultProver, RiscvAir},
     utils::{prove, prove_simple, BabyBearPoseidon2, SphinxCoreOpts},
 };
 
@@ -72,8 +72,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                         runtime
                     },
                     |runtime| {
-                        let _ =
-                            prove_simple(black_box(machine.config().clone()), black_box(runtime));
+                        let _ = prove_simple::<_, DefaultProver<_, _>>(
+                            black_box(machine.config().clone()),
+                            black_box(runtime),
+                        );
                     },
                     criterion::BatchSize::LargeInput,
                 )
@@ -97,7 +99,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             format!("{}:{}", p.split('/').last().unwrap(), cycles),
             |b| {
                 b.iter(|| {
-                    prove(
+                    prove::<_, DefaultProver<_, _>>(
                         black_box(&program),
                         &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),

@@ -89,6 +89,7 @@ mod tests {
     use crate::{
         io::SphinxStdin,
         runtime::Program,
+        stark::DefaultProver,
         utils::{prove, setup_logger, BabyBearPoseidon2, SphinxCoreOpts},
     };
 
@@ -110,6 +111,7 @@ mod tests {
         let program = Program::from(HINT_IO_ELF);
 
         let config = BabyBearPoseidon2::new();
-        prove(&program, &stdin, config, SphinxCoreOpts::default()).unwrap();
+        prove::<_, DefaultProver<_, _>>(&program, &stdin, config, SphinxCoreOpts::default())
+            .unwrap();
     }
 }
