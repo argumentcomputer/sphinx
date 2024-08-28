@@ -4,8 +4,6 @@ use crate::air::{Block, IsZeroOperation, RecursionMemoryAirBuilder};
 use crate::memory::{MemoryReadSingleCols, MemoryReadWriteSingleCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
-use core::mem::size_of;
-use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
 use p3_field::PrimeField32;
 use p3_field::{AbstractField, Field};
@@ -15,7 +13,7 @@ use p3_util::reverse_bits_len;
 use sphinx_core::air::{
     BaseAirBuilder, EventLens, ExtensionAirBuilder, MachineAir, SphinxAirBuilder, WithEvents,
 };
-use sphinx_core::utils::pad_rows_fixed;
+use sphinx_core::utils::{next_power_of_two, par_for_each_row};
 use sphinx_derive::AlignedBorrow;
 use std::borrow::BorrowMut;
 use std::marker::PhantomData;
@@ -196,57 +194,49 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for ExpReverseBitsLenCh
         input: &EL,
         _: &mut ExecutionRecord<F>,
     ) -> RowMajorMatrix<F> {
-        let mut rows = input
-            .events()
-            .iter()
-            .map(|event| {
-                let mut row = [F::zero(); NUM_EXP_REVERSE_BITS_LEN_COLS];
+        let nb_events = input.events().len();
+        let nb_rows = if self.pad {
+            next_power_of_two(nb_events, self.fixed_log2_rows)
+        } else {
+            nb_events
+        };
+        let mut values = vec![F::zero(); nb_rows * NUM_EXP_REVERSE_BITS_LEN_COLS];
 
-                let cols: &mut ExpReverseBitsLenCols<F> = row.as_mut_slice().borrow_mut();
+        let events = input.events();
+        par_for_each_row(&mut values, NUM_EXP_REVERSE_BITS_LEN_COLS, |i, row| {
+            if i >= nb_events {
+                return;
+            }
+            let event = &events[i];
+            let cols: &mut ExpReverseBitsLenCols<F> = row.borrow_mut();
 
-                cols.clk = event.clk;
+            cols.clk = event.clk;
 
-                cols.x.populate(&event.x);
-                cols.current_bit.populate(&event.current_bit);
-                cols.len = event.len;
-                cols.accum = event.accum;
-                cols.prev_accum_squared = event.prev_accum * event.prev_accum;
-                cols.is_last.populate(F::one() - event.len);
-                cols.is_first.populate(event.iteration_num);
-                cols.is_real = F::one();
-                cols.iteration_num = event.iteration_num;
-                cols.multiplier = if event.current_bit.value
-                    == Block([F::one(), F::zero(), F::zero(), F::zero()])
-                {
+            cols.x.populate(&event.x);
+            cols.current_bit.populate(&event.current_bit);
+            cols.len = event.len;
+            cols.accum = event.accum;
+            cols.prev_accum_squared = event.prev_accum * event.prev_accum;
+            cols.is_last.populate(F::one() - event.len);
+            cols.is_first.populate(event.iteration_num);
+            cols.is_real = F::one();
+            cols.iteration_num = event.iteration_num;
+            cols.multiplier =
+                if event.current_bit.value == Block([F::one(), F::zero(), F::zero(), F::zero()]) {
                     // The event may change the value stored in the x memory access, and we need to
                     // use the previous value.
                     event.x.prev_value[0]
                 } else {
                     F::one()
                 };
-                cols.ptr = event.ptr;
-                cols.base_ptr = event.base_ptr;
-                cols.x_mem_access_flag =
-                    F::from_bool(cols.len == F::one() || cols.iteration_num == F::zero());
-
-                row
-            })
-            .collect_vec();
-
-        // Pad the trace to a power of two.
-        if self.pad {
-            pad_rows_fixed(
-                &mut rows,
-                || [F::zero(); NUM_EXP_REVERSE_BITS_LEN_COLS],
-                self.fixed_log2_rows,
-            );
-        }
+            cols.ptr = event.ptr;
+            cols.base_ptr = event.base_ptr;
+            cols.x_mem_access_flag =
+                F::from_bool(cols.len == F::one() || cols.iteration_num == F::zero());
+        });
 
         // Convert the trace to a row major matrix.
-        let trace = RowMajorMatrix::new(
-            rows.into_iter().flatten().collect(),
-            NUM_EXP_REVERSE_BITS_LEN_COLS,
-        );
+        let trace = RowMajorMatrix::new(values, NUM_EXP_REVERSE_BITS_LEN_COLS);
 
         #[cfg(debug_assertions)]
         println!(

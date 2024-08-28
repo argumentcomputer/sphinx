@@ -61,10 +61,7 @@ pub use sphinx_recursion_program::machine::{
     SphinxRootMemoryLayout,
 };
 use tracing::instrument;
-pub use types::{
-    SphinxCoreProof, SphinxCoreProofData, SphinxProvingKey, SphinxRecursionProverError,
-    SphinxReduceProof, SphinxVerifyingKey,
-};
+pub use types::*;
 use utils::words_to_bytes;
 
 pub use sphinx_core::SPHINX_CIRCUIT_VERSION;
@@ -296,10 +293,6 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         for batch in shard_proofs.chunks(batch_size) {
             let proofs = batch.to_vec();
 
-            let public_values: &PublicValues<Word<BabyBear>, BabyBear> =
-                proofs.last().unwrap().public_values.as_slice().borrow();
-            println!("core execution shard: {}", public_values.execution_shard);
-
             core_inputs.push(SphinxRecursionMemoryLayout {
                 vk,
                 machine: self.core_prover.machine(),
@@ -523,6 +516,7 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         })
     }
 
+    /// Generate a proof with the compress machine.
     pub fn compress_machine_proof(
         &self,
         input: impl Hintable<InnerConfig>,
@@ -539,7 +533,6 @@ impl<C: SphinxProverComponents> SphinxProver<C> {
         witness_stream.extend(input.write());
 
         runtime.witness_stream = witness_stream.into();
-
         runtime
             .run()
             .map_err(|e| SphinxRecursionProverError::RuntimeError(e.to_string()))?;
@@ -740,7 +733,6 @@ pub mod tests {
     use serial_test::serial;
     #[cfg(test)]
     use sphinx_core::utils::setup_logger;
-    use types::HashableKey as _;
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub enum Test {
