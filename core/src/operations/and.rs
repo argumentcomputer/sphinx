@@ -22,7 +22,7 @@ pub struct AndOperation<T> {
 impl<F: Field> AndOperation<F> {
     pub fn populate(
         &mut self,
-        record: &mut ExecutionRecord,
+        record: &mut impl ByteRecord,
         shard: u32,
         channel: u32,
         x: u32,

@@ -8,12 +8,25 @@ use std::sync::Arc;
 use p3_field::AbstractField;
 use serde::{Deserialize, Serialize};
 
-use super::{program::Program, Opcode};
+use super::program::Program;
+use super::Opcode;
+use crate::air::PublicValues;
 use crate::air::Word;
+use crate::alu::AluEvent;
+use crate::bytes::event::add_sharded_byte_lookup_events;
+use crate::bytes::event::ByteRecord;
+use crate::bytes::ByteLookupEvent;
+use crate::cpu::CpuEvent;
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake2s::{Blake2sRoundChip, Blake2sRoundEvent};
+use crate::stark::{
+    AddSubChip, BitwiseChip, ByteChip, CpuChip, DivRemChip, Ed25519Parameters, EdAddAssignChip,
+    EdDecompressChip, KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip, ShaCompressChip,
+    ShaExtendChip, ShiftLeft, ShiftRightChip, WeierstrassAddAssignChip,
+    WeierstrassDoubleAssignChip,
+};
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
@@ -24,9 +37,7 @@ use crate::syscall::precompiles::sha512::Sha512ExtendEvent;
 use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
 use crate::utils::SphinxCoreOpts;
 use crate::{
-    air::{EventLens, PublicValues},
-    alu::AluEvent,
-    bytes::{event::ByteRecord, ByteLookupEvent},
+    air::EventLens,
     memory::MemoryProgramChip,
     operations::field::params::FieldParameters,
     stark::PublicValued,
@@ -47,15 +58,6 @@ use crate::{
             bn254::Bn254,
             secp256k1::Secp256k1,
         },
-    },
-};
-use crate::{
-    cpu::CpuEvent,
-    stark::{
-        AddSubChip, BitwiseChip, ByteChip, CpuChip, DivRemChip, Ed25519Parameters, EdAddAssignChip,
-        EdDecompressChip, KeccakPermuteChip, LtChip, MemoryChip, MulChip, ProgramChip,
-        ShaCompressChip, ShaExtendChip, ShiftLeft, ShiftRightChip, WeierstrassAddAssignChip,
-        WeierstrassDoubleAssignChip,
     },
 };
 
@@ -541,20 +543,10 @@ impl MachineRecord for ExecutionRecord {
         self.blake2s_round_events
             .append(&mut other.blake2s_round_events);
 
-        // Merge the byte lookups.
-        for (shard, events_map) in take(&mut other.byte_lookups) {
-            match self.byte_lookups.get_mut(&shard) {
-                Some(existing) => {
-                    // If there's already a map for this shard, update counts for each event.
-                    for (event, count) in events_map.iter() {
-                        *existing.entry(event.clone()).or_insert(0) += count;
-                    }
-                }
-                None => {
-                    // If there isn't a map for this shard, insert the whole map.
-                    self.byte_lookups.insert(shard, events_map);
-                }
-            }
+        if self.byte_lookups.is_empty() {
+            self.byte_lookups = take(&mut other.byte_lookups);
+        } else {
+            self.add_sharded_byte_lookup_events(vec![&other.byte_lookups]);
         }
 
         self.memory_initialize_events
@@ -875,6 +867,14 @@ impl ByteRecord for ExecutionRecord {
             .or_default()
             .entry(blu_event)
             .or_insert(0) += 1
+    }
+
+    #[inline]
+    fn add_sharded_byte_lookup_events(
+        &mut self,
+        new_events: Vec<&HashMap<u32, HashMap<ByteLookupEvent, usize>>>,
+    ) {
+        add_sharded_byte_lookup_events(&mut self.byte_lookups, new_events);
     }
 }
 
