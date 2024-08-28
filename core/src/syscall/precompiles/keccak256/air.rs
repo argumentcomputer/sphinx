@@ -153,7 +153,7 @@ where
 mod test {
     use crate::io::{SphinxPublicValues, SphinxStdin};
     use crate::runtime::Program;
-    use crate::stark::{RiscvAir, StarkGenericConfig};
+    use crate::stark::{DefaultProver, RiscvAir, StarkGenericConfig};
     use crate::utils::SphinxCoreOpts;
     use crate::utils::{prove, setup_logger, tests::KECCAK256_ELF, BabyBearPoseidon2};
 
@@ -190,7 +190,8 @@ mod test {
 
         let program = Program::from(KECCAK256_ELF);
         let (proof, public_values) =
-            prove(&program, &stdin, config, SphinxCoreOpts::default()).unwrap();
+            prove::<_, DefaultProver<_, _>>(&program, &stdin, config, SphinxCoreOpts::default())
+                .unwrap();
         let mut public_values = SphinxPublicValues::from(&public_values);
 
         let config = BabyBearPoseidon2::new();

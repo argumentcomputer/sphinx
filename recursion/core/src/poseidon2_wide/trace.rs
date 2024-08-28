@@ -2,8 +2,7 @@ use std::borrow::Borrow;
 
 use p3_air::BaseAir;
 use p3_field::{Field, PrimeField32};
-#[allow(unused_imports)]
-use p3_matrix::{dense::RowMajorMatrix, Matrix};
+use p3_matrix::dense::RowMajorMatrix;
 use sphinx_core::air::{EventLens, WithEvents};
 use sphinx_core::{air::MachineAir, utils::pad_rows_fixed};
 use sphinx_primitives::RC_16_30_U32;
@@ -77,17 +76,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for Poseidon2WideChip<F
         }
 
         // Convert the trace to a row major matrix.
-        let trace =
-            RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_columns);
-
-        #[cfg(debug_assertions)]
-        println!(
-            "poseidon2 wide trace dims is width: {:?}, height: {:?}",
-            trace.width(),
-            trace.height()
-        );
-
-        trace
+        RowMajorMatrix::new(rows.into_iter().flatten().collect::<Vec<_>>(), num_columns)
     }
 
     fn included(&self, record: &Self::Record) -> bool {

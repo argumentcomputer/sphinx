@@ -574,6 +574,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use crate::stark::DefaultProver;
     use crate::utils::ec::weierstrass::bls12_381::fp_to_biguint;
     use crate::utils::tests::BLS12381_G2_DOUBLE_ELF;
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
@@ -630,7 +631,7 @@ mod tests {
 
         setup_logger();
         let program = risc_v_program(p_ptr, words);
-        let (_, memory) = run_test_with_memory_inspection(program);
+        let (_, memory) = run_test_with_memory_inspection::<DefaultProver<_, _>>(program);
 
         let mut result = vec![];
         // Fp / BigUint is encoded as a 12 u32 words. G2Affine point has 4 Fp elements, so we read 4 * 12 words from the memory
@@ -696,6 +697,6 @@ mod tests {
     fn test_bls12381_g2_double_precompile_elf() {
         setup_logger();
         let program = Program::from(BLS12381_G2_DOUBLE_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

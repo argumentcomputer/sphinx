@@ -131,8 +131,7 @@ impl Sha512CompressChip {
 pub mod compress_tests {
 
     use crate::{
-        runtime::{Instruction, Opcode, Program, SyscallCode},
-        utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF, u64_to_le_u32s},
+        runtime::{Instruction, Opcode, Program, SyscallCode}, stark::DefaultProver, utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF, u64_to_le_u32s}
     };
 
     use super::SHA512_COMPRESS_K;
@@ -200,13 +199,13 @@ pub mod compress_tests {
     fn prove_babybear() {
         setup_logger();
         let program = sha512_compress_program();
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_sha512_compress_program() {
         setup_logger();
         let program = Program::from(SHA512_COMPRESS_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

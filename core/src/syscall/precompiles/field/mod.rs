@@ -401,29 +401,30 @@ impl<F, FP: FieldParameters> BaseAir<F> for FieldChip<FP> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        utils,
+        stark::DefaultProver,
         utils::tests::{BLS12381_FP_ADD_ELF, BLS12381_FP_MUL_ELF, BLS12381_FP_SUB_ELF},
+        utils::{run_test, setup_logger},
         Program,
     };
 
     #[test]
     fn test_bls12381_fp_add_simple() {
-        utils::setup_logger();
+        setup_logger();
         let program = Program::from(BLS12381_FP_ADD_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_fp_mul_simple() {
-        utils::setup_logger();
+        setup_logger();
         let program = Program::from(BLS12381_FP_MUL_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_fp_sub_simple() {
-        utils::setup_logger();
+        setup_logger();
         let program = Program::from(BLS12381_FP_SUB_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

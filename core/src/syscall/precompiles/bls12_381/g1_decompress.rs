@@ -550,7 +550,7 @@ mod tests {
         io::SphinxStdin,
         operations::field::params::FieldParameters,
         runtime::{Instruction, Opcode, SyscallCode},
-        stark::SwCurve,
+        stark::{DefaultProver, SwCurve},
         syscall::precompiles::bls12_381::BLS12_381_NUM_LIMBS,
         utils::{
             self, bytes_to_words_be_vec,
@@ -687,7 +687,7 @@ mod tests {
 
             let memory_pointer = 100u32;
             let program = bls_decompress_risc_v_program(memory_pointer, compressed_g1.as_ref());
-            let (_, memory) = run_test_with_memory_inspection(program);
+            let (_, memory) = run_test_with_memory_inspection::<DefaultProver<_, _>>(program);
 
             let mut decompressed_g1 = vec![];
             // decompressed G1 occupies 96 bytes or 24 words (8 bytes each): 96 / 8 = 24
@@ -721,7 +721,8 @@ mod tests {
         let inputs = SphinxStdin::from(&pt_compressed[..]);
 
         let mut public_values =
-            run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
+            run_test_io::<DefaultProver<_, _>>(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs)
+                .unwrap();
         let mut result = [0; 96];
         public_values.read_slice(&mut result);
         assert_eq!(result, pt_uncompressed);
@@ -738,8 +739,11 @@ mod tests {
 
             let inputs = SphinxStdin::from(&pt_compressed[..]);
 
-            let mut public_values =
-                run_test_io(Program::from(BLS12381_G1_DECOMPRESS_ELF), &inputs).unwrap();
+            let mut public_values = run_test_io::<DefaultProver<_, _>>(
+                Program::from(BLS12381_G1_DECOMPRESS_ELF),
+                &inputs,
+            )
+            .unwrap();
             let mut result = [0; 96];
             public_values.read_slice(&mut result);
             assert_eq!(result, pt_uncompressed);
@@ -755,7 +759,7 @@ mod tests {
             .unwrap()
             .to_uncompressed();
 
-        let mut public_values = run_test_io(
+        let mut public_values = run_test_io::<DefaultProver<_, _>>(
             Program::from(BLS12381_G1_DECOMPRESS_ELF),
             &SphinxStdin::from(&compressed),
         )

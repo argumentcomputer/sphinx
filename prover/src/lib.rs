@@ -7,7 +7,12 @@
 //! 3. Wrap the shard proof into a SNARK-friendly field.
 //! 4. Wrap the last shard proof, proven over the SNARK-friendly field, into a PLONK proof.
 
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::new_without_default)]
+#![allow(clippy::collapsible_else_if)]
+
 pub mod build;
+pub mod components;
 pub mod install;
 pub mod types;
 pub mod utils;
@@ -17,6 +22,7 @@ use std::borrow::Borrow;
 use std::path::Path;
 use std::sync::Arc;
 
+use components::{DefaultProverComponents, SphinxProverComponents};
 use p3_baby_bear::BabyBear;
 use p3_challenger::CanObserve;
 use p3_field::{AbstractField, PrimeField};
@@ -25,14 +31,13 @@ use rayon::prelude::*;
 use sphinx_core::air::{PublicValues, Word};
 pub use sphinx_core::io::{SphinxPublicValues, SphinxStdin};
 use sphinx_core::runtime::{ExecutionError, ExecutionReport, Runtime, SphinxContext};
+use sphinx_core::stark::MachineProver;
 use sphinx_core::stark::{Challenge, StarkProvingKey};
 use sphinx_core::stark::{Challenger, MachineVerificationError};
 use sphinx_core::utils::{SphinxCoreOpts, SphinxProverOpts, DIGEST_SIZE};
 use sphinx_core::{
     runtime::Program,
-    stark::{
-        LocalProver, RiscvAir, ShardProof, StarkGenericConfig, StarkMachine, StarkVerifyingKey, Val,
-    },
+    stark::{RiscvAir, ShardProof, StarkGenericConfig, StarkVerifyingKey, Val},
     utils::{BabyBearPoseidon2, SphinxCoreProverError},
 };
 use sphinx_primitives::hash_deferred_proof;
@@ -83,7 +88,7 @@ pub type CompressAir<F> = RecursionAir<F, COMPRESS_DEGREE>;
 pub type WrapAir<F> = RecursionAir<F, WRAP_DEGREE>;
 
 /// A end-to-end prover implementation for the SP1 RISC-V zkVM.
-pub struct SphinxProver {
+pub struct SphinxProver<C: SphinxProverComponents = DefaultProverComponents> {
     /// The program that can recursively verify a set of proofs into a single proof.
     pub recursion_program: RecursionProgram<BabyBear>,
 
@@ -130,59 +135,64 @@ pub struct SphinxProver {
     pub wrap_vk: StarkVerifyingKey<OuterSC>,
 
     /// The machine used for proving the core step.
-    pub core_machine: StarkMachine<CoreSC, RiscvAir<<CoreSC as StarkGenericConfig>::Val>>,
+    pub core_prover: C::CoreProver,
 
     /// The machine used for proving the recursive and reduction steps.
-    pub compress_machine: StarkMachine<InnerSC, ReduceAir<<InnerSC as StarkGenericConfig>::Val>>,
+    pub compress_prover: C::CompressProver,
 
     /// The machine used for proving the shrink step.
-    pub shrink_machine: StarkMachine<InnerSC, CompressAir<<InnerSC as StarkGenericConfig>::Val>>,
+    pub shrink_prover: C::ShrinkProver,
 
     /// The machine used for proving the wrapping step.
-    pub wrap_machine: StarkMachine<OuterSC, WrapAir<<OuterSC as StarkGenericConfig>::Val>>,
+    pub wrap_prover: C::WrapProver,
 }
 
-impl SphinxProver {
+impl<C: SphinxProverComponents> SphinxProver<C> {
     /// Initializes a new [SP1Prover].
     #[instrument(name = "initialize prover", level = "debug", skip_all)]
     pub fn new() -> Self {
         let core_machine = RiscvAir::machine(CoreSC::default());
+        let core_prover = C::CoreProver::new(core_machine);
 
         // Get the recursive verifier and setup the proving and verifying keys.
-        let recursion_program = SphinxRecursiveVerifier::<InnerConfig, _>::build(&core_machine);
+        let recursion_program =
+            SphinxRecursiveVerifier::<InnerConfig, _>::build(core_prover.machine());
         let compress_machine = ReduceAir::machine(InnerSC::default());
-        let (rec_pk, rec_vk) = compress_machine.setup(&recursion_program);
+        let compress_prover = C::CompressProver::new(compress_machine);
+        let (rec_pk, rec_vk) = compress_prover.setup(&recursion_program);
 
         // Get the deferred program and keys.
         let deferred_program =
-            SphinxDeferredVerifier::<InnerConfig, _, _>::build(&compress_machine);
-        let (deferred_pk, deferred_vk) = compress_machine.setup(&deferred_program);
+            SphinxDeferredVerifier::<InnerConfig, _, _>::build(compress_prover.machine());
+        let (deferred_pk, deferred_vk) = compress_prover.setup(&deferred_program);
 
         // Make the reduce program and keys.
         let compress_program = SphinxCompressVerifier::<InnerConfig, _, _>::build(
-            &compress_machine,
+            compress_prover.machine(),
             &rec_vk,
             &deferred_vk,
         );
-        let (compress_pk, compress_vk) = compress_machine.setup(&compress_program);
+        let (compress_pk, compress_vk) = compress_prover.setup(&compress_program);
 
         // Get the compress program, machine, and keys.
         let shrink_program = SphinxRootVerifier::<InnerConfig, _, _>::build(
-            &compress_machine,
+            compress_prover.machine(),
             &compress_vk,
             RecursionProgramType::Shrink,
         );
         let shrink_machine = CompressAir::wrap_machine_dyn(InnerSC::compressed());
-        let (shrink_pk, shrink_vk) = shrink_machine.setup(&shrink_program);
+        let shrink_prover = C::ShrinkProver::new(shrink_machine);
+        let (shrink_pk, shrink_vk) = shrink_prover.setup(&shrink_program);
 
         // Get the wrap program, machine, and keys.
         let wrap_program = SphinxRootVerifier::<InnerConfig, _, _>::build(
-            &shrink_machine,
+            shrink_prover.machine(),
             &shrink_vk,
             RecursionProgramType::Wrap,
         );
         let wrap_machine = WrapAir::wrap_machine(OuterSC::default());
-        let (wrap_pk, wrap_vk) = wrap_machine.setup(&wrap_program);
+        let wrap_prover = C::WrapProver::new(wrap_machine);
+        let (wrap_pk, wrap_vk) = wrap_prover.setup(&wrap_program);
 
         Self {
             recursion_program,
@@ -200,10 +210,10 @@ impl SphinxProver {
             wrap_program,
             wrap_pk,
             wrap_vk,
-            core_machine,
-            compress_machine,
-            shrink_machine,
-            wrap_machine,
+            core_prover,
+            compress_prover,
+            shrink_prover,
+            wrap_prover,
         }
     }
 
@@ -211,7 +221,7 @@ impl SphinxProver {
     #[instrument(name = "setup", level = "debug", skip_all)]
     pub fn setup(&self, elf: &[u8]) -> (SphinxProvingKey, SphinxVerifyingKey) {
         let program = Program::from(elf);
-        let (pk, vk) = self.core_machine.setup(&program);
+        let (pk, vk) = self.core_prover.setup(&program);
         let vk = SphinxVerifyingKey { vk };
         let pk = SphinxProvingKey {
             pk,
@@ -257,12 +267,11 @@ impl SphinxProver {
             .get_or_insert_with(|| Arc::new(self));
         let config = CoreSC::default();
         let program = Program::from(&pk.elf);
-        let (proof, public_values_stream) = sphinx_core::utils::prove_with_context(
-            &program,
-            stdin,
-            config,
-            opts.core_opts,
-            context,
+        let (proof, public_values_stream) = sphinx_core::utils::prove_with_context::<
+            _,
+            C::CoreProver,
+        >(
+            &program, stdin, config, opts.core_opts, context
         )?;
         let public_values = SphinxPublicValues::from(&public_values_stream);
         Ok(SphinxCoreProof {
@@ -281,27 +290,30 @@ impl SphinxProver {
         is_complete: bool,
     ) -> Vec<SphinxRecursionMemoryLayout<'a, CoreSC, RiscvAir<BabyBear>>> {
         let mut core_inputs = Vec::new();
-        let mut reconstruct_challenger = self.core_machine.config().challenger();
+        let mut reconstruct_challenger = self.core_prover.config().challenger();
         vk.observe_into(&mut reconstruct_challenger);
 
         // Prepare the inputs for the recursion programs.
         for batch in shard_proofs.chunks(batch_size) {
             let proofs = batch.to_vec();
 
+            let public_values: &PublicValues<Word<BabyBear>, BabyBear> =
+                proofs.last().unwrap().public_values.as_slice().borrow();
+            println!("core execution shard: {}", public_values.execution_shard);
+
             core_inputs.push(SphinxRecursionMemoryLayout {
                 vk,
-                machine: &self.core_machine,
-                shard_proofs: proofs,
+                machine: self.core_prover.machine(),
+                shard_proofs: proofs.clone(),
                 leaf_challenger,
                 initial_reconstruct_challenger: reconstruct_challenger.clone(),
                 is_complete,
-                total_core_shards: shard_proofs.len(),
             });
 
             for proof in batch.iter() {
                 reconstruct_challenger.observe(proof.commitment.main_commit);
                 reconstruct_challenger
-                    .observe_slice(&proof.public_values[0..self.core_machine.num_pv_elts()]);
+                    .observe_slice(&proof.public_values[0..self.core_prover.num_pv_elts()]);
             }
         }
 
@@ -328,7 +340,6 @@ impl SphinxProver {
         last_proof_pv: &PublicValues<Word<BabyBear>, BabyBear>,
         deferred_proofs: &[ShardProof<InnerSC>],
         batch_size: usize,
-        total_core_shards: usize,
     ) -> Vec<SphinxDeferredMemoryLayout<'a, InnerSC, RecursionAir<BabyBear, 3>>> {
         // Prepare the inputs for the deferred proofs recursive verification.
         let mut deferred_digest = [Val::<InnerSC>::zero(); DIGEST_SIZE];
@@ -339,18 +350,20 @@ impl SphinxProver {
 
             deferred_inputs.push(SphinxDeferredMemoryLayout {
                 compress_vk: &self.compress_vk,
-                machine: &self.compress_machine,
+                machine: self.compress_prover.machine(),
                 proofs,
                 start_reconstruct_deferred_digest: deferred_digest.to_vec(),
                 is_complete: false,
                 sphinx_vk: vk,
-                sphinx_machine: &self.core_machine,
+                sphinx_machine: self.core_prover.machine(),
                 end_pc: Val::<InnerSC>::zero(),
                 end_shard: last_proof_pv.shard + BabyBear::one(),
+                end_execution_shard: last_proof_pv.execution_shard,
+                init_addr_bits: last_proof_pv.last_init_addr_bits,
+                finalize_addr_bits: last_proof_pv.last_finalize_addr_bits,
                 leaf_challenger: leaf_challenger.clone(),
                 committed_value_digest: last_proof_pv.committed_value_digest.to_vec(),
                 deferred_proofs_digest: last_proof_pv.deferred_proofs_digest.to_vec(),
-                total_core_shards,
             });
 
             deferred_digest = Self::hash_deferred_proofs(deferred_digest, batch);
@@ -379,14 +392,18 @@ impl SphinxProver {
             batch_size,
             is_complete,
         );
-        let last_proof_pv = PublicValues::from_vec(&shard_proofs.last().unwrap().public_values);
+        let last_proof_pv = shard_proofs
+            .last()
+            .unwrap()
+            .public_values
+            .as_slice()
+            .borrow();
         let deferred_inputs = self.get_recursion_deferred_inputs(
             &vk.vk,
             leaf_challenger,
-            &last_proof_pv,
+            last_proof_pv,
             deferred_proofs,
             batch_size,
-            shard_proofs.len(),
         );
         (core_inputs, deferred_inputs)
     }
@@ -404,13 +421,13 @@ impl SphinxProver {
         let batch_size = 2;
 
         let shard_proofs = &proof.proof.0;
-        let total_core_shards = shard_proofs.len();
+
         // Get the leaf challenger.
-        let mut leaf_challenger = self.core_machine.config().challenger();
+        let mut leaf_challenger = self.core_prover.config().challenger();
         vk.vk.observe_into(&mut leaf_challenger);
         for proof in shard_proofs.iter() {
             leaf_challenger.observe(proof.commitment.main_commit);
-            leaf_challenger.observe_slice(&proof.public_values[0..self.core_machine.num_pv_elts()]);
+            leaf_challenger.observe_slice(&proof.public_values[0..self.core_prover.num_pv_elts()]);
         }
 
         // Run the recursion and reduce programs.
@@ -482,11 +499,10 @@ impl SphinxProver {
 
                             let input = SphinxReduceMemoryLayout {
                                 compress_vk: &self.compress_vk,
-                                recursive_machine: &self.compress_machine,
+                                recursive_machine: self.compress_prover.machine(),
                                 shard_proofs,
                                 kinds,
                                 is_complete,
-                                total_core_shards,
                             };
 
                             let proof = self.compress_machine_proof(
@@ -522,7 +538,7 @@ impl SphinxProver {
     ) -> ShardProof<InnerSC> {
         let mut runtime = RecursionRuntime::<Val<InnerSC>, Challenge<InnerSC>, _>::new(
             program,
-            self.compress_machine.config().perm.clone(),
+            self.compress_prover.config().perm.clone(),
         );
 
         let mut witness_stream = Vec::new();
@@ -532,14 +548,15 @@ impl SphinxProver {
         runtime.run();
         runtime.print_stats();
 
-        let mut recursive_challenger = self.compress_machine.config().challenger();
-        self.compress_machine
-            .prove::<LocalProver<_, _>>(
+        let mut recursive_challenger = self.compress_prover.config().challenger();
+        self.compress_prover
+            .prove(
                 pk,
-                runtime.record,
+                vec![runtime.record],
                 &mut recursive_challenger,
                 opts.recursion_opts,
             )
+            .unwrap()
             .shard_proofs
             .pop()
             .unwrap()
@@ -554,7 +571,7 @@ impl SphinxProver {
     ) -> Result<SphinxReduceProof<InnerSC>, SphinxRecursionProverError> {
         // Make the compress proof.
         let input = SphinxRootMemoryLayout {
-            machine: &self.compress_machine,
+            machine: self.compress_prover.machine(),
             proof: reduced_proof.proof,
             is_reduce: true,
         };
@@ -562,7 +579,7 @@ impl SphinxProver {
         // Run the compress program.
         let mut runtime = RecursionRuntime::<Val<InnerSC>, Challenge<InnerSC>, _>::new(
             &self.shrink_program,
-            self.shrink_machine.config().perm.clone(),
+            self.shrink_prover.config().perm.clone(),
         );
 
         let mut witness_stream = Vec::new();
@@ -574,13 +591,16 @@ impl SphinxProver {
         tracing::debug!("Compress program executed successfully");
 
         // Prove the compress program.
-        let mut compress_challenger = self.shrink_machine.config().challenger();
-        let mut compress_proof = self.shrink_machine.prove::<LocalProver<_, _>>(
-            &self.shrink_pk,
-            runtime.record,
-            &mut compress_challenger,
-            opts.recursion_opts,
-        );
+        let mut compress_challenger = self.shrink_prover.config().challenger();
+        let mut compress_proof = self
+            .shrink_prover
+            .prove(
+                &self.shrink_pk,
+                vec![runtime.record],
+                &mut compress_challenger,
+                opts.recursion_opts,
+            )
+            .unwrap();
 
         Ok(SphinxReduceProof {
             proof: compress_proof.shard_proofs.pop().unwrap(),
@@ -595,7 +615,7 @@ impl SphinxProver {
         opts: SphinxProverOpts,
     ) -> Result<SphinxReduceProof<OuterSC>, SphinxRecursionProverError> {
         let input = SphinxRootMemoryLayout {
-            machine: &self.shrink_machine,
+            machine: self.shrink_prover.machine(),
             proof: compressed_proof.proof,
             is_reduce: false,
         };
@@ -603,7 +623,7 @@ impl SphinxProver {
         // Run the compress program.
         let mut runtime = RecursionRuntime::<Val<InnerSC>, Challenge<InnerSC>, _>::new(
             &self.wrap_program,
-            self.shrink_machine.config().perm.clone(),
+            self.shrink_prover.config().perm.clone(),
         );
 
         let mut witness_stream = Vec::new();
@@ -615,20 +635,24 @@ impl SphinxProver {
         tracing::debug!("Wrap program executed successfully");
 
         // Prove the wrap program.
-        let mut wrap_challenger = self.wrap_machine.config().challenger();
+        let mut wrap_challenger = self.wrap_prover.config().challenger();
         let time = std::time::Instant::now();
-        let mut wrap_proof = self.wrap_machine.prove::<LocalProver<_, _>>(
-            &self.wrap_pk,
-            runtime.record,
-            &mut wrap_challenger,
-            opts.recursion_opts,
-        );
+        let mut wrap_proof = self
+            .wrap_prover
+            .prove(
+                &self.wrap_pk,
+                vec![runtime.record],
+                &mut wrap_challenger,
+                opts.recursion_opts,
+            )
+            .unwrap();
         let elapsed = time.elapsed();
         tracing::debug!("Wrap proving time: {:?}", elapsed);
-        let mut wrap_challenger = self.wrap_machine.config().challenger();
-        let result = self
-            .wrap_machine
-            .verify(&self.wrap_vk, &wrap_proof, &mut wrap_challenger);
+        let mut wrap_challenger = self.wrap_prover.config().challenger();
+        let result =
+            self.wrap_prover
+                .machine()
+                .verify(&self.wrap_vk, &wrap_proof, &mut wrap_challenger);
         match result {
             Ok(_) => tracing::info!("Proof verified successfully"),
             Err(MachineVerificationError::NonZeroCumulativeSum) => {
@@ -691,43 +715,41 @@ impl SphinxProver {
     }
 }
 
-impl Default for SphinxProver {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[cfg(test)]
-mod tests {
+pub mod tests {
 
-    use std::env;
     use std::fs::File;
     use std::io::{Read, Write};
 
     use super::*;
 
-    use crate::build::try_install_plonk_bn254_artifacts;
     use anyhow::Result;
     use build::try_build_plonk_bn254_artifacts_dev;
     use p3_field::PrimeField32;
-    use serial_test::serial;
     use sphinx_core::io::SphinxStdin;
+
+    #[cfg(test)]
+    use serial_test::serial;
+    #[cfg(test)]
     use sphinx_core::utils::setup_logger;
-    use types::HashableKey;
+    use types::HashableKey as _;
 
-    fn test_e2e_inner(build_artifacts: bool) -> Result<()> {
-        setup_logger();
-        let elf = include_bytes!("../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum Test {
+        Core,
+        Compress,
+        Shrink,
+        Wrap,
+        Plonk,
+    }
 
+    pub fn test_e2e_prover<C: SphinxProverComponents>(
+        elf: &[u8],
+        opts: SphinxProverOpts,
+        test_kind: Test,
+    ) -> Result<()> {
         tracing::info!("initializing prover");
-        let prover = SphinxProver::new();
-        let opts = SphinxProverOpts {
-            core_opts: SphinxCoreOpts {
-                shard_size: 1 << 12,
-                ..Default::default()
-            },
-            recursion_opts: SphinxCoreOpts::default(),
-        };
+        let prover: SphinxProver<C> = SphinxProver::<C>::new();
         let context = SphinxContext::default();
 
         tracing::info!("setup elf");
@@ -741,17 +763,29 @@ mod tests {
         tracing::info!("verify core");
         prover.verify(&core_proof.proof, &vk)?;
 
+        if test_kind == Test::Core {
+            return Ok(());
+        }
+
         tracing::info!("compress");
         let compressed_proof = prover.compress(&vk, core_proof, vec![], opts)?;
 
         tracing::info!("verify compressed");
         prover.verify_compressed(&compressed_proof, &vk)?;
 
+        if test_kind == Test::Compress {
+            return Ok(());
+        }
+
         tracing::info!("shrink");
         let shrink_proof = prover.shrink(compressed_proof, opts)?;
 
         tracing::info!("verify shrink");
         prover.verify_shrink(&shrink_proof, &vk)?;
+
+        if test_kind == Test::Shrink {
+            return Ok(());
+        }
 
         tracing::info!("wrap bn254");
         let wrapped_bn254_proof = prover.wrap_bn254(shrink_proof, opts)?;
@@ -771,6 +805,10 @@ mod tests {
         tracing::info!("verify wrap bn254");
         prover.verify_wrap_bn254(&wrapped_bn254_proof, &vk).unwrap();
 
+        if test_kind == Test::Wrap {
+            return Ok(());
+        }
+
         tracing::info!("checking vkey hash babybear");
         let vk_digest_babybear = wrapped_bn254_proof.sphinx_vkey_digest_babybear();
         assert_eq!(vk_digest_babybear, vk.hash_babybear());
@@ -780,11 +818,8 @@ mod tests {
         assert_eq!(vk_digest_bn254, vk.hash_bn254());
 
         tracing::info!("generate plonk bn254 proof");
-        let artifacts_dir = if build_artifacts {
-            try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof)
-        } else {
-            try_install_plonk_bn254_artifacts(false)
-        };
+        let artifacts_dir =
+            try_build_plonk_bn254_artifacts_dev(&prover.wrap_vk, &wrapped_bn254_proof.proof);
 
         let plonk_bn254_proof = prover.wrap_plonk_bn254(wrapped_bn254_proof, &artifacts_dir);
         println!("{:?}", plonk_bn254_proof);
@@ -794,34 +829,7 @@ mod tests {
         Ok(())
     }
 
-    /// Tests an end-to-end workflow of proving a program across the entire proof generation
-    /// pipeline.
-    ///
-    /// Add `FRI_QUERIES`=1 to your environment for faster execution. Should only take a few minutes
-    /// on a Mac M2. Note: This test always re-builds the plonk bn254 artifacts, so setting SP1_DEV is
-    /// not needed.
-    #[test]
-    #[serial]
-    fn test_e2e() -> Result<()> {
-        test_e2e_inner(true)
-    }
-
-    /// Tests an end-to-end workflow of proving a program across the entire proof generation
-    /// pipeline. This test tries to install plonk artifacts, so it is useful to run in in order to check if
-    /// newly installed parameters work
-    #[test]
-    #[ignore]
-    fn test_e2e_check_parameters() -> Result<()> {
-        test_e2e_inner(false)
-    }
-
-    /// Tests an end-to-end workflow of proving a program across the entire proof generation
-    /// pipeline in addition to verifying deferred proofs.
-    #[test]
-    #[serial]
-    fn test_e2e_with_deferred_proofs() -> Result<()> {
-        setup_logger();
-
+    pub fn test_e2e_with_deferred_proofs_prover<C: SphinxProverComponents>() -> Result<()> {
         // Test program which proves the Keccak-256 hash of various inputs.
         let keccak_elf = include_bytes!("../../tests/keccak256/elf/riscv32im-succinct-zkvm-elf");
 
@@ -829,7 +837,7 @@ mod tests {
         let verify_elf = include_bytes!("../../tests/verify-proof/elf/riscv32im-succinct-zkvm-elf");
 
         tracing::info!("initializing prover");
-        let prover = SphinxProver::new();
+        let prover: SphinxProver = SphinxProver::new();
         let opts = SphinxProverOpts::default();
 
         tracing::info!("setup keccak elf");
@@ -904,113 +912,27 @@ mod tests {
         Ok(())
     }
 
+    /// Tests an end-to-end workflow of proving a program across the entire proof generation
+    /// pipeline.
+    ///
+    /// Add `FRI_QUERIES`=1 to your environment for faster execution. Should only take a few minutes
+    /// on a Mac M2. Note: This test always re-builds the plonk bn254 artifacts, so setting SP1_DEV is
+    /// not needed.
     #[test]
-    #[ignore] // ignore for recursion performance reasons
-    fn test_deferred_proving_with_bls12381_g2_precompiles() {
-        fn test_inner(
-            program_elf: &[u8],
-            deferred_proofs_num: usize,
-            program_inputs: Vec<&SphinxStdin>,
-        ) {
-            assert_eq!(deferred_proofs_num, program_inputs.len());
+    #[serial]
+    fn test_e2e() -> Result<()> {
+        let elf = include_bytes!("../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
+        setup_logger();
+        let opts = SphinxProverOpts::default();
+        test_e2e_prover::<DefaultProverComponents>(elf, opts, Test::Plonk)
+    }
 
-            setup_logger();
-            env::set_var("RECONSTRUCT_COMMITMENTS", "false");
-            env::set_var("FRI_QUERIES", "1");
-
-            // verify program which verifies proofs of a vkey and a list of committed inputs
-            let verify_elf =
-                include_bytes!("../../tests/verify-proof/elf/riscv32im-succinct-zkvm-elf");
-
-            tracing::info!("initializing prover");
-            let prover = SphinxProver::new();
-            let opts = SphinxProverOpts::default();
-
-            tracing::info!("setup elf");
-            let (program_pk, program_vk) = prover.setup(program_elf);
-            let (verify_pk, verify_vk) = prover.setup(verify_elf);
-
-            // Generate deferred proofs
-            let mut public_values = vec![];
-            let mut deferred_compress_proofs = vec![];
-            program_inputs
-                .into_iter()
-                .enumerate()
-                .for_each(|(index, input)| {
-                    tracing::info!("prove subproof {}", index);
-                    let deferred_proof = prover
-                        .prove_core(&program_pk, input, opts, Default::default())
-                        .unwrap();
-                    let pv = deferred_proof.public_values.to_vec();
-                    public_values.push(pv);
-                    let deferred_compress = prover
-                        .compress(&program_vk, deferred_proof, vec![], opts)
-                        .unwrap();
-                    deferred_compress_proofs.push(deferred_compress.proof);
-                });
-
-            // Aggregate deferred proofs
-            let mut stdin = SphinxStdin::new();
-            let vkey_digest = program_vk.hash_babybear();
-            let vkey_digest: [u32; 8] = vkey_digest
-                .iter()
-                .map(|n| n.as_canonical_u32())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap();
-            stdin.write(&vkey_digest);
-            stdin.write(&public_values);
-            for drp in deferred_compress_proofs.iter() {
-                stdin.write_proof(drp.clone(), program_vk.vk.clone());
-            }
-
-            // Generate aggregated proof
-            let verify_proof = prover
-                .prove_core(&verify_pk, &stdin, opts, Default::default())
-                .unwrap();
-            let verify_compress = prover
-                .compress(
-                    &verify_vk,
-                    verify_proof.clone(),
-                    deferred_compress_proofs,
-                    opts,
-                )
-                .unwrap();
-
-            let compress_pv: &RecursionPublicValues<_> =
-                verify_compress.proof.public_values.as_slice().borrow();
-            println!("deferred_hash: {:?}", compress_pv.deferred_proofs_digest);
-            println!("complete: {:?}", compress_pv.is_complete);
-
-            tracing::info!("verify verify program");
-            prover
-                .verify_compressed(&verify_compress, &verify_vk)
-                .unwrap();
-        }
-
-        // Programs that we will use to produce deferred proofs while testing
-        let bls12381_g2_add_elf =
-            include_bytes!("../../tests/bls12381-g2-add/elf/riscv32im-succinct-zkvm-elf");
-        let bls12381_g2_double_elf =
-            include_bytes!("../../tests/bls12381-g2-double/elf/riscv32im-succinct-zkvm-elf");
-
-        test_inner(
-            bls12381_g2_add_elf,
-            3,
-            vec![
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-            ],
-        );
-        test_inner(
-            bls12381_g2_double_elf,
-            3,
-            vec![
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-            ],
-        );
+    /// Tests an end-to-end workflow of proving a program across the entire proof generation
+    /// pipeline in addition to verifying deferred proofs.
+    #[test]
+    #[serial]
+    fn test_e2e_with_deferred_proofs() -> Result<()> {
+        setup_logger();
+        test_e2e_with_deferred_proofs_prover::<DefaultProverComponents>()
     }
 }

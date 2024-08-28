@@ -25,6 +25,7 @@ pub mod utils {
 use cfg_if::cfg_if;
 pub use proof::*;
 pub use provers::SphinxVerificationError;
+use sphinx_prover::components::DefaultProverComponents;
 use std::env;
 
 pub use provers::{LocalProver, MockProver, Prover};
@@ -39,7 +40,7 @@ pub use sphinx_prover::{
 /// A client for interacting with Sphinx.
 pub struct ProverClient {
     /// The underlying prover implementation.
-    pub prover: Box<dyn Prover>,
+    pub prover: Box<dyn Prover<DefaultProverComponents>>,
 }
 
 impl ProverClient {
