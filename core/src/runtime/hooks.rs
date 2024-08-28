@@ -138,7 +138,7 @@ pub(crate) mod tests {
 
     #[test]
     pub(crate) fn hook_fds_match() {
-        use sphinx_zkvm::precompiles::io;
+        use sphinx_zkvm::lib::io;
         assert_eq!(FD_ECRECOVER_HOOK, io::FD_ECRECOVER_HOOK)
     }
 

@@ -1,5 +1,5 @@
 [package]
-name = "sphinx-precompiles"
+name = "sphinx-lib"
 version = "1.0.0"
 edition.workspace = true
 repository.workspace = true
