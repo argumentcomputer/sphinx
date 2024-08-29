@@ -1,0 +1,13 @@
+[workspace]
+[package]
+version = "0.1.0"
+name = "fibonacci64-script"
+edition = "2021"
+default-run = "fibonacci64-script"
+
+[dependencies]
+bincode = "1.3.3"
+sphinx-sdk = { path = "../../../sdk" }
+
+[build-dependencies]
+sphinx-helper = { path = "../../../helper" }
