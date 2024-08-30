@@ -303,20 +303,33 @@ where
         });
 
         // Compute some statistics.
+        let mut total_trace_cells = 0;
+        let mut total_permutation_cells = 0;
         for i in 0..chips.len() {
+            let height = traces[i].height();
             let trace_width = traces[i].width();
-            let permutation_width = permutation_traces[i].width();
-            let total_width = trace_width
-                + permutation_width * <SC::Challenge as AbstractExtensionField<SC::Val>>::D;
+            let trace_cells = trace_width * height;
+            let permutation_width = permutation_traces[i].width()
+                * <SC::Challenge as AbstractExtensionField<SC::Val>>::D;
+            let permutation_cells = permutation_width * height;
             tracing::debug!(
-                "{:<15} | Main Cols = {:<5} | Perm Cols = {:<5} | Rows = {:<5} | Cells = {:<10}",
+                "{:<15} | Main Cols = {:<5} | Perm Cols = {:<5} | Rows = {:<5} | Main Cells = {:<10} | Perm Cells = {:<10}",
                 chips[i].as_ref().name(),
                 trace_width,
-                permutation_width * <SC::Challenge as AbstractExtensionField<SC::Val>>::D,
+                permutation_width,
                 traces[i].height(),
-                total_width * traces[i].height(),
+                trace_cells,
+                permutation_cells,
             );
+            total_trace_cells += trace_cells;
+            total_permutation_cells += permutation_cells;
         }
+        tracing::info!(
+            "Total cells: {:<10} | Main cells: {:<10} | Perm cells: {:<10}",
+            total_trace_cells + total_permutation_cells,
+            total_trace_cells,
+            total_permutation_cells,
+        );
 
         let domains_and_perm_traces =
             tracing::debug_span!("flatten permutation traces and collect domains").in_scope(|| {
