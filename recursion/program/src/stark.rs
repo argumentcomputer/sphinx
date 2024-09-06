@@ -334,7 +334,7 @@ where
                         quotient_domain.split_domains_const(builder, log_quotient_degree);
 
                     // Verify the constraints.
-                    stacker::maybe_grow(16 * 1024 * 1024, 16 * 1024 * 1024, || {
+                    stacker::maybe_grow(64 * 1024 * 1024, 64 * 1024 * 1024, || {
                         Self::verify_constraints(
                             builder,
                             chip,

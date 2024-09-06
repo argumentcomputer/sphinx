@@ -47,7 +47,9 @@ pub fn build_plonk_bn254_artifacts(
 ) {
     let build_dir = build_dir.into();
     std::fs::create_dir_all(&build_dir).expect("failed to create build directory");
-    let (constraints, witness) = build_constraints_and_witness(template_vk, template_proof);
+    let (constraints, witness) = stacker::maybe_grow(64 * 1024 * 1024, 64 * 1024 * 1024, || {
+        build_constraints_and_witness(template_vk, template_proof)
+    });
     PlonkBn254Prover::build(&constraints, witness, &build_dir);
 }
 

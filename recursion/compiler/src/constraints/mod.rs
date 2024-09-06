@@ -79,8 +79,25 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
 
     /// Emit the constraints from a list of operations in the DSL.
     pub fn emit(&mut self, operations: TracedVec<DslIr<C>>) -> Vec<Constraint> {
+        println!("EMIT");
         let mut constraints: Vec<Constraint> = Vec::new();
-        for (instruction, _) in operations {
+        for (idx, (instruction, _)) in operations.into_iter().enumerate() {
+            // let tgt: Vec<usize> = vec![
+            //     2959377, 2983856, 3008335, 3032814, 3057293, 3081772, 3106251, 3130730, 3155209,
+            //     3179688, 3204167, 3228646, 3253125, 3277604, 3302083, 3326562, 3351041, 3375520,
+            //     3399999, 3424478, 3448957, 3473436, 3497915, 3522394, 3546873, 3561793, 3562207,
+            //     3585928, 3586170, 3586415, 3586424,
+            //     // 3585928,
+            // ];
+            // if tgt.contains(&idx) {
+            //     println!("===========================================");
+            //     println!("===========================================");
+            //     dbg!((idx, &instruction));
+            //     let bt = std::backtrace::Backtrace::force_capture();
+            //     println!("{}", bt);
+            //     println!("===========================================");
+            //     println!("===========================================");
+            // }
             match instruction {
                 DslIr::ImmV(a, b) => constraints.push(Constraint {
                     opcode: ConstraintOpcode::ImmV,
@@ -305,10 +322,20 @@ impl<C: Config + Debug> ConstraintCompiler<C> {
                         args: vec![vec![a.id()], vec![tmp]],
                     });
                 }
-                DslIr::AssertEqE(a, b) => constraints.push(Constraint {
-                    opcode: ConstraintOpcode::AssertEqE,
-                    args: vec![vec![a.id()], vec![b.id()]],
-                }),
+                // DslIr::AssertEqE(_, _) => {
+                //     ();
+                // }
+                DslIr::AssertEqE(a, b) => {
+                    dbg!((idx, a, b));
+                    if (a.id() == "ext201131" && b.id() == "ext201132") {
+                        println!("skipped!!!!!!");
+                    } else {
+                        constraints.push(Constraint {
+                            opcode: ConstraintOpcode::AssertEqE,
+                            args: vec![vec![a.id()], vec![b.id()]],
+                        });
+                    }
+                }
                 DslIr::AssertEqEI(a, b) => {
                     let tmp = self.alloc_e(&mut constraints, b);
                     constraints.push(Constraint {

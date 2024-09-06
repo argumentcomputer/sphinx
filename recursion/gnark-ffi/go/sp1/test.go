@@ -24,7 +24,7 @@ func (circuit *TestPoseidon2BabyBearCircuit) Define(api frontend.API) error {
 	poseidon2BabyBearChip.PermuteMut(&input)
 
 	for i := 0; i < poseidon2.BABYBEAR_WIDTH; i++ {
-		fieldApi.AssertIsEqualF(circuit.ExpectedOutput[i], input[i])
+		fieldApi.AssertIsEqualF(circuit.ExpectedOutput[i], input[i], 0)
 	}
 
 	return nil

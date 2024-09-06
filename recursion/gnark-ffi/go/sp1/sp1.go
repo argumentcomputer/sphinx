@@ -74,7 +74,7 @@ func (circuit *Circuit) Define(api frontend.API) error {
 	exts := make(map[string]babybear.ExtensionVariable)
 
 	// Iterate through the instructions and handle each opcode.
-	for _, cs := range constraints {
+	for idx, cs := range constraints {
 		switch cs.Opcode {
 		case "ImmV":
 			vars[cs.Args[0][0]] = frontend.Variable(cs.Args[1][0])
@@ -155,9 +155,10 @@ func (circuit *Circuit) Define(api frontend.API) error {
 		case "AssertEqV":
 			api.AssertIsEqual(vars[cs.Args[0][0]], vars[cs.Args[1][0]])
 		case "AssertEqF":
-			fieldAPI.AssertIsEqualF(felts[cs.Args[0][0]], felts[cs.Args[1][0]])
+			fieldAPI.AssertIsEqualF(felts[cs.Args[0][0]], felts[cs.Args[1][0]], 0)
 		case "AssertEqE":
-			fieldAPI.AssertIsEqualE(exts[cs.Args[0][0]], exts[cs.Args[1][0]])
+			fmt.Printf("constraint %d %s %s (%+v)\n", idx, cs.Args[0][0], cs.Args[1][0], cs.Args)
+			fieldAPI.AssertIsEqualE(exts[cs.Args[0][0]], exts[cs.Args[1][0]], idx)
 		case "PrintV":
 			api.Println(vars[cs.Args[0][0]])
 		case "PrintF":

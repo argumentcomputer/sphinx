@@ -12,6 +12,7 @@ import (
 	"github.com/consensys/gnark/backend/plonk"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/scs"
+	"github.com/consensys/gnark/test"
 	"github.com/consensys/gnark/test/unsafekzg"
 	"github.com/succinctlabs/sp1-recursion-gnark/sp1/trusted_setup"
 )
@@ -42,6 +43,17 @@ func Build(dataDir string) {
 
 	// Compile the circuit.
 	scs, err := frontend.Compile(ecc.BN254.ScalarField(), scs.NewBuilder, &circuit)
+	if err != nil {
+		panic(err)
+	}
+
+	assignment := NewCircuit(witnessInput)
+	witness, err := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
+	if err != nil {
+		panic(err)
+	}
+
+	err = test.IsSolved(&circuit, &assignment, ecc.BN254.ScalarField())
 	if err != nil {
 		panic(err)
 	}
@@ -128,11 +140,6 @@ func Build(dataDir string) {
 	}
 
 	// Generate proof.
-	assignment := NewCircuit(witnessInput)
-	witness, err := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
-	if err != nil {
-		panic(err)
-	}
 	proof, err := plonk.Prove(scs, pk, witness)
 	if err != nil {
 		panic(err)

@@ -1,3 +1,5 @@
+#![feature(backtrace)]
+
 use alloc::format;
 use core::marker::PhantomData;
 use hashbrown::HashMap;
@@ -1155,6 +1157,9 @@ impl<C: Config> Variable<C> for Ext<C::F, C::EF> {
         let lhs = lhs.into();
         let rhs = rhs.into();
 
+        // let bt = std::backtrace::Backtrace::force_capture();
+        // println!("{}", bt);
+
         match (lhs, rhs) {
             (SymbolicExt::Const(lhs, _), SymbolicExt::Const(rhs, _)) => {
                 assert_eq!(lhs, rhs, "Assertion failed at compile time");
@@ -1171,11 +1176,17 @@ impl<C: Config> Variable<C> for Ext<C::F, C::EF> {
                 builder.trace_push(DslIr::AssertEqEI(lhs, rhs));
             }
             (SymbolicExt::Val(lhs, _), SymbolicExt::Val(rhs, _)) => {
+                // if (lhs.id() == "ext201063" && rhs.id() == "ext201064") {
+                //     panic!("1");
+                // }
                 builder.trace_push(DslIr::AssertEqE(lhs, rhs));
             }
             (SymbolicExt::Val(lhs, _), rhs) => {
                 let rhs_value = Self::uninit(builder);
                 rhs_value.assign(rhs, builder);
+                // if (lhs.id() == "ext201063" && rhs_value.id() == "ext201064") {
+                //     panic!("2");
+                // }
                 builder.trace_push(DslIr::AssertEqE(lhs, rhs_value));
             }
             (lhs, rhs) => {
@@ -1183,6 +1194,9 @@ impl<C: Config> Variable<C> for Ext<C::F, C::EF> {
                 lhs_value.assign(lhs, builder);
                 let rhs_value = Self::uninit(builder);
                 rhs_value.assign(rhs, builder);
+                if (lhs_value.id() == "ext201131" && rhs_value.id() == "ext201132") {
+                    panic!("3");
+                }
                 builder.trace_push(DslIr::AssertEqE(lhs_value, rhs_value));
             }
         }

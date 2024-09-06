@@ -114,22 +114,25 @@ func (c *Chip) invF(in Variable) Variable {
 		NbBits: 31,
 	}
 	product := c.MulF(in, xinv)
-	c.AssertIsEqualF(product, NewF("1"))
+	c.AssertIsEqualF(product, NewF("1"), 0)
 
 	return xinv
 }
 
-func (c *Chip) AssertIsEqualF(a, b Variable) {
+func (c *Chip) AssertIsEqualF(a, b Variable, idx int) {
 	a2 := c.ReduceSlow(a)
 	b2 := c.ReduceSlow(b)
+	if idx > 5 {
+		c.api.Println(idx, a2.Value, b2.Value)
+	}
 	c.api.AssertIsEqual(a2.Value, b2.Value)
 }
 
-func (c *Chip) AssertIsEqualE(a, b ExtensionVariable) {
-	c.AssertIsEqualF(a.Value[0], b.Value[0])
-	c.AssertIsEqualF(a.Value[1], b.Value[1])
-	c.AssertIsEqualF(a.Value[2], b.Value[2])
-	c.AssertIsEqualF(a.Value[3], b.Value[3])
+func (c *Chip) AssertIsEqualE(a, b ExtensionVariable, idx int) {
+	c.AssertIsEqualF(a.Value[0], b.Value[0], idx)
+	c.AssertIsEqualF(a.Value[1], b.Value[1], idx)
+	c.AssertIsEqualF(a.Value[2], b.Value[2], idx)
+	c.AssertIsEqualF(a.Value[3], b.Value[3], idx)
 }
 
 func (c *Chip) SelectF(cond frontend.Variable, a, b Variable) Variable {
@@ -228,7 +231,7 @@ func (c *Chip) InvE(in ExtensionVariable) ExtensionVariable {
 	out := ExtensionVariable{Value: [4]Variable{xinv, yinv, zinv, linv}}
 
 	product := c.MulE(in, out)
-	c.AssertIsEqualE(product, NewE([]string{"1", "0", "0", "0"}))
+	c.AssertIsEqualE(product, NewE([]string{"1", "0", "0", "0"}), 0)
 
 	return out
 }

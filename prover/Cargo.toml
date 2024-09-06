@@ -39,6 +39,7 @@ indicatif = { workspace = true }
 futures = { workspace = true }
 subtle-encoding = { workspace = true }
 serial_test = { workspace = true }
+stacker = { workspace = true }
 num-bigint = { workspace = true }
 thiserror = { workspace = true }
 
