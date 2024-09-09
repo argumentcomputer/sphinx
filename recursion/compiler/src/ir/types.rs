@@ -1194,9 +1194,9 @@ impl<C: Config> Variable<C> for Ext<C::F, C::EF> {
                 lhs_value.assign(lhs, builder);
                 let rhs_value = Self::uninit(builder);
                 rhs_value.assign(rhs, builder);
-                if (lhs_value.id() == "ext201131" && rhs_value.id() == "ext201132") {
-                    panic!("3");
-                }
+                // if (lhs_value.id() == "ext201131" && rhs_value.id() == "ext201132") {
+                //     panic!("3");
+                // }
                 builder.trace_push(DslIr::AssertEqE(lhs_value, rhs_value));
             }
         }
