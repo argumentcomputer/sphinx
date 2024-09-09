@@ -62,8 +62,6 @@ pub struct AbsorbWorkspace<T: Copy> {
     pub state_cursor: T,
 
     /// Control flow columns.
-    pub hash_num: T,
-    pub absorb_num: T,
     pub is_first_hash_row: T,
     pub num_remaining_rows: T,
     pub num_remaining_rows_is_zero: IsZeroOperation<T>,
@@ -90,6 +88,10 @@ pub struct AbsorbWorkspace<T: Copy> {
     pub is_last_row_ending_cursor_is_seven: T,
     /// Is the last of an absorb and the state is not filled up (e.g. it's ending cursor is not 7).
     pub is_last_row_ending_cursor_not_seven: T,
+
+    /// Used for control flow as well.
+    pub hash_num: T,
+    pub absorb_num: T,
 }
 
 /// Methods that are "virtual" columns (e.g. will return expressions).
