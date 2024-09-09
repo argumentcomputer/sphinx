@@ -189,8 +189,8 @@ fn execute_command(
 
     // Add prefix to the output of the process depending on the context.
     let msg = match docker {
-        true => "[sp1] [docker] ",
-        false => "[sp1] ",
+        true => "[sphinx] [docker] ",
+        false => "[sphinx] ",
     };
 
     // Pipe stdout and stderr to the parent process with [docker] prefix
