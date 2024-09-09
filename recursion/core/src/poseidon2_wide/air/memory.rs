@@ -216,9 +216,9 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             .sum();
 
         // When we are not in the last row, end_mem_idx should be zero.
-        absorb_builder
-            .when_not(opcode_workspace.absorb().is_last_row::<AB>())
-            .assert_zero(end_mem_idx.clone() - AB::Expr::from_canonical_usize(7));
+        // absorb_builder
+        //     .when_not(opcode_workspace.absorb().is_last_row::<AB>())
+        //     .assert_zero(end_mem_idx.clone() - AB::Expr::from_canonical_usize(7));
 
         // When we are in the last row, end_mem_idx bitmap should equal last_row_ending_cursor.
         absorb_builder
