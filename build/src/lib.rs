@@ -110,18 +110,34 @@ fn get_program_build_args(args: &BuildArgs) -> Vec<String> {
         build_args.push("--locked".to_string());
     }
 
+    build_args.push("-Ztrim-paths".to_string());
+
     build_args
 }
 
 /// Rust flags for compilation of C libraries.
 fn get_rust_compiler_flags() -> String {
     let rust_flags = [
-        "-C".to_string(),
-        "passes=loweratomic".to_string(),
-        "-C".to_string(),
-        "link-arg=-Ttext=0x00200800".to_string(),
-        "-C".to_string(),
-        "panic=abort".to_string(),
+        "-C",
+        "linker-plugin-lto",
+        "-C",
+        "debuginfo=none",
+        "-C",
+        "strip=symbols",
+        "-C",
+        "embed-bitcode=true",
+        "-C",
+        "passes=loweratomic",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "lto=true",
+        "-C",
+        "codegen-units=1",
+        "-C",
+        "link-arg=-Ttext=0x00200800",
+        "-C",
+        "panic=abort",
     ];
     rust_flags.join("\x1f")
 }
@@ -136,6 +152,8 @@ fn create_local_command(args: &BuildArgs, program_dir: &Utf8PathBuf) -> Command 
         .current_dir(canonicalized_program_dir)
         .env("RUSTUP_TOOLCHAIN", "succinct")
         .env("CARGO_ENCODED_RUSTFLAGS", get_rust_compiler_flags())
+        // TODO: remove once trim-paths is supported - https://github.com/rust-lang/rust/issues/111540
+        .env("RUSTC_BOOTSTRAP", "1") // allows trim-paths.
         .args(get_program_build_args(args));
     command
 }
