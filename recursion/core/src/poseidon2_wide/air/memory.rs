@@ -187,19 +187,19 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         // Verify that all elements of start_mem_idx_bitmap and end_mem_idx_bitmap are bool.
         // Also verify that exactly one of the bits in start_mem_idx_bitmap and end_mem_idx_bitmap
         // is one.
-        // let mut start_mem_idx_bitmap_sum = AB::Expr::zero();
+        let mut start_mem_idx_bitmap_sum = AB::Expr::zero();
         for bit in start_mem_idx_bitmap.iter() {
             absorb_builder.assert_bool(*bit);
-            // start_mem_idx_bitmap_sum += (*bit).into();
+            start_mem_idx_bitmap_sum += (*bit).into();
         }
-        // absorb_builder.assert_one(start_mem_idx_bitmap_sum);
+        absorb_builder.assert_one(start_mem_idx_bitmap_sum);
 
-        // let mut end_mem_idx_bitmap_sum = AB::Expr::zero();
+        let mut end_mem_idx_bitmap_sum = AB::Expr::zero();
         for bit in end_mem_idx_bitmap.iter() {
             absorb_builder.assert_bool(*bit);
-            // end_mem_idx_bitmap_sum += (*bit).into();
+            end_mem_idx_bitmap_sum += (*bit).into();
         }
-        // absorb_builder.assert_one(end_mem_idx_bitmap_sum);
+        absorb_builder.assert_one(end_mem_idx_bitmap_sum);
 
         // Verify correct value of start_mem_idx_bitmap and end_mem_idx_bitmap.
         let start_mem_idx: AB::Expr = start_mem_idx_bitmap
@@ -216,9 +216,9 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             .sum();
 
         // When we are not in the last row, end_mem_idx should be zero.
-        // absorb_builder
-        //     .when_not(opcode_workspace.absorb().is_last_row::<AB>())
-        //     .assert_zero(end_mem_idx.clone() - AB::Expr::from_canonical_usize(7));
+        absorb_builder
+            .when_not(opcode_workspace.absorb().is_last_row::<AB>())
+            .assert_zero(end_mem_idx.clone() - AB::Expr::from_canonical_usize(7));
 
         // When we are in the last row, end_mem_idx bitmap should equal last_row_ending_cursor.
         absorb_builder
