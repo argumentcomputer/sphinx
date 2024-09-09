@@ -62,6 +62,7 @@ pub struct AbsorbWorkspace<T: Copy> {
     pub state_cursor: T,
 
     /// Control flow columns.
+    pub _unused_pad1: T,
     // pub hash_num: T,
     // pub absorb_num: T,
     pub is_first_hash_row: T,
