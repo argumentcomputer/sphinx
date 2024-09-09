@@ -406,12 +406,12 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         // Eval the absorb's iszero operations.
         {
             // Drop absorb_builder so that builder can be used in the IsZeroOperation eval.
-            // IsZeroOperation::<AB::F>::eval(
-            //     builder,
-            //     local_hash_workspace.last_row_ending_cursor - AB::Expr::from_canonical_usize(7),
-            //     local_hash_workspace.last_row_ending_cursor_is_seven,
-            //     local_control_flow.is_absorb.into(),
-            // );
+            IsZeroOperation::<AB::F>::eval(
+                builder,
+                local_hash_workspace.last_row_ending_cursor - AB::Expr::from_canonical_usize(7),
+                local_hash_workspace.last_row_ending_cursor_is_seven,
+                local_control_flow.is_absorb.into(),
+            );
 
             IsZeroOperation::<AB::F>::eval(
                 builder,
