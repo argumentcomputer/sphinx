@@ -101,11 +101,11 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         {
             let mut transition_builder = builder.when_transition();
 
-            // let mut absorb_last_row_builder =
-            //     transition_builder.when(local_control_flow.is_absorb_last_row);
-            // absorb_last_row_builder
-            //     .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
-            // absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
+            let mut absorb_last_row_builder =
+                transition_builder.when(local_control_flow.is_absorb_last_row);
+            absorb_last_row_builder
+                .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
+            absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
             // absorb_last_row_builder
             //     .when(next_control_flow.is_absorb)
             //     .assert_eq(
@@ -289,10 +289,10 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 local_control_flow.is_absorb
                     * (AB::Expr::one() - local_hash_workspace.is_last_row::<AB>()),
             );
-            // builder.assert_eq(
-            //     local_control_flow.is_absorb_last_row,
-            //     local_control_flow.is_absorb * local_hash_workspace.is_last_row::<AB>(),
-            // );
+            builder.assert_eq(
+                local_control_flow.is_absorb_last_row,
+                local_control_flow.is_absorb * local_hash_workspace.is_last_row::<AB>(),
+            );
 
             builder.assert_eq(
                 local_control_flow.is_absorb_no_perm,

@@ -249,7 +249,7 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 control_flow.is_syscall_row = F::from_bool(is_syscall_row);
                 control_flow.is_absorb_no_perm = F::from_bool(!absorb_iter.do_perm);
                 control_flow.is_absorb_not_last_row = F::from_bool(!is_last_row);
-                // control_flow.is_absorb_last_row = F::from_bool(is_last_row);
+                control_flow.is_absorb_last_row = F::from_bool(is_last_row);
             }
 
             // Populate the syscall params fields.
