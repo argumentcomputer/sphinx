@@ -5,6 +5,7 @@ use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::collections::BTreeMap;
+use std::marker::PhantomData;
 
 use sphinx_derive::AlignedBorrow;
 
@@ -46,19 +47,19 @@ pub struct MemoryProgramMultCols<T> {
 /// receives each row in the first shard. This prevents any of these addresses from being
 /// overwritten through the normal MemoryInit.
 #[derive(Default)]
-pub struct MemoryProgramChip;
+pub struct MemoryProgramChip<F>(PhantomData<F>);
 
-impl MemoryProgramChip {
-    pub const fn new() -> Self {
-        Self {}
+impl<F> MemoryProgramChip<F> {
+    pub fn new() -> Self {
+        Self(PhantomData)
     }
 }
 
-impl<'a> WithEvents<'a> for MemoryProgramChip {
-    type Events = &'a BTreeMap<u32, u32>;
+impl<'a, F: 'a> WithEvents<'a> for MemoryProgramChip<F> {
+    type Events = (&'a BTreeMap<u32, u32>, PublicValues<Word<F>, F>);
 }
 
-impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip {
+impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip<F> {
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -112,9 +113,10 @@ impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip {
         input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let program_memory_addrs = input.events().keys().copied().collect::<Vec<_>>();
+        let (events, pv) = input.events();
+        let program_memory_addrs = events.keys().copied().collect::<Vec<_>>();
 
-        let mult = if input.public_values::<F>().shard == F::one() {
+        let mult = if pv.shard == F::one() {
             F::one()
         } else {
             F::zero()
@@ -128,7 +130,7 @@ impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip {
                 let cols: &mut MemoryProgramMultCols<F> = row.as_mut_slice().borrow_mut();
                 cols.multiplicity = mult;
                 cols.is_first_shard
-                    .populate(input.public_values::<F>().shard.as_canonical_u32() - 1);
+                    .populate(pv.shard.as_canonical_u32() - 1);
                 row
             })
             .collect::<Vec<_>>();
@@ -150,13 +152,13 @@ impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip {
     }
 }
 
-impl<F> BaseAir<F> for MemoryProgramChip {
+impl<F: Send + Sync> BaseAir<F> for MemoryProgramChip<F> {
     fn width(&self) -> usize {
         NUM_MEMORY_PROGRAM_MULT_COLS
     }
 }
 
-impl<AB> Air<AB> for MemoryProgramChip
+impl<AB> Air<AB> for MemoryProgramChip<AB::F>
 where
     AB: BaseAirBuilder + PairBuilder + AirBuilderWithPublicValues,
 {
