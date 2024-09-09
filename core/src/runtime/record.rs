@@ -187,7 +187,10 @@ impl EventLens<ShiftRightChip> for ExecutionRecord {
 
 impl<F: Field> EventLens<ByteChip<F>> for ExecutionRecord {
     fn events(&self) -> <ByteChip<F> as crate::air::WithEvents<'_>>::Events {
-        &self.byte_lookups
+        (
+            &self.byte_lookups,
+            <ExecutionRecord as PublicValued>::public_values(self),
+        )
     }
 }
 
@@ -197,21 +200,32 @@ impl EventLens<CpuChip> for ExecutionRecord {
     }
 }
 
-impl EventLens<MemoryChip> for ExecutionRecord {
-    fn events(&self) -> <MemoryChip as crate::air::WithEvents<'_>>::Events {
-        (&self.memory_initialize_events, &self.memory_finalize_events)
+impl<F: Field> EventLens<MemoryChip<F>> for ExecutionRecord {
+    fn events(&self) -> <MemoryChip<F> as crate::air::WithEvents<'_>>::Events {
+        (
+            &self.memory_initialize_events,
+            &self.memory_finalize_events,
+            <ExecutionRecord as PublicValued>::public_values(self),
+        )
     }
 }
 
-impl EventLens<MemoryProgramChip> for ExecutionRecord {
-    fn events(&self) -> <MemoryProgramChip as crate::air::WithEvents<'_>>::Events {
-        &self.program.memory_image
+impl<F: Field> EventLens<MemoryProgramChip<F>> for ExecutionRecord {
+    fn events(&self) -> <MemoryProgramChip<F> as crate::air::WithEvents<'_>>::Events {
+        (
+            &self.program.memory_image,
+            <ExecutionRecord as PublicValued>::public_values(self),
+        )
     }
 }
 
-impl EventLens<ProgramChip> for ExecutionRecord {
-    fn events(&self) -> <ProgramChip as crate::air::WithEvents<'_>>::Events {
-        (&self.cpu_events, &self.program)
+impl<F: Field> EventLens<ProgramChip<F>> for ExecutionRecord {
+    fn events(&self) -> <ProgramChip<F> as crate::air::WithEvents<'_>>::Events {
+        (
+            &self.cpu_events,
+            &self.program,
+            <ExecutionRecord as PublicValued>::public_values(self),
+        )
     }
 }
 

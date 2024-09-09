@@ -3,6 +3,7 @@ use core::{
     mem::size_of,
 };
 use hashbrown::HashMap;
+use std::marker::PhantomData;
 
 use p3_air::{Air, BaseAir, PairBuilder};
 use p3_field::PrimeField;
@@ -10,7 +11,7 @@ use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_derive::AlignedBorrow;
 
 use crate::{
-    air::{EventLens, MachineAir, ProgramAirBuilder, WithEvents},
+    air::{EventLens, MachineAir, ProgramAirBuilder, PublicValues, WithEvents, Word},
     cpu::{
         columns::{InstructionCols, OpcodeSelectorCols},
         CpuEvent,
@@ -44,24 +45,26 @@ pub struct ProgramMultiplicityCols<T> {
 
 /// A chip that implements addition for the opcodes ADD and ADDI.
 #[derive(Default)]
-pub struct ProgramChip;
+pub struct ProgramChip<F>(PhantomData<F>);
 
-impl ProgramChip {
-    pub const fn new() -> Self {
-        Self {}
+impl<F> ProgramChip<F> {
+    pub fn new() -> Self {
+        Self(PhantomData)
     }
 }
 
-impl<'a> WithEvents<'a> for ProgramChip {
+impl<'a, F: 'a> WithEvents<'a> for ProgramChip<F> {
     type Events = (
         // CPU events
         &'a [CpuEvent],
         // the Program
         &'a Program,
+        // the public values
+        PublicValues<Word<F>, F>,
     );
 }
 
-impl<F: PrimeField> MachineAir<F> for ProgramChip {
+impl<F: PrimeField> MachineAir<F> for ProgramChip<F> {
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -120,7 +123,7 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
     ) -> RowMajorMatrix<F> {
         // Generate the trace rows for each event.
 
-        let (cpu_events, program) = input.events();
+        let (cpu_events, program, pv) = input.events();
         // Collect the number of times each instruction is called from the cpu events.
         // Store it as a map of PC -> count.
         let mut instruction_counts = HashMap::new();
@@ -141,7 +144,7 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
                 let pc = program.pc_base + (i as u32 * 4);
                 let mut row = [F::zero(); NUM_PROGRAM_MULT_COLS];
                 let cols: &mut ProgramMultiplicityCols<F> = row.as_mut_slice().borrow_mut();
-                cols.shard = input.public_values().execution_shard;
+                cols.shard = pv.execution_shard;
                 cols.multiplicity =
                     F::from_canonical_usize(*instruction_counts.get(&pc).unwrap_or(&0));
                 row
@@ -165,13 +168,13 @@ impl<F: PrimeField> MachineAir<F> for ProgramChip {
     }
 }
 
-impl<F> BaseAir<F> for ProgramChip {
+impl<F: Send + Sync> BaseAir<F> for ProgramChip<F> {
     fn width(&self) -> usize {
         NUM_PROGRAM_MULT_COLS
     }
 }
 
-impl<AB> Air<AB> for ProgramChip
+impl<AB> Air<AB> for ProgramChip<AB::F>
 where
     AB: ProgramAirBuilder + PairBuilder,
 {

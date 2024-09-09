@@ -17,8 +17,12 @@ use crate::{
 pub const NUM_ROWS: usize = 1 << 16;
 
 impl<'a, F: Field> WithEvents<'a> for ByteChip<F> {
-    // the byte lookups
-    type Events = &'a HashMap<u32, HashMap<ByteLookupEvent, usize>>;
+    type Events = (
+        // the byte lookups
+        &'a HashMap<u32, HashMap<ByteLookupEvent, usize>>,
+        // the public values
+        PublicValues<Word<F>, F>,
+    );
 }
 
 impl<F: PrimeField32> MachineAir<F> for ByteChip<F> {
@@ -57,10 +61,10 @@ impl<F: PrimeField32> MachineAir<F> for ByteChip<F> {
             NUM_BYTE_MULT_COLS,
         );
 
-        let pv: PublicValues<Word<F>, F> = input.public_values();
+        let (events, pv) = input.events();
 
         let shard = pv.execution_shard.as_canonical_u32();
-        for (lookup, mult) in input.events().get(&shard).unwrap_or(&HashMap::new()).iter() {
+        for (lookup, mult) in events.get(&shard).unwrap_or(&HashMap::new()).iter() {
             let row = if lookup.opcode != ByteOpcode::U16Range {
                 ((lookup.b << 8) + lookup.c) as usize
             } else {
