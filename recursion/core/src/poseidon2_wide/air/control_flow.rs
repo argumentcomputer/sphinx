@@ -234,21 +234,21 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         {
             let mut absorb_builder = builder.when(local_control_flow.is_absorb);
 
-            // absorb_builder.assert_eq(
-            //     local_hash_workspace.hash_num * AB::Expr::from_canonical_u32(1 << 12)
-            //         + local_hash_workspace.absorb_num,
-            //     local_syscall_params.absorb().hash_and_absorb_num,
+            absorb_builder.assert_eq(
+                local_hash_workspace.hash_num * AB::Expr::from_canonical_u32(1 << 12)
+                    + local_hash_workspace.absorb_num,
+                local_syscall_params.absorb().hash_and_absorb_num,
+            );
+            // builder.send_range_check(
+            //     AB::Expr::from_canonical_u8(RangeCheckOpcode::U16 as u8),
+            //     local_hash_workspace.hash_num,
+            //     send_range_check,
             // );
-            builder.send_range_check(
-                AB::Expr::from_canonical_u8(RangeCheckOpcode::U16 as u8),
-                local_hash_workspace.hash_num,
-                send_range_check,
-            );
-            builder.send_range_check(
-                AB::Expr::from_canonical_u8(RangeCheckOpcode::U12 as u8),
-                local_hash_workspace.absorb_num,
-                send_range_check,
-            );
+            // builder.send_range_check(
+            //     AB::Expr::from_canonical_u8(RangeCheckOpcode::U12 as u8),
+            //     local_hash_workspace.absorb_num,
+            //     send_range_check,
+            // );
         }
 
         // Constrain the materialized control flow flags.

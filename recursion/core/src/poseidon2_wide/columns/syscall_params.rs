@@ -24,7 +24,7 @@ impl<T: Copy> SyscallParams<T> {
     }
 
     pub fn absorb(&self) -> &AbsorbParams<T> {
-        assert!(size_of::<CompressParams<u8>>() == SYSCALL_PARAMS_SIZE);
+        assert!(size_of::<AbsorbParams<u8>>() == SYSCALL_PARAMS_SIZE);
         unsafe { &self.absorb }
     }
 
@@ -33,7 +33,7 @@ impl<T: Copy> SyscallParams<T> {
     }
 
     pub fn finalize(&self) -> &FinalizeParams<T> {
-        assert!(size_of::<CompressParams<u8>>() == SYSCALL_PARAMS_SIZE);
+        assert!(size_of::<FinalizeParams<u8>>() == SYSCALL_PARAMS_SIZE);
         unsafe { &self.finalize }
     }
 
