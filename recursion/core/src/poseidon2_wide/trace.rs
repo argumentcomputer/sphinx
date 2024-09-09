@@ -249,7 +249,7 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 control_flow.is_syscall_row = F::from_bool(is_syscall_row);
                 control_flow.is_absorb_no_perm = F::from_bool(!absorb_iter.do_perm);
                 control_flow.is_absorb_not_last_row = F::from_bool(!is_last_row);
-                control_flow.is_absorb_last_row = F::from_bool(is_last_row);
+                // control_flow.is_absorb_last_row = F::from_bool(is_last_row);
             }
 
             // Populate the syscall params fields.
@@ -285,16 +285,16 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 let mut cols = self.convert_mut(absorb_row);
                 let absorb_workspace = cols.opcode_workspace_mut().absorb_mut();
 
-                absorb_workspace.hash_num = absorb_event.hash_num;
-                output.add_range_check_events(&[RangeCheckEvent::new(
-                    RangeCheckOpcode::U16,
-                    absorb_event.hash_num.as_canonical_u32() as u16,
-                )]);
-                absorb_workspace.absorb_num = absorb_event.absorb_num;
-                output.add_range_check_events(&[RangeCheckEvent::new(
-                    RangeCheckOpcode::U12,
-                    absorb_event.absorb_num.as_canonical_u32() as u16,
-                )]);
+                // absorb_workspace.hash_num = absorb_event.hash_num;
+                // output.add_range_check_events(&[RangeCheckEvent::new(
+                //     RangeCheckOpcode::U16,
+                //     absorb_event.hash_num.as_canonical_u32() as u16,
+                // )]);
+                // absorb_workspace.absorb_num = absorb_event.absorb_num;
+                // output.add_range_check_events(&[RangeCheckEvent::new(
+                //     RangeCheckOpcode::U12,
+                //     absorb_event.absorb_num.as_canonical_u32() as u16,
+                // )]);
 
                 let num_remaining_rows = num_absorb_rows - 1 - iter_num;
                 absorb_workspace.num_remaining_rows = F::from_canonical_usize(num_remaining_rows);

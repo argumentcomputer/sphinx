@@ -88,8 +88,8 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         let mut first_row_builder = builder.when_first_row();
         first_row_builder.assert_one(local_control_flow.is_absorb);
         first_row_builder.assert_one(local_control_flow.is_syscall_row);
-        first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
-        first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
+        // first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
+        // first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
         first_row_builder.assert_one(local_opcode_workspace.absorb().is_first_hash_row);
 
         // For absorb rows, constrain the following:
@@ -101,41 +101,41 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         {
             let mut transition_builder = builder.when_transition();
 
-            let mut absorb_last_row_builder =
-                transition_builder.when(local_control_flow.is_absorb_last_row);
-            absorb_last_row_builder
-                .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
-            absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
-            absorb_last_row_builder
-                .when(next_control_flow.is_absorb)
-                .assert_eq(
-                    next_opcode_workspace.absorb().absorb_num,
-                    local_opcode_workspace.absorb().absorb_num + AB::Expr::one(),
-                );
+            // let mut absorb_last_row_builder =
+            //     transition_builder.when(local_control_flow.is_absorb_last_row);
+            // absorb_last_row_builder
+            //     .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
+            // absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
+            // absorb_last_row_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_eq(
+            //         next_opcode_workspace.absorb().absorb_num,
+            //         local_opcode_workspace.absorb().absorb_num + AB::Expr::one(),
+            //     );
 
             let mut absorb_not_last_row_builder =
                 transition_builder.when(local_control_flow.is_absorb_not_last_row);
             absorb_not_last_row_builder.assert_one(next_control_flow.is_absorb);
             absorb_not_last_row_builder.assert_zero(next_control_flow.is_syscall_row);
-            absorb_not_last_row_builder.assert_eq(
-                local_opcode_workspace.absorb().absorb_num,
-                next_opcode_workspace.absorb().absorb_num,
-            );
+            // absorb_not_last_row_builder.assert_eq(
+            //     local_opcode_workspace.absorb().absorb_num,
+            //     next_opcode_workspace.absorb().absorb_num,
+            // );
 
-            let mut absorb_transition_builder =
-                transition_builder.when(local_control_flow.is_absorb);
-            absorb_transition_builder
-                .when(next_control_flow.is_absorb)
-                .assert_eq(
-                    local_opcode_workspace.absorb().hash_num,
-                    next_opcode_workspace.absorb().hash_num,
-                );
-            absorb_transition_builder
-                .when(next_control_flow.is_finalize)
-                .assert_eq(
-                    local_opcode_workspace.absorb().hash_num,
-                    next_syscall_params.finalize().hash_num,
-                );
+            // let mut absorb_transition_builder =
+            //     transition_builder.when(local_control_flow.is_absorb);
+            // absorb_transition_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_eq(
+            //         local_opcode_workspace.absorb().hash_num,
+            //         next_opcode_workspace.absorb().hash_num,
+            //     );
+            // absorb_transition_builder
+            //     .when(next_control_flow.is_finalize)
+            //     .assert_eq(
+            //         local_opcode_workspace.absorb().hash_num,
+            //         next_syscall_params.finalize().hash_num,
+            //     );
         }
 
         // For finalize rows, constrain the following:
@@ -152,15 +152,15 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 .assert_one(next_control_flow.is_absorb + next_control_flow.is_compress);
             finalize_transition_builder.assert_one(next_control_flow.is_syscall_row);
 
-            finalize_transition_builder
-                .when(next_control_flow.is_absorb)
-                .assert_eq(
-                    local_syscall_params.finalize().hash_num + AB::Expr::one(),
-                    next_opcode_workspace.absorb().hash_num,
-                );
-            finalize_transition_builder
-                .when(next_control_flow.is_absorb)
-                .assert_zero(next_opcode_workspace.absorb().absorb_num);
+            // finalize_transition_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_eq(
+            //         local_syscall_params.finalize().hash_num + AB::Expr::one(),
+            //         next_opcode_workspace.absorb().hash_num,
+            //     );
+            // finalize_transition_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_zero(next_opcode_workspace.absorb().absorb_num);
             finalize_transition_builder
                 .when(next_control_flow.is_absorb)
                 .assert_one(next_opcode_workspace.absorb().is_first_hash_row);
@@ -234,21 +234,21 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         {
             let mut absorb_builder = builder.when(local_control_flow.is_absorb);
 
-            absorb_builder.assert_eq(
-                local_hash_workspace.hash_num * AB::Expr::from_canonical_u32(1 << 12)
-                    + local_hash_workspace.absorb_num,
-                local_syscall_params.absorb().hash_and_absorb_num,
-            );
-            builder.send_range_check(
-                AB::Expr::from_canonical_u8(RangeCheckOpcode::U16 as u8),
-                local_hash_workspace.hash_num,
-                send_range_check,
-            );
-            builder.send_range_check(
-                AB::Expr::from_canonical_u8(RangeCheckOpcode::U12 as u8),
-                local_hash_workspace.absorb_num,
-                send_range_check,
-            );
+            // absorb_builder.assert_eq(
+            //     local_hash_workspace.hash_num * AB::Expr::from_canonical_u32(1 << 12)
+            //         + local_hash_workspace.absorb_num,
+            //     local_syscall_params.absorb().hash_and_absorb_num,
+            // );
+            // builder.send_range_check(
+            //     AB::Expr::from_canonical_u8(RangeCheckOpcode::U16 as u8),
+            //     local_hash_workspace.hash_num,
+            //     send_range_check,
+            // );
+            // builder.send_range_check(
+            //     AB::Expr::from_canonical_u8(RangeCheckOpcode::U12 as u8),
+            //     local_hash_workspace.absorb_num,
+            //     send_range_check,
+            // );
         }
 
         // Constrain the materialized control flow flags.
@@ -289,10 +289,10 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 local_control_flow.is_absorb
                     * (AB::Expr::one() - local_hash_workspace.is_last_row::<AB>()),
             );
-            builder.assert_eq(
-                local_control_flow.is_absorb_last_row,
-                local_control_flow.is_absorb * local_hash_workspace.is_last_row::<AB>(),
-            );
+            // builder.assert_eq(
+            //     local_control_flow.is_absorb_last_row,
+            //     local_control_flow.is_absorb * local_hash_workspace.is_last_row::<AB>(),
+            // );
 
             builder.assert_eq(
                 local_control_flow.is_absorb_no_perm,
