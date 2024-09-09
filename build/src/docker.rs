@@ -52,6 +52,9 @@ pub(crate) fn create_docker_command(
         workspace_root_path,
         "-w".to_string(),
         program_dir_path,
+        // TODO: remove once trim-paths is supported - https://github.com/rust-lang/rust/issues/111540
+        "-e".to_string(),
+        "RUSTC_BOOTSTRAP=1".to_string(), // allows trim-paths.
         "-e".to_string(),
         "RUSTUP_TOOLCHAIN=succinct".to_string(),
         "-e".to_string(),
