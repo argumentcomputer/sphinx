@@ -331,15 +331,15 @@ where
         );
 
         let poseidon2_chip = Poseidon2WideChip::<AB::F, DEGREE>::default();
-        poseidon2_chip.eval_poseidon2(
-            &mut sub_builder,
-            poseidon2_columns.as_ref(),
-            MultiChip::<AB::F, DEGREE>::poseidon2::<AB>(next_slice).as_ref(),
-            local_multi_cols.poseidon2_receive_table,
-            local_multi_cols.poseidon2_1st_half_memory_access,
-            local_multi_cols.poseidon2_2nd_half_memory_access,
-            local_multi_cols.poseidon2_send_range_check,
-        );
+        // poseidon2_chip.eval_poseidon2(
+        //     &mut sub_builder,
+        //     poseidon2_columns.as_ref(),
+        //     MultiChip::<AB::F, DEGREE>::poseidon2::<AB>(next_slice).as_ref(),
+        //     local_multi_cols.poseidon2_receive_table,
+        //     local_multi_cols.poseidon2_1st_half_memory_access,
+        //     local_multi_cols.poseidon2_2nd_half_memory_access,
+        //     local_multi_cols.poseidon2_send_range_check,
+        // );
     }
 }
 
