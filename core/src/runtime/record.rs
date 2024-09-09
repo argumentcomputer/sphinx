@@ -10,6 +10,7 @@ use super::{program::Program, Opcode};
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
+use crate::syscall::precompiles::blake2s::{EmptyChip, EmptyEvent};
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
@@ -95,6 +96,8 @@ pub struct ExecutionRecord {
     pub byte_lookups: HashMap<u32, HashMap<ByteLookupEvent, usize>>,
 
     pub sha_extend_events: Vec<ShaExtendEvent>,
+
+    pub empty_events: Vec<EmptyEvent>,
 
     pub sha_compress_events: Vec<ShaCompressEvent>,
 
@@ -211,6 +214,12 @@ impl EventLens<ProgramChip> for ExecutionRecord {
 impl EventLens<ShaExtendChip> for ExecutionRecord {
     fn events(&self) -> <ShaExtendChip as crate::air::WithEvents<'_>>::Events {
         &self.sha_extend_events
+    }
+}
+
+impl EventLens<EmptyChip> for ExecutionRecord {
+    fn events(&self) -> <EmptyChip as crate::air::WithEvents<'_>>::Events {
+        &self.empty_events
     }
 }
 
@@ -411,6 +420,7 @@ impl MachineRecord for ExecutionRecord {
             "sha_compress_events".to_string(),
             self.sha_compress_events.len(),
         );
+        stats.insert("empty_events".to_string(), self.empty_events.len());
         stats.insert(
             "keccak_permute_events".to_string(),
             self.keccak_permute_events.len(),
@@ -482,6 +492,9 @@ impl MachineRecord for ExecutionRecord {
         self.sha_extend_events.append(&mut other.sha_extend_events);
         self.sha_compress_events
             .append(&mut other.sha_compress_events);
+
+        self.empty_events.append(&mut other.empty_events);
+
         self.keccak_permute_events
             .append(&mut other.keccak_permute_events);
         self.ed_add_events.append(&mut other.ed_add_events);
@@ -792,6 +805,12 @@ impl MachineRecord for ExecutionRecord {
         // SHA-256 extend events.
         first.sha_extend_events = take(&mut self.sha_extend_events);
         for (i, event) in first.sha_extend_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, (i * 48) as u32);
+        }
+
+        // Empty events
+        first.empty_events = take(&mut self.empty_events);
+        for (i, event) in first.empty_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, (i * 48) as u32);
         }
 

@@ -3,6 +3,7 @@ pub use crate::air::SphinxAirBuilder;
 use crate::air::{MachineAir, SPHINX_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
+use crate::syscall::precompiles::blake2s::EmptyChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
 use crate::syscall::precompiles::quad_field::QuadFieldChip;
@@ -106,6 +107,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Fp2Op(QuadFieldChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
+
+    Empty(EmptyChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -181,6 +184,9 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));
+
+        let empty = EmptyChip::default();
+        chips.push(RiscvAir::Empty(empty));
 
         chips
     }
