@@ -285,12 +285,12 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 let mut cols = self.convert_mut(absorb_row);
                 let absorb_workspace = cols.opcode_workspace_mut().absorb_mut();
 
-                absorb_workspace.hash_num = absorb_event.hash_num;
+                // absorb_workspace.hash_num = absorb_event.hash_num;
                 // output.add_range_check_events(&[RangeCheckEvent::new(
                 //     RangeCheckOpcode::U16,
                 //     absorb_event.hash_num.as_canonical_u32() as u16,
                 // )]);
-                absorb_workspace.absorb_num = absorb_event.absorb_num;
+                // absorb_workspace.absorb_num = absorb_event.absorb_num;
                 // output.add_range_check_events(&[RangeCheckEvent::new(
                 //     RangeCheckOpcode::U12,
                 //     absorb_event.absorb_num.as_canonical_u32() as u16,
