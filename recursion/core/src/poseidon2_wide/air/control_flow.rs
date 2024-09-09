@@ -88,8 +88,8 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         let mut first_row_builder = builder.when_first_row();
         first_row_builder.assert_one(local_control_flow.is_absorb);
         first_row_builder.assert_one(local_control_flow.is_syscall_row);
-        // first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
-        // first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
+        first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
+        first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
         first_row_builder.assert_one(local_opcode_workspace.absorb().is_first_hash_row);
 
         // For absorb rows, constrain the following:
