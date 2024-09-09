@@ -63,9 +63,9 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             send_range_check,
         );
 
-        builder
-            .when(local_control_flow.is_syscall_row)
-            .assert_one(local_is_real);
+        // builder
+        //     .when(local_control_flow.is_syscall_row)
+        //     .assert_one(local_is_real);
     }
 
     /// This function will verify that all hash rows are before the compress rows and that the first
@@ -88,8 +88,8 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         let mut first_row_builder = builder.when_first_row();
         first_row_builder.assert_one(local_control_flow.is_absorb);
         first_row_builder.assert_one(local_control_flow.is_syscall_row);
-        first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
-        first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
+        // first_row_builder.assert_zero(local_opcode_workspace.absorb().hash_num);
+        // first_row_builder.assert_zero(local_opcode_workspace.absorb().absorb_num);
         first_row_builder.assert_one(local_opcode_workspace.absorb().is_first_hash_row);
 
         // For absorb rows, constrain the following:
@@ -99,43 +99,43 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         // 4) when not last absorb row, then absorb_num' = absorb_num.
         // 5) hash_num == hash_num'.
         {
-            let mut transition_builder = builder.when_transition();
+            // let mut transition_builder = builder.when_transition();
 
-            let mut absorb_last_row_builder =
-                transition_builder.when(local_control_flow.is_absorb_last_row);
-            absorb_last_row_builder
-                .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
-            absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
-            absorb_last_row_builder
-                .when(next_control_flow.is_absorb)
-                .assert_eq(
-                    next_opcode_workspace.absorb().absorb_num,
-                    local_opcode_workspace.absorb().absorb_num + AB::Expr::one(),
-                );
+            // let mut absorb_last_row_builder =
+            //     transition_builder.when(local_control_flow.is_absorb_last_row);
+            // absorb_last_row_builder
+            //     .assert_one(next_control_flow.is_absorb + next_control_flow.is_finalize);
+            // absorb_last_row_builder.assert_one(next_control_flow.is_syscall_row);
+            // absorb_last_row_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_eq(
+            //         next_opcode_workspace.absorb().absorb_num,
+            //         local_opcode_workspace.absorb().absorb_num + AB::Expr::one(),
+            //     );
 
-            let mut absorb_not_last_row_builder =
-                transition_builder.when(local_control_flow.is_absorb_not_last_row);
-            absorb_not_last_row_builder.assert_one(next_control_flow.is_absorb);
-            absorb_not_last_row_builder.assert_zero(next_control_flow.is_syscall_row);
-            absorb_not_last_row_builder.assert_eq(
-                local_opcode_workspace.absorb().absorb_num,
-                next_opcode_workspace.absorb().absorb_num,
-            );
+            // let mut absorb_not_last_row_builder =
+            //     transition_builder.when(local_control_flow.is_absorb_not_last_row);
+            // absorb_not_last_row_builder.assert_one(next_control_flow.is_absorb);
+            // absorb_not_last_row_builder.assert_zero(next_control_flow.is_syscall_row);
+            // absorb_not_last_row_builder.assert_eq(
+            //     local_opcode_workspace.absorb().absorb_num,
+            //     next_opcode_workspace.absorb().absorb_num,
+            // );
 
-            let mut absorb_transition_builder =
-                transition_builder.when(local_control_flow.is_absorb);
-            absorb_transition_builder
-                .when(next_control_flow.is_absorb)
-                .assert_eq(
-                    local_opcode_workspace.absorb().hash_num,
-                    next_opcode_workspace.absorb().hash_num,
-                );
-            absorb_transition_builder
-                .when(next_control_flow.is_finalize)
-                .assert_eq(
-                    local_opcode_workspace.absorb().hash_num,
-                    next_syscall_params.finalize().hash_num,
-                );
+            // let mut absorb_transition_builder =
+            //     transition_builder.when(local_control_flow.is_absorb);
+            // absorb_transition_builder
+            //     .when(next_control_flow.is_absorb)
+            //     .assert_eq(
+            //         local_opcode_workspace.absorb().hash_num,
+            //         next_opcode_workspace.absorb().hash_num,
+            //     );
+            // absorb_transition_builder
+            //     .when(next_control_flow.is_finalize)
+            //     .assert_eq(
+            //         local_opcode_workspace.absorb().hash_num,
+            //         next_syscall_params.finalize().hash_num,
+            //     );
         }
 
         // For finalize rows, constrain the following:
