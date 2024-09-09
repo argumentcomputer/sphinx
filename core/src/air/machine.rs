@@ -1,16 +1,11 @@
 use std::marker::PhantomData;
 
 use p3_air::BaseAir;
-use p3_field::{AbstractField, Field};
+use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 pub use sphinx_derive::MachineAir;
 
-use crate::{
-    runtime::Program,
-    stark::{MachineRecord, PublicValued},
-};
-
-use super::{PublicValues, Word};
+use crate::{runtime::Program, stark::MachineRecord};
 
 /// A description of the events related to this AIR.
 pub trait WithEvents<'a>: Sized {
@@ -24,9 +19,7 @@ pub trait WithEvents<'a>: Sized {
 /// Chip, as specified by its `WithEvents` trait implementation.
 ///
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
-///
-/// TODO: Figure out if the PublicValued bound should generalize.
-pub trait EventLens<T: for<'b> WithEvents<'b>>: PublicValued {
+pub trait EventLens<T: for<'b> WithEvents<'b>> {
     fn events(&self) -> <T as WithEvents<'_>>::Events;
 }
 
@@ -72,16 +65,6 @@ where
     fn events<'c>(&'c self) -> <U as WithEvents<'c>>::Events {
         let events: <T as WithEvents<'c>>::Events = self.record.events();
         (self.projection)(events, &())
-    }
-}
-
-impl<'a, T, R, F> PublicValued for Proj<'a, T, R, F>
-where
-    T: for<'b> WithEvents<'b>,
-    R: EventLens<T>,
-{
-    fn public_values<FF: AbstractField>(&self) -> PublicValues<Word<FF>, FF> {
-        self.record.public_values()
     }
 }
 

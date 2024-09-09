@@ -1,6 +1,7 @@
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use std::array;
+use std::marker::PhantomData;
 
 use p3_air::{Air, AirBuilder};
 use p3_air::{AirBuilderWithPublicValues, BaseAir};
@@ -24,33 +25,39 @@ pub enum MemoryChipType {
 }
 
 /// A memory chip that can initialize or finalize values in memory.
-pub struct MemoryChip {
+pub struct MemoryChip<F> {
     pub kind: MemoryChipType,
+    _marker: PhantomData<F>,
 }
 
-impl MemoryChip {
+impl<F> MemoryChip<F> {
     /// Creates a new memory chip with a certain type.
-    pub const fn new(kind: MemoryChipType) -> Self {
-        Self { kind }
+    pub fn new(kind: MemoryChipType) -> Self {
+        Self {
+            kind,
+            _marker: PhantomData,
+        }
     }
 }
 
-impl<F> BaseAir<F> for MemoryChip {
+impl<F: Send + Sync> BaseAir<F> for MemoryChip<F> {
     fn width(&self) -> usize {
         NUM_MEMORY_INIT_COLS
     }
 }
 
-impl<'a> WithEvents<'a> for MemoryChip {
+impl<'a, F: 'a> WithEvents<'a> for MemoryChip<F> {
     type Events = (
         // initialize events
         &'a [MemoryInitializeFinalizeEvent],
         // finalize events
         &'a [MemoryInitializeFinalizeEvent],
+        // the public values
+        PublicValues<Word<F>, F>,
     );
 }
 
-impl<F: PrimeField32> MachineAir<F> for MemoryChip {
+impl<F: PrimeField32> MachineAir<F> for MemoryChip<F> {
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -67,7 +74,7 @@ impl<F: PrimeField32> MachineAir<F> for MemoryChip {
         input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let (mem_init_events, mem_final_events) = input.events();
+        let (mem_init_events, mem_final_events, pv) = input.events();
 
         let mut memory_events = match self.kind {
             MemoryChipType::Initialize => mem_init_events.to_vec(),
@@ -75,14 +82,10 @@ impl<F: PrimeField32> MachineAir<F> for MemoryChip {
         };
 
         let previous_addr_bits = match self.kind {
-            MemoryChipType::Initialize => input
-                .public_values::<F>()
-                .previous_init_addr_bits
-                .map(|f| f.as_canonical_u32()),
-            MemoryChipType::Finalize => input
-                .public_values::<F>()
-                .previous_finalize_addr_bits
-                .map(|f| f.as_canonical_u32()),
+            MemoryChipType::Initialize => pv.previous_init_addr_bits.map(|f| f.as_canonical_u32()),
+            MemoryChipType::Finalize => {
+                pv.previous_finalize_addr_bits.map(|f| f.as_canonical_u32())
+            }
         };
 
         memory_events.sort_by_key(|event| event.addr);
@@ -196,7 +199,7 @@ pub struct MemoryInitCols<T> {
 
 pub(crate) const NUM_MEMORY_INIT_COLS: usize = size_of::<MemoryInitCols<u8>>();
 
-impl<AB> Air<AB> for MemoryChip
+impl<AB> Air<AB> for MemoryChip<AB::F>
 where
     AB: AirBuilderWithPublicValues + BaseAirBuilder,
 {
@@ -427,13 +430,13 @@ mod tests {
         runtime.run().unwrap();
         let shard = runtime.record.clone();
 
-        let chip: MemoryChip = MemoryChip::new(MemoryChipType::Initialize);
+        let chip: MemoryChip<BabyBear> = MemoryChip::new(MemoryChipType::Initialize);
 
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values);
 
-        let chip: MemoryChip = MemoryChip::new(MemoryChipType::Finalize);
+        let chip: MemoryChip<BabyBear> = MemoryChip::new(MemoryChipType::Finalize);
         let trace: RowMajorMatrix<BabyBear> =
             chip.generate_trace(&shard, &mut ExecutionRecord::default());
         println!("{:?}", trace.values);
