@@ -356,11 +356,11 @@ where
     OpeningProof<SC>: Send + Sync,
     ShardMainData<SC>: Serialize + DeserializeOwned,
 {
-    #[cfg(debug_assertions)]
-    {
+    //#[cfg(debug_assertions)]
+    //{
         let record_clone = record.clone();
         machine.debug_constraints(pk, record_clone);
-    }
+    //}
     let stats = record.stats().clone();
     let cycles = stats.get("cpu_events").unwrap();
 

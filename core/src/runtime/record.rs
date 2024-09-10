@@ -811,7 +811,7 @@ impl MachineRecord for ExecutionRecord {
         // Empty events
         first.empty_events = take(&mut self.empty_events);
         for (i, event) in first.empty_events.iter().enumerate() {
-            self.nonce_lookup.insert(event.lookup_id, (i * 48) as u32);
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
         // SHA-256 compress events.
