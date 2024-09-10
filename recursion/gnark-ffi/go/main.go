@@ -72,6 +72,21 @@ func VerifyPlonkBn254(dataDir *C.char, proof *C.char, vkeyHash *C.char, commited
 	return nil
 }
 
+//export VerifyPlonkBn254Solidity
+func VerifyPlonkBn254Solidity(dataDir *C.char, proof *C.char, vkeyHash *C.char, commitedValuesDigest *C.char) *C.char {
+	dataDirString := C.GoString(dataDir)
+	proofString := C.GoString(proof)
+	vkeyHashString := C.GoString(vkeyHash)
+	commitedValuesDigestString := C.GoString(commitedValuesDigest)
+
+	err := sp1.VerifySolidity(dataDirString, proofString, vkeyHashString, commitedValuesDigestString)
+	if err != nil {
+		return C.CString(err.Error())
+	}
+	return nil
+}
+
+
 var testMutex = &sync.Mutex{}
 
 //export TestPlonkBn254

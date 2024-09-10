@@ -69,6 +69,35 @@ pub fn verify_plonk_bn254(
     }
 }
 
+pub fn verify_plonk_bn254_solidity(
+    data_dir: &str,
+    proof: &str,
+    vkey_hash: &str,
+    committed_values_digest: &str,
+) -> Result<(), String> {
+    let data_dir = CString::new(data_dir).expect("CString::new failed");
+    let proof = CString::new(proof).expect("CString::new failed");
+    let vkey_hash = CString::new(vkey_hash).expect("CString::new failed");
+    let committed_values_digest =
+        CString::new(committed_values_digest).expect("CString::new failed");
+
+    let err_ptr = unsafe {
+        VerifyPlonkBn254Solidity(
+            data_dir.as_ptr() as *mut c_char,
+            proof.as_ptr() as *mut c_char,
+            vkey_hash.as_ptr() as *mut c_char,
+            committed_values_digest.as_ptr() as *mut c_char,
+        )
+    };
+    if err_ptr.is_null() {
+        Ok(())
+    } else {
+        // Safety: The error message is returned from the go code and is guaranteed to be valid.
+        let err = unsafe { CString::from_raw(err_ptr) };
+        Err(err.into_string().unwrap())
+    }
+}
+
 pub fn test_plonk_bn254(witness_json: &str, constraints_json: &str) {
     unsafe {
         let witness_json = CString::new(witness_json).expect("CString::new failed");
