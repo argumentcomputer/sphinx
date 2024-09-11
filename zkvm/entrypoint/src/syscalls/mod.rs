@@ -13,6 +13,8 @@ mod unconstrained;
 #[cfg(feature = "verify")]
 mod verify;
 
+pub mod blake2s_xor_rotate_right;
+
 pub use bls12_381::*;
 pub use bn254::*;
 pub use ed25519::*;
