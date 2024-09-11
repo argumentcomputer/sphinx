@@ -14,7 +14,6 @@ use sphinx_recursion_circuit::witness::Witnessable;
 use sphinx_recursion_compiler::ir::Witness;
 use sphinx_recursion_core::air::RecursionPublicValues;
 use sphinx_recursion_gnark_ffi::PlonkBn254Prover;
-use subtle_encoding::hex;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -90,8 +89,29 @@ pub fn main() {
         &build_dir,
     );
 
+    // Print proof.encoded_proof
     println!(
-        "{:?}",
-        String::from_utf8(hex::encode(proof.encoded_proof.as_bytes())).unwrap()
+        "encoded proof: \n{}",
+        proof.encoded_proof
     );
+
+    // Print proof.raw_proof on the next line
+    println!(
+        "raw proof: \n{}",
+        proof.raw_proof
+    );
+
+    // Print vkey_hash as a big integer
+    println!(
+        "vkey_hash: {:x}",
+        vkey_hash.as_canonical_biguint()
+    );
+
+    // Print committed_values_digest as a big integer
+    println!(
+        "committed_values_digest: {}",
+        committed_values_digest.as_canonical_biguint()
+    );
+
+
 }

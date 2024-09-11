@@ -4528,7 +4528,6 @@ dependencies = [
  "sphinx-recursion-core",
  "sphinx-recursion-gnark-ffi",
  "sphinx-recursion-program",
- "subtle-encoding",
  "tempfile",
  "thiserror",
  "tokio",
@@ -4810,15 +4809,6 @@ name = "subtle"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d0208408ba0c3df17ed26eb06992cb1a1268d41b2c0e12e65203fbe3972cee5"
-
-[[package]]
-name = "subtle-encoding"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dcb1ed7b8330c5eed5441052651dd7a12c75e2ed88f2ec024ae1fa3a5e59945"
-dependencies = [
- "zeroize",
-]
 
 [[package]]
 name = "syn"
