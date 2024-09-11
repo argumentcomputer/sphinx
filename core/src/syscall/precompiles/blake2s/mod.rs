@@ -18,6 +18,11 @@ use serde::Serialize;
 use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
 
+const R_1: u32 = 16;
+const R_2: u32 = 12;
+//const R_3: u32 = 8;
+//const R_4: u32 = 7;
+
 #[derive(Default)]
 pub struct EmptyChip;
 
@@ -49,19 +54,18 @@ impl Syscall for EmptyChip {
         let a_ptr = arg1;
         let b_ptr = arg2;
 
-        let mut b_reads = Vec::new();
+        let a = ctx.slice_unsafe(a_ptr, 4);
+        let (b_reads, mut b) = ctx.mr_slice(b_ptr, 6);
 
-        let mut xor = vec![];
-        for i in 0..4usize {
-            // Read a.
-            let a = ctx.word_unsafe(a_ptr + (i * 4) as u32);
+        let _r_d = b[4].clone();
+        let _r_b = b[5].clone();
+        b.truncate(4);
 
-            // Read b.
-            let (record, b) = ctx.mr(b_ptr + (i * 4) as u32);
-            b_reads.push(record);
-
-            xor.push(a ^ b);
-        }
+        let xor = a
+            .into_iter()
+            .zip(b.into_iter())
+            .map(|(a, b)| a ^ b)
+            .collect::<Vec<u32>>();
 
         ctx.clk += 1;
 
@@ -100,7 +104,7 @@ struct EmptyCols<T> {
     pub b_ptr: T,
 
     pub a: [MemoryWriteCols<T>; 4],
-    pub b: [MemoryReadCols<T>; 4],
+    pub b: [MemoryReadCols<T>; 6], // includes r_d, r_b words
 
     pub xor: [XorOperation<T>; 4],
 }
@@ -158,11 +162,8 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
                 assert_eq!(a ^ b, xor);
             }
 
-            //cols.axorb0.populate(
-            //    event.channel,
-            //    event.xor_writes[0],
-            //    &mut new_byte_lookup_events,
-            //);
+            cols.b[4].populate(event.channel, event.b_reads[4], &mut new_byte_lookup_events); // handle r_d
+            cols.b[5].populate(event.channel, event.b_reads[5], &mut new_byte_lookup_events); // handle r_b
 
             rows.push(row);
         }
@@ -242,6 +243,28 @@ where
             );
         }
 
+        // Eval r_d (included in b_ptr).
+        let i = 4usize;
+        builder.eval_memory_access(
+            local.shard,
+            local.channel,
+            local.clk,
+            local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
+            &local.b[i],
+            local.is_real,
+        );
+
+        // Eval r_d (included in b_ptr).
+        let i = 5usize;
+        builder.eval_memory_access(
+            local.shard,
+            local.channel,
+            local.clk,
+            local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
+            &local.b[i],
+            local.is_real,
+        );
+
         builder.receive_syscall(
             local.shard,
             local.channel,
@@ -258,10 +281,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
+    use crate::syscall::precompiles::blake2s::{R_1, R_2};
+    use crate::utils::{run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
-    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 4]) -> Program {
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 6]) -> Program {
         let mut instructions = vec![];
         // memory write a
         for (index, word) in a.into_iter().enumerate() {
@@ -316,7 +340,7 @@ mod tests {
             a_ptr,
             b_ptr,
             [0x6b08e647, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
-            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19, R_1, R_2],
         );
         let (_, memory) = run_test_with_memory_inspection(program);
         let mut result = vec![];
