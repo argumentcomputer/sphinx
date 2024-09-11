@@ -35,9 +35,8 @@ pub struct EmptyEvent {
     pub channel: u32,
     pub a_ptr: u32,
     pub b_ptr: u32,
-    pub a_reads: Vec<MemoryReadRecord>,
+    pub a_reads_writes: Vec<MemoryWriteRecord>,
     pub b_reads: Vec<MemoryReadRecord>,
-    //pub xor_writes: Vec<MemoryWriteRecord>,
 }
 
 impl Syscall for EmptyChip {
@@ -50,24 +49,24 @@ impl Syscall for EmptyChip {
         let a_ptr = arg1;
         let b_ptr = arg2;
 
-        let mut a_reads = Vec::new();
         let mut b_reads = Vec::new();
 
+        let mut xor = vec![];
         for i in 0..4usize {
             // Read a.
-            let (record, a) = ctx.mr(a_ptr + (i * 4) as u32);
-            a_reads.push(record);
+            let a = ctx.word_unsafe(a_ptr + (i * 4) as u32);
 
             // Read b.
             let (record, b) = ctx.mr(b_ptr + (i * 4) as u32);
             b_reads.push(record);
 
-            let _xor = a ^ b;
+            xor.push(a ^ b);
         }
 
+        ctx.clk += 1;
+
         // Write xor to a_ptr.
-        //xor_writes.push(ctx.mw(a_ptr, xor0));
-        //ctx.clk += 1;
+        let a_reads_writes = ctx.mw_slice(a_ptr, xor.as_slice());
 
         ctx.record_mut().empty_events.push(EmptyEvent {
             lookup_id,
@@ -76,12 +75,15 @@ impl Syscall for EmptyChip {
             channel,
             a_ptr,
             b_ptr,
-            a_reads,
+            a_reads_writes,
             b_reads,
-            //xor_writes: xor0_writes,
         });
 
         None
+    }
+
+    fn num_extra_cycles(&self) -> u32 {
+        1
     }
 }
 
@@ -97,11 +99,10 @@ struct EmptyCols<T> {
     pub a_ptr: T,
     pub b_ptr: T,
 
-    pub a: [MemoryReadCols<T>; 4],
+    pub a: [MemoryWriteCols<T>; 4],
     pub b: [MemoryReadCols<T>; 4],
 
     pub xor: [XorOperation<T>; 4],
-    //pub axorb: MemoryWriteCols<T>,
 }
 
 impl<T: PrimeField32> BaseAir<T> for EmptyChip {
@@ -143,11 +144,15 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
             cols.b_ptr = F::from_canonical_u32(event.b_ptr);
 
             for i in 0..4usize {
-                cols.a[i].populate(event.channel, event.a_reads[i], &mut new_byte_lookup_events);
+                cols.a[i].populate(
+                    event.channel,
+                    event.a_reads_writes[i],
+                    &mut new_byte_lookup_events,
+                );
 
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
 
-                let a = event.a_reads[i].value;
+                let a = event.a_reads_writes[i].value;
                 let b = event.b_reads[i].value;
                 let xor = cols.xor[i].populate(output, shard, event.channel, a, b);
                 assert_eq!(a ^ b, xor);
@@ -205,17 +210,17 @@ where
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
         for i in 0..4usize {
-            // Read a.
+            // Eval a
             builder.eval_memory_access(
                 local.shard,
                 local.channel,
-                local.clk,
+                local.clk + AB::F::from_canonical_u32(1), // We eval 'a' pointer access at clk+1 since 'a', 'b' could be the same,
                 local.a_ptr + AB::F::from_canonical_u32((i as u32) * 4),
                 &local.a[i],
                 local.is_real,
             );
 
-            // Read b.
+            // Eval b.
             builder.eval_memory_access(
                 local.shard,
                 local.channel,
@@ -225,7 +230,7 @@ where
                 local.is_real,
             );
 
-            // XOR
+            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i].value(),
@@ -236,17 +241,6 @@ where
                 local.is_real,
             );
         }
-
-        // Write XOR to memory.
-        //builder.eval_memory_access(
-        //    local.shard,
-        //    local.channel,
-        //    local.clk,
-        //    local.a_ptr,
-        //    &local.a0,
-        //    local.is_real,
-        //);
-        //builder.assert_word_eq(*local.a0.value(), local.xor0.value);
 
         builder.receive_syscall(
             local.shard,
@@ -264,15 +258,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::{run_test, setup_logger};
+    use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
-    fn risc_v_program(a: [u32; 4], b: [u32; 4]) -> Program {
-        let a_ptr = 100100100;
-        let b_ptr = 200200200;
-
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 4]) -> Program {
         let mut instructions = vec![];
-
         // memory write a
         for (index, word) in a.into_iter().enumerate() {
             instructions.push(Instruction::new(Opcode::ADD, 29, 0, word, false, true));
@@ -319,11 +309,26 @@ mod tests {
     #[test]
     fn test_empty_precompile() {
         setup_logger();
+
+        let a_ptr = 100100100;
+        let b_ptr = 200200200;
         let program = risc_v_program(
+            a_ptr,
+            b_ptr,
             [0x6b08e647, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
             [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
         );
-        run_test(program).unwrap();
+        let (_, memory) = run_test_with_memory_inspection(program);
+        let mut result = vec![];
+        // result is 4 words, written to a_ptr
+        for i in 0..4 {
+            result.push(memory.get(&(a_ptr + i * 4)).unwrap().value);
+        }
+
+        assert_eq!(
+            result,
+            [0x3a06b438, 0x2062c609, 0x23ed2ad9, 0xfeaf3823].to_vec()
+        );
     }
 
     fn xor_u32x4(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {

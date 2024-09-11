@@ -118,7 +118,7 @@ pub enum SyscallCode {
     /// Executes the `HINT_READ` precompile.
     HINT_READ = 0x00_00_00_F1,
 
-    EMPTY = 0x00_00_01_CC,
+    EMPTY = 0x00_01_01_CC,
 }
 
 impl SyscallCode {
@@ -155,7 +155,7 @@ impl SyscallCode {
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
             0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
             0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
-            0x00_00_01_CC => SyscallCode::EMPTY,
+            0x00_01_01_CC => SyscallCode::EMPTY,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
