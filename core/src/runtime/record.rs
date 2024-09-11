@@ -10,7 +10,7 @@ use super::{program::Program, Opcode};
 use crate::runtime::MemoryInitializeFinalizeEvent;
 use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
-use crate::syscall::precompiles::blake2s::{EmptyChip, EmptyEvent};
+use crate::syscall::precompiles::blake2s::{Blake2sXorRotateRightChip, Blake2sXorRotateRightEvent};
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
@@ -97,8 +97,6 @@ pub struct ExecutionRecord {
 
     pub sha_extend_events: Vec<ShaExtendEvent>,
 
-    pub empty_events: Vec<EmptyEvent>,
-
     pub sha_compress_events: Vec<ShaCompressEvent>,
 
     pub keccak_permute_events: Vec<KeccakPermuteEvent>,
@@ -127,6 +125,8 @@ pub struct ExecutionRecord {
     pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
     pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
     pub bls12381_g2_double_events: Vec<Bls12381G2AffineDoubleEvent>,
+
+    pub blake2s_xor_rotate_right_events: Vec<Blake2sXorRotateRightEvent>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -214,12 +214,6 @@ impl EventLens<ProgramChip> for ExecutionRecord {
 impl EventLens<ShaExtendChip> for ExecutionRecord {
     fn events(&self) -> <ShaExtendChip as crate::air::WithEvents<'_>>::Events {
         &self.sha_extend_events
-    }
-}
-
-impl EventLens<EmptyChip> for ExecutionRecord {
-    fn events(&self) -> <EmptyChip as crate::air::WithEvents<'_>>::Events {
-        &self.empty_events
     }
 }
 
@@ -327,6 +321,12 @@ impl EventLens<EdDecompressChip<Ed25519Parameters>> for ExecutionRecord {
     }
 }
 
+impl EventLens<Blake2sXorRotateRightChip> for ExecutionRecord {
+    fn events(&self) -> <Blake2sXorRotateRightChip as crate::air::WithEvents<'_>>::Events {
+        &self.blake2s_xor_rotate_right_events
+    }
+}
+
 pub struct ShardingConfig {
     pub shard_size: usize,
     pub add_len: usize,
@@ -420,7 +420,6 @@ impl MachineRecord for ExecutionRecord {
             "sha_compress_events".to_string(),
             self.sha_compress_events.len(),
         );
-        stats.insert("empty_events".to_string(), self.empty_events.len());
         stats.insert(
             "keccak_permute_events".to_string(),
             self.keccak_permute_events.len(),
@@ -475,6 +474,10 @@ impl MachineRecord for ExecutionRecord {
             "bls12381_g2_double_events".to_string(),
             self.bls12381_g2_double_events.len(),
         );
+        stats.insert(
+            "blake2s_xor_rotate_right_events".to_string(),
+            self.blake2s_xor_rotate_right_events.len(),
+        );
         stats
     }
 
@@ -492,9 +495,6 @@ impl MachineRecord for ExecutionRecord {
         self.sha_extend_events.append(&mut other.sha_extend_events);
         self.sha_compress_events
             .append(&mut other.sha_compress_events);
-
-        self.empty_events.append(&mut other.empty_events);
-
         self.keccak_permute_events
             .append(&mut other.keccak_permute_events);
         self.ed_add_events.append(&mut other.ed_add_events);
@@ -523,6 +523,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_g2_add_events);
         self.bls12381_g2_double_events
             .append(&mut other.bls12381_g2_double_events);
+        self.blake2s_xor_rotate_right_events
+            .append(&mut other.blake2s_xor_rotate_right_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -808,12 +810,6 @@ impl MachineRecord for ExecutionRecord {
             self.nonce_lookup.insert(event.lookup_id, (i * 48) as u32);
         }
 
-        // Empty events
-        first.empty_events = take(&mut self.empty_events);
-        for (i, event) in first.empty_events.iter().enumerate() {
-            self.nonce_lookup.insert(event.lookup_id, i as u32);
-        }
-
         // SHA-256 compress events.
         first.sha_compress_events = take(&mut self.sha_compress_events);
         for (i, event) in first.sha_compress_events.iter().enumerate() {
@@ -853,6 +849,12 @@ impl MachineRecord for ExecutionRecord {
         // Bls12-381 G2Affine doubling events.
         first.bls12381_g2_double_events = take(&mut self.bls12381_g2_double_events);
         for (i, event) in first.bls12381_g2_double_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
+        }
+
+        // blake2s_xor_rotate_right events
+        first.blake2s_xor_rotate_right_events = take(&mut self.blake2s_xor_rotate_right_events);
+        for (i, event) in first.blake2s_xor_rotate_right_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 

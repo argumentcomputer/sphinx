@@ -1,6 +1,6 @@
 use crate::bytes::event::ByteRecord;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
-use crate::operations::XorOperation;
+use crate::operations::{FixedRotateRightOperation, XorOperation};
 use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 use crate::stark::SphinxAirBuilder;
 use crate::utils::pad_rows;
@@ -19,32 +19,33 @@ use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
 
 const R_1: u32 = 16;
-const R_2: u32 = 12;
+//const R_2: u32 = 12;
 //const R_3: u32 = 8;
 //const R_4: u32 = 7;
 
 #[derive(Default)]
-pub struct EmptyChip;
+pub struct Blake2sXorRotateRightChip;
 
-impl EmptyChip {
+impl Blake2sXorRotateRightChip {
     pub fn new() -> Self {
-        EmptyChip
+        Blake2sXorRotateRightChip
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmptyEvent {
+pub struct Blake2sXorRotateRightEvent {
     pub lookup_id: usize,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,
     pub a_ptr: u32,
     pub b_ptr: u32,
+    pub rot: u32,
     pub a_reads_writes: Vec<MemoryWriteRecord>,
     pub b_reads: Vec<MemoryReadRecord>,
 }
 
-impl Syscall for EmptyChip {
+impl Syscall for Blake2sXorRotateRightChip {
     fn execute(&self, ctx: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let clk_init = ctx.clk;
         let shard = ctx.current_shard();
@@ -55,10 +56,9 @@ impl Syscall for EmptyChip {
         let b_ptr = arg2;
 
         let a = ctx.slice_unsafe(a_ptr, 4);
-        let (b_reads, mut b) = ctx.mr_slice(b_ptr, 6);
+        let (b_reads, mut b) = ctx.mr_slice(b_ptr, 5);
 
-        let _r_d = b[4].clone();
-        let _r_b = b[5].clone();
+        let rot = b[4].clone();
         b.truncate(4);
 
         let xor = a
@@ -67,21 +67,29 @@ impl Syscall for EmptyChip {
             .map(|(a, b)| a ^ b)
             .collect::<Vec<u32>>();
 
+        let rotate_right = xor
+            .into_iter()
+            .map(|xor_i| xor_i.rotate_right(rot))
+            .collect::<Vec<u32>>();
+
         ctx.clk += 1;
 
-        // Write xor to a_ptr.
-        let a_reads_writes = ctx.mw_slice(a_ptr, xor.as_slice());
+        // Write rotate_right to a_ptr.
+        let a_reads_writes = ctx.mw_slice(a_ptr, rotate_right.as_slice());
 
-        ctx.record_mut().empty_events.push(EmptyEvent {
-            lookup_id,
-            clk: clk_init,
-            shard,
-            channel,
-            a_ptr,
-            b_ptr,
-            a_reads_writes,
-            b_reads,
-        });
+        ctx.record_mut()
+            .blake2s_xor_rotate_right_events
+            .push(Blake2sXorRotateRightEvent {
+                lookup_id,
+                clk: clk_init,
+                shard,
+                channel,
+                a_ptr,
+                b_ptr,
+                rot,
+                a_reads_writes,
+                b_reads,
+            });
 
         None
     }
@@ -93,7 +101,7 @@ impl Syscall for EmptyChip {
 
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-struct EmptyCols<T> {
+struct Blake2sXorRotateRightCols<T> {
     pub clk: T,
     pub shard: T,
     pub channel: T,
@@ -104,27 +112,28 @@ struct EmptyCols<T> {
     pub b_ptr: T,
 
     pub a: [MemoryWriteCols<T>; 4],
-    pub b: [MemoryReadCols<T>; 6], // includes r_d, r_b words
+    pub b: [MemoryReadCols<T>; 5], // includes rotation constant
 
     pub xor: [XorOperation<T>; 4],
+    pub rotate_right: [FixedRotateRightOperation<T>; 4],
 }
 
-impl<T: PrimeField32> BaseAir<T> for EmptyChip {
+impl<T: PrimeField32> BaseAir<T> for Blake2sXorRotateRightChip {
     fn width(&self) -> usize {
-        size_of::<EmptyCols<u8>>()
+        size_of::<Blake2sXorRotateRightCols<u8>>()
     }
 }
 
-impl<'a> WithEvents<'a> for EmptyChip {
-    type Events = &'a [EmptyEvent];
+impl<'a> WithEvents<'a> for Blake2sXorRotateRightChip {
+    type Events = &'a [Blake2sXorRotateRightEvent];
 }
 
-impl<F: PrimeField32> MachineAir<F> for EmptyChip {
+impl<F: PrimeField32> MachineAir<F> for Blake2sXorRotateRightChip {
     type Record = ExecutionRecord;
     type Program = Program;
 
     fn name(&self) -> String {
-        "EmptyChip".to_string()
+        "Blake2sXorRotateRightChip".to_string()
     }
 
     fn generate_trace<EL: EventLens<Self>>(
@@ -133,12 +142,12 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
         output: &mut Self::Record,
     ) -> RowMajorMatrix<F> {
         let mut rows = vec![];
-        let width = <EmptyChip as BaseAir<F>>::width(self);
+        let width = <Blake2sXorRotateRightChip as BaseAir<F>>::width(self);
         let mut new_byte_lookup_events = Vec::new();
         for event in input.events() {
             let shard = event.shard;
             let mut row = vec![F::zero(); width];
-            let cols: &mut EmptyCols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut Blake2sXorRotateRightCols<F> = row.as_mut_slice().borrow_mut();
 
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
@@ -146,6 +155,10 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
             cols.channel = F::from_canonical_u32(event.channel);
             cols.a_ptr = F::from_canonical_u32(event.a_ptr);
             cols.b_ptr = F::from_canonical_u32(event.b_ptr);
+
+            cols.b[4].populate(event.channel, event.b_reads[4], &mut new_byte_lookup_events); // handle rotation_constant
+
+            let rot = event.b_reads[4].value;
 
             for i in 0..4usize {
                 cols.a[i].populate(
@@ -160,10 +173,11 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
                 let b = event.b_reads[i].value;
                 let xor = cols.xor[i].populate(output, shard, event.channel, a, b);
                 assert_eq!(a ^ b, xor);
-            }
 
-            cols.b[4].populate(event.channel, event.b_reads[4], &mut new_byte_lookup_events); // handle r_d
-            cols.b[5].populate(event.channel, event.b_reads[5], &mut new_byte_lookup_events); // handle r_b
+                let rotate_right =
+                    cols.rotate_right[i].populate(output, shard, event.channel, xor, rot as usize);
+                assert_eq!(xor.rotate_right(rot), rotate_right);
+            }
 
             rows.push(row);
         }
@@ -181,7 +195,8 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
 
         // Write the nonces to the trace.
         for i in 0..trace.height() {
-            let cols: &mut EmptyCols<F> = trace.values[i * width..(i + 1) * width].borrow_mut();
+            let cols: &mut Blake2sXorRotateRightCols<F> =
+                trace.values[i * width..(i + 1) * width].borrow_mut();
             cols.nonce = F::from_canonical_usize(i);
         }
 
@@ -189,11 +204,11 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
-        !shard.empty_events.is_empty()
+        !shard.blake2s_xor_rotate_right_events.is_empty()
     }
 }
 
-impl<AB: SphinxAirBuilder> Air<AB> for EmptyChip
+impl<AB: SphinxAirBuilder> Air<AB> for Blake2sXorRotateRightChip
 where
     AB::F: PrimeField32,
 {
@@ -201,14 +216,28 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let next = main.row_slice(1);
-        let local: &EmptyCols<AB::Var> = (*local).borrow();
-        let next: &EmptyCols<AB::Var> = (*next).borrow();
+        let local: &Blake2sXorRotateRightCols<AB::Var> = (*local).borrow();
+        let next: &Blake2sXorRotateRightCols<AB::Var> = (*next).borrow();
 
         // Constrain the incrementing nonce.
         builder.when_first_row().assert_zero(local.nonce);
         builder
             .when_transition()
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
+
+        // Eval rotation_constant (included as 4th word in b_ptr).
+        let i = 4usize;
+        builder.eval_memory_access(
+            local.shard,
+            local.channel,
+            local.clk,
+            local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
+            &local.b[i],
+            local.is_real,
+        );
+
+        // TODO: get rotation constant from memory somehow
+        let _rot = *local.b[4].value();
 
         for i in 0..4usize {
             // Eval a
@@ -241,36 +270,25 @@ where
                 &local.channel,
                 local.is_real,
             );
+
+            // Eval RotateRight
+            FixedRotateRightOperation::<AB::F>::eval(
+                builder,
+                local.xor[i].value,
+                R_1 as usize, // TODO use value from memory instead !
+                local.rotate_right[i],
+                local.shard,
+                &local.channel,
+                local.is_real,
+            );
         }
-
-        // Eval r_d (included in b_ptr).
-        let i = 4usize;
-        builder.eval_memory_access(
-            local.shard,
-            local.channel,
-            local.clk,
-            local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
-            &local.b[i],
-            local.is_real,
-        );
-
-        // Eval r_d (included in b_ptr).
-        let i = 5usize;
-        builder.eval_memory_access(
-            local.shard,
-            local.channel,
-            local.clk,
-            local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
-            &local.b[i],
-            local.is_real,
-        );
 
         builder.receive_syscall(
             local.shard,
             local.channel,
             local.clk,
             local.nonce,
-            AB::F::from_canonical_u32(SyscallCode::EMPTY.syscall_id()),
+            AB::F::from_canonical_u32(SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT.syscall_id()),
             local.a_ptr,
             local.b_ptr,
             local.is_real,
@@ -281,11 +299,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::syscall::precompiles::blake2s::{R_1, R_2};
+    use crate::syscall::precompiles::blake2s::R_1;
     use crate::utils::{run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
-    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 6]) -> Program {
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 5]) -> Program {
         let mut instructions = vec![];
         // memory write a
         for (index, word) in a.into_iter().enumerate() {
@@ -320,7 +338,7 @@ mod tests {
             Opcode::ADD,
             5,
             0,
-            SyscallCode::EMPTY as u32,
+            SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT as u32,
             false,
             true,
         ));
@@ -331,7 +349,7 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_precompile() {
+    fn test_blake2s_xor_rotate_right_precompile() {
         setup_logger();
 
         let a_ptr = 100100100;
@@ -340,8 +358,9 @@ mod tests {
             a_ptr,
             b_ptr,
             [0x6b08e647, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
-            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19, R_1, R_2],
+            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19, R_1],
         );
+
         let (_, memory) = run_test_with_memory_inspection(program);
         let mut result = vec![];
         // result is 4 words, written to a_ptr
@@ -351,7 +370,7 @@ mod tests {
 
         assert_eq!(
             result,
-            [0x3a06b438, 0x2062c609, 0x23ed2ad9, 0xfeaf3823].to_vec()
+            [0xb4383a06, 0xc6092062, 0x2ad923ed, 0x3823feaf].to_vec()
         );
     }
 
