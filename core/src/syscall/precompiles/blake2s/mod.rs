@@ -1,3 +1,7 @@
+use crate::bytes::event::ByteRecord;
+use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
+use crate::operations::XorOperation;
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 use crate::stark::SphinxAirBuilder;
 use crate::utils::pad_rows;
 use crate::{
@@ -13,10 +17,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
-use crate::bytes::event::ByteRecord;
-use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
-use crate::operations::XorOperation;
-use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 
 #[derive(Default)]
 pub struct EmptyChip;
@@ -48,36 +48,34 @@ impl Syscall for EmptyChip {
         let channel = ctx.current_channel();
 
         let a_ptr = arg1;
-        let a_ptr_init = a_ptr;
         let b_ptr = arg2;
-        let b_ptr_init = b_ptr;
 
         let mut a_reads = Vec::new();
         let mut b_reads = Vec::new();
 
-        // Read a0.
-        let (record, a) = ctx.mr(a_ptr);
-        a_reads.push(record);
+        for i in 0..4usize {
+            // Read a.
+            let (record, a) = ctx.mr(a_ptr + (i * 4) as u32);
+            a_reads.push(record);
 
-        // Read b0.
-        let (record, b) = ctx.mr(b_ptr);
-        b_reads.push(record);
+            // Read b.
+            let (record, b) = ctx.mr(b_ptr + (i * 4) as u32);
+            b_reads.push(record);
 
-        // compute a ^ b xor
-        let _xor = a ^ b;
+            let _xor = a ^ b;
+        }
 
         // Write xor to a_ptr.
         //xor_writes.push(ctx.mw(a_ptr, xor0));
         //ctx.clk += 1;
-
 
         ctx.record_mut().empty_events.push(EmptyEvent {
             lookup_id,
             clk: clk_init,
             shard,
             channel,
-            a_ptr: a_ptr_init,
-            b_ptr: b_ptr_init,
+            a_ptr,
+            b_ptr,
             a_reads,
             b_reads,
             //xor_writes: xor0_writes,
@@ -99,9 +97,10 @@ struct EmptyCols<T> {
     pub a_ptr: T,
     pub b_ptr: T,
 
-    pub a0: MemoryReadCols<T>,
-    pub b0: MemoryReadCols<T>,
-    pub xor0: XorOperation<T>,
+    pub a: [MemoryReadCols<T>; 4],
+    pub b: [MemoryReadCols<T>; 4],
+
+    pub xor: [XorOperation<T>; 4],
     //pub axorb: MemoryWriteCols<T>,
 }
 
@@ -143,29 +142,16 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
             cols.a_ptr = F::from_canonical_u32(event.a_ptr);
             cols.b_ptr = F::from_canonical_u32(event.b_ptr);
 
-            cols.a0.populate(
-                event.channel,
-                event.a_reads[0],
-                &mut new_byte_lookup_events,
-            );
+            for i in 0..4usize {
+                cols.a[i].populate(event.channel, event.a_reads[i], &mut new_byte_lookup_events);
 
-            cols.b0.populate(
-                event.channel,
-                event.b_reads[0],
-                &mut new_byte_lookup_events,
-            );
+                cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
 
-            let a0 = event.a_reads[0].value;
-            let b0 = event.b_reads[0].value;
-            let xor0 = cols.xor0.populate(
-                output,
-                shard,
-                event.channel,
-                a0,
-                b0,
-            );
-
-            assert_eq!(a0 ^ b0, xor0);
+                let a = event.a_reads[i].value;
+                let b = event.b_reads[i].value;
+                let xor = cols.xor[i].populate(output, shard, event.channel, a, b);
+                assert_eq!(a ^ b, xor);
+            }
 
             //cols.axorb0.populate(
             //    event.channel,
@@ -194,7 +180,6 @@ impl<F: PrimeField32> MachineAir<F> for EmptyChip {
         }
 
         trace
-
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
@@ -219,36 +204,38 @@ where
             .when_transition()
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
-        // Read a.
-        builder.eval_memory_access(
-            local.shard,
-            local.channel,
-            local.clk,
-            local.a_ptr,
-            &local.a0,
-            local.is_real,
-        );
+        for i in 0..4usize {
+            // Read a.
+            builder.eval_memory_access(
+                local.shard,
+                local.channel,
+                local.clk,
+                local.a_ptr + AB::F::from_canonical_u32((i as u32) * 4),
+                &local.a[i],
+                local.is_real,
+            );
 
-        // Read b.
-        builder.eval_memory_access(
-            local.shard,
-            local.channel,
-            local.clk,
-            local.b_ptr,
-            &local.b0,
-            local.is_real,
-        );
+            // Read b.
+            builder.eval_memory_access(
+                local.shard,
+                local.channel,
+                local.clk,
+                local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
+                &local.b[i],
+                local.is_real,
+            );
 
-        // XOR
-        XorOperation::<AB::F>::eval(
-            builder,
-            *local.a0.value(),
-            *local.b0.value(),
-            local.xor0,
-            local.shard,
-            &local.channel,
-            local.is_real,
-        );
+            // XOR
+            XorOperation::<AB::F>::eval(
+                builder,
+                *local.a[i].value(),
+                *local.b[i].value(),
+                local.xor[i],
+                local.shard,
+                &local.channel,
+                local.is_real,
+            );
+        }
 
         // Write XOR to memory.
         //builder.eval_memory_access(
@@ -286,32 +273,35 @@ mod tests {
 
         let mut instructions = vec![];
 
-        //for (index, word) in a_words.into_iter().enumerate() {
-            instructions.push(Instruction::new(Opcode::ADD, 29, 0, a[0], false, true));
+        // memory write a
+        for (index, word) in a.into_iter().enumerate() {
+            instructions.push(Instruction::new(Opcode::ADD, 29, 0, word, false, true));
             instructions.push(Instruction::new(
                 Opcode::ADD,
                 30,
                 0,
-                a_ptr + (0 * 4) as u32,
+                a_ptr + (index * 4) as u32,
                 false,
                 true,
             ));
             instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
-        //}
+        }
 
-        //for (index, word) in b_words.into_iter().enumerate() {
-            instructions.push(Instruction::new(Opcode::ADD, 29, 0, b[0], false, true));
+        // memory write b
+        for (index, word) in b.into_iter().enumerate() {
+            instructions.push(Instruction::new(Opcode::ADD, 29, 0, word, false, true));
             instructions.push(Instruction::new(
                 Opcode::ADD,
                 30,
                 0,
-                b_ptr + (0 * 4) as u32,
+                b_ptr + (index * 4) as u32,
                 false,
                 true,
             ));
             instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
-        //}
+        }
 
+        // Syscall invocation
         instructions.push(Instruction::new(
             Opcode::ADD,
             5,
@@ -337,23 +327,8 @@ mod tests {
     }
 
     fn xor_u32x4(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {
-        [
-            a[0] ^ b[0],
-            a[1] ^ b[1],
-            a[2] ^ b[2],
-            a[3] ^ b[3],
-        ]
+        [a[0] ^ b[0], a[1] ^ b[1], a[2] ^ b[2], a[3] ^ b[3]]
     }
-
-
-
-
-
-
-
-
-
-
 
     fn shuffle_left_1_u32x4(a: [u32; 4]) -> [u32; 4] {
         [a[1], a[2], a[3], a[0]]
@@ -382,7 +357,7 @@ mod tests {
             a[0].wrapping_add(b[0]),
             a[1].wrapping_add(b[1]),
             a[2].wrapping_add(b[2]),
-            a[3].wrapping_add(b[3])
+            a[3].wrapping_add(b[3]),
         ]
     }
 
@@ -414,13 +389,8 @@ mod tests {
         v[3] = shuffle_right_3_u32x4(v[3]);
     }
 
-    fn gather(m: [u32; 16], i0: usize, i1: usize, i2: usize, i3: usize) -> [u32; 4]{
-        [
-            m[i0],
-            m[i1],
-            m[i2],
-            m[i3]
-        ]
+    fn gather(m: [u32; 16], i0: usize, i1: usize, i2: usize, i3: usize) -> [u32; 4] {
+        [m[i0], m[i1], m[i2], m[i3]]
     }
 
     fn round(v: &mut Vec<[u32; 4]>, m: [u32; 16], s: [usize; 16]) {
@@ -439,7 +409,12 @@ mod tests {
 
     #[test]
     fn test_blake2s_round_function() {
-        fn test_inner(input: &mut Vec<[u32; 4]>, m: [u32; 16], s: [usize; 16], output: Vec<[u32; 4]>) {
+        fn test_inner(
+            input: &mut Vec<[u32; 4]>,
+            m: [u32; 16],
+            s: [usize; 16],
+            output: Vec<[u32; 4]>,
+        ) {
             round(input, m, s);
             assert_eq!(input.clone(), output);
         }
@@ -451,16 +426,26 @@ mod tests {
             [0x510e527f, 0x9b05688c, 0xe07c2654, 0x5be0cd19],
         ];
 
-        let m: [u32; 16] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-        let s: [usize; 16] = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f];
+        let m: [u32; 16] = [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00,
+        ];
+        let s: [usize; 16] = [
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
+            0x0e, 0x0f,
+        ];
 
-        test_inner(&mut v, m, s, vec![
+        test_inner(
+            &mut v,
+            m,
+            s,
+            vec![
                 [0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3],
                 [0x515f5af4, 0x0301095b, 0xb151a3c2, 0x5e17f96f],
                 [0xc561666d, 0x0f291605, 0x990c6d13, 0x76fff6f1],
                 [0x1e53bf19, 0x6fe4a680, 0x08e33663, 0x97fd885e],
-        ]);
-
+            ],
+        );
 
         let mut v: Vec<[u32; 4]> = vec![
             [0x01, 0x01, 0x01, 0x01],
@@ -469,15 +454,26 @@ mod tests {
             [0x01, 0x01, 0x01, 0x01],
         ];
 
-        let m: [u32; 16] = [0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01];
-        let s: [usize; 16] = [0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01];
+        let m: [u32; 16] = [
+            0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+            0x01, 0x01,
+        ];
+        let s: [usize; 16] = [
+            0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+            0x01, 0x01,
+        ];
 
-        test_inner(&mut v, m, s, vec![
-            [0x071e8a60, 0x071e8a60, 0x071e8a60, 0x071e8a60],
-            [0x072df44c, 0x072df44c, 0x072df44c, 0x072df44c],
-            [0x522ca035, 0x522ca035, 0x522ca035, 0x522ca035],
-            [0x280137ec, 0x280137ec, 0x280137ec, 0x280137ec]
-        ]);
+        test_inner(
+            &mut v,
+            m,
+            s,
+            vec![
+                [0x071e8a60, 0x071e8a60, 0x071e8a60, 0x071e8a60],
+                [0x072df44c, 0x072df44c, 0x072df44c, 0x072df44c],
+                [0x522ca035, 0x522ca035, 0x522ca035, 0x522ca035],
+                [0x280137ec, 0x280137ec, 0x280137ec, 0x280137ec],
+            ],
+        );
     }
 
     #[test]
@@ -491,11 +487,22 @@ mod tests {
 
         unshuffle(&mut v);
 
-        assert_eq!(v[0].to_vec(), vec![0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3]);
-        assert_eq!(v[1].to_vec(), vec![0x515f5af4, 0x0301095b, 0xb151a3c2, 0x5e17f96f]);
-        assert_eq!(v[2].to_vec(), vec![0xc561666d, 0x0f291605, 0x990c6d13, 0x76fff6f1]);
-        assert_eq!(v[3].to_vec(), vec![0x1e53bf19, 0x6fe4a680, 0x08e33663, 0x97fd885e]);
-
+        assert_eq!(
+            v[0].to_vec(),
+            vec![0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3]
+        );
+        assert_eq!(
+            v[1].to_vec(),
+            vec![0x515f5af4, 0x0301095b, 0xb151a3c2, 0x5e17f96f]
+        );
+        assert_eq!(
+            v[2].to_vec(),
+            vec![0xc561666d, 0x0f291605, 0x990c6d13, 0x76fff6f1]
+        );
+        assert_eq!(
+            v[3].to_vec(),
+            vec![0x1e53bf19, 0x6fe4a680, 0x08e33663, 0x97fd885e]
+        );
     }
 
     #[test]
@@ -509,11 +516,22 @@ mod tests {
 
         shuffle(&mut v);
 
-        assert_eq!(v[0].to_vec(), vec![0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc]);
-        assert_eq!(v[1].to_vec(), vec![0x8d07c52d, 0xb9d6aa3a, 0x88609304, 0x408705aa]);
-        assert_eq!(v[2].to_vec(), vec![0x81e69eeb, 0xe17775ed, 0x5c7a89f8, 0xb5f896c7]);
-        assert_eq!(v[3].to_vec(), vec![0x2cdd25e3, 0x87b6b678, 0x7af31ada, 0x5a2defeb]);
-
+        assert_eq!(
+            v[0].to_vec(),
+            vec![0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc]
+        );
+        assert_eq!(
+            v[1].to_vec(),
+            vec![0x8d07c52d, 0xb9d6aa3a, 0x88609304, 0x408705aa]
+        );
+        assert_eq!(
+            v[2].to_vec(),
+            vec![0x81e69eeb, 0xe17775ed, 0x5c7a89f8, 0xb5f896c7]
+        );
+        assert_eq!(
+            v[3].to_vec(),
+            vec![0x2cdd25e3, 0x87b6b678, 0x7af31ada, 0x5a2defeb]
+        );
     }
 
     #[test]
@@ -530,9 +548,21 @@ mod tests {
 
         quarter_round(&mut v, rd, rb, m);
 
-        assert_eq!(v[0].to_vec(), vec![0xbc1738c6, 0x566d1711, 0x5bf2cd1d, 0x130c253]);
-        assert_eq!(v[1].to_vec(), vec![0x1ff85cd8, 0x361a0001, 0x6ab383b7, 0xd13ef7a9]);
-        assert_eq!(v[2].to_vec(), vec![0xd4c3d380, 0x3b057bed, 0x27b8af00, 0xb49a500a]);
-        assert_eq!(v[3].to_vec(), vec![0x6ab9ed19, 0x7f9dcd68, 0xeb49bb8e, 0xf4a5ad0]);
+        assert_eq!(
+            v[0].to_vec(),
+            vec![0xbc1738c6, 0x566d1711, 0x5bf2cd1d, 0x130c253]
+        );
+        assert_eq!(
+            v[1].to_vec(),
+            vec![0x1ff85cd8, 0x361a0001, 0x6ab383b7, 0xd13ef7a9]
+        );
+        assert_eq!(
+            v[2].to_vec(),
+            vec![0xd4c3d380, 0x3b057bed, 0x27b8af00, 0xb49a500a]
+        );
+        assert_eq!(
+            v[3].to_vec(),
+            vec![0x6ab9ed19, 0x7f9dcd68, 0xeb49bb8e, 0xf4a5ad0]
+        );
     }
 }
