@@ -48,4 +48,5 @@ extern "C" {
     pub fn syscall_bls12381_g2_add(p: *mut u32, q: *const u32);
     pub fn syscall_bls12381_g2_double(p: *mut u32);
     pub fn syscall_blake2s_xor_rotate_right(left: *mut u32, right: *const u32);
+    pub fn syscall_blake2s_xor_rotate_16(w: *mut u32);
 }
