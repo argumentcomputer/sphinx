@@ -18,6 +18,7 @@ pub mod blake2s_add_3;
 pub mod blake2s_xor_rotate_16;
 pub mod blake2s_xor_rotate_right_12;
 pub mod blake2s_xor_rotate_right_16;
+pub mod blake2s_xor_rotate_right_8;
 
 pub use bls12_381::*;
 pub use bn254::*;
@@ -122,3 +123,5 @@ pub const BLAKE_2S_ADD_2: u32 = 0x00_01_01_CE;
 pub const BLAKE_2S_ADD_3: u32 = 0x00_01_01_CF;
 
 pub const BLAKE_2S_XOR_ROTATE_RIGHT_12: u32 = 0x00_01_01_EA;
+
+pub const BLAKE_2S_XOR_ROTATE_RIGHT_8: u32 = 0x00_01_01_EB;

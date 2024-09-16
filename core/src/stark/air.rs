@@ -5,7 +5,7 @@ use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::blake2s::{
     Blake2sAdd2Chip, Blake2sAdd3Chip, Blake2sXorRotate16Chip, Blake2sXorRotateRight12Chip,
-    Blake2sXorRotateRight16Chip,
+    Blake2sXorRotateRight16Chip, Blake2sXorRotateRight8Chip,
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
@@ -111,11 +111,13 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
 
+    // Blake2s
     Blake2sXorRotateRight16(Blake2sXorRotateRight16Chip),
     Blake2sXorRotate16(Blake2sXorRotate16Chip), // based on sha-extend
     Blake2sAdd2(Blake2sAdd2Chip),
     Blake2sAdd3(Blake2sAdd3Chip),
     Blake2sXorRotateRight12(Blake2sXorRotateRight12Chip),
+    Blake2sXorRotateRight8(Blake2sXorRotateRight8Chip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -209,6 +211,11 @@ impl<F: PrimeField32> RiscvAir<F> {
         let blake_2s_xor_rotate_right_12 = Blake2sXorRotateRight12Chip::default();
         chips.push(RiscvAir::Blake2sXorRotateRight12(
             blake_2s_xor_rotate_right_12,
+        ));
+
+        let blake_2s_xor_rotate_right_8 = Blake2sXorRotateRight8Chip::default();
+        chips.push(RiscvAir::Blake2sXorRotateRight8(
+            blake_2s_xor_rotate_right_8,
         ));
 
         chips

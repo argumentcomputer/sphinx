@@ -8,7 +8,7 @@ use crate::runtime::{Register, Runtime};
 use crate::stark::Ed25519Parameters;
 use crate::syscall::precompiles::blake2s::{
     Blake2sAdd2Chip, Blake2sAdd3Chip, Blake2sXorRotate16Chip, Blake2sXorRotateRight12Chip,
-    Blake2sXorRotateRight16Chip,
+    Blake2sXorRotateRight16Chip, Blake2sXorRotateRight8Chip,
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
@@ -130,6 +130,7 @@ pub enum SyscallCode {
     BLAKE_2S_ADD_3 = 0x00_01_01_CF,
 
     BLAKE_2S_XOR_ROTATE_RIGHT_12 = 0x00_01_01_EA,
+    BLAKE_2S_XOR_ROTATE_RIGHT_8 = 0x00_01_01_EB,
 }
 
 impl SyscallCode {
@@ -171,6 +172,7 @@ impl SyscallCode {
             0x00_01_01_CE => SyscallCode::BLAKE_2S_ADD_2,
             0x00_01_01_CF => SyscallCode::BLAKE_2S_ADD_3,
             0x00_01_01_EA => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12,
+            0x00_01_01_EB => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -434,6 +436,11 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         Arc::new(Blake2sXorRotateRight12Chip::new()),
     );
 
+    syscall_map.insert(
+        SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8,
+        Arc::new(Blake2sXorRotateRight8Chip::new()),
+    );
+
     syscall_map
 }
 
@@ -571,6 +578,13 @@ mod tests {
                     assert_eq!(
                         code as u32,
                         sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_12
+                    )
+                }
+
+                SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8 => {
+                    assert_eq!(
+                        code as u32,
+                        sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_8
                     )
                 }
             }

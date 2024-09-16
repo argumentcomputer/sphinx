@@ -3,12 +3,14 @@ mod add_3;
 mod xor_rotate_16; // based on sha-extend
 mod xor_rotate_right_12;
 mod xor_rotate_right_16;
+mod xor_rotate_right_8;
 
 pub use add_2::*;
 pub use add_3::*;
 pub use xor_rotate_16::*; // based on sha-extend
 pub use xor_rotate_right_12::*;
 pub use xor_rotate_right_16::*;
+pub use xor_rotate_right_8::*;
 
 #[cfg(test)]
 mod tests {
