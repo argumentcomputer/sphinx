@@ -1,5 +1,9 @@
+mod add_2;
+mod add_3;
 mod xor_rotate_16;
 
+pub use add_2::*;
+pub use add_3::*;
 pub use xor_rotate_16::*;
 
 use crate::bytes::event::ByteRecord;
@@ -280,7 +284,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::BLAKE2S_XOR_RIGHT_ROTATE_ELF;
+    use crate::utils::tests::{BLAKE2S_ADD_2_ELF, BLAKE2S_XOR_RIGHT_ROTATE_ELF};
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
@@ -358,7 +362,7 @@ mod tests {
     #[test]
     fn test_blake2s_xor_right_rotate_program() {
         setup_logger();
-        let program = Program::from(BLAKE2S_XOR_RIGHT_ROTATE_ELF);
+        let program = Program::from(BLAKE2S_ADD_2_ELF);
         run_test(program).unwrap();
     }
 

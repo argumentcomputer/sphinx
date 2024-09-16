@@ -13,6 +13,7 @@ mod unconstrained;
 #[cfg(feature = "verify")]
 mod verify;
 
+pub mod blake2s_add_2;
 pub mod blake2s_xor_rotate_16;
 pub mod blake2s_xor_rotate_right;
 
@@ -113,3 +114,5 @@ pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;
 pub const BLAKE_2S_XOR_ROTATE_RIGHT: u32 = 0x00_01_01_CC;
 
 pub const BLAKE_2S_XOR_ROTATE_16: u32 = 0x00_30_01_CD;
+
+pub const BLAKE_2S_ADD_2: u32 = 0x00_01_01_CE;

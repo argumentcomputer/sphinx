@@ -6,7 +6,9 @@ use strum_macros::EnumIter;
 
 use crate::runtime::{Register, Runtime};
 use crate::stark::Ed25519Parameters;
-use crate::syscall::precompiles::blake2s::{Blake2sXorRotate16Chip, Blake2sXorRotateRightChip};
+use crate::syscall::precompiles::blake2s::{
+    Blake2sAdd2Chip, Blake2sXorRotate16Chip, Blake2sXorRotateRightChip,
+};
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
@@ -121,6 +123,8 @@ pub enum SyscallCode {
     BLAKE_2S_XOR_ROTATE_RIGHT = 0x00_01_01_CC,
 
     BLAKE_2S_XOR_ROTATE_16 = 0x00_30_01_CD,
+
+    BLAKE_2S_ADD_2 = 0x00_01_01_CE,
 }
 
 impl SyscallCode {
@@ -159,6 +163,7 @@ impl SyscallCode {
             0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
             0x00_01_01_CC => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT,
             0x00_30_01_CD => SyscallCode::BLAKE_2S_XOR_ROTATE_16,
+            0x00_01_01_CE => SyscallCode::BLAKE_2S_ADD_2,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -407,6 +412,11 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         Arc::new(Blake2sXorRotate16Chip::new()),
     );
 
+    syscall_map.insert(
+        SyscallCode::BLAKE_2S_ADD_2,
+        Arc::new(Blake2sAdd2Chip::new()),
+    );
+
     syscall_map
 }
 
@@ -530,6 +540,10 @@ mod tests {
 
                 SyscallCode::BLAKE_2S_XOR_ROTATE_16 => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_16)
+                }
+
+                SyscallCode::BLAKE_2S_ADD_2 => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ADD_2)
                 }
             }
         }
