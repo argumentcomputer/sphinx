@@ -13,8 +13,8 @@ use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake2s::{
     Blake2sAdd2Chip, Blake2sAdd2Event, Blake2sAdd3Chip, Blake2sAdd3Event, Blake2sXorRotate16Chip,
     Blake2sXorRotate16Event, Blake2sXorRotateRight12Chip, Blake2sXorRotateRight12Event,
-    Blake2sXorRotateRight16Chip, Blake2sXorRotateRight16Event, Blake2sXorRotateRight8Chip,
-    Blake2sXorRotateRight8Event,
+    Blake2sXorRotateRight16Chip, Blake2sXorRotateRight16Event, Blake2sXorRotateRight7Chip,
+    Blake2sXorRotateRight7Event, Blake2sXorRotateRight8Chip, Blake2sXorRotateRight8Event,
 };
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
@@ -138,6 +138,7 @@ pub struct ExecutionRecord {
     pub blake2s_add_3_events: Vec<Blake2sAdd3Event>,
     pub blake2s_xor_rotate_right_12_events: Vec<Blake2sXorRotateRight12Event>,
     pub blake2s_xor_rotate_right_8_events: Vec<Blake2sXorRotateRight8Event>,
+    pub blake2s_xor_rotate_right_7_events: Vec<Blake2sXorRotateRight7Event>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -368,6 +369,12 @@ impl EventLens<Blake2sXorRotateRight8Chip> for ExecutionRecord {
     }
 }
 
+impl EventLens<Blake2sXorRotateRight7Chip> for ExecutionRecord {
+    fn events(&self) -> <Blake2sXorRotateRight7Chip as crate::air::WithEvents<'_>>::Events {
+        &self.blake2s_xor_rotate_right_7_events
+    }
+}
+
 pub struct ShardingConfig {
     pub shard_size: usize,
     pub add_len: usize,
@@ -544,6 +551,11 @@ impl MachineRecord for ExecutionRecord {
             self.blake2s_xor_rotate_right_8_events.len(),
         );
 
+        stats.insert(
+            "blake2s_xor_rotate_right_7_events".to_string(),
+            self.blake2s_xor_rotate_right_7_events.len(),
+        );
+
         stats
     }
 
@@ -602,6 +614,8 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.blake2s_xor_rotate_right_12_events);
         self.blake2s_xor_rotate_right_8_events
             .append(&mut other.blake2s_xor_rotate_right_8_events);
+        self.blake2s_xor_rotate_right_7_events
+            .append(&mut other.blake2s_xor_rotate_right_7_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -964,6 +978,12 @@ impl MachineRecord for ExecutionRecord {
         // blake2s_xor_rotate_right_8 events
         first.blake2s_xor_rotate_right_8_events = take(&mut self.blake2s_xor_rotate_right_8_events);
         for (i, event) in first.blake2s_xor_rotate_right_8_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
+        }
+
+        // blake2s_xor_rotate_right_7 events
+        first.blake2s_xor_rotate_right_7_events = take(&mut self.blake2s_xor_rotate_right_7_events);
+        for (i, event) in first.blake2s_xor_rotate_right_7_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 

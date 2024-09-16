@@ -47,8 +47,11 @@ extern "C" {
     pub fn sys_alloc_aligned(bytes: usize, align: usize) -> *mut u8;
     pub fn syscall_bls12381_g2_add(p: *mut u32, q: *const u32);
     pub fn syscall_bls12381_g2_double(p: *mut u32);
-    pub fn syscall_blake2s_xor_rotate_right(left: *mut u32, right: *const u32);
     pub fn syscall_blake2s_xor_rotate_16(w: *mut u32);
     pub fn syscall_blake2s_add_2(left: *mut u32, right: *const u32);
     pub fn syscall_blake2s_add_3(left: *mut u32, right: *const u32);
+    pub fn syscall_blake2s_xor_rotate_right_16(left: *mut u32, right: *const u32);
+    pub fn syscall_blake2s_xor_rotate_right_12(left: *mut u32, right: *const u32);
+    pub fn syscall_blake2s_xor_rotate_right_8(left: *mut u32, right: *const u32);
+    pub fn syscall_blake2s_xor_rotate_right_7(left: *mut u32, right: *const u32);
 }

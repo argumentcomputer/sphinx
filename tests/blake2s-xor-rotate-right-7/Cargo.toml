@@ -1,0 +1,8 @@
+[workspace]
+[package]
+name = "blake2s-xor-rotate-right-7-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }

@@ -141,6 +141,9 @@ pub mod tests {
     pub const BLAKE2S_XOR_ROTATE_RIGHT_8_ELF: &[u8] =
         include_bytes!("../../../tests/blake2s-xor-rotate-right-8/elf/riscv32im-succinct-zkvm-elf");
 
+    pub const BLAKE2S_XOR_ROTATE_RIGHT_7_ELF: &[u8] =
+        include_bytes!("../../../tests/blake2s-xor-rotate-right-7/elf/riscv32im-succinct-zkvm-elf");
+
     pub const PANIC_ELF: &[u8] =
         include_bytes!("../../../tests/panic/elf/riscv32im-succinct-zkvm-elf");
 }
