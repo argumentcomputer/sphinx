@@ -121,8 +121,9 @@ pub mod tests {
     pub const BLS12381_G2_DOUBLE_ELF: &[u8] =
         include_bytes!("../../../tests/bls12381-g2-double/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLAKE2S_XOR_RIGHT_ROTATE_ELF: &[u8] =
-        include_bytes!("../../../tests/blake2s-xor-rotate-right/elf/riscv32im-succinct-zkvm-elf");
+    pub const BLAKE2S_XOR_ROTATE_RIGHT_16_ELF: &[u8] = include_bytes!(
+        "../../../tests/blake2s-xor-rotate-right-16/elf/riscv32im-succinct-zkvm-elf"
+    );
 
     pub const BLAKE2S_XOR_RIGHT_16_ELF: &[u8] =
         include_bytes!("../../../tests/blake2s-xor-rotate-16/elf/riscv32im-succinct-zkvm-elf");
@@ -132,6 +133,10 @@ pub mod tests {
 
     pub const BLAKE2S_ADD_3_ELF: &[u8] =
         include_bytes!("../../../tests/blake2s-add3/elf/riscv32im-succinct-zkvm-elf");
+
+    pub const BLAKE2S_XOR_ROTATE_RIGHT_12_ELF: &[u8] = include_bytes!(
+        "../../../tests/blake2s-xor-rotate-right-12/elf/riscv32im-succinct-zkvm-elf"
+    );
 
     pub const PANIC_ELF: &[u8] =
         include_bytes!("../../../tests/panic/elf/riscv32im-succinct-zkvm-elf");

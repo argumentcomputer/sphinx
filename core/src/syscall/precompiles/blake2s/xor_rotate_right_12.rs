@@ -1,6 +1,6 @@
 use crate::bytes::event::ByteRecord;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
-use crate::operations::Add4Operation;
+use crate::operations::{FixedRotateRightOperation, XorOperation};
 use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 use crate::stark::SphinxAirBuilder;
 use crate::utils::pad_rows;
@@ -18,29 +18,30 @@ use serde::Serialize;
 use sphinx_derive::AlignedBorrow;
 use std::mem::size_of;
 
-#[derive(Default)]
-pub struct Blake2sAdd3Chip;
+const R_2: u32 = 12;
 
-impl Blake2sAdd3Chip {
+#[derive(Default)]
+pub struct Blake2sXorRotateRight12Chip;
+
+impl Blake2sXorRotateRight12Chip {
     pub fn new() -> Self {
-        Blake2sAdd3Chip
+        Blake2sXorRotateRight12Chip
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Blake2sAdd3Event {
+pub struct Blake2sXorRotateRight12Event {
     pub lookup_id: usize,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,
     pub a_ptr: u32,
     pub b_ptr: u32,
-
     pub a_reads_writes: Vec<MemoryWriteRecord>,
     pub b_reads: Vec<MemoryReadRecord>,
 }
 
-impl Syscall for Blake2sAdd3Chip {
+impl Syscall for Blake2sXorRotateRight12Chip {
     fn execute(&self, ctx: &mut SyscallContext<'_, '_>, arg1: u32, arg2: u32) -> Option<u32> {
         let clk_init = ctx.clk;
         let shard = ctx.current_shard();
@@ -51,24 +52,27 @@ impl Syscall for Blake2sAdd3Chip {
         let b_ptr = arg2;
 
         let a = ctx.slice_unsafe(a_ptr, 4);
-        let (b_reads, b) = ctx.mr_slice(b_ptr, 12);
-        let c = b[4..8].to_vec();
+        let (b_reads, b) = ctx.mr_slice(b_ptr, 4);
 
-        let add3 = a
+        let xor = a
             .into_iter()
-            .zip(b[0..4].into_iter())
-            .zip(c.into_iter())
-            .map(|((a, b), c)| a.wrapping_add(*b).wrapping_add(c))
+            .zip(b.into_iter())
+            .map(|(a, b)| a ^ b)
+            .collect::<Vec<u32>>();
+
+        let rotate_right = xor
+            .into_iter()
+            .map(|xor_i| xor_i.rotate_right(R_2))
             .collect::<Vec<u32>>();
 
         ctx.clk += 1;
 
         // Write rotate_right to a_ptr.
-        let a_reads_writes = ctx.mw_slice(a_ptr, add3.as_slice());
+        let a_reads_writes = ctx.mw_slice(a_ptr, rotate_right.as_slice());
 
         ctx.record_mut()
-            .blake2s_add_3_events
-            .push(Blake2sAdd3Event {
+            .blake2s_xor_rotate_right_12_events
+            .push(Blake2sXorRotateRight12Event {
                 lookup_id,
                 clk: clk_init,
                 shard,
@@ -89,7 +93,7 @@ impl Syscall for Blake2sAdd3Chip {
 
 #[derive(Debug, Clone, AlignedBorrow)]
 #[repr(C)]
-struct Blake2sAdd3Cols<T> {
+struct Blake2sXorRotateRight12Cols<T> {
     pub clk: T,
     pub shard: T,
     pub channel: T,
@@ -100,27 +104,28 @@ struct Blake2sAdd3Cols<T> {
     pub b_ptr: T,
 
     pub a: [MemoryWriteCols<T>; 4],
-    pub b: [MemoryReadCols<T>; 12],
+    pub b: [MemoryReadCols<T>; 4],
 
-    pub add3: [Add4Operation<T>; 4],
+    pub xor: [XorOperation<T>; 4],
+    pub rotate_right: [FixedRotateRightOperation<T>; 4],
 }
 
-impl<T: PrimeField32> BaseAir<T> for Blake2sAdd3Chip {
+impl<T: PrimeField32> BaseAir<T> for Blake2sXorRotateRight12Chip {
     fn width(&self) -> usize {
-        size_of::<Blake2sAdd3Cols<u8>>()
+        size_of::<Blake2sXorRotateRight12Cols<u8>>()
     }
 }
 
-impl<'a> WithEvents<'a> for Blake2sAdd3Chip {
-    type Events = &'a [Blake2sAdd3Event];
+impl<'a> WithEvents<'a> for Blake2sXorRotateRight12Chip {
+    type Events = &'a [Blake2sXorRotateRight12Event];
 }
 
-impl<F: PrimeField32> MachineAir<F> for Blake2sAdd3Chip {
+impl<F: PrimeField32> MachineAir<F> for Blake2sXorRotateRight12Chip {
     type Record = ExecutionRecord;
     type Program = Program;
 
     fn name(&self) -> String {
-        "Blake2sAdd3Chip".to_string()
+        "Blake2sXorRotateRight12Chip".to_string()
     }
 
     fn generate_trace<EL: EventLens<Self>>(
@@ -129,12 +134,12 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sAdd3Chip {
         output: &mut Self::Record,
     ) -> RowMajorMatrix<F> {
         let mut rows = vec![];
-        let width = <Blake2sAdd3Chip as BaseAir<F>>::width(self);
+        let width = <Blake2sXorRotateRight12Chip as BaseAir<F>>::width(self);
         let mut new_byte_lookup_events = Vec::new();
         for event in input.events() {
             let shard = event.shard;
             let mut row = vec![F::zero(); width];
-            let cols: &mut Blake2sAdd3Cols<F> = row.as_mut_slice().borrow_mut();
+            let cols: &mut Blake2sXorRotateRight12Cols<F> = row.as_mut_slice().borrow_mut();
 
             cols.clk = F::from_canonical_u32(event.clk);
             cols.is_real = F::one();
@@ -151,23 +156,15 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sAdd3Chip {
                 );
 
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
-                cols.b[i + 4].populate(
-                    event.channel,
-                    event.b_reads[i + 4],
-                    &mut new_byte_lookup_events,
-                );
-                cols.b[i + 8].populate(
-                    event.channel,
-                    event.b_reads[i + 8],
-                    &mut new_byte_lookup_events,
-                );
 
                 let a = event.a_reads_writes[i].value;
                 let b = event.b_reads[i].value;
-                let c = event.b_reads[i + 4].value;
+                let xor = cols.xor[i].populate(output, shard, event.channel, a, b);
+                assert_eq!(a ^ b, xor);
 
-                let add = cols.add3[i].populate(output, shard, event.channel, a, b, c, 0);
-                assert_eq!(a + b + c, add);
+                let rotate_right =
+                    cols.rotate_right[i].populate(output, shard, event.channel, xor, R_2 as usize);
+                assert_eq!(xor.rotate_right(R_2), rotate_right);
             }
 
             rows.push(row);
@@ -186,7 +183,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sAdd3Chip {
 
         // Write the nonces to the trace.
         for i in 0..trace.height() {
-            let cols: &mut Blake2sAdd3Cols<F> =
+            let cols: &mut Blake2sXorRotateRight12Cols<F> =
                 trace.values[i * width..(i + 1) * width].borrow_mut();
             cols.nonce = F::from_canonical_usize(i);
         }
@@ -195,11 +192,11 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sAdd3Chip {
     }
 
     fn included(&self, shard: &Self::Record) -> bool {
-        !shard.blake2s_add_3_events.is_empty()
+        !shard.blake2s_xor_rotate_right_12_events.is_empty()
     }
 }
 
-impl<AB: SphinxAirBuilder> Air<AB> for Blake2sAdd3Chip
+impl<AB: SphinxAirBuilder> Air<AB> for Blake2sXorRotateRight12Chip
 where
     AB::F: PrimeField32,
 {
@@ -207,8 +204,8 @@ where
         let main = builder.main();
         let local = main.row_slice(0);
         let next = main.row_slice(1);
-        let local: &Blake2sAdd3Cols<AB::Var> = (*local).borrow();
-        let next: &Blake2sAdd3Cols<AB::Var> = (*next).borrow();
+        let local: &Blake2sXorRotateRight12Cols<AB::Var> = (*local).borrow();
+        let next: &Blake2sXorRotateRight12Cols<AB::Var> = (*next).borrow();
 
         // Constrain the incrementing nonce.
         builder.when_first_row().assert_zero(local.nonce);
@@ -227,7 +224,7 @@ where
                 local.is_real,
             );
 
-            // Eval b[0..4].
+            // Eval b.
             builder.eval_memory_access(
                 local.shard,
                 local.channel,
@@ -237,40 +234,26 @@ where
                 local.is_real,
             );
 
-            // Eval b[4..8].
-            builder.eval_memory_access(
-                local.shard,
-                local.channel,
-                local.clk,
-                local.b_ptr
-                    + ((AB::F::from_canonical_u32(4) + AB::F::from_canonical_u32(i as u32))
-                        * AB::F::from_canonical_u32(4)),
-                &local.b[i + 4],
-                local.is_real,
-            );
-
-            // Eval b[8..12].
-            builder.eval_memory_access(
-                local.shard,
-                local.channel,
-                local.clk,
-                local.b_ptr
-                    + ((AB::F::from_canonical_u32(8) + AB::F::from_canonical_u32(i as u32))
-                        * AB::F::from_canonical_u32(4)),
-                &local.b[i + 8],
-                local.is_real,
-            );
-
-            Add4Operation::<AB::F>::eval(
+            // Eval XOR
+            XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i].value(),
                 *local.b[i].value(),
-                *local.b[i + 4].value(),
-                *local.b[i + 8].value(), // zero
+                local.xor[i],
                 local.shard,
-                local.channel,
+                &local.channel,
                 local.is_real,
-                local.add3[i],
+            );
+
+            // Eval RotateRight
+            FixedRotateRightOperation::<AB::F>::eval(
+                builder,
+                local.xor[i].value,
+                R_2 as usize,
+                local.rotate_right[i],
+                local.shard,
+                &local.channel,
+                local.is_real,
             );
         }
 
@@ -279,7 +262,7 @@ where
             local.channel,
             local.clk,
             local.nonce,
-            AB::F::from_canonical_u32(SyscallCode::BLAKE_2S_ADD_3.syscall_id()),
+            AB::F::from_canonical_u32(SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12.syscall_id()),
             local.a_ptr,
             local.b_ptr,
             local.is_real,
@@ -290,11 +273,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::BLAKE2S_ADD_3_ELF;
+    use crate::utils::tests::BLAKE2S_XOR_ROTATE_RIGHT_12_ELF;
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
-    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 12]) -> Program {
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 4], b: [u32; 4]) -> Program {
         let mut instructions = vec![];
         // memory write a
         for (index, word) in a.into_iter().enumerate() {
@@ -329,7 +312,7 @@ mod tests {
             Opcode::ADD,
             5,
             0,
-            SyscallCode::BLAKE_2S_ADD_3 as u32,
+            SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12 as u32,
             false,
             true,
         ));
@@ -340,7 +323,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blake2s_add_3_precompile() {
+    fn test_blake2s_xor_rotate_right_12_precompile() {
         setup_logger();
 
         let a_ptr = 100100100;
@@ -348,8 +331,8 @@ mod tests {
         let program = risc_v_program(
             a_ptr,
             b_ptr,
-            [200, 300, 400, 500],
-            [10, 20, 30, 40, 1, 2, 3, 4, 0, 0, 0, 0],
+            [0x6b08e647, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
+            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
         );
 
         let (_, memory) = run_test_with_memory_inspection(program);
@@ -359,13 +342,16 @@ mod tests {
             result.push(memory.get(&(a_ptr + i * 4)).unwrap().value);
         }
 
-        assert_eq!(result, [211, 322, 433, 544].to_vec());
+        assert_eq!(
+            result,
+            [0x4383a06b, 0x6092062c, 0xad923ed2, 0x823feaf3].to_vec()
+        );
     }
 
     #[test]
-    fn test_blake2s_add_3_program() {
+    fn test_blake2s_xor_rotate_right_16_program() {
         setup_logger();
-        let program = Program::from(BLAKE2S_ADD_3_ELF);
+        let program = Program::from(BLAKE2S_XOR_ROTATE_RIGHT_12_ELF);
         run_test(program).unwrap();
     }
 }

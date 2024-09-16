@@ -12,7 +12,8 @@ use crate::runtime::MemoryRecordEnum;
 use crate::stark::MachineRecord;
 use crate::syscall::precompiles::blake2s::{
     Blake2sAdd2Chip, Blake2sAdd2Event, Blake2sAdd3Chip, Blake2sAdd3Event, Blake2sXorRotate16Chip,
-    Blake2sXorRotate16Event, Blake2sXorRotateRightChip, Blake2sXorRotateRightEvent,
+    Blake2sXorRotate16Event, Blake2sXorRotateRight12Chip, Blake2sXorRotateRight12Event,
+    Blake2sXorRotateRight16Chip, Blake2sXorRotateRight16Event,
 };
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
@@ -129,10 +130,12 @@ pub struct ExecutionRecord {
     pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
     pub bls12381_g2_double_events: Vec<Bls12381G2AffineDoubleEvent>,
 
-    pub blake2s_xor_rotate_right_events: Vec<Blake2sXorRotateRightEvent>,
-    pub blake2s_xor_rotate_16_events: Vec<Blake2sXorRotate16Event>,
+    // Blake2s
+    pub blake2s_xor_rotate_right_16_events: Vec<Blake2sXorRotateRight16Event>,
+    pub blake2s_xor_rotate_16_events: Vec<Blake2sXorRotate16Event>, // based on sha-extend
     pub blake2s_add_2_events: Vec<Blake2sAdd2Event>,
     pub blake2s_add_3_events: Vec<Blake2sAdd3Event>,
+    pub blake2s_xor_rotate_right_12_events: Vec<Blake2sXorRotateRight12Event>,
 
     pub memory_initialize_events: Vec<MemoryInitializeFinalizeEvent>,
 
@@ -327,9 +330,9 @@ impl EventLens<EdDecompressChip<Ed25519Parameters>> for ExecutionRecord {
     }
 }
 
-impl EventLens<Blake2sXorRotateRightChip> for ExecutionRecord {
-    fn events(&self) -> <Blake2sXorRotateRightChip as crate::air::WithEvents<'_>>::Events {
-        &self.blake2s_xor_rotate_right_events
+impl EventLens<Blake2sXorRotateRight16Chip> for ExecutionRecord {
+    fn events(&self) -> <Blake2sXorRotateRight16Chip as crate::air::WithEvents<'_>>::Events {
+        &self.blake2s_xor_rotate_right_16_events
     }
 }
 
@@ -348,6 +351,12 @@ impl EventLens<Blake2sAdd2Chip> for ExecutionRecord {
 impl EventLens<Blake2sAdd3Chip> for ExecutionRecord {
     fn events(&self) -> <Blake2sAdd3Chip as crate::air::WithEvents<'_>>::Events {
         &self.blake2s_add_3_events
+    }
+}
+
+impl EventLens<Blake2sXorRotateRight12Chip> for ExecutionRecord {
+    fn events(&self) -> <Blake2sXorRotateRight12Chip as crate::air::WithEvents<'_>>::Events {
+        &self.blake2s_xor_rotate_right_12_events
     }
 }
 
@@ -499,8 +508,8 @@ impl MachineRecord for ExecutionRecord {
             self.bls12381_g2_double_events.len(),
         );
         stats.insert(
-            "blake2s_xor_rotate_right_events".to_string(),
-            self.blake2s_xor_rotate_right_events.len(),
+            "blake2s_xor_rotate_right_16_events".to_string(),
+            self.blake2s_xor_rotate_right_16_events.len(),
         );
         stats.insert(
             "blake2s_xor_rotate_16_events".to_string(),
@@ -515,6 +524,11 @@ impl MachineRecord for ExecutionRecord {
         stats.insert(
             "blake2s_add_3_events".to_string(),
             self.blake2s_add_3_events.len(),
+        );
+
+        stats.insert(
+            "blake2s_xor_rotate_right_12_events".to_string(),
+            self.blake2s_xor_rotate_right_12_events.len(),
         );
 
         stats
@@ -562,14 +576,17 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_g2_add_events);
         self.bls12381_g2_double_events
             .append(&mut other.bls12381_g2_double_events);
-        self.blake2s_xor_rotate_right_events
-            .append(&mut other.blake2s_xor_rotate_right_events);
+
+        self.blake2s_xor_rotate_right_16_events
+            .append(&mut other.blake2s_xor_rotate_right_16_events);
         self.blake2s_xor_rotate_16_events
             .append(&mut other.blake2s_xor_rotate_16_events);
         self.blake2s_add_2_events
             .append(&mut other.blake2s_add_2_events);
         self.blake2s_add_3_events
             .append(&mut other.blake2s_add_3_events);
+        self.blake2s_xor_rotate_right_12_events
+            .append(&mut other.blake2s_xor_rotate_right_12_events);
 
         // Merge the byte lookups.
         for (shard, events_map) in take(&mut other.byte_lookups) {
@@ -897,9 +914,10 @@ impl MachineRecord for ExecutionRecord {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
-        // blake2s_xor_rotate_right events
-        first.blake2s_xor_rotate_right_events = take(&mut self.blake2s_xor_rotate_right_events);
-        for (i, event) in first.blake2s_xor_rotate_right_events.iter().enumerate() {
+        // blake2s_xor_rotate_right_16 events
+        first.blake2s_xor_rotate_right_16_events =
+            take(&mut self.blake2s_xor_rotate_right_16_events);
+        for (i, event) in first.blake2s_xor_rotate_right_16_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
@@ -918,6 +936,13 @@ impl MachineRecord for ExecutionRecord {
         // blake2s_add_3 events
         first.blake2s_add_3_events = take(&mut self.blake2s_add_3_events);
         for (i, event) in first.blake2s_add_3_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
+        }
+
+        // blake2s_xor_rotate_right_12 events
+        first.blake2s_xor_rotate_right_12_events =
+            take(&mut self.blake2s_xor_rotate_right_12_events);
+        for (i, event) in first.blake2s_xor_rotate_right_12_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 

@@ -1,10 +1,8 @@
-use crate::air::Word;
 use crate::bytes::event::ByteRecord;
 use crate::memory::{MemoryCols, MemoryReadCols, MemoryWriteCols};
-use crate::operations::{Add4Operation, FixedRotateRightOperation, XorOperation};
+use crate::operations::Add4Operation;
 use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 use crate::stark::SphinxAirBuilder;
-use crate::syscall::precompiles::blake2s::R_1;
 use crate::utils::pad_rows;
 use crate::{
     air::{EventLens, MachineAir, WithEvents},
@@ -289,7 +287,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::{BLAKE2S_ADD_2_ELF, BLAKE2S_XOR_RIGHT_ROTATE_ELF};
+    use crate::utils::tests::BLAKE2S_ADD_2_ELF;
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 

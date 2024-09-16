@@ -1,6 +1,6 @@
 [workspace]
 [package]
-name = "blake2s-xor-rotate-right-test"
+name = "blake2s-xor-rotate-right-12-test"
 version = "0.1.0"
 edition = "2021"
 

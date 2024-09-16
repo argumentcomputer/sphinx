@@ -3,12 +3,12 @@ use core::arch::asm;
 
 #[allow(unused_variables)]
 #[no_mangle]
-pub extern "C" fn syscall_blake2s_xor_rotate_right(left: *mut u32, right: *const u32) {
+pub extern "C" fn syscall_blake2s_xor_rotate_right_16(left: *mut u32, right: *const u32) {
     #[cfg(target_os = "zkvm")]
     unsafe {
         asm!(
         "ecall",
-        in("t0") crate::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT,
+        in("t0") crate::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_16,
         in("a0") left,
         in("a1") right
         );
