@@ -4,7 +4,7 @@ use crate::air::{MachineAir, SPHINX_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
 use crate::syscall::precompiles::blake2s::{
-    Blake2sAdd2Chip, Blake2sXorRotate16Chip, Blake2sXorRotateRightChip,
+    Blake2sAdd2Chip, Blake2sAdd3Chip, Blake2sXorRotate16Chip, Blake2sXorRotateRightChip,
 };
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
@@ -113,6 +113,7 @@ pub enum RiscvAir<F: PrimeField32> {
     Blake2sXorRotateRight(Blake2sXorRotateRightChip),
     Blake2sXorRotate16(Blake2sXorRotate16Chip),
     Blake2sAdd2(Blake2sAdd2Chip),
+    Blake2sAdd3(Blake2sAdd3Chip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -197,6 +198,9 @@ impl<F: PrimeField32> RiscvAir<F> {
 
         let blake2s_add_2 = Blake2sAdd2Chip::default();
         chips.push(RiscvAir::Blake2sAdd2(blake2s_add_2));
+
+        let blake2s_add_3 = Blake2sAdd3Chip::default();
+        chips.push(RiscvAir::Blake2sAdd3(blake2s_add_3));
 
         chips
     }

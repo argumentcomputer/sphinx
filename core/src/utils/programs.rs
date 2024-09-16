@@ -130,6 +130,9 @@ pub mod tests {
     pub const BLAKE2S_ADD_2_ELF: &[u8] =
         include_bytes!("../../../tests/blake2s-add2/elf/riscv32im-succinct-zkvm-elf");
 
+    pub const BLAKE2S_ADD_3_ELF: &[u8] =
+        include_bytes!("../../../tests/blake2s-add3/elf/riscv32im-succinct-zkvm-elf");
+
     pub const PANIC_ELF: &[u8] =
         include_bytes!("../../../tests/panic/elf/riscv32im-succinct-zkvm-elf");
 }
