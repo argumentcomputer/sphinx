@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-
 use crate::air::{Block, IsZeroOperation, RecursionMemoryAirBuilder};
 use crate::memory::{MemoryReadSingleCols, MemoryReadWriteSingleCols};
 use crate::runtime::Opcode;

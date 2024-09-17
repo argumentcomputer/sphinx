@@ -84,6 +84,7 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
         // Contrain memory access for the first half of the memory accesses.
         {
             let mut addr: AB::Expr = local_memory.start_addr.into();
+            #[allow(clippy::needless_range_loop)]
             for i in 0..WIDTH / 2 {
                 builder.recursion_eval_memory_access_single(
                     clk + control_flow.is_compress_output,
