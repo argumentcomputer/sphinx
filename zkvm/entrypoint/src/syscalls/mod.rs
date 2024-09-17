@@ -15,6 +15,7 @@ mod verify;
 
 pub mod blake2s_add_2;
 pub mod blake2s_add_3;
+pub mod blake2s_quarter_round;
 pub mod blake2s_xor_rotate_16;
 pub mod blake2s_xor_rotate_right_12;
 pub mod blake2s_xor_rotate_right_16;
@@ -128,3 +129,5 @@ pub const BLAKE_2S_XOR_ROTATE_RIGHT_12: u32 = 0x00_01_01_EA;
 pub const BLAKE_2S_XOR_ROTATE_RIGHT_8: u32 = 0x00_01_01_EB;
 
 pub const BLAKE_2S_XOR_ROTATE_RIGHT_7: u32 = 0x00_01_01_EC;
+
+pub const BLAKE_2S_QUARTER_ROUND: u32 = 0x00_01_01_ED;
