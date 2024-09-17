@@ -507,6 +507,7 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 r + NUM_INTERNAL_ROUNDS
             };
             let mut add_rc = *round_state;
+            #[allow(clippy::needless_range_loop)]
             for i in 0..WIDTH {
                 add_rc[i] += F::from_wrapped_u32(RC_16_30_U32[round][i]);
             }
