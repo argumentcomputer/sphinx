@@ -5,7 +5,6 @@ use std::ops::Deref;
 
 use p3_baby_bear::{MONTY_INVERSE, POSEIDON2_INTERNAL_MATRIX_DIAG_16_BABYBEAR_MONTY};
 use p3_field::AbstractField;
-use p3_field::Field;
 use p3_field::PrimeField32;
 
 pub mod air;
@@ -30,13 +29,13 @@ pub const NUM_ROUNDS: usize = NUM_EXTERNAL_ROUNDS + NUM_INTERNAL_ROUNDS;
 
 /// A chip that implements addition for the opcode ADD.
 #[derive(Default)]
-pub struct Poseidon2WideChip<F: Field, const DEGREE: usize> {
+pub struct Poseidon2WideChip<F: Sync, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
     pub pad: bool,
     pub _phantom: PhantomData<F>,
 }
 
-impl<'a, F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<'a, F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Transmute a row it to an immutable Poseidon2 instance.
     pub(crate) fn convert<T>(row: impl Deref<Target = [T]>) -> Box<dyn Poseidon2<'a, T> + 'a>
     where
@@ -52,7 +51,9 @@ impl<'a, F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             panic!("Unsupported degree");
         }
     }
+}
 
+impl<'a, F: Sync + Copy, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Transmute a row it to a mutable Poseidon2 instance.
     pub(crate) fn convert_mut<'b: 'a>(
         &self,
