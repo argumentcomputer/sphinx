@@ -33,7 +33,9 @@ func Verify(verifyCmdDataDir string, verifyCmdProof string, verifyCmdVkeyHash st
 		panic(err)
 	}
 	vk := plonk.NewVerifyingKey(ecc.BN254)
-	vk.ReadFrom(vkFile)
+	if _, err := vk.ReadFrom(vkFile); err != nil {
+		panic(err)
+	}
 
 	// Compute the public witness.
 	circuit := Circuit{
