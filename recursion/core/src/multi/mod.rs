@@ -7,7 +7,7 @@ use std::ops::Deref;
 use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{AbstractField, Field, PrimeField32};
+use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, Proj, WithEvents};
@@ -58,7 +58,7 @@ pub struct MultiCols<T: Copy> {
     pub poseidon2_send_range_check: T,
 }
 
-impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
+impl<F: Sync + Default, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
     fn width(&self) -> usize {
         let fri_fold_width = Self::fri_fold_width();
         let poseidon2_width = Self::poseidon2_width();
@@ -67,7 +67,7 @@ impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
     }
 }
 
-impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
+impl<'a, F: 'a + Sync, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
     type Events = (
         <FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events,
         <Poseidon2WideChip<F, DEGREE> as WithEvents<'a>>::Events,
@@ -343,7 +343,7 @@ where
     }
 }
 
-impl<F: Field, const DEGREE: usize> MultiChip<F, DEGREE> {
+impl<F: Sync + Default, const DEGREE: usize> MultiChip<F, DEGREE> {
     fn fri_fold_width() -> usize {
         <FriFoldChip<F, DEGREE> as BaseAir<F>>::width(&FriFoldChip::<F, DEGREE>::default())
     }

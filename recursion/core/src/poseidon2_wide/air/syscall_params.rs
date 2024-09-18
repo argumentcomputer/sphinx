@@ -1,5 +1,4 @@
 use p3_air::AirBuilder;
-use p3_field::Field;
 use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
@@ -11,7 +10,7 @@ use crate::{
     runtime::Opcode,
 };
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Eval the syscall parameters.
     pub(crate) fn eval_syscall_params<AB: SphinxRecursionAirBuilder>(
         &self,

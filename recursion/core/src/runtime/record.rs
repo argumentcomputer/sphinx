@@ -62,11 +62,11 @@ impl<F: PrimeField32> MachineRecord for ExecutionRecord<F> {
         let mut stats = HashMap::new();
         stats.insert("cpu_events".to_string(), self.cpu_events.len());
         stats.insert(
-            "poseidon2_events".to_string(),
+            "poseidon2_compress_events".to_string(),
             self.poseidon2_compress_events.len(),
         );
         stats.insert(
-            "poseidon2_events".to_string(),
+            "poseidon2_hash_events".to_string(),
             self.poseidon2_hash_events.len(),
         );
         stats.insert("fri_fold_events".to_string(), self.fri_fold_events.len());
