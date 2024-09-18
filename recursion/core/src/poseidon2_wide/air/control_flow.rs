@@ -1,5 +1,5 @@
 use p3_air::AirBuilder;
-use p3_field::{AbstractField, Field};
+use p3_field::AbstractField;
 use sphinx_core::{air::BaseAirBuilder, operations::IsZeroOperation};
 
 use crate::{
@@ -14,7 +14,7 @@ use crate::{
     range_check::RangeCheckOpcode,
 };
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Constraints related to control flow.
     pub(crate) fn eval_control_flow<AB: SphinxRecursionAirBuilder>(
         &self,

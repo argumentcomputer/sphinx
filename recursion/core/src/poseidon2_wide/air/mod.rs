@@ -73,7 +73,6 @@
 //! into the next row.  That row should then verify the correct memory write accesses.
 
 use p3_air::{Air, BaseAir};
-use p3_field::Field;
 use p3_matrix::Matrix;
 
 use crate::air::SphinxRecursionAirBuilder;
@@ -89,7 +88,7 @@ use super::{
     Poseidon2WideChip, WIDTH,
 };
 
-impl<F: Field, const DEGREE: usize> BaseAir<F> for Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> BaseAir<F> for Poseidon2WideChip<F, DEGREE> {
     fn width(&self) -> usize {
         if DEGREE == 3 {
             NUM_POSEIDON2_DEGREE3_COLS
@@ -132,7 +131,7 @@ where
     }
 }
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     pub(crate) fn eval_poseidon2<AB>(
         &self,
         builder: &mut AB,

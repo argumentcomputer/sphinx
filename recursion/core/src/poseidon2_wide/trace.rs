@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use p3_air::BaseAir;
-use p3_field::{Field, PrimeField32};
+use p3_field::PrimeField32;
 use p3_matrix::dense::RowMajorMatrix;
 use p3_maybe_rayon::prelude::IndexedParallelIterator;
 use p3_maybe_rayon::prelude::ParallelIterator;
@@ -26,7 +26,7 @@ use super::events::{Poseidon2AbsorbEvent, Poseidon2CompressEvent, Poseidon2Final
 use super::RATE;
 use super::{internal_linear_layer, Poseidon2WideChip, NUM_INTERNAL_ROUNDS};
 
-impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
+impl<'a, F: 'a + Sync, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
     type Events = (&'a [Poseidon2HashEvent<F>], &'a [Poseidon2CompressEvent<F>]);
 }
 

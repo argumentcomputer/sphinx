@@ -1,6 +1,6 @@
 use std::array;
 
-use p3_field::{AbstractField, Field};
+use p3_field::AbstractField;
 use sphinx_primitives::RC_16_30_U32;
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     pub(crate) fn eval_perm<AB: SphinxRecursionAirBuilder>(
         &self,
         builder: &mut AB,
