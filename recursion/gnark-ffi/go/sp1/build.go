@@ -149,14 +149,20 @@ func Build(dataDir string) {
 	}
 
 	// Create the build directory.
-	os.MkdirAll(dataDir, 0755)
+	err = os.MkdirAll(dataDir, 0755)
+	if err != nil {
+		panic(err)
+	}
 
 	// Write the solidity verifier.
 	solidityVerifierFile, err := os.Create(dataDir + "/" + verifierContractPath)
 	if err != nil {
 		panic(err)
 	}
-	vk.ExportSolidity(solidityVerifierFile)
+	err = vk.ExportSolidity(solidityVerifierFile)
+	if err != nil {
+		panic(err)
+	}
 	defer solidityVerifierFile.Close()
 
 	// Write the R1CS.
