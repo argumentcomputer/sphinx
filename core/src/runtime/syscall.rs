@@ -133,7 +133,7 @@ pub enum SyscallCode {
     BLAKE_2S_XOR_ROTATE_RIGHT_12 = 0x00_01_01_EA,
     BLAKE_2S_XOR_ROTATE_RIGHT_8 = 0x00_01_01_EB,
     BLAKE_2S_XOR_ROTATE_RIGHT_7 = 0x00_01_01_EC,
-    BLAKE_2S_QUARTER_ROUND = 0x00_01_01_ED,
+    BLAKE_2S_QUARTER_ROUND_2X = 0x00_01_01_ED,
 }
 
 impl SyscallCode {
@@ -177,7 +177,7 @@ impl SyscallCode {
             0x00_01_01_EA => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12,
             0x00_01_01_EB => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8,
             0x00_01_01_EC => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_7,
-            0x00_01_01_ED => SyscallCode::BLAKE_2S_QUARTER_ROUND,
+            0x00_01_01_ED => SyscallCode::BLAKE_2S_QUARTER_ROUND_2X,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -452,7 +452,7 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
     );
 
     syscall_map.insert(
-        SyscallCode::BLAKE_2S_QUARTER_ROUND,
+        SyscallCode::BLAKE_2S_QUARTER_ROUND_2X,
         Arc::new(Blake2sQuarterRound2xChip::new()),
     );
 
@@ -610,8 +610,11 @@ mod tests {
                     )
                 }
 
-                SyscallCode::BLAKE_2S_QUARTER_ROUND => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_QUARTER_ROUND)
+                SyscallCode::BLAKE_2S_QUARTER_ROUND_2X => {
+                    assert_eq!(
+                        code as u32,
+                        sphinx_zkvm::syscalls::BLAKE_2S_QUARTER_ROUND_2X
+                    )
                 }
             }
         }

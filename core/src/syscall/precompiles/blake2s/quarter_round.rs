@@ -20,8 +20,8 @@ use std::mem::size_of;
 
 const R_1: u32 = 16;
 const R_2: u32 = 12;
-//const R_3: u32 = 8;
-//const R_4: u32 = 7;
+const R_3: u32 = 8;
+const R_4: u32 = 7;
 
 #[derive(Default)]
 pub struct Blake2sQuarterRound2xChip;
@@ -62,8 +62,8 @@ impl Syscall for Blake2sQuarterRound2xChip {
         // b: m1[0] || m1[1] || m1[2] || m1[3] || || m2[0] || m2[1] || m2[2] || m2[3] || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 ||
         let (b_reads, b) = ctx.mr_slice(b_ptr, 16);
 
-        //for (rot_1, rot_2) in [(R_1, R_2), (R_3, R_4)].into_iter() {
-        // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
+        // 1x (m1, R1, R2)
+        // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m1)
         for ((v0, v1), m) in a[0..4]
             .iter_mut()
             .zip(a_clone[4..8].iter())
@@ -89,11 +89,39 @@ impl Syscall for Blake2sQuarterRound2xChip {
         for (v1, v2) in a[4..8].iter_mut().zip(a_clone[8..12].iter()) {
             *v1 = (*v1 ^ *v2).rotate_right(R_2);
         }
+
+        // 2x (m2, R3, R4)
+        let mut a = a.clone(); // a after 1x quarter_round
+        let mut a_clone = a.clone();
+
+        // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m2)
+        for ((v0, v1), m) in a[0..4]
+            .iter_mut()
+            .zip(a_clone[4..8].iter())
+            .zip(b[4..8].iter())
+        {
+            *v0 = (*v0).wrapping_add(*v1).wrapping_add(*m);
+        }
         a_clone = a.clone();
-        //}
+
+        // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
+        for (v3, v0) in a[12..16].iter_mut().zip(a_clone[0..4].iter()) {
+            *v3 = (*v3 ^ *v0).rotate_right(R_3);
+        }
+        a_clone = a.clone();
+
+        // v[2] = v[2].wrapping_add(v[3]);
+        for (v2, v3) in a[8..12].iter_mut().zip(a_clone[12..16].iter()) {
+            *v2 = (*v2).wrapping_add(*v3);
+        }
+        a_clone = a.clone();
+
+        // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
+        for (v1, v2) in a[4..8].iter_mut().zip(a_clone[8..12].iter()) {
+            *v1 = (*v1 ^ *v2).rotate_right(R_4);
+        }
 
         ctx.clk += 1;
-
         // Write rotate_right to a_ptr.
         let a_reads_writes = ctx.mw_slice(a_ptr, a.as_slice());
 
@@ -133,9 +161,9 @@ struct Blake2sQuarterRound2xCols<T> {
     pub a: [MemoryWriteCols<T>; 16],
     pub b: [MemoryReadCols<T>; 16],
 
-    pub add: [Add4Operation<T>; 8],
-    pub xor: [XorOperation<T>; 8],
-    pub rotate_right: [FixedRotateRightOperation<T>; 8],
+    pub add: [Add4Operation<T>; 8 * 2],
+    pub xor: [XorOperation<T>; 8 * 2],
+    pub rotate_right: [FixedRotateRightOperation<T>; 8 * 2],
 }
 
 impl<T: PrimeField32> BaseAir<T> for Blake2sQuarterRound2xChip {
@@ -189,13 +217,13 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
             // a: v[0] || v[1] || v[2] || v[3] || v[4] || v[5] || v[6] || v[7] || v[8] || v[9] || v[10] || v[11] || v[12] || v[13] || v[14] || v[15] ||
             // b: m1[0] || m1[1] || m1[2] || m1[3] || || m2[0] || m2[1] || m2[2] || m2[3] || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 ||
             for i in 0..4usize {
-                // 1x
+                // 1x (m1, R1, R2)
                 let v0 = event.a_reads_writes[i].value;
                 let v1 = event.a_reads_writes[i + 4].value;
                 let v2 = event.a_reads_writes[i + 8].value;
                 let v3 = event.a_reads_writes[i + 12].value;
                 let m1 = event.b_reads[i].value;
-                //let m2 = event.b_reads[i + 4].value;
+                let m2 = event.b_reads[i + 4].value;
                 let zero1 = event.b_reads[i + 8].value;
                 let zero2 = event.b_reads[i + 12].value;
                 assert_eq!(zero1, 0);
@@ -226,33 +254,52 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                     R_2 as usize,
                 );
                 assert_eq!((v1 ^ v2).rotate_right(R_2), v1_new);
-            }
 
-            /*
-                // 2x
+                // 2x (m2, R3, R4)
                 let v0 = v0_new;
                 let v1 = v1_new;
                 let v2 = v2_new;
                 let v3 = v3_new;
 
-                // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-                let v0_new = cols.add[i + 8].populate(output, shard, event.channel, v0, v1, m2, zero1);
-                assert_eq!(v0 + v1 + m2 + zero1, v0_new);
+                // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m2)
+                let v0_new =
+                    cols.add[i + 8].populate(output, shard, event.channel, v0, v1, m2, zero1);
+                assert_eq!(v0 + v1 + m1 + zero1, v0_new);
 
-                // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
+                // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
                 let temp = cols.xor[i + 8].populate(output, shard, event.channel, v3, v0);
-                let v3_new = cols.rotate_right[i + 8].populate(output, shard, event.channel, temp, R_3 as usize);
+                let v3_new = cols.rotate_right[i + 8].populate(
+                    output,
+                    shard,
+                    event.channel,
+                    temp,
+                    R_3 as usize,
+                );
                 assert_eq!((v3 ^ v0).rotate_right(R_3), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new = cols.add[i + 12].populate(output, shard, event.channel, v2, v3, zero1, zero2);
+                let v2_new = cols.add[i + 4 + 8].populate(
+                    output,
+                    shard,
+                    event.channel,
+                    v2,
+                    v3,
+                    zero1,
+                    zero2,
+                );
                 assert_eq!(v2 + v3 + zero1 + zero2, v2_new);
 
-                // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
-                let temp = cols.xor[i + 12].populate(output, shard, event.channel, v1, v2);
-                let v1_new = cols.rotate_right[i + 12].populate(output, shard, event.channel, temp, R_4 as usize);
+                // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
+                let temp = cols.xor[i + 4 + 8].populate(output, shard, event.channel, v1, v2);
+                let v1_new = cols.rotate_right[i + 4 + 8].populate(
+                    output,
+                    shard,
+                    event.channel,
+                    temp,
+                    R_4 as usize,
+                );
                 assert_eq!((v1 ^ v2).rotate_right(R_4), v1_new);
-            }*/
+            }
 
             rows.push(row);
         }
@@ -384,6 +431,7 @@ where
                 &local.channel,
                 local.is_real,
             );
+
             // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
@@ -395,38 +443,39 @@ where
                 local.is_real,
             );
 
-            /*
             // 2x
+
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
             Add4Operation::<AB::F>::eval(
                 builder,
-                *local.a[i].value(), // v0
-                *local.a[i + 4].value(), // v1
-                *local.b[i].value(), // m1
-                *local.b[i + 8].value(), // zero1
+                local.add[i].value,              // v0 after 1x
+                local.rotate_right[i + 4].value, // v1 after 1x
+                *local.b[i + 4].value(),         // m2
+                *local.b[i + 8].value(),         // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i],
+                local.add[i + 8],
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
-                *local.a[i + 12].value(),
-                *local.a[i].value(),
-                local.xor[i],
+                local.rotate_right[i].value, // v3 after 1x
+                local.add[i].value,          // v0 after 1x
+                local.xor[i + 8],
                 local.shard,
                 &local.channel,
                 local.is_real,
             );
+
             // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
-                local.xor[i].value,
-                R_1 as usize,
-                local.rotate_right[i],
+                local.xor[i + 8].value,
+                R_3 as usize,
+                local.rotate_right[i + 8],
                 local.shard,
                 &local.channel,
                 local.is_real,
@@ -435,37 +484,38 @@ where
             // v[2] = v[2].wrapping_add(v[3]);
             Add4Operation::<AB::F>::eval(
                 builder,
-                *local.a[i + 8].value(), // v2
-                *local.a[i + 12].value(), // v3
-                *local.b[i + 8].value(), // zero1
-                *local.b[i + 12].value(), // zero2
+                local.add[i + 4].value,      // v2 after 1x
+                local.rotate_right[i].value, // v3 after 1x
+                *local.b[i + 8].value(),     // zero1
+                *local.b[i + 12].value(),    // zero2
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i + 4],
+                local.add[i + 12],
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
-                *local.a[i + 4].value(),
-                *local.a[i + 8].value(),
-                local.xor[i + 4],
+                local.rotate_right[i + 4].value, // v1 after 1x
+                local.add[i + 4].value,          // v2 after 1x
+                local.xor[i + 12],
                 local.shard,
                 &local.channel,
                 local.is_real,
             );
+
             // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
-                local.xor[i + 4].value,
-                R_2 as usize,
-                local.rotate_right[i + 4],
+                local.xor[i + 12].value,
+                R_4 as usize,
+                local.rotate_right[i + 12],
                 local.shard,
                 &local.channel,
                 local.is_real,
-            );*/
+            );
         }
 
         builder.receive_syscall(
@@ -473,7 +523,7 @@ where
             local.channel,
             local.clk,
             local.nonce,
-            AB::F::from_canonical_u32(SyscallCode::BLAKE_2S_QUARTER_ROUND.syscall_id()),
+            AB::F::from_canonical_u32(SyscallCode::BLAKE_2S_QUARTER_ROUND_2X.syscall_id()),
             local.a_ptr,
             local.b_ptr,
             local.is_real,
@@ -484,7 +534,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::BLAKE2S_QUARTER_ROUND_ELF;
+    use crate::utils::tests::BLAKE2S_QUARTER_ROUND_2X_ELF;
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
@@ -523,7 +573,7 @@ mod tests {
             Opcode::ADD,
             5,
             0,
-            SyscallCode::BLAKE_2S_QUARTER_ROUND as u32,
+            SyscallCode::BLAKE_2S_QUARTER_ROUND_2X as u32,
             false,
             true,
         ));
@@ -534,7 +584,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blake2s_quarter_round_precompile() {
+    fn test_blake2s_quarter_round_2x_precompile() {
         setup_logger();
 
         // a: v[0] || v[1] || v[2] || v[3] || v[4] || v[5] || v[6] || v[7] || v[8] || v[9] || v[10] || v[11] || v[12] || v[13] || v[14] || v[15] ||
@@ -563,18 +613,18 @@ mod tests {
         assert_eq!(
             result,
             [
-                0xbc1738c6, 0x566d1711, 0x5bf2cd1d, 0x130c253, 0x1ff85cd8, 0x361a0001, 0x6ab383b7,
-                0xd13ef7a9, 0xd4c3d380, 0x3b057bed, 0x27b8af00, 0xb49a500a, 0x6ab9ed19, 0x7f9dcd68,
-                0xeb49bb8e, 0xf4a5ad0,
+                0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc, 0x408705aa, 0x8d07c52d, 0xb9d6aa3a,
+                0x88609304, 0x5c7a89f8, 0xb5f896c7, 0x81e69eeb, 0xe17775ed, 0x87b6b678, 0x7af31ada,
+                0x5a2defeb, 0x2cdd25e3,
             ]
             .to_vec()
         );
     }
 
     #[test]
-    fn test_blake2s_quarter_round_program() {
+    fn test_blake2s_quarter_round_2x_program() {
         setup_logger();
-        let program = Program::from(BLAKE2S_QUARTER_ROUND_ELF);
+        let program = Program::from(BLAKE2S_QUARTER_ROUND_2X_ELF);
         run_test(program).unwrap();
     }
 }

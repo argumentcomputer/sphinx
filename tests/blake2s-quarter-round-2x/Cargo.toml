@@ -1,6 +1,6 @@
 [workspace]
 [package]
-name = "blake2s-quarter_round-test"
+name = "blake2s-quarter_round-2x-test"
 version = "0.1.0"
 edition = "2021"
 
