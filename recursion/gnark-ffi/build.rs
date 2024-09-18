@@ -27,10 +27,20 @@ fn main() {
                 return;
             }
 
+            // Detect current OS and set GOOS accordingly
+            let goos = match env::consts::OS {
+                "macos" => "darwin",
+                "linux" => "linux",
+                "windows" => "windows",
+                _ => panic!("Unsupported OS"),
+            };
+
+
             // Run the go build command
             let status = Command::new("go")
                 .current_dir("go")
                 .env("CGO_ENABLED", "1")
+                .env("GOOS", goos) // Set GOOS based on the current OS
                 .args([
                     "build",
                     "-o",
