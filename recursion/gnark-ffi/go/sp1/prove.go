@@ -23,7 +23,9 @@ func Prove(dataDir string, witnessPath string) Proof {
 		panic(err)
 	}
 	scs := plonk.NewCS(ecc.BN254)
-	scs.ReadFrom(scsFile)
+	if _, err := scs.ReadFrom(scsFile); err != nil {
+		panic(err)
+	}
 	defer scsFile.Close()
 
 	// Read the proving key.
@@ -33,7 +35,10 @@ func Prove(dataDir string, witnessPath string) Proof {
 	}
 	pk := plonk.NewProvingKey(ecc.BN254)
 	bufReader := bufio.NewReaderSize(pkFile, 1024*1024)
-	pk.UnsafeReadFrom(bufReader)
+	_, err = pk.UnsafeReadFrom(bufReader)
+	if err != nil {
+		panic(err)
+	}
 	defer pkFile.Close()
 
 	// Read the verifier key.
@@ -42,7 +47,9 @@ func Prove(dataDir string, witnessPath string) Proof {
 		panic(err)
 	}
 	vk := plonk.NewVerifyingKey(ecc.BN254)
-	vk.ReadFrom(vkFile)
+	if _, err := vk.ReadFrom(vkFile); err != nil {
+		panic(err)
+	}
 	defer vkFile.Close()
 
 	// Read the file.
