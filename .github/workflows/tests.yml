@@ -87,6 +87,12 @@ jobs:
           perf: false
       - name: Install deps
         run: sudo apt update && sudo apt install cmake -y
+      - name: Install `sphinx-recursion-gnark-cli` CLI
+        run: |
+          cargo install --locked --force --path .
+        working-directory: ${{ github.workspace }}/recursion/gnark-cli
+      # TODO: run test-plonk-bn254 once the CLI is ready,
+      # which relies on an updated witness/constraints.json in the PR
       - name: Install `cargo prove` CLI
         run: |
           cargo install --locked --force --path ./cli
