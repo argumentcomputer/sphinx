@@ -30,21 +30,21 @@ impl Blake2sQuarterRound2xChip {
     pub fn new() -> Self {
         Blake2sQuarterRound2xChip
     }
-    pub fn constrain_shuffled_indices<AB: SphinxAirBuilder>(
+    pub fn constrain_shuffled_unshuffled_indices<AB: SphinxAirBuilder>(
         &self,
         builder: &mut AB,
-        shuffled_indices: &[AB::Var],
+        indices: &[AB::Var],
         is_real: AB::Var,
     ) {
         for index in 0..4 {
             builder
                 .when(is_real)
-                .assert_eq(shuffled_indices[index], AB::F::from_canonical_usize(0));
+                .assert_eq(indices[index], AB::F::from_canonical_usize(0));
         }
-        for index in 4..shuffled_indices.len() {
+        for index in 4..indices.len() {
             builder
                 .when(is_real)
-                .assert_eq(shuffled_indices[index], AB::F::from_canonical_usize(1));
+                .assert_eq(indices[index], AB::F::from_canonical_usize(1));
         }
     }
 }
@@ -155,7 +155,6 @@ impl Syscall for Blake2sQuarterRound2xChip {
         a[12..16].swap(1, 2);
         a[12..16].swap(0, 1);
 
-
         let mut a = a.clone(); // a after 2x quarter_round
         let mut a_clone = a.clone();
 
@@ -218,7 +217,20 @@ impl Syscall for Blake2sQuarterRound2xChip {
             *v1 = (*v1 ^ *v2).rotate_right(R_4);
         }
 
-        // TODO unshuffle
+        // unshuffle
+        // v[1]
+        a[4..8].swap(2, 3);
+        a[4..8].swap(1, 2);
+        a[4..8].swap(0, 1);
+
+        // v[2]
+        a[8..12].swap(0, 2);
+        a[8..12].swap(1, 3);
+
+        // v[3]
+        a[12..16].swap(0, 3);
+        a[12..16].swap(0, 1);
+        a[12..16].swap(1, 2);
 
         ctx.clk += 1;
         // Write rotate_right to a_ptr.
@@ -258,6 +270,7 @@ struct Blake2sQuarterRound2xCols<T> {
     pub b_ptr: T,
 
     pub shuffled_indices: [T; 16],
+    pub unshuffled_indices: [T; 16],
 
     pub a: [MemoryWriteCols<T>; 16],
     pub b: [MemoryReadCols<T>; 24],
@@ -324,8 +337,10 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
             let v2_shuffle_lookup = vec![2, 3, 0, 1];
             let v3_shuffle_lookup = vec![3, 0, 1, 2];
 
-            // a: v[0] || v[1] || v[2] || v[3] || v[4] || v[5] || v[6] || v[7] || v[8] || v[9] || v[10] || v[11] || v[12] || v[13] || v[14] || v[15] ||
-            // b: m1[0] || m1[1] || m1[2] || m1[3] || || m2[0] || m2[1] || m2[2] || m2[3] || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 ||
+            let v1_unshuffle_lookup = v1_shuffle_lookup.clone();
+            let v2_unshuffle_lookup = v2_shuffle_lookup.clone();
+            let v3_unshuffle_lookup = v3_shuffle_lookup.clone();
+
             for i in 0..4usize {
                 // 1x (m1, R1, R2)
                 let v0 = event.a_reads_writes[i].value;
@@ -419,7 +434,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 );
                 assert_eq!((v1 ^ v2).rotate_right(R_4), v1_new);
 
-
                 // 3x (m3, R1, R2)
                 let v0 = v0_new;
                 let v1 = v1_new;
@@ -427,18 +441,31 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 let v3 = v3_new;
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-                let v0_new = cols.add[i + 16].populate(output, shard, event.channel, v0, v1, m3, zero1);
+                let v0_new =
+                    cols.add[i + 16].populate(output, shard, event.channel, v0, v1, m3, zero1);
                 assert_eq!(v0 + v1 + m3 + zero1, v0_new);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
                 let temp = cols.xor[i + 16].populate(output, shard, event.channel, v3, v0);
-                let v3_new =
-                    cols.rotate_right[i + 16].populate(output, shard, event.channel, temp, R_1 as usize);
+                let v3_new = cols.rotate_right[i + 16].populate(
+                    output,
+                    shard,
+                    event.channel,
+                    temp,
+                    R_1 as usize,
+                );
                 assert_eq!((v3 ^ v0).rotate_right(R_1), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new =
-                    cols.add[i + 16 + 4].populate(output, shard, event.channel, v2, v3, zero1, zero2);
+                let v2_new = cols.add[i + 16 + 4].populate(
+                    output,
+                    shard,
+                    event.channel,
+                    v2,
+                    v3,
+                    zero1,
+                    zero2,
+                );
                 assert_eq!(v2 + v3 + zero1 + zero2, v2_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
@@ -464,10 +491,10 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 assert_eq!(v0 + v1 + m4 + zero1, v0_new);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
-                //cols.shuffled_indices[i + 12] = F::from_canonical_u32(1);
+                cols.unshuffled_indices[i + 12] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 16 + 8].populate(output, shard, event.channel, v3, v0);
-                //let v3_new = cols.rotate_right[v3_shuffle_lookup[i] + 8].populate(
-                let v3_new = cols.rotate_right[i + 16 + 8].populate(
+                let v3_new = cols.rotate_right[v3_unshuffle_lookup[i] + 16 + 8].populate(
+                    //let v3_new = cols.rotate_right[i + 16 + 8].populate(
                     output,
                     shard,
                     event.channel,
@@ -477,9 +504,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 assert_eq!((v3 ^ v0).rotate_right(R_3), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                //cols.shuffled_indices[i + 8] = F::from_canonical_u32(1);
-                //let v2_new = cols.add[v2_shuffle_lookup[i] + 4 + 8].populate(
-                let v2_new = cols.add[i + 16 + 4 + 8].populate(
+                cols.unshuffled_indices[i + 8] = F::from_canonical_u32(1);
+                let v2_new = cols.add[v2_unshuffle_lookup[i] + 16 + 4 + 8].populate(
+                    //let v2_new = cols.add[i + 16 + 4 + 8].populate(
                     output,
                     shard,
                     event.channel,
@@ -491,10 +518,10 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 assert_eq!(v2 + v3 + zero1 + zero2, v2_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
-                //cols.shuffled_indices[i + 4] = F::from_canonical_u32(1);
+                cols.unshuffled_indices[i + 4] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 16 + 4 + 8].populate(output, shard, event.channel, v1, v2);
-                //let v1_new = cols.rotate_right[v1_shuffle_lookup[i] + 4 + 8].populate(
-                let v1_new = cols.rotate_right[i + 16 + 4 + 8].populate(
+                let v1_new = cols.rotate_right[v1_unshuffle_lookup[i] + 16 + 4 + 8].populate(
+                    //let v1_new = cols.rotate_right[i + 16 + 4 + 8].populate(
                     output,
                     shard,
                     event.channel,
@@ -588,6 +615,10 @@ where
         let v1_shuffle_lookup = vec![1, 2, 3, 0];
         let v2_shuffle_lookup = vec![2, 3, 0, 1];
         let v3_shuffle_lookup = vec![3, 0, 1, 2];
+
+        let v1_unshuffle_lookup = v1_shuffle_lookup.clone();
+        let v2_unshuffle_lookup = v2_shuffle_lookup.clone();
+        let v3_unshuffle_lookup = v3_shuffle_lookup.clone();
 
         for i in 0..4usize {
             // 1x
@@ -696,7 +727,6 @@ where
                 local.xor[i + 8].value,
                 R_3 as usize,
                 local.rotate_right[v3_shuffle_lookup[i] + 8],
-                //local.rotate_right[i + 8],
                 local.shard,
                 &local.channel,
                 local.is_real,
@@ -713,7 +743,6 @@ where
                 local.channel,
                 local.is_real,
                 local.add[v2_shuffle_lookup[i] + 12],
-                //local.add[i + 12],
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
@@ -734,28 +763,23 @@ where
                 local.xor[i + 12].value,
                 R_4 as usize,
                 local.rotate_right[v1_shuffle_lookup[i] + 12],
-                //local.rotate_right[i + 12],
                 local.shard,
                 &local.channel,
                 local.is_real,
             );
+        }
 
+        self.constrain_shuffled_unshuffled_indices(builder, &local.shuffled_indices, local.is_real);
 
+        for i in 0..4usize {
             // 3x
-            /*
-                v0 : local.add[i + 8]
-                v1 : local.local.rotate_right[v1_shuffle_lookup[i] + 12]
-                v2 : local.add[v2_shuffle_lookup[i] + 12]
-                v3 : local.rotate_right[v3_shuffle_lookup[i] + 8]
-            */
-
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
             Add4Operation::<AB::F>::eval(
                 builder,
-                local.add[i + 8].value,     // v0 after x2
+                local.add[i + 8].value, // v0 after x2
                 local.rotate_right[v1_shuffle_lookup[i] + 12].value, // v1 after 2x
-                *local.b[i + 8].value(),         // m3
-                *local.b[i + 16].value(),         // zero1
+                *local.b[i + 8].value(), // m3
+                *local.b[i + 16].value(), // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
@@ -767,7 +791,7 @@ where
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v3_shuffle_lookup[i] + 8].value, // v3 after 2x
-                local.add[i + 8].value, // v0 after x2
+                local.add[i + 8].value,                             // v0 after x2
                 local.xor[i + 16],
                 local.shard,
                 &local.channel,
@@ -785,33 +809,30 @@ where
                 local.is_real,
             );
 
-
             // v[2] = v[2].wrapping_add(v[3]);
             Add4Operation::<AB::F>::eval(
                 builder,
                 local.add[v2_shuffle_lookup[i] + 12].value, // v2 after 2x
                 local.rotate_right[v3_shuffle_lookup[i] + 8].value, // v3 after 2x
-                *local.b[i + 16].value(),  // zero1
-                *local.b[i + 20].value(), // zero2
+                *local.b[i + 16].value(),                   // zero1
+                *local.b[i + 20].value(),                   // zero2
                 local.shard,
                 local.channel,
                 local.is_real,
                 local.add[i + 20],
             );
 
-
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v1_shuffle_lookup[i] + 12].value, // v1 after 2x
-                local.add[v2_shuffle_lookup[i] + 12].value, // v2 after 2x
+                local.add[v2_shuffle_lookup[i] + 12].value,          // v2 after 2x
                 local.xor[i + 20],
                 local.shard,
                 &local.channel,
                 local.is_real,
             );
-
 
             // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
@@ -824,29 +845,19 @@ where
                 local.is_real,
             );
 
-
             // 4x
-
-            /*
-               v0 : local.add[i + 16]
-               v1 : local.rotate_right[i + 20]
-               v2 : local.add[i + 20]
-               v3 : local.rotate_right[i + 16]
-           */
-
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
             Add4Operation::<AB::F>::eval(
                 builder,
-                local.add[i + 16].value, // v0 after 3x
+                local.add[i + 16].value,          // v0 after 3x
                 local.rotate_right[i + 20].value, // v1 after 3x
-                *local.b[i + 12].value(), // m4
-                *local.b[i + 16].value(), // zero1
+                *local.b[i + 12].value(),         // m4
+                *local.b[i + 16].value(),         // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
                 local.add[i + 24],
             );
-
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             // Eval XOR
@@ -860,13 +871,12 @@ where
                 local.is_real,
             );
 
-
             // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 24].value,
                 R_3 as usize,
-                local.rotate_right[i + 24],
+                local.rotate_right[v3_unshuffle_lookup[i] + 24],
                 local.shard,
                 &local.channel,
                 local.is_real,
@@ -875,23 +885,22 @@ where
             // v[2] = v[2].wrapping_add(v[3]);
             Add4Operation::<AB::F>::eval(
                 builder,
-                local.add[i + 20].value, // v2 after 3x
+                local.add[i + 20].value,          // v2 after 3x
                 local.rotate_right[i + 16].value, // v3 after 3x
-                *local.b[i + 16].value(),     // zero1
-                *local.b[i + 20].value(),    // zero2
+                *local.b[i + 16].value(),         // zero1
+                *local.b[i + 20].value(),         // zero2
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i + 28],
+                local.add[v2_unshuffle_lookup[i] + 28],
             );
-
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 20].value, // v1 after 3x
-                local.add[i + 20].value, // v2 after 3x
+                local.add[i + 20].value,          // v2 after 3x
                 local.xor[i + 28],
                 local.shard,
                 &local.channel,
@@ -903,15 +912,18 @@ where
                 builder,
                 local.xor[i + 28].value,
                 R_4 as usize,
-                local.rotate_right[i + 28],
+                local.rotate_right[v1_unshuffle_lookup[i] + 28],
                 local.shard,
                 &local.channel,
                 local.is_real,
             );
-
         }
 
-        self.constrain_shuffled_indices(builder, &local.shuffled_indices, local.is_real);
+        self.constrain_shuffled_unshuffled_indices(
+            builder,
+            &local.unshuffled_indices,
+            local.is_real,
+        );
 
         builder.receive_syscall(
             local.shard,
@@ -929,7 +941,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::runtime::{Instruction, Opcode, SyscallCode};
-    use crate::utils::tests::BLAKE2S_QUARTER_ROUND_2X_ELF;
+    use crate::utils::tests::BLAKE2S_ROUND_ELF;
     use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
     use crate::Program;
 
@@ -979,11 +991,8 @@ mod tests {
     }
 
     #[test]
-    fn test_blake2s_quarter_round_2x_precompile() {
+    fn test_blake2s_round_precompile() {
         setup_logger();
-
-        // a: v[0] || v[1] || v[2] || v[3] || v[4] || v[5] || v[6] || v[7] || v[8] || v[9] || v[10] || v[11] || v[12] || v[13] || v[14] || v[15] ||
-        // b: m1[0] || m1[1] || m1[2] || m1[3] || || m2[0] || m2[1] || m2[2] || m2[3] || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 ||
 
         let a_ptr = 100100100;
         let b_ptr = 200200200;
@@ -995,12 +1004,14 @@ mod tests {
                 0x5be0cd19, 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
                 0xe07c2654, 0x5be0cd19,
             ],
-            [0, 0, 0, 0, // m1
+            [
+                0, 0, 0, 0, // m1
                 0, 0, 0, 0, // m2
                 0, 0, 0, 0, // m3
                 0, 0, 0, 0, // m4
                 0, 0, 0, 0, // zero_0
-                0, 0, 0, 0], // zero_1
+                0, 0, 0, 0,
+            ], // zero_1
         );
 
         let (_, memory) = run_test_with_memory_inspection(program);
@@ -1010,43 +1021,21 @@ mod tests {
             result.push(memory.get(&(a_ptr + i * 4)).unwrap().value);
         }
 
-        /*
         assert_eq!(
             result,
             [
-                0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc, 0x408705aa, 0x8d07c52d, 0xb9d6aa3a,
-                0x88609304, 0x5c7a89f8, 0xb5f896c7, 0x81e69eeb, 0xe17775ed, 0x87b6b678, 0x7af31ada,
-                0x5a2defeb, 0x2cdd25e3,
-            ]
-        );*/
-
-        /*assert_eq!(
-            result,
-            [
-                0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc, 0x8d07c52d, 0xb9d6aa3a, 0x88609304,
-                0x408705aa, 0x81e69eeb, 0xe17775ed, 0x5c7a89f8, 0xb5f896c7, 0x2cdd25e3, 0x87b6b678,
-                0x7af31ada, 0x5a2defeb
+                0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3, 0x515f5af4, 0x301095b, 0xb151a3c2,
+                0x5e17f96f, 0xc561666d, 0xf291605, 0x990c6d13, 0x76fff6f1, 0x1e53bf19, 0x6fe4a680,
+                0x8e33663, 0x97fd885e,
             ]
             .to_vec()
-        );*/
-
-        assert_eq!(
-            result,
-            [
-                0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3,
-                0x301095b, 0xb151a3c2, 0x5e17f96f, 0x515f5af4,
-                0x990c6d13, 0x76fff6f1, 0xc561666d, 0xf291605,
-                0x97fd885e, 0x1e53bf19, 0x6fe4a680, 0x8e33663
-            ]
-                .to_vec()
         );
-
     }
 
     #[test]
-    fn test_blake2s_quarter_round_2x_program() {
+    fn test_blake2s_round_program() {
         setup_logger();
-        let program = Program::from(BLAKE2S_QUARTER_ROUND_2X_ELF);
+        let program = Program::from(BLAKE2S_ROUND_ELF);
         run_test(program).unwrap();
     }
 }

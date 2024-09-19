@@ -15,7 +15,7 @@ mod verify;
 
 pub mod blake2s_add_2;
 pub mod blake2s_add_3;
-pub mod blake2s_quarter_round_2x;
+pub mod blake2s_round;
 pub mod blake2s_xor_rotate_16;
 pub mod blake2s_xor_rotate_right_12;
 pub mod blake2s_xor_rotate_right_16;

@@ -1,6 +1,6 @@
 mod add_2;
 mod add_3;
-mod quarter_round;
+mod round;
 mod xor_rotate_16; // based on sha-extend
 mod xor_rotate_right_12;
 mod xor_rotate_right_16;
@@ -9,7 +9,7 @@ mod xor_rotate_right_8;
 
 pub use add_2::*;
 pub use add_3::*;
-pub use quarter_round::*;
+pub use round::*;
 pub use xor_rotate_16::*; // based on sha-extend
 pub use xor_rotate_right_12::*;
 pub use xor_rotate_right_16::*;
@@ -358,6 +358,7 @@ mod tests {
         let rd = 8;
         let rb = 7;
         quarter_round(&mut v, rd, rb, m);
+        unshuffle(&mut v);
 
         assert_eq!(
             v[0].to_vec(),
@@ -365,15 +366,15 @@ mod tests {
         );
         assert_eq!(
             v[1].to_vec(),
-            vec![0x301095b, 0xb151a3c2, 0x5e17f96f, 0x515f5af4]
+            vec![0x515f5af4, 0x301095b, 0xb151a3c2, 0x5e17f96f]
         );
         assert_eq!(
             v[2].to_vec(),
-            vec![0x990c6d13, 0x76fff6f1, 0xc561666d, 0xf291605]
+            vec![0xc561666d, 0xf291605, 0x990c6d13, 0x76fff6f1]
         );
         assert_eq!(
             v[3].to_vec(),
-            vec![0x97fd885e, 0x1e53bf19, 0x6fe4a680, 0x8e33663]
+            vec![0x1e53bf19, 0x6fe4a680, 0x8e33663, 0x97fd885e]
         );
     }
 }

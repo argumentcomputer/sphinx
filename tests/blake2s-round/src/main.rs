@@ -1,7 +1,7 @@
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
-use sphinx_zkvm::syscalls::blake2s_quarter_round_2x::syscall_blake2s_quarter_round_2x;
+use sphinx_zkvm::syscalls::blake2s_round::syscall_blake2s_quarter_round_2x;
 
 pub fn main() {
     let mut a: [u32; 16] = [
@@ -13,18 +13,10 @@ pub fn main() {
 
     syscall_blake2s_quarter_round_2x(a.as_mut_ptr(), b.as_ptr());
 
-    /*
-    assert_eq!(a, [
-        0xdc0f959e, 0x8c871712, 0xc6a650d4, 0xd26fb9fc, 0x408705aa, 0x8d07c52d, 0xb9d6aa3a,
-        0x88609304, 0x5c7a89f8, 0xb5f896c7, 0x81e69eeb, 0xe17775ed, 0x87b6b678, 0x7af31ada,
-        0x5a2defeb, 0x2cdd25e3,
-    ]);*/
-
-
     assert_eq!(a, [
         0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3,
-        0x301095b, 0xb151a3c2, 0x5e17f96f, 0x515f5af4,
-        0x990c6d13, 0x76fff6f1, 0xc561666d, 0xf291605,
-        0x97fd885e, 0x1e53bf19, 0x6fe4a680, 0x8e33663
+        0x515f5af4, 0x301095b, 0xb151a3c2, 0x5e17f96f,
+        0xc561666d, 0xf291605, 0x990c6d13, 0x76fff6f1,
+        0x1e53bf19, 0x6fe4a680, 0x8e33663, 0x97fd885e,
     ]);
 }
