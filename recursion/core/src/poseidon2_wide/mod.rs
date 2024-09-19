@@ -28,11 +28,20 @@ pub const NUM_INTERNAL_ROUNDS: usize = 13;
 pub const NUM_ROUNDS: usize = NUM_EXTERNAL_ROUNDS + NUM_INTERNAL_ROUNDS;
 
 /// A chip that implements addition for the opcode ADD.
-#[derive(Default)]
 pub struct Poseidon2WideChip<F: Sync, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
     pub pad: bool,
     pub _phantom: PhantomData<F>,
+}
+
+impl<F: Sync, const DEGREE: usize> Default for Poseidon2WideChip<F, DEGREE> {
+    fn default() -> Self {
+        Self {
+            fixed_log2_rows: Default::default(),
+            pad: Default::default(),
+            _phantom: Default::default(),
+        }
+    }
 }
 
 impl<'a, F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
