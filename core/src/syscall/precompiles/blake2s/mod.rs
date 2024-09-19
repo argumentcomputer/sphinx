@@ -332,4 +332,48 @@ mod tests {
             vec![0x2cdd25e3, 0x87b6b678, 0x7af31ada, 0x5a2defeb]
         );
     }
+
+    #[test]
+    fn test_blake2s_quarter_round_2x_shuffle_quarter_round_2x_function() {
+        let mut v: Vec<[u32; 4]> = vec![
+            [0x6b08e647, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
+            [0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+            [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a],
+            [0x510e527f, 0x9b05688c, 0xe07c2654, 0x5be0cd19],
+        ];
+        let m = [0, 0, 0, 0];
+        let rd = 16;
+        let rb = 12;
+        quarter_round(&mut v, rd, rb, m);
+
+        let rd = 8;
+        let rb = 7;
+        quarter_round(&mut v, rd, rb, m);
+        shuffle(&mut v);
+
+        let rd = 16;
+        let rb = 12;
+        quarter_round(&mut v, rd, rb, m);
+
+        let rd = 8;
+        let rb = 7;
+        quarter_round(&mut v, rd, rb, m);
+
+        assert_eq!(
+            v[0].to_vec(),
+            vec![0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3]
+        );
+        assert_eq!(
+            v[1].to_vec(),
+            vec![0x301095b, 0xb151a3c2, 0x5e17f96f, 0x515f5af4]
+        );
+        assert_eq!(
+            v[2].to_vec(),
+            vec![0x990c6d13, 0x76fff6f1, 0xc561666d, 0xf291605]
+        );
+        assert_eq!(
+            v[3].to_vec(),
+            vec![0x97fd885e, 0x1e53bf19, 0x6fe4a680, 0x8e33663]
+        );
+    }
 }
