@@ -308,7 +308,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 cols.shuffled_indices[i + 12] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 8].populate(output, shard, event.channel, v3, v0);
                 let v3_new = cols.rotate_right[v3_shuffle_lookup[i] + 8].populate(
-                //let v3_new = cols.rotate_right[i + 8].populate(
+                    //let v3_new = cols.rotate_right[i + 8].populate(
                     output,
                     shard,
                     event.channel,
@@ -320,7 +320,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 // v[2] = v[2].wrapping_add(v[3]);
                 cols.shuffled_indices[i + 8] = F::from_canonical_u32(1);
                 let v2_new = cols.add[v2_shuffle_lookup[i] + 4 + 8].populate(
-                //let v2_new = cols.add[i + 4 + 8].populate(
+                    //let v2_new = cols.add[i + 4 + 8].populate(
                     output,
                     shard,
                     event.channel,
@@ -335,7 +335,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sQuarterRound2xChip {
                 cols.shuffled_indices[i + 4] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 4 + 8].populate(output, shard, event.channel, v1, v2);
                 let v1_new = cols.rotate_right[v1_shuffle_lookup[i] + 4 + 8].populate(
-                //let v1_new = cols.rotate_right[i + 4 + 8].populate(
+                    //let v1_new = cols.rotate_right[i + 4 + 8].populate(
                     output,
                     shard,
                     event.channel,
