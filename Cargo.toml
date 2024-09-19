@@ -78,7 +78,7 @@ getrandom = "=0.2.14" # 0.2.15 depends on yanked libc 0.2.154
 hashbrown = { version = "0.14.5", features = ["serde"] }
 hex = "0.4.3"
 home = "0.5.9"
-hybrid-array = "0.2.0-rc"
+hybrid-array = "0.2.0-rc.9"
 indicatif = "0.17.8"
 itertools = "0.12.1"
 k256 = "0.13.3"
