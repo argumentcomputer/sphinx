@@ -20,11 +20,20 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 pub const NUM_FRI_FOLD_COLS: usize = size_of::<FriFoldCols<u8>>();
 
-#[derive(Default)]
 pub struct FriFoldChip<F, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
-    pub _phantom: PhantomData<F>,
     pub pad: bool,
+    pub _phantom: PhantomData<F>,
+}
+
+impl<F, const DEGREE: usize> Default for FriFoldChip<F, DEGREE> {
+    fn default() -> Self {
+        Self {
+            fixed_log2_rows: Default::default(),
+            pad: Default::default(),
+            _phantom: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
