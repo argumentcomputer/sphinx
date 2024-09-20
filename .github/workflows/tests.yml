@@ -177,6 +177,9 @@ jobs:
           - repo: zk-light-clients
             path: ethereum
             features: ethereum
+          - repo: zk-light-clients
+            path: kadena
+            features: kadena
           - repo: lurk
             path: ""
     steps:
