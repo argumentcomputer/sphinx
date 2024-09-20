@@ -3,11 +3,7 @@ pub use crate::air::SphinxAirBuilder;
 use crate::air::{MachineAir, SPHINX_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
-use crate::syscall::precompiles::blake2s::{
-    Blake2sAdd2Chip, Blake2sAdd3Chip, Blake2sQuarterRound2xChip, Blake2sXorRotate16Chip,
-    Blake2sXorRotateRight12Chip, Blake2sXorRotateRight16Chip, Blake2sXorRotateRight7Chip,
-    Blake2sXorRotateRight8Chip,
-};
+use crate::syscall::precompiles::blake2s::Blake2sRoundChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
 use crate::syscall::precompiles::quad_field::QuadFieldChip;
@@ -111,16 +107,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Fp2Op(QuadFieldChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
-
-    // Blake2s
-    Blake2sXorRotateRight16(Blake2sXorRotateRight16Chip),
-    Blake2sXorRotate16(Blake2sXorRotate16Chip), // based on sha-extend
-    Blake2sAdd2(Blake2sAdd2Chip),
-    Blake2sAdd3(Blake2sAdd3Chip),
-    Blake2sXorRotateRight12(Blake2sXorRotateRight12Chip),
-    Blake2sXorRotateRight8(Blake2sXorRotateRight8Chip),
-    Blake2sXorRotateRight7(Blake2sXorRotateRight7Chip),
-    Blake2sQuarterRound2x(Blake2sQuarterRound2xChip),
+    // A precompile for computing round function of Blake2s algorithm
+    Blake2sRound(Blake2sRoundChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -196,38 +184,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));
-
-        let blake_2s_xor_rotate_right_16 = Blake2sXorRotateRight16Chip::default();
-        chips.push(RiscvAir::Blake2sXorRotateRight16(
-            blake_2s_xor_rotate_right_16,
-        ));
-
-        let blake_2s_xor_rotate_16 = Blake2sXorRotate16Chip::default();
-        chips.push(RiscvAir::Blake2sXorRotate16(blake_2s_xor_rotate_16));
-
-        let blake2s_add_2 = Blake2sAdd2Chip::default();
-        chips.push(RiscvAir::Blake2sAdd2(blake2s_add_2));
-
-        let blake2s_add_3 = Blake2sAdd3Chip::default();
-        chips.push(RiscvAir::Blake2sAdd3(blake2s_add_3));
-
-        let blake_2s_xor_rotate_right_12 = Blake2sXorRotateRight12Chip::default();
-        chips.push(RiscvAir::Blake2sXorRotateRight12(
-            blake_2s_xor_rotate_right_12,
-        ));
-
-        let blake_2s_xor_rotate_right_8 = Blake2sXorRotateRight8Chip::default();
-        chips.push(RiscvAir::Blake2sXorRotateRight8(
-            blake_2s_xor_rotate_right_8,
-        ));
-
-        let blake_2s_xor_rotate_right_7 = Blake2sXorRotateRight7Chip::default();
-        chips.push(RiscvAir::Blake2sXorRotateRight7(
-            blake_2s_xor_rotate_right_7,
-        ));
-
-        let blake_2s_quarter_round_2x = Blake2sQuarterRound2xChip::default();
-        chips.push(RiscvAir::Blake2sQuarterRound2x(blake_2s_quarter_round_2x));
+        let blake_2s_round = Blake2sRoundChip::default();
+        chips.push(RiscvAir::Blake2sRound(blake_2s_round));
 
         chips
     }

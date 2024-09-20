@@ -6,11 +6,7 @@ use strum_macros::EnumIter;
 
 use crate::runtime::{Register, Runtime};
 use crate::stark::Ed25519Parameters;
-use crate::syscall::precompiles::blake2s::{
-    Blake2sAdd2Chip, Blake2sAdd3Chip, Blake2sQuarterRound2xChip, Blake2sXorRotate16Chip,
-    Blake2sXorRotateRight12Chip, Blake2sXorRotateRight16Chip, Blake2sXorRotateRight7Chip,
-    Blake2sXorRotateRight8Chip,
-};
+use crate::syscall::precompiles::blake2s::Blake2sRoundChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
@@ -122,18 +118,7 @@ pub enum SyscallCode {
     /// Executes the `HINT_READ` precompile.
     HINT_READ = 0x00_00_00_F1,
 
-    BLAKE_2S_XOR_ROTATE_RIGHT_16 = 0x00_01_01_CC,
-
-    BLAKE_2S_XOR_ROTATE_16 = 0x00_30_01_CD, // based on sha-extend
-
-    BLAKE_2S_ADD_2 = 0x00_01_01_CE,
-
-    BLAKE_2S_ADD_3 = 0x00_01_01_CF,
-
-    BLAKE_2S_XOR_ROTATE_RIGHT_12 = 0x00_01_01_EA,
-    BLAKE_2S_XOR_ROTATE_RIGHT_8 = 0x00_01_01_EB,
-    BLAKE_2S_XOR_ROTATE_RIGHT_7 = 0x00_01_01_EC,
-    BLAKE_2S_QUARTER_ROUND_2X = 0x00_01_01_ED,
+    BLAKE_2S_ROUND = 0x00_01_01_ED,
 }
 
 impl SyscallCode {
@@ -170,14 +155,7 @@ impl SyscallCode {
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
             0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
             0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
-            0x00_01_01_CC => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_16,
-            0x00_30_01_CD => SyscallCode::BLAKE_2S_XOR_ROTATE_16,
-            0x00_01_01_CE => SyscallCode::BLAKE_2S_ADD_2,
-            0x00_01_01_CF => SyscallCode::BLAKE_2S_ADD_3,
-            0x00_01_01_EA => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12,
-            0x00_01_01_EB => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8,
-            0x00_01_01_EC => SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_7,
-            0x00_01_01_ED => SyscallCode::BLAKE_2S_QUARTER_ROUND_2X,
+            0x00_01_01_ED => SyscallCode::BLAKE_2S_ROUND,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -417,43 +395,8 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
     );
 
     syscall_map.insert(
-        SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_16,
-        Arc::new(Blake2sXorRotateRight16Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_XOR_ROTATE_16,
-        Arc::new(Blake2sXorRotate16Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_ADD_2,
-        Arc::new(Blake2sAdd2Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_ADD_3,
-        Arc::new(Blake2sAdd3Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12,
-        Arc::new(Blake2sXorRotateRight12Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8,
-        Arc::new(Blake2sXorRotateRight8Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_7,
-        Arc::new(Blake2sXorRotateRight7Chip::new()),
-    );
-
-    syscall_map.insert(
-        SyscallCode::BLAKE_2S_QUARTER_ROUND_2X,
-        Arc::new(Blake2sQuarterRound2xChip::new()),
+        SyscallCode::BLAKE_2S_ROUND,
+        Arc::new(Blake2sRoundChip::new()),
     );
 
     syscall_map
@@ -569,52 +512,8 @@ mod tests {
                 SyscallCode::BLS12381_G2_DOUBLE => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G2_DOUBLE)
                 }
-
-                SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_16 => {
-                    assert_eq!(
-                        code as u32,
-                        sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_16
-                    )
-                }
-
-                SyscallCode::BLAKE_2S_XOR_ROTATE_16 => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_16)
-                }
-
-                SyscallCode::BLAKE_2S_ADD_2 => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ADD_2)
-                }
-
-                SyscallCode::BLAKE_2S_ADD_3 => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ADD_3)
-                }
-
-                SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_12 => {
-                    assert_eq!(
-                        code as u32,
-                        sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_12
-                    )
-                }
-
-                SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_8 => {
-                    assert_eq!(
-                        code as u32,
-                        sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_8
-                    )
-                }
-
-                SyscallCode::BLAKE_2S_XOR_ROTATE_RIGHT_7 => {
-                    assert_eq!(
-                        code as u32,
-                        sphinx_zkvm::syscalls::BLAKE_2S_XOR_ROTATE_RIGHT_7
-                    )
-                }
-
-                SyscallCode::BLAKE_2S_QUARTER_ROUND_2X => {
-                    assert_eq!(
-                        code as u32,
-                        sphinx_zkvm::syscalls::BLAKE_2S_QUARTER_ROUND_2X
-                    )
+                SyscallCode::BLAKE_2S_ROUND => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ROUND)
                 }
             }
         }

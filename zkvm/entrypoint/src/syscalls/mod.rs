@@ -13,14 +13,7 @@ mod unconstrained;
 #[cfg(feature = "verify")]
 mod verify;
 
-pub mod blake2s_add_2;
-pub mod blake2s_add_3;
 pub mod blake2s_round;
-pub mod blake2s_xor_rotate_16;
-pub mod blake2s_xor_rotate_right_12;
-pub mod blake2s_xor_rotate_right_16;
-pub mod blake2s_xor_rotate_right_7;
-pub mod blake2s_xor_rotate_right_8;
 
 pub use bls12_381::*;
 pub use bn254::*;
@@ -116,18 +109,5 @@ pub const BLS12381_G1_DOUBLE: u32 = 0x00_00_01_72;
 /// Executes `BLS12381_G1_DECOMPRESS`.
 pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;
 
-pub const BLAKE_2S_XOR_ROTATE_RIGHT_16: u32 = 0x00_01_01_CC;
-
-pub const BLAKE_2S_XOR_ROTATE_16: u32 = 0x00_30_01_CD;
-
-pub const BLAKE_2S_ADD_2: u32 = 0x00_01_01_CE;
-
-pub const BLAKE_2S_ADD_3: u32 = 0x00_01_01_CF;
-
-pub const BLAKE_2S_XOR_ROTATE_RIGHT_12: u32 = 0x00_01_01_EA;
-
-pub const BLAKE_2S_XOR_ROTATE_RIGHT_8: u32 = 0x00_01_01_EB;
-
-pub const BLAKE_2S_XOR_ROTATE_RIGHT_7: u32 = 0x00_01_01_EC;
-
-pub const BLAKE_2S_QUARTER_ROUND_2X: u32 = 0x00_01_01_ED;
+/// Executes `BLAKE2S_ROUND`.
+pub const BLAKE_2S_ROUND: u32 = 0x00_01_01_ED;
