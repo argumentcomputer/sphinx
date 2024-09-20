@@ -1,61 +1,67 @@
+# Workflow to create a new tag release when a release branch is merged
 name: Tag release
 
 on:
   pull_request:
     types: [ closed ]
     branches:
-      - dev
       - release/*
 
 jobs:
-  # Creates a new tag if a release branch is merged
   tag-bump:
     if: |
       github.event.pull_request.merged == true &&
-      ((startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.base.ref == 'dev') ||
-      (startsWith(github.event.pull_request.head.ref, 'hotfix/') && startsWith(github.event.pull_request.base.ref, 'release/')))
+      (startsWith(github.event.pull_request.head.ref, 'release-pr') || startsWith(github.event.pull_request.head.ref, 'patch/'))
     runs-on: ubuntu-latest
     steps:
       - name: Git config
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com".insteadOf https://github.com
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Get version
-        id: get-version
+      - uses: actions/checkout@v4
+        with:
+          repository: argumentcomputer/ci-workflows
+          path: ci-workflows
+          # Remove after https://github.com/argumentcomputer/ci-workflows/pull/76 is merged
+          ref: release-workflow
+      # TODO: Refine changelog categories
+      - name: Create changelog config
         run: |
-          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | cut -d'/' -f 2)
-          RELEASE_BRANCH="${{ startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.head.ref || github.event.pull_request.base.ref }}"
-
-          if [[ "${{ startsWith(github.event.pull_request.head.ref, 'release/') }}" == "true" ]]; then
-            VERSION="${VERSION}.0"
-          fi
-
-          git tag -a $VERSION -m "$VERSION" origin/$RELEASE_BRANCH
-          git push origin $VERSION --follow-tags
-          echo "version=$VERSION" | tee -a "$GITHUB_OUTPUT"
-          echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a "$GITHUB_ENV"
-
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v5
+          cat << 'EOF' > config.json
+          {
+            "template": "#{{CHANGELOG}}",
+            "categories": [
+              {
+                  "title": "## Feature",
+                  "labels": ["feat", "feature"]
+              },
+              {
+                  "title": "## Fix",
+                  "labels": ["fix", "bug"]
+              },
+              {
+                  "title": "## 🤖 CI",
+                  "labels": ["automated-issue", "ci"]
+              },
+              {
+                  "title": "## Other",
+                  "labels": []
+              }
+            ]
+          }
+          EOF
+      - uses: tibdex/github-app-token@v2
+        id: generate-token
         with:
-          toTag: ${{ steps.get-version.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        uses: ncipollo/release-action@v1
+          app_id: ${{ secrets.TOKEN_APP_ID }}
+          private_key: ${{ secrets.TOKEN_APP_PRIVATE_KEY }}
+      - name: Publish release
+        uses: ./ci-workflows/.github/actions/tag-release
         with:
-          body: ${{ steps.github_release.outputs.changelog }}
-          tag: ${{ steps.get-version.outputs.version }}
-          commit: ${{ env.RELEASE_BRANCH }}
-          allowUpdates: true
+          tag-prefix: sphinx
+          changelog-config-file: ./config.json
+
