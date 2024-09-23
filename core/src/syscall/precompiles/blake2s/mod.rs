@@ -1,5 +1,73 @@
-mod round;
-pub use round::*;
+mod air;
+mod columns;
+mod execute;
+mod trace;
+
+pub use columns::*;
+
+use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
+use crate::stark::SphinxAirBuilder;
+use p3_air::AirBuilder;
+use p3_field::AbstractField;
+use serde::Deserialize;
+use serde::Serialize;
+
+/// Implements the single round function of Blake2s hashing algorithm.
+/// The correspondent syscall expects two arguments, where the first argument is 4 arrays, each
+/// consists from 4 u32 words one by one and the second is 4 arrays properly constructed from the
+/// message of the Blake2s block:
+///
+///  let m1 = $vec::gather(m, s[0], s[2], s[4], s[6]).from_le();
+///  let m2 = $vec::gather(m, s[1], s[3], s[5], s[7]).from_le();
+///  let m3 = $vec::gather(m, s[8], s[10], s[12], s[14]).from_le();
+///  let m4 = $vec::gather(m, s[9], s[11], s[13], s[15]).from_le();
+///
+/// where s is a SIGMA constant (https://www.rfc-editor.org/rfc/rfc7693.txt).
+
+#[derive(Default)]
+pub struct Blake2sRoundChip;
+
+impl Blake2sRoundChip {
+    pub fn new() -> Self {
+        Blake2sRoundChip
+    }
+    pub fn constrain_shuffled_indices<AB: SphinxAirBuilder>(
+        &self,
+        builder: &mut AB,
+        indices: &[AB::Var],
+        is_real: AB::Var,
+    ) {
+        for index in 0..4 {
+            builder
+                .when(is_real)
+                .assert_eq(indices[index], AB::F::from_canonical_usize(0));
+        }
+        for index in 4..indices.len() {
+            builder
+                .when(is_real)
+                .assert_eq(indices[index], AB::F::from_canonical_usize(1));
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Blake2sRoundEvent {
+    pub lookup_id: usize,
+    pub clk: u32,
+    pub shard: u32,
+    pub channel: u32,
+    pub a_ptr: u32,
+    pub b_ptr: u32,
+
+    pub a_reads_writes: Vec<MemoryWriteRecord>,
+    pub b_reads: Vec<MemoryReadRecord>,
+}
+
+/// Rotation constants
+pub const R_1: u32 = 16;
+pub const R_2: u32 = 12;
+pub const R_3: u32 = 8;
+pub const R_4: u32 = 7;
 
 fn xor_u32x4(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {
     [a[0] ^ b[0], a[1] ^ b[1], a[2] ^ b[2], a[3] ^ b[3]]
@@ -106,7 +174,93 @@ pub fn blake2s_round(v: &mut [u32], m: &[u32]) {
 
 #[cfg(test)]
 mod tests {
+    use crate::runtime::{Instruction, Opcode, SyscallCode};
+    use crate::syscall::precompiles::blake2s::blake2s_round;
     use crate::syscall::precompiles::blake2s::{quarter_round, round, shuffle, unshuffle};
+    use crate::utils::tests::BLAKE2S_ROUND_ELF;
+    use crate::utils::{run_test, run_test_with_memory_inspection, setup_logger};
+    use crate::Program;
+    use rand::Rng;
+
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 16], b: [u32; 24]) -> Program {
+        let mut instructions = vec![];
+        // memory write a
+        for (index, word) in a.into_iter().enumerate() {
+            instructions.push(Instruction::new(Opcode::ADD, 29, 0, word, false, true));
+            instructions.push(Instruction::new(
+                Opcode::ADD,
+                30,
+                0,
+                a_ptr + (index * 4) as u32,
+                false,
+                true,
+            ));
+            instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
+        }
+
+        // memory write b
+        for (index, word) in b.into_iter().enumerate() {
+            instructions.push(Instruction::new(Opcode::ADD, 29, 0, word, false, true));
+            instructions.push(Instruction::new(
+                Opcode::ADD,
+                30,
+                0,
+                b_ptr + (index * 4) as u32,
+                false,
+                true,
+            ));
+            instructions.push(Instruction::new(Opcode::SW, 29, 30, 0, false, true));
+        }
+
+        // Syscall invocation
+        instructions.push(Instruction::new(
+            Opcode::ADD,
+            5,
+            0,
+            SyscallCode::BLAKE_2S_ROUND as u32,
+            false,
+            true,
+        ));
+        instructions.push(Instruction::new(Opcode::ADD, 10, 0, a_ptr, false, true));
+        instructions.push(Instruction::new(Opcode::ADD, 11, 0, b_ptr, false, true));
+        instructions.push(Instruction::new(Opcode::ECALL, 5, 10, 11, false, false));
+        Program::new(instructions, 0, 0)
+    }
+
+    #[test]
+    fn test_blake2s_round_precompile() {
+        setup_logger();
+
+        let a_ptr = 100100100;
+        let b_ptr = 200200200;
+
+        let a = rand::thread_rng().gen::<[u32; 16]>();
+        let mut a_clone = a.clone();
+        let mut b = rand::thread_rng().gen::<[u32; 24]>();
+        for item in b[0..24].iter_mut() {
+            *item = 0;
+        }
+
+        blake2s_round(&mut a_clone, &b);
+
+        let program = risc_v_program(a_ptr, b_ptr, a, b);
+
+        let (_, memory) = run_test_with_memory_inspection(program);
+        let mut result = vec![];
+        // result is 4 words, written to a_ptr
+        for i in 0..16 {
+            result.push(memory.get(&(a_ptr + i * 4)).unwrap().value);
+        }
+
+        assert_eq!(result, a_clone.to_vec());
+    }
+
+    #[test]
+    fn test_blake2s_round_program() {
+        setup_logger();
+        let program = Program::from(BLAKE2S_ROUND_ELF);
+        run_test(program).unwrap();
+    }
 
     #[test]
     fn test_blake2s_round_function() {
