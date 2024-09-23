@@ -18,7 +18,7 @@ impl Syscall for Blake2sRoundChip {
 
         let (b_reads, b) = ctx.mr_slice(b_ptr, 24);
 
-        // 1x (m1, R1, R2)
+        // 1x (m0, R1, R2)
         // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m1)
         for ((v0, v1), m) in a[0..4]
             .iter_mut()
@@ -46,7 +46,7 @@ impl Syscall for Blake2sRoundChip {
             *v1 = (*v1 ^ *v2).rotate_right(R_2);
         }
 
-        // 2x (m2, R3, R4)
+        // 2x (m1, R3, R4)
         let mut a = a.clone(); // a after 1x quarter_round
         let mut a_clone = a.clone();
 
@@ -95,7 +95,7 @@ impl Syscall for Blake2sRoundChip {
         let mut a = a.clone(); // a after 2x quarter_round
         let mut a_clone = a.clone();
 
-        // 3x (m3, R1, R2)
+        // 3x (m2, R1, R2)
         // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m3)
         for ((v0, v1), m) in a[0..4]
             .iter_mut()
@@ -123,7 +123,7 @@ impl Syscall for Blake2sRoundChip {
             *v1 = (*v1 ^ *v2).rotate_right(R_2);
         }
 
-        // 4x (m4, R3, R4)
+        // 4x (m3, R3, R4)
         let mut a = a.clone(); // a after 3x quarter_round
         let mut a_clone = a.clone();
 
@@ -170,6 +170,7 @@ impl Syscall for Blake2sRoundChip {
         a[12..16].swap(1, 2);
 
         ctx.clk += 1;
+
         // Write rotate_right to a_ptr.
         let a_reads_writes = ctx.mw_slice(a_ptr, a.as_slice());
 

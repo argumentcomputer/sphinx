@@ -56,7 +56,8 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
             }
 
-            // populate zeroes
+            // populate extra-zeroes
+            // TODO: replace Add4 with Add3 operation and avoid this
             for i in 16..24usize {
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
             }
@@ -66,7 +67,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
             let mut v2_outer = vec![0u32; 4];
             let mut v3_outer = vec![0u32; 4];
 
-            // 1x (m1, R1, R2)
+            // 1x (m0, R1, R2)
             for i in 0..4usize {
                 let v0 = event.a_reads_writes[i].prev_value;
                 let v1 = event.a_reads_writes[i + 4].prev_value;
@@ -80,13 +81,11 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
                 let v0_new = cols.add[i].populate(output, shard, event.channel, v0, v1, m1, zero1);
-                assert_eq!(v0 + v1 + m1 + zero1, v0_new);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
                 let temp = cols.xor[i].populate(output, shard, event.channel, v3, v0_new);
                 let v3_new =
                     cols.rotate_right[i].populate(output, shard, event.channel, temp, R_1 as usize);
-                assert_eq!((v3 ^ v0_new).rotate_right(R_1), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
                 let v2_new = cols.add[i + 4].populate(
@@ -98,7 +97,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     zero1,
                     zero2,
                 );
-                assert_eq!(v2 + v3_new + zero1 + zero2, v2_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
                 let temp = cols.xor[i + 4].populate(output, shard, event.channel, v1, v2_new);
@@ -109,7 +107,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_2 as usize,
                 );
-                assert_eq!((v1 ^ v2_new).rotate_right(R_2), v1_new);
 
                 v0_outer[i] = v0_new;
                 v1_outer[i] = v1_new;
@@ -117,7 +114,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 v3_outer[i] = v3_new;
             }
 
-            // 2x (m2, R3, R4)
+            // 2x (m1, R3, R4)
             for i in 0..4usize {
                 let v0 = v0_outer[i];
                 let v1 = v1_outer[i];
@@ -126,18 +123,13 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 let m2 = event.b_reads[i + 4].value;
                 let zero1 = event.b_reads[i + 16].value;
                 let zero2 = event.b_reads[i + 20].value;
-                assert_eq!(zero1, 0);
-                assert_eq!(zero2, 0);
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m2)
                 let v0_new =
                     cols.add[i + 8].populate(output, shard, event.channel, v0, v1, m2, zero1);
-                assert_eq!(v0 + v1 + m2 + zero1, v0_new);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
-                //cols.shuffled_indices[i + 12] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 8].populate(output, shard, event.channel, v3, v0_new);
-                //let v3_new = cols.rotate_right[v3_shuffle_lookup[i] + 8].populate(
                 let v3_new = cols.rotate_right[i + 8].populate(
                     output,
                     shard,
@@ -145,11 +137,8 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_3 as usize,
                 );
-                assert_eq!((v3 ^ v0_new).rotate_right(R_3), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                //cols.shuffled_indices[i + 8] = F::from_canonical_u32(1);
-                //let v2_new = cols.add[v2_shuffle_lookup[i] + 4 + 8].populate(
                 let v2_new = cols.add[i + 4 + 8].populate(
                     output,
                     shard,
@@ -159,12 +148,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     zero1,
                     zero2,
                 );
-                assert_eq!(v2 + v3_new + zero1 + zero2, v2_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
-                //cols.shuffled_indices[i + 4] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 4 + 8].populate(output, shard, event.channel, v1, v2_new);
-                //let v1_new = cols.rotate_right[v1_shuffle_lookup[i] + 4 + 8].populate(
                 let v1_new = cols.rotate_right[i + 4 + 8].populate(
                     output,
                     shard,
@@ -172,7 +158,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_4 as usize,
                 );
-                assert_eq!((v1 ^ v2_new).rotate_right(R_4), v1_new);
 
                 v0_outer[i] = v0_new;
                 v1_outer[i] = v1_new;
@@ -195,7 +180,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
             v3_outer.swap(1, 2);
             v3_outer.swap(0, 1);
 
-            // 3x (m3, R1, R2)
+            // 3x (m2, R1, R2)
             for i in 0..4usize {
                 cols.shuffled_indices[i + 4] = F::from_canonical_u32(1);
                 cols.shuffled_indices[i + 8] = F::from_canonical_u32(1);
@@ -256,7 +241,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 v3_outer[i] = v3_new;
             }
 
-            // 4x (m4, R3, R4)
+            // 4x (m3, R3, R4)
             for i in 0..4usize {
                 let v0 = v0_outer[i];
                 let v1 = v1_outer[i];
@@ -274,9 +259,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 assert_eq!(v0 + v1 + m4 + zero1, v0_new);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
-                //cols.unshuffled_indices[i + 12] = F::from_canonical_u32(1);
                 let temp = cols.xor[i + 16 + 8].populate(output, shard, event.channel, v3, v0_new);
-                //let v3_new = cols.rotate_right[v3_unshuffle_lookup[i] + 16 + 8].populate(
                 let v3_new = cols.rotate_right[i + 16 + 8].populate(
                     output,
                     shard,
@@ -287,8 +270,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 assert_eq!((v3 ^ v0_new).rotate_right(R_3), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                //cols.unshuffled_indices[i + 8] = F::from_canonical_u32(1);
-                //let v2_new = cols.add[v2_unshuffle_lookup[i] + 16 + 4 + 8].populate(
                 let v2_new = cols.add[i + 16 + 4 + 8].populate(
                     output,
                     shard,
@@ -298,46 +279,18 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     zero1,
                     zero2,
                 );
-                assert_eq!(v2 + v3_new + zero1 + zero2, v2_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
-                //cols.unshuffled_indices[i + 4] = F::from_canonical_u32(1);
                 let temp =
                     cols.xor[i + 16 + 4 + 8].populate(output, shard, event.channel, v1, v2_new);
-                //let v1_new = cols.rotate_right[v1_unshuffle_lookup[i] + 16 + 4 + 8].populate(
-                let v1_new = cols.rotate_right[i + 16 + 4 + 8].populate(
+                let _v1_new = cols.rotate_right[i + 16 + 4 + 8].populate(
                     output,
                     shard,
                     event.channel,
                     temp,
                     R_4 as usize,
                 );
-                assert_eq!((v1 ^ v2_new).rotate_right(R_4), v1_new);
-
-                //v0_outer[i] = v0_new;
-                //v1_outer[i] = v1_new;
-                //v2_outer[i] = v2_new;
-                //v3_outer[i] = v3_new;
             }
-
-            /*
-            // unshuffle
-            // v[1]
-            v1_outer.swap(2, 3);
-            v1_outer.swap(1, 2);
-            v1_outer.swap(0, 1);
-
-            // v[2]
-            v2_outer.swap(0, 2);
-            v2_outer.swap(1, 3);
-
-            // v[3]
-            v3_outer.swap(0, 3);
-            v3_outer.swap(0, 1);
-            v3_outer.swap(1, 2);*/
-
-            //println!("4x traces: {:02x?}", [v0_outer, v1_outer, v2_outer, v3_outer].concat().to_vec());
-
             rows.push(row);
         }
 

@@ -55,9 +55,8 @@ where
             );
         }
 
-        // zeroes
+        // Eval extra-zeroes
         for i in 16..24usize {
-            // Eval b
             builder.eval_memory_access(
                 local.shard,
                 local.channel,
@@ -89,7 +88,6 @@ where
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i + 12].prev_value(),
@@ -99,8 +97,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i].value,
@@ -125,7 +121,6 @@ where
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i + 4].prev_value(),
@@ -135,8 +130,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 4].value,
@@ -148,6 +141,7 @@ where
             );
 
             // 2x
+
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
             Add4Operation::<AB::F>::eval(
                 builder,
@@ -162,7 +156,6 @@ where
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i].value, // v3 after 1x
@@ -172,8 +165,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 8].value,
@@ -198,7 +189,6 @@ where
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 4].value, // v1 after 1x
@@ -208,8 +198,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 12].value,
@@ -225,6 +213,7 @@ where
 
         for i in 0..4usize {
             // 3x
+
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
             Add4Operation::<AB::F>::eval(
                 builder,
@@ -239,7 +228,6 @@ where
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v3_shuffle_lookup[i] + 8].value, // v3 after 2x
@@ -249,8 +237,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 16].value,
@@ -275,7 +261,6 @@ where
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v1_shuffle_lookup[i] + 12].value, // v1 after 2x
@@ -285,8 +270,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 20].value,
@@ -312,7 +295,6 @@ where
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 16].value, // v3 after 3x
@@ -322,8 +304,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 24].value,
@@ -348,7 +328,6 @@ where
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
-            // Eval XOR
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 20].value, // v1 after 3x
@@ -358,8 +337,6 @@ where
                 &local.channel,
                 local.is_real,
             );
-
-            // Eval RotateRight
             FixedRotateRightOperation::<AB::F>::eval(
                 builder,
                 local.xor[i + 28].value,
