@@ -97,7 +97,7 @@ impl SphinxPublicValues {
         }
     }
 
-    pub fn bytes(&self) -> String {
+    pub fn raw(&self) -> String {
         format!("0x{}", hex::encode(self.buffer.data.clone()))
     }
 

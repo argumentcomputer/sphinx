@@ -77,33 +77,17 @@ impl PlonkBn254Prover {
         build_plonk_bn254(build_dir.to_str().unwrap());
 
         // Write the corresponding asset files to the build dir.
-        let sphinx_mock_verifier_path = build_dir.join("SphinxMockVerifier.sol");
-        let sphinx_mock_verifier_str = include_str!("../assets/SphinxMockVerifier.txt")
-            .replace("{SPHINX_CIRCUIT_VERSION}", SPHINX_CIRCUIT_VERSION);
-        let mut mock_verifier_file = File::create(sphinx_mock_verifier_path).unwrap();
-        mock_verifier_file
-            .write_all(sphinx_mock_verifier_str.as_bytes())
-            .unwrap();
-
         let sphinx_verifier_path = build_dir.join("SphinxVerifier.sol");
         let vkey_hash = Self::get_vkey_hash(build_dir);
         let sphinx_verifier_str = include_str!("../assets/SphinxVerifier.txt")
             .replace("{SPHINX_CIRCUIT_VERSION}", SPHINX_CIRCUIT_VERSION)
             .replace(
-                "{VKEY_HASH}",
+                "{VERIFIER_HASH}",
                 format!("0x{}", hex::encode(vkey_hash)).as_str(),
             );
         let mut sphinx_verifier_file = File::create(sphinx_verifier_path).unwrap();
         sphinx_verifier_file
             .write_all(sphinx_verifier_str.as_bytes())
-            .unwrap();
-
-        let interface_sphinx_verifier_path = build_dir.join("ISphinxVerifier.sol");
-        let interface_sphinx_verifier_str = include_str!("../assets/ISphinxVerifier.txt");
-        let mut interface_sphinx_verifier_file =
-            File::create(interface_sphinx_verifier_path).unwrap();
-        interface_sphinx_verifier_file
-            .write_all(interface_sphinx_verifier_str.as_bytes())
             .unwrap();
     }
 

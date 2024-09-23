@@ -63,7 +63,7 @@ pub fn secp256k1_decompress(bytes_be: &[u8], sign: u32) -> AffinePoint<Secp256k1
 /// Secp256k1 elliptic curve point decompress event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Secp256k1DecompressEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -461,6 +461,7 @@ where
 mod tests {
     use crate::{
         io::SphinxStdin,
+        stark::DefaultProver,
         utils::{self, run_test_io, tests::SECP256K1_DECOMPRESS_ELF},
         Program,
     };
@@ -482,7 +483,8 @@ mod tests {
         let inputs = SphinxStdin::from(&compressed);
 
         let mut public_values =
-            run_test_io(Program::from(SECP256K1_DECOMPRESS_ELF), &inputs).unwrap();
+            run_test_io::<DefaultProver<_, _>>(Program::from(SECP256K1_DECOMPRESS_ELF), &inputs)
+                .unwrap();
         let mut result = [0; 65];
         public_values.read_slice(&mut result);
         assert_eq!(result, decompressed);

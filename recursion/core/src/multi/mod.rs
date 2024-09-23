@@ -7,7 +7,7 @@ use std::ops::Deref;
 use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
-use p3_field::{Field, PrimeField32};
+use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, EventLens, MachineAir, Proj, WithEvents};
@@ -40,6 +40,14 @@ pub struct MultiCols<T: Copy> {
 
     pub is_poseidon2: T,
 
+    /// A flag column to indicate whether the row is the first poseidon2 row.
+    pub poseidon2_first_row: T,
+    /// A flag column to indicate whether the row is the last poseidon2 row.
+    pub poseidon2_last_row: T,
+
+    /// Similar for Fri_fold.
+    pub fri_fold_last_row: T,
+
     /// Rows that needs to receive a poseidon2 syscall.
     pub poseidon2_receive_table: T,
     /// Hash/Permute state entries that needs to access memory.  This is for the the first half of the permute state.
@@ -50,16 +58,16 @@ pub struct MultiCols<T: Copy> {
     pub poseidon2_send_range_check: T,
 }
 
-impl<F: Field, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
+impl<F: Sync + Default, const DEGREE: usize> BaseAir<F> for MultiChip<F, DEGREE> {
     fn width(&self) -> usize {
-        let fri_fold_width = Self::fri_fold_width();
-        let poseidon2_width = Self::poseidon2_width();
+        let fri_fold_width = Self::fri_fold_width::<F>();
+        let poseidon2_width = Self::poseidon2_width::<F>();
 
         max(fri_fold_width, poseidon2_width) + NUM_MULTI_COLS
     }
 }
 
-impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
+impl<'a, F: 'a + Sync, const DEGREE: usize> WithEvents<'a> for MultiChip<F, DEGREE> {
     type Events = (
         <FriFoldChip<F, DEGREE> as WithEvents<'a>>::Events,
         <Poseidon2WideChip<F, DEGREE> as WithEvents<'a>>::Events,
@@ -108,6 +116,10 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
             fri_fold_chip.generate_trace(&Proj::new(input, to_fri::<F, DEGREE>), output);
         let mut poseidon2_trace =
             poseidon2.generate_trace(&Proj::new(input, to_poseidon::<F, DEGREE>), output);
+
+        let fri_fold_height = fri_fold_trace.height();
+        let poseidon2_height = poseidon2_trace.height();
+
         let num_columns = <MultiChip<F, DEGREE> as BaseAir<F>>::width(self);
 
         let mut rows = fri_fold_trace
@@ -131,6 +143,9 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
                         FriFoldChip::<F, DEGREE>::do_receive_table(fri_fold_cols);
                     multi_cols.fri_fold_memory_access =
                         FriFoldChip::<F, DEGREE>::do_memory_access(fri_fold_cols);
+                    if i == fri_fold_trace.height() - 1 {
+                        multi_cols.fri_fold_last_row = F::one();
+                    }
                 } else {
                     let multi_cols: &mut MultiCols<F> = row[0..NUM_MULTI_COLS].borrow_mut();
                     multi_cols.is_poseidon2 = F::one();
@@ -144,6 +159,11 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for MultiChip<F, DEGREE
                     multi_cols.poseidon2_2nd_half_memory_access =
                         poseidon2_cols.control_flow().is_compress;
                     multi_cols.poseidon2_send_range_check = poseidon2_cols.control_flow().is_absorb;
+
+                    // The first row of the poseidon2 trace has index fri_fold_trace.height()
+                    multi_cols.poseidon2_first_row = F::from_bool(i == fri_fold_height);
+                    multi_cols.poseidon2_last_row =
+                        F::from_bool(i == fri_fold_height + poseidon2_height - 1);
                 }
 
                 row
@@ -197,6 +217,37 @@ where
         builder.assert_bool(local_multi_cols.is_poseidon2);
         builder.assert_bool(local_is_real.clone());
 
+        // Constrain the flags to be boolean.
+        builder.assert_bool(local_multi_cols.poseidon2_first_row);
+        builder.assert_bool(local_multi_cols.poseidon2_last_row);
+        builder.assert_bool(local_multi_cols.fri_fold_last_row);
+
+        // Constrain that the flags are computed correctly.
+        builder.when_transition().assert_eq(
+            local_multi_cols.is_fri_fold * (AB::Expr::one() - next_multi_cols.is_fri_fold),
+            local_multi_cols.fri_fold_last_row,
+        );
+        builder.when_last_row().assert_eq(
+            local_multi_cols.is_fri_fold,
+            local_multi_cols.fri_fold_last_row,
+        );
+        builder.when_first_row().assert_eq(
+            local_multi_cols.is_poseidon2,
+            local_multi_cols.poseidon2_first_row,
+        );
+        builder.when_transition().assert_eq(
+            next_multi_cols.poseidon2_first_row,
+            local_multi_cols.is_fri_fold * next_multi_cols.is_poseidon2,
+        );
+        builder.when_transition().assert_eq(
+            local_multi_cols.is_poseidon2 * (AB::Expr::one() - next_multi_cols.is_poseidon2),
+            local_multi_cols.poseidon2_last_row,
+        );
+        builder.when_last_row().assert_eq(
+            local_multi_cols.is_poseidon2,
+            local_multi_cols.poseidon2_last_row,
+        );
+
         // Fri fold requires that it's rows are contiguous, since each invocation spans multiple rows
         // and it's AIR checks for consistencies among them.  The following constraints enforce that
         // all the fri fold rows are first, then the posiedon2 rows, and finally any padded (non-real) rows.
@@ -217,11 +268,13 @@ where
         let mut sub_builder = MultiBuilder::new(
             builder,
             &local_multi_cols.is_fri_fold.into(),
+            builder.is_first_row(),
+            local_multi_cols.fri_fold_last_row.into(),
             next_multi_cols.is_fri_fold.into(),
         );
 
-        let local_fri_fold_cols = Self::fri_fold::<AB>(&local);
-        let next_fri_fold_cols = Self::fri_fold::<AB>(&next);
+        let local_fri_fold_cols = Self::fri_fold(&local);
+        let next_fri_fold_cols = Self::fri_fold(&next);
 
         sub_builder.assert_eq(
             local_multi_cols.is_fri_fold
@@ -246,10 +299,12 @@ where
         let mut sub_builder = MultiBuilder::new(
             builder,
             &local_multi_cols.is_poseidon2.into(),
+            local_multi_cols.poseidon2_first_row.into(),
+            local_multi_cols.poseidon2_last_row.into(),
             next_multi_cols.is_poseidon2.into(),
         );
 
-        let poseidon2_columns = MultiChip::<AB::F, DEGREE>::poseidon2::<AB>(local_slice);
+        let poseidon2_columns = MultiChip::<AB::F, DEGREE>::poseidon2(local_slice);
         sub_builder.assert_eq(
             local_multi_cols.is_poseidon2 * poseidon2_columns.control_flow().is_syscall_row,
             local_multi_cols.poseidon2_receive_table,
@@ -279,7 +334,7 @@ where
         poseidon2_chip.eval_poseidon2(
             &mut sub_builder,
             poseidon2_columns.as_ref(),
-            MultiChip::<AB::F, DEGREE>::poseidon2::<AB>(next_slice).as_ref(),
+            MultiChip::<AB::F, DEGREE>::poseidon2(next_slice).as_ref(),
             local_multi_cols.poseidon2_receive_table,
             local_multi_cols.poseidon2_1st_half_memory_access,
             local_multi_cols.poseidon2_2nd_half_memory_access,
@@ -288,35 +343,33 @@ where
     }
 }
 
-impl<F: Field, const DEGREE: usize> MultiChip<F, DEGREE> {
-    fn fri_fold_width() -> usize {
-        <FriFoldChip<F, DEGREE> as BaseAir<F>>::width(&FriFoldChip::<F, DEGREE>::default())
+impl<F, const DEGREE: usize> MultiChip<F, DEGREE> {
+    fn fri_fold_width<T: Sync>() -> usize {
+        <FriFoldChip<T, DEGREE> as BaseAir<T>>::width(&FriFoldChip::<T, DEGREE>::default())
     }
 
-    fn fri_fold<AB: AirBuilder<F = F>>(
-        row: &dyn Deref<Target = [AB::Var]>,
-    ) -> FriFoldCols<AB::Var> {
-        let row_slice: &[AB::Var] = row;
-        let fri_fold_width = Self::fri_fold_width();
-        let fri_fold_cols: &FriFoldCols<AB::Var> =
+    fn fri_fold<T: Copy + Sync>(row: &dyn Deref<Target = [T]>) -> FriFoldCols<T> {
+        let row_slice: &[T] = row;
+        let fri_fold_width = Self::fri_fold_width::<T>();
+        let fri_fold_cols: &FriFoldCols<T> =
             (row_slice[NUM_MULTI_COLS..NUM_MULTI_COLS + fri_fold_width]).borrow();
 
         *fri_fold_cols
     }
 
-    fn poseidon2_width() -> usize {
-        <Poseidon2WideChip<F, DEGREE> as BaseAir<F>>::width(
-            &Poseidon2WideChip::<F, DEGREE>::default(),
+    fn poseidon2_width<T: Sync>() -> usize {
+        <Poseidon2WideChip<T, DEGREE> as BaseAir<T>>::width(
+            &Poseidon2WideChip::<T, DEGREE>::default(),
         )
     }
 
-    fn poseidon2<'a, AB: AirBuilder<F = F> + 'a>(
-        row: impl Deref<Target = [AB::Var]>,
-    ) -> Box<dyn Poseidon2<'a, AB::Var> + 'a> {
-        let row_slice: &[AB::Var] = &row;
-        let poseidon2_width = Self::poseidon2_width();
+    fn poseidon2<'a, T: 'a + Copy + Sync>(
+        row: impl Deref<Target = [T]>,
+    ) -> Box<dyn Poseidon2<'a, T> + 'a> {
+        let row_slice: &[T] = &row;
+        let poseidon2_width = Self::poseidon2_width::<T>();
 
-        Poseidon2WideChip::<F, DEGREE>::convert::<AB::Var>(
+        Poseidon2WideChip::<T, DEGREE>::convert::<T>(
             &row_slice[NUM_MULTI_COLS..NUM_MULTI_COLS + poseidon2_width],
         )
     }

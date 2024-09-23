@@ -114,6 +114,7 @@ pub struct SphinxProofWithMetadata<P: Clone> {
     pub proof: P,
     pub stdin: SphinxStdin,
     pub public_values: SphinxPublicValues,
+    pub cycles: u64,
 }
 
 impl<P: Serialize + DeserializeOwned + Clone> SphinxProofWithMetadata<P> {
@@ -198,4 +199,7 @@ pub enum SphinxReduceProofWrapper {
 }
 
 #[derive(Error, Debug)]
-pub enum SphinxRecursionProverError {}
+pub enum SphinxRecursionProverError {
+    #[error("Runtime error: {0}")]
+    RuntimeError(String),
+}

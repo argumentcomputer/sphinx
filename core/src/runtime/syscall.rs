@@ -2,6 +2,7 @@ use hashbrown::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
 use crate::runtime::{Register, Runtime};
@@ -38,7 +39,9 @@ use super::{ExecutionRecord, MemoryReadRecord, MemoryWriteRecord};
 /// - The second byte is 0/1 depending on whether the syscall has a separate table. This is used
 ///   in the CPU table to determine whether to lookup the syscall using the syscall interaction.
 /// - The third byte is the number of additional cycles the syscall uses.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, Ord, PartialOrd)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, Ord, PartialOrd, Serialize, Deserialize,
+)]
 #[allow(non_camel_case_types)]
 pub enum SyscallCode {
     /// Halts the program.
@@ -199,7 +202,7 @@ pub struct SyscallContext<'a, 'b> {
     /// This is the exit_code used for the HALT syscall
     pub(crate) exit_code: u32,
     pub(crate) rt: &'a mut Runtime<'b>,
-    pub syscall_lookup_id: usize,
+    pub syscall_lookup_id: u128,
 }
 
 impl<'a, 'b> SyscallContext<'a, 'b> {

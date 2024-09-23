@@ -4,9 +4,8 @@ mod program;
 mod record;
 mod utils;
 
-use std::array;
 use std::collections::VecDeque;
-use std::process::exit;
+use std::{array, fmt};
 use std::{marker::PhantomData, sync::Arc};
 
 use hashbrown::HashMap;
@@ -140,6 +139,21 @@ pub struct Runtime<F: PrimeField32, EF: ExtensionField<F>, Diffusion> {
 
     _marker: PhantomData<EF>,
 }
+
+#[derive(Debug)]
+pub enum RuntimeError {
+    Trap(String),
+}
+
+impl fmt::Display for RuntimeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RuntimeError::Trap(msg) => write!(f, "TRAP encountered: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for RuntimeError {}
 
 impl<F: PrimeField32, EF: ExtensionField<F>, Diffusion> Runtime<F, EF, Diffusion>
 where
@@ -431,7 +445,7 @@ where
         (a_val, b_val, c_val)
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), RuntimeError> {
         let early_exit_ts = std::env::var("RECURSION_EARLY_EXIT_TS")
             .map_or(usize::MAX, |ts: String| ts.parse().unwrap());
         while self.pc < F::from_canonical_u32(self.program.instructions.len() as u32) {
@@ -620,20 +634,19 @@ where
                     let trace = self.program.traces[trap_pc].clone();
                     if let Some(mut trace) = trace {
                         trace.resolve();
-                        panic!("TRAP encountered. Backtrace:\n{:?}", trace);
+                        return Err(RuntimeError::Trap(format!("Backtrace:\n{:?}", trace)));
                     } else {
                         for nearby_pc in (0..trap_pc).rev() {
                             let trace = self.program.traces[nearby_pc].clone();
                             if let Some(mut trace) = trace {
                                 trace.resolve();
-                                eprintln!(
+                                return Err(RuntimeError::Trap(format!(
                                     "TRAP encountered at pc={}. Nearest trace at pc={}: {:?}",
                                     trap_pc, nearby_pc, trace
-                                );
-                                exit(1);
+                                )));
                             }
                         }
-                        panic!("TRAP encountered. No backtrace available");
+                        return Err(RuntimeError::Trap("No backtrace available".to_string()));
                     }
                 }
                 Opcode::HALT => {
@@ -722,23 +735,32 @@ where
                     self.nb_poseidons += 1;
                     let (a_val, b_val, c_val) = self.all_rr(&instruction);
 
-                    let hash_num = a_val[0];
+                    let hash_and_absorb_num = a_val[0];
                     let start_addr = b_val[0];
                     let input_len = c_val[0];
                     let timestamp = self.clk;
 
+                    let two_pow_12 = 1 << 12;
+
+                    let hash_and_absorb_num_u32 = hash_and_absorb_num.as_canonical_u32();
+                    let hash_num = F::from_canonical_u32(hash_and_absorb_num_u32 / two_pow_12);
+                    let absorb_num = F::from_canonical_u32(hash_and_absorb_num_u32 % two_pow_12);
+
+                    // Double check that hash_num is [0, 2^16 - 1] and absorb_num is [0, 2^12 - 1] since
+                    // that is what the AIR will enforce.
+                    assert!(hash_num.as_canonical_u32() < 1 << 16);
+                    assert!(absorb_num.as_canonical_u32() < 1 << 12);
+
                     // We currently don't support an input_len of 0, since it will need special logic in the AIR.
                     assert!(input_len > F::zero());
 
-                    let is_first_absorb = self.p2_current_hash_num.is_none()
-                        || self.p2_current_hash_num.unwrap() != hash_num;
-
                     let mut absorb_event = Poseidon2AbsorbEvent::new(
                         timestamp,
-                        hash_num,
+                        hash_and_absorb_num,
                         start_addr,
                         input_len,
-                        is_first_absorb,
+                        hash_num,
+                        absorb_num,
                     );
 
                     let memory_records: Vec<MemoryRecord<F>> = (0..input_len.as_canonical_u32())
@@ -1079,6 +1101,8 @@ where
             self.record.last_memory_record.last().unwrap().0,
             false,
         );
+
+        Ok(())
     }
 }
 
@@ -1090,7 +1114,7 @@ mod tests {
         utils::BabyBearPoseidon2,
     };
 
-    use super::{Instruction, Opcode, RecursionProgram, Runtime};
+    use super::{Instruction, Opcode, RecursionProgram, Runtime, RuntimeError};
 
     type SC = BabyBearPoseidon2;
     type F = <SC as StarkGenericConfig>::Val;
@@ -1098,7 +1122,7 @@ mod tests {
     type A = RiscvAir<F>;
 
     #[test]
-    fn test_witness() {
+    fn test_witness_success() {
         let zero = F::zero();
         let zero_block = [F::zero(); 4];
         let program = RecursionProgram {
@@ -1132,6 +1156,41 @@ mod tests {
         let mut runtime = Runtime::<F, EF, _>::new(&program, machine.config().perm.clone());
         runtime.witness_stream =
             vec![vec![F::two().into(), F::two().into(), F::two().into()]].into();
-        runtime.run();
+
+        let result = runtime.run();
+        assert!(result.is_ok(), "Expected run to complete successfully");
+    }
+
+    #[test]
+    fn test_witness_trap_error() {
+        let zero = F::zero();
+        let zero_block = [F::zero(); 4];
+        let trap_program = RecursionProgram {
+            traces: vec![None], // None trace for the TRAP instruction
+            instructions: vec![Instruction::new(
+                Opcode::TRAP,
+                zero,
+                zero_block,
+                zero_block,
+                zero,
+                zero,
+                false,
+                false,
+                "".to_string(),
+            )],
+        };
+        let machine = A::machine(SC::default());
+        let mut trap_runtime =
+            Runtime::<F, EF, _>::new(&trap_program, machine.config().perm.clone());
+
+        let trap_result = trap_runtime.run();
+        assert!(
+            trap_result.is_err(),
+            "Expected run to return an error due to TRAP instruction"
+        );
+
+        if let Err(RuntimeError::Trap(msg)) = trap_result {
+            println!("Caught expected trap error: {}", msg);
+        }
     }
 }

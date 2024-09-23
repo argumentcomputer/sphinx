@@ -462,11 +462,11 @@ pub fn cycle_tracker(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let result = quote! {
         #visibility fn #name #generics (#inputs) #output #where_clause {
-            sphinx_zkvm::precompiles::unconstrained! {
+            sphinx_lib::unconstrained! {
                 println!("cycle-tracker-start: {}", stringify!(#name));
             }
             let result = (|| #block)();
-            sphinx_zkvm::precompiles::unconstrained! {
+            sphinx_lib::unconstrained! {
                 println!("cycle-tracker-end: {}", stringify!(#name));
             }
             result

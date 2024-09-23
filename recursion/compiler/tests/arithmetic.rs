@@ -78,6 +78,6 @@ fn test_compiler_arithmetic() {
 
     let config = SC::default();
     let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-    runtime.run();
+    runtime.run().unwrap();
     runtime.print_stats();
 }

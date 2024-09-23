@@ -23,6 +23,7 @@ sphinx-primitives = { path = "../../primitives" }
 sphinx-recursion-core = { path = "../core" }
 sphinx-recursion-compiler = { path = "../compiler" }
 sphinx-core = { path = "../../core" }
+stacker = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 rand = { workspace = true }

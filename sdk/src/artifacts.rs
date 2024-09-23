@@ -4,9 +4,9 @@ use anyhow::{Context, Result};
 use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
-pub use sphinx_prover::build::{
-    build_plonk_bn254_artifacts_with_dummy, try_install_plonk_bn254_artifacts,
-};
+pub use sphinx_prover::build::build_plonk_bn254_artifacts_with_dummy;
+
+use crate::install::try_install_plonk_bn254_artifacts;
 
 /// Exports the solidity verifier for PLONK proofs to the specified output directory.
 ///
@@ -16,7 +16,7 @@ pub fn export_solidity_plonk_bn254_verifier(output_dir: impl Into<PathBuf>) -> R
     let artifacts_dir = if sphinx_prover::build::sphinx_dev_mode() {
         sphinx_prover::build::plonk_bn254_artifacts_dev_dir()
     } else {
-        try_install_plonk_bn254_artifacts(false)
+        try_install_plonk_bn254_artifacts()
     };
     let verifier_path = artifacts_dir.join("SphinxVerifier.sol");
 

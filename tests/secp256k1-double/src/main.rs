@@ -1,9 +1,7 @@
 #![no_main]
-sphinx_zkvm::entrypoint!(main);
+use sphinx_zkvm::syscalls::syscall_secp256k1_double;
 
-extern "C" {
-    fn syscall_secp256k1_double(p: *mut u32);
-}
+sphinx_zkvm::entrypoint!(main);
 
 pub fn main() {
     for _ in 0..10i64.pow(3) {
@@ -17,9 +15,7 @@ pub fn main() {
             101, 196, 163, 38, 119, 218, 58, 72,
         ];
 
-        unsafe {
-            syscall_secp256k1_double(a.as_mut_ptr() as *mut u32);
-        }
+        syscall_secp256k1_double(a.as_mut_ptr() as *mut u32);
 
         // 2 * generator.
         // 89565891926547004231252920425935692360644145829622209833684329913297188986597

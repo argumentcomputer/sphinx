@@ -8,6 +8,7 @@ use sphinx_core::runtime::SphinxContext;
 use sphinx_core::stark::MachineVerificationError;
 use sphinx_core::utils::SphinxProverOpts;
 use sphinx_core::SPHINX_CIRCUIT_VERSION;
+use sphinx_prover::components::SphinxProverComponents;
 use sphinx_prover::CoreSC;
 use sphinx_prover::InnerSC;
 use sphinx_prover::SphinxCoreProofData;
@@ -17,6 +18,7 @@ use sphinx_prover::{SphinxProvingKey, SphinxStdin, SphinxVerifyingKey};
 use strum_macros::EnumString;
 use thiserror::Error;
 
+use crate::install::try_install_plonk_bn254_artifacts;
 use crate::SphinxProof;
 use crate::SphinxProofKind;
 use crate::SphinxProofWithPublicValues;
@@ -42,10 +44,10 @@ pub enum SphinxVerificationError {
 }
 
 /// An implementation of [crate::ProverClient].
-pub trait Prover: Send + Sync {
+pub trait Prover<C: SphinxProverComponents>: Send + Sync {
     fn id(&self) -> ProverType;
 
-    fn sphinx_prover(&self) -> &SphinxProver;
+    fn sphinx_prover(&self) -> &SphinxProver<C>;
 
     fn version(&self) -> &str {
         SPHINX_CIRCUIT_VERSION
@@ -94,7 +96,7 @@ pub trait Prover: Send + Sync {
                     &if sphinx_prover::build::sphinx_dev_mode() {
                         sphinx_prover::build::plonk_bn254_artifacts_dev_dir()
                     } else {
-                        sphinx_prover::build::try_install_plonk_bn254_artifacts(false)
+                        try_install_plonk_bn254_artifacts()
                     },
                 )
                 .map_err(SphinxVerificationError::Plonk),

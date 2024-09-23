@@ -11,6 +11,7 @@ pub mod proto {
 }
 pub mod action;
 pub mod artifacts;
+pub mod install;
 #[cfg(feature = "network")]
 pub mod network;
 #[cfg(feature = "network")]
@@ -25,21 +26,24 @@ pub mod utils {
 use cfg_if::cfg_if;
 pub use proof::*;
 pub use provers::SphinxVerificationError;
+use sphinx_prover::components::DefaultProverComponents;
 use std::env;
 
 pub use provers::{LocalProver, MockProver, Prover};
 
-pub use sphinx_core::runtime::{Hook, HookEnv, SphinxContext, SphinxContextBuilder};
+pub use sphinx_core::runtime::{
+    ExecutionReport, Hook, HookEnv, SphinxContext, SphinxContextBuilder,
+};
 use sphinx_core::SPHINX_CIRCUIT_VERSION;
 pub use sphinx_prover::{
-    types::HashableKey, CoreSC, InnerSC, OuterSC, PlonkBn254Proof, SphinxProver, SphinxProvingKey,
+    CoreSC, HashableKey, InnerSC, OuterSC, PlonkBn254Proof, SphinxProver, SphinxProvingKey,
     SphinxPublicValues, SphinxStdin, SphinxVerifyingKey,
 };
 
 /// A client for interacting with Sphinx.
 pub struct ProverClient {
     /// The underlying prover implementation.
-    pub prover: Box<dyn Prover>,
+    pub prover: Box<dyn Prover<DefaultProverComponents>>,
 }
 
 impl ProverClient {
@@ -333,6 +337,17 @@ mod tests {
         let mut stdin = SphinxStdin::new();
         stdin.write(&10usize);
         client.execute(elf, stdin).run().unwrap();
+    }
+
+    #[should_panic]
+    #[test]
+    fn test_cycle_limit_fail() {
+        utils::setup_logger();
+        let client = ProverClient::local();
+        let elf = include_bytes!("../../tests/panic/elf/riscv32im-succinct-zkvm-elf");
+        let mut stdin = SphinxStdin::new();
+        stdin.write(&10usize);
+        client.execute(elf, stdin).max_cycles(1).run().unwrap();
     }
 
     #[test]

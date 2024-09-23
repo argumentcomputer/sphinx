@@ -33,7 +33,7 @@ pub fn main() {
     let elf = include_bytes!("../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
 
     tracing::info!("initializing prover");
-    let prover = SphinxProver::new();
+    let prover: SphinxProver = SphinxProver::new();
     let opts = SphinxProverOpts::default();
     let context = SphinxContext::default();
 

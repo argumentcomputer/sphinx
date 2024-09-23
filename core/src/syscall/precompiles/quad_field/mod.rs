@@ -104,7 +104,7 @@ impl<FP: FieldParameters> QuadFieldMulSyscall<FP> {
 /// Fp2 operation event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuadFieldEvent<FP: FieldParameters> {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,
@@ -478,8 +478,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        utils,
-        utils::tests::{BLS12381_FP2_ADD_ELF, BLS12381_FP2_MUL_ELF, BLS12381_FP2_SUB_ELF},
+        stark::DefaultProver,
+        utils::{
+            self, run_test,
+            tests::{BLS12381_FP2_ADD_ELF, BLS12381_FP2_MUL_ELF, BLS12381_FP2_SUB_ELF},
+        },
         Program,
     };
 
@@ -487,20 +490,20 @@ mod tests {
     fn test_bls12381_fp2_add_simple() {
         utils::setup_logger();
         let program = Program::from(BLS12381_FP2_ADD_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_fp2_sub_simple() {
         utils::setup_logger();
         let program = Program::from(BLS12381_FP2_SUB_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_fp2_mul_simple() {
         utils::setup_logger();
         let program = Program::from(BLS12381_FP2_MUL_ELF);
-        utils::run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

@@ -161,6 +161,7 @@ mod tests {
     use p3_field::PrimeField32;
     use rand::{thread_rng, Rng};
     use serde::{de::DeserializeOwned, Serialize};
+    use sphinx_core::stark::DefaultProver;
     use sphinx_core::{
         io::SphinxStdin,
         runtime::Program,
@@ -170,6 +171,7 @@ mod tests {
         },
         utils::{BabyBearPoseidon2, SphinxCoreOpts},
     };
+
     use sphinx_recursion_core::stark::utils::{run_test_recursion, TestConfig};
 
     use sphinx_recursion_compiler::{asm::AsmBuilder, ir::Felt, prelude::ExtConst};
@@ -279,7 +281,7 @@ mod tests {
         let machine = A::machine(SC::default());
         let (_, vk) = machine.setup(&Program::from(elf));
         let mut challenger = machine.config().challenger();
-        let (proof, _) = sphinx_core::utils::prove(
+        let (proof, _) = sphinx_core::utils::prove::<_, DefaultProver<_, _>>(
             &Program::from(elf),
             &SphinxStdin::new(),
             SC::default(),

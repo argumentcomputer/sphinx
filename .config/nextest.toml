@@ -16,10 +16,10 @@ limited = { max-threads = 4 }
 very-limited = { max-threads = 1 }
 
 [[profile.ci.overrides]]
-filter = '(test(syscall::precompiles) | test(stark::machine) | test(test_verifier_export) | package(sphinx-recursion-program) | package(sphinx-recursion-circuit))'
+filter = '(test(syscall::precompiles) | test(stark::machine) | package(sphinx-recursion-program) | package(sphinx-recursion-circuit))'
 test-group = 'limited'
 
 [[profile.ci.overrides]]
-filter = '(test(test_e2e))'
+filter = '(test(test_e2e) | test(test_verifier_export))'
 slow-timeout = { period = "1500s", terminate-after = 4 }
 test-group = 'very-limited'

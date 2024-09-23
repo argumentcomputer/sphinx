@@ -39,6 +39,30 @@ impl SphinxProofWithPublicValues {
         bincode::deserialize_from(File::open(path).expect("failed to open file"))
             .map_err(Into::into)
     }
+
+    /// Returns the raw proof as a string.
+    pub fn raw(&self) -> String {
+        match &self.proof {
+            SphinxProof::Plonk(plonk) => plonk.raw_proof.clone(),
+            _ => unimplemented!(),
+        }
+    }
+
+    /// For Plonk proofs, returns the proof in a byte encoding the onchain verifier accepts.
+    /// The bytes consist of the first four bytes of Plonk vkey hash followed by the encoded proof.
+    pub fn bytes(&self) -> Vec<u8> {
+        match &self.proof {
+            SphinxProof::Plonk(plonk_proof) => {
+                let mut bytes = Vec::with_capacity(4 + plonk_proof.encoded_proof.len());
+                bytes.extend_from_slice(&plonk_proof.plonk_vkey_hash[..4]);
+                bytes.extend_from_slice(
+                    &hex::decode(&plonk_proof.encoded_proof).expect("Invalid Plonk proof"),
+                );
+                bytes
+            }
+            _ => unimplemented!("only Plonk proofs are verifiable onchain"),
+        }
+    }
 }
 
 pub type SphinxCoreProofVerificationError = MachineVerificationError<CoreSC>;

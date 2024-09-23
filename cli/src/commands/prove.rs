@@ -3,14 +3,12 @@ use std::{env, fs::File, io::Read, path::PathBuf, str::FromStr, time::Instant};
 use anstyle::*;
 use anyhow::Result;
 use clap::Parser;
+use sphinx_build::{build_program, BuildArgs};
 use sphinx_core::utils::{setup_logger, setup_tracer};
 use sphinx_prover::SphinxStdin;
 use sphinx_sdk::ProverClient;
 
-use crate::{
-    build::{build_program, BuildArgs},
-    util::{elapsed, write_status},
-};
+use crate::util::{elapsed, write_status};
 
 #[derive(Debug, Clone)]
 enum Input {
@@ -75,7 +73,7 @@ pub struct ProveCmd {
 
 impl ProveCmd {
     pub fn run(&self) -> Result<()> {
-        let elf_path = build_program(&self.build_args)?;
+        let elf_path = build_program(&self.build_args, None)?;
 
         if !self.profile {
             match env::var("RUST_LOG") {

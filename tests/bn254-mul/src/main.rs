@@ -1,9 +1,9 @@
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
+use sphinx_lib::bn254::Bn254;
+use sphinx_lib::utils::AffinePoint;
 use hybrid_array::typenum::U16;
-use sphinx_zkvm::precompiles::bn254::Bn254;
-use sphinx_zkvm::precompiles::utils::AffinePoint;
 
 #[sphinx_derive::cycle_tracker]
 pub fn main() {

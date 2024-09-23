@@ -1,5 +1,4 @@
 use p3_air::AirBuilder;
-use p3_field::Field;
 use sphinx_core::air::BaseAirBuilder;
 
 use crate::{
@@ -11,7 +10,7 @@ use crate::{
     runtime::Opcode,
 };
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Eval the syscall parameters.
     pub(crate) fn eval_syscall_params<AB: SphinxRecursionAirBuilder>(
         &self,
@@ -74,8 +73,10 @@ impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             let next_syscall_params = next_syscall.absorb();
 
             absorb_syscall_builder.assert_eq(local_syscall_params.clk, next_syscall_params.clk);
-            absorb_syscall_builder
-                .assert_eq(local_syscall_params.hash_num, next_syscall_params.hash_num);
+            absorb_syscall_builder.assert_eq(
+                local_syscall_params.hash_and_absorb_num,
+                next_syscall_params.hash_and_absorb_num,
+            );
             absorb_syscall_builder.assert_eq(
                 local_syscall_params.input_ptr,
                 next_syscall_params.input_ptr,

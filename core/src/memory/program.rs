@@ -1,15 +1,17 @@
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
 use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir, PairBuilder};
-use p3_field::AbstractField;
-use p3_field::PrimeField;
+use p3_field::{AbstractField, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use std::collections::BTreeMap;
+use std::marker::PhantomData;
 
 use sphinx_derive::AlignedBorrow;
 
-use crate::air::{AirInteraction, BaseAirBuilder, EventLens, PublicValues, WithEvents};
+use crate::air::{
+    AirInteraction, BaseAirBuilder, EventLens, PublicValues, WithEvents, SPHINX_PROOF_NUM_PV_ELTS,
+};
 use crate::air::{MachineAir, Word};
 use crate::operations::IsZeroOperation;
 use crate::runtime::{ExecutionRecord, Program};
@@ -45,19 +47,19 @@ pub struct MemoryProgramMultCols<T> {
 /// receives each row in the first shard. This prevents any of these addresses from being
 /// overwritten through the normal MemoryInit.
 #[derive(Default)]
-pub struct MemoryProgramChip;
+pub struct MemoryProgramChip<F>(PhantomData<F>);
 
-impl MemoryProgramChip {
-    pub const fn new() -> Self {
-        Self {}
+impl<F> MemoryProgramChip<F> {
+    pub fn new() -> Self {
+        Self(PhantomData)
     }
 }
 
-impl<'a> WithEvents<'a> for MemoryProgramChip {
-    type Events = &'a BTreeMap<u32, u32>;
+impl<'a, F: 'a> WithEvents<'a> for MemoryProgramChip<F> {
+    type Events = (&'a BTreeMap<u32, u32>, PublicValues<Word<F>, F>);
 }
 
-impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
+impl<F: PrimeField32> MachineAir<F> for MemoryProgramChip<F> {
     type Record = ExecutionRecord;
 
     type Program = Program;
@@ -111,9 +113,10 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
         input: &EL,
         _output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
-        let program_memory_addrs = input.events().keys().copied().collect::<Vec<_>>();
+        let (events, pv) = input.events();
+        let program_memory_addrs = events.keys().copied().collect::<Vec<_>>();
 
-        let mult = if input.index() == 1 {
+        let mult = if pv.shard == F::one() {
             F::one()
         } else {
             F::zero()
@@ -126,7 +129,8 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
                 let mut row = [F::zero(); NUM_MEMORY_PROGRAM_MULT_COLS];
                 let cols: &mut MemoryProgramMultCols<F> = row.as_mut_slice().borrow_mut();
                 cols.multiplicity = mult;
-                cols.is_first_shard.populate(input.index() - 1);
+                cols.is_first_shard
+                    .populate(pv.shard.as_canonical_u32() - 1);
                 row
             })
             .collect::<Vec<_>>();
@@ -148,13 +152,13 @@ impl<F: PrimeField> MachineAir<F> for MemoryProgramChip {
     }
 }
 
-impl<F> BaseAir<F> for MemoryProgramChip {
+impl<F: Send + Sync> BaseAir<F> for MemoryProgramChip<F> {
     fn width(&self) -> usize {
         NUM_MEMORY_PROGRAM_MULT_COLS
     }
 }
 
-impl<AB> Air<AB> for MemoryProgramChip
+impl<AB> Air<AB> for MemoryProgramChip<AB::F>
 where
     AB: BaseAirBuilder + PairBuilder + AirBuilderWithPublicValues,
 {
@@ -169,18 +173,15 @@ where
         let mult_local: &MemoryProgramMultCols<AB::Var> = (*mult_local).borrow();
 
         // Get shard from public values and evaluate whether it is the first shard.
-        let public_values = PublicValues::<Word<AB::Expr>, AB::Expr>::from_vec(
-            &builder
-                .public_values()
-                .iter()
-                .map(|elm| (*elm).into())
-                .collect::<Vec<_>>(),
-        );
+        let public_values_slice: [AB::Expr; SPHINX_PROOF_NUM_PV_ELTS] =
+            core::array::from_fn(|i| builder.public_values()[i].into());
+        let public_values: &PublicValues<Word<AB::Expr>, AB::Expr> =
+            public_values_slice.as_slice().borrow();
 
         // Constrain `is_first_shard` to be 1 if and only if the shard is the first shard.
         IsZeroOperation::<AB::F>::eval(
             builder,
-            public_values.shard - AB::F::one(),
+            public_values.shard.clone() - AB::F::one(),
             mult_local.is_first_shard,
             prep_local.is_real.into(),
         );

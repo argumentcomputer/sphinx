@@ -1,28 +1,34 @@
 use anyhow::Result;
 use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
-use sphinx_prover::{SphinxProver, SphinxStdin};
+use sphinx_prover::{components::SphinxProverComponents, SphinxProver, SphinxStdin};
+use sysinfo::System;
 
 use crate::{
-    Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
-    SphinxVerifyingKey,
+    install::try_install_plonk_bn254_artifacts, Prover, SphinxProof, SphinxProofKind,
+    SphinxProofWithPublicValues, SphinxProvingKey, SphinxVerifyingKey,
 };
 
 use super::ProverType;
 
 /// An implementation of [crate::ProverClient] that can generate end-to-end proofs locally.
-pub struct LocalProver {
-    prover: SphinxProver,
+pub struct LocalProver<C: SphinxProverComponents> {
+    prover: SphinxProver<C>,
 }
 
-impl LocalProver {
+impl<C: SphinxProverComponents> LocalProver<C> {
     /// Creates a new [LocalProver].
     pub fn new() -> Self {
         let prover = SphinxProver::new();
         Self { prover }
     }
+
+    /// Creates a new [LocalProver] from an existing [SP1Prover].
+    pub fn from_prover(prover: SphinxProver<C>) -> Self {
+        Self { prover }
+    }
 }
 
-impl Prover for LocalProver {
+impl<C: SphinxProverComponents> Prover<C> for LocalProver<C> {
     fn id(&self) -> ProverType {
         ProverType::Local
     }
@@ -31,7 +37,7 @@ impl Prover for LocalProver {
         self.prover.setup(elf)
     }
 
-    fn sphinx_prover(&self) -> &SphinxProver {
+    fn sphinx_prover(&self) -> &SphinxProver<C> {
         &self.prover
     }
 
@@ -43,6 +49,13 @@ impl Prover for LocalProver {
         context: SphinxContext<'a>,
         kind: SphinxProofKind,
     ) -> Result<SphinxProofWithPublicValues> {
+        let total_ram_gb = System::new_all().total_memory() / 1_000_000_000;
+        if kind == SphinxProofKind::Plonk && total_ram_gb <= 120 {
+            return Err(anyhow::anyhow!(
+                "not enough memory to generate plonk proof. at least 128GB is required."
+            ));
+        }
+
         let proof = self.prover.prove_core(pk, &stdin, opts, context)?;
         if kind == SphinxProofKind::Core {
             return Ok(SphinxProofWithPublicValues {
@@ -72,7 +85,7 @@ impl Prover for LocalProver {
                 &outer_proof.proof,
             )
         } else {
-            sphinx_prover::build::try_install_plonk_bn254_artifacts(false)
+            try_install_plonk_bn254_artifacts()
         };
         let proof = self
             .prover
@@ -89,7 +102,7 @@ impl Prover for LocalProver {
     }
 }
 
-impl Default for LocalProver {
+impl<C: SphinxProverComponents> Default for LocalProver<C> {
     fn default() -> Self {
         Self::new()
     }

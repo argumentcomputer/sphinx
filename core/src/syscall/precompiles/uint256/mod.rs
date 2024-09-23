@@ -6,6 +6,7 @@ pub use air::*;
 mod tests {
 
     use crate::operations::field::params::FieldParameters;
+    use crate::stark::DefaultProver;
     use crate::{
         io::SphinxStdin,
         runtime::Program,
@@ -21,7 +22,7 @@ mod tests {
     fn test_uint256_mul() {
         utils::setup_logger();
         let program = Program::from(UINT256_MUL_ELF);
-        run_test_io(program, SphinxStdin::new()).unwrap();
+        run_test_io::<DefaultProver<_, _>>(program, SphinxStdin::new()).unwrap();
     }
 
     #[test]

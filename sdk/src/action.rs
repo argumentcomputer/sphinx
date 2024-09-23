@@ -2,7 +2,10 @@ use sphinx_core::{
     runtime::{ExecutionReport, HookEnv, SphinxContextBuilder},
     utils::{SphinxCoreOpts, SphinxProverOpts},
 };
-use sphinx_prover::{SphinxProver, SphinxProvingKey, SphinxPublicValues, SphinxStdin};
+use sphinx_prover::{
+    components::DefaultProverComponents, SphinxProver, SphinxProvingKey, SphinxPublicValues,
+    SphinxStdin,
+};
 
 use anyhow::{Ok, Result};
 
@@ -38,7 +41,9 @@ impl<'a> Execute<'a> {
             mut context_builder,
         } = self;
         let context = context_builder.build();
-        Ok(SphinxProver::execute(elf, &stdin, context)?)
+        Ok(SphinxProver::<DefaultProverComponents>::execute(
+            elf, &stdin, context,
+        )?)
     }
 
     /// Add a runtime [Hook](super::Hook) into the context.
@@ -63,12 +68,20 @@ impl<'a> Execute<'a> {
         self.context_builder.without_default_hooks();
         self
     }
+
+    /// Set the maximum number of cpu cycles to use for execution.
+    ///
+    /// If the cycle limit is exceeded, execution will return [sp1_core::runtime::ExecutionError::ExceededCycleLimit].
+    pub fn max_cycles(mut self, max_cycles: u64) -> Self {
+        self.context_builder.max_cycles(max_cycles);
+        self
+    }
 }
 
 /// Builder to prepare and configure proving execution of a program on an input.
 /// May be run with [Self::run].
 pub struct Prove<'a> {
-    prover: &'a dyn Prover,
+    prover: &'a dyn Prover<DefaultProverComponents>,
     kind: SphinxProofKind,
     context_builder: SphinxContextBuilder<'a>,
     pk: &'a SphinxProvingKey,
@@ -81,7 +94,11 @@ impl<'a> Prove<'a> {
     ///
     /// Prefer using [ProverClient::prove](super::ProverClient::prove).
     /// See there for more documentation.
-    pub fn new(prover: &'a dyn Prover, pk: &'a SphinxProvingKey, stdin: SphinxStdin) -> Self {
+    pub fn new(
+        prover: &'a dyn Prover<DefaultProverComponents>,
+        pk: &'a SphinxProvingKey,
+        stdin: SphinxStdin,
+    ) -> Self {
         Self {
             prover,
             kind: Default::default(),
@@ -164,15 +181,29 @@ impl<'a> Prove<'a> {
         self
     }
 
-    /// Set the chunking multiplier for proving.
-    pub fn shard_chunking_multiplier(mut self, value: usize) -> Self {
-        self.opts.shard_chunking_multiplier = value;
+    /// Set the commit stream capacity for proving.
+    pub fn commit_stream_capacity(mut self, value: usize) -> Self {
+        self.opts.commit_stream_capacity = value;
+        self
+    }
+
+    /// Set the prove stream capacity for proving.
+    pub fn prove_stream_capacity(mut self, value: usize) -> Self {
+        self.opts.prove_stream_capacity = value;
         self
     }
 
     /// Set whether we should reconstruct commitments while proving.
     pub fn reconstruct_commitments(mut self, value: bool) -> Self {
         self.opts.reconstruct_commitments = value;
+        self
+    }
+
+    /// Set the maximum number of cpu cycles to use for execution.
+    ///
+    /// If the cycle limit is exceeded, execution will return [sp1_core::runtime::ExecutionError::ExceededCycleLimit].
+    pub fn cycle_limit(mut self, cycle_limit: u64) -> Self {
+        self.context_builder.max_cycles(cycle_limit);
         self
     }
 }

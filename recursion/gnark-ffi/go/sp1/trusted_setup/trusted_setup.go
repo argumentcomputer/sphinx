@@ -17,7 +17,10 @@ import (
 func sanityCheck(srs *kzg_bn254.SRS) {
 	// we can now use the SRS to verify a proof
 	// create a polynomial
-	f := randomPolynomial(60)
+	f, err := randomPolynomial(60)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// commit the polynomial
 	digest, err := kzg_bn254.Commit(f, srs.Pk)
@@ -27,7 +30,9 @@ func sanityCheck(srs *kzg_bn254.SRS) {
 
 	// compute opening proof at a random point
 	var point fr.Element
-	point.SetString("4321")
+	if _, err := point.SetString("4321"); err != nil {
+		log.Fatal(err)
+	}
 	proof, err := kzg_bn254.Open(f, point, srs.Pk)
 	if err != nil {
 		log.Fatal(err)
@@ -46,12 +51,14 @@ func sanityCheck(srs *kzg_bn254.SRS) {
 	}
 }
 
-func randomPolynomial(size int) []fr.Element {
+func randomPolynomial(size int) ([]fr.Element, error) {
 	f := make([]fr.Element, size)
 	for i := 0; i < size; i++ {
-		f[i].SetRandom()
+		if _, err := f[i].SetRandom(); err != nil {
+			return nil, err
+		}
 	}
-	return f
+	return f, nil
 }
 
 // eval returns p(point) where p is interpreted as a polynomial

@@ -56,7 +56,7 @@ pub fn main() {
         let vkey = &vkeys[i];
         let public_values = &public_values[i];
         let public_values_digest = Sha256::digest(public_values);
-        sphinx_zkvm::precompiles::verify::verify_sphinx_proof(vkey, &public_values_digest.into());
+        sphinx_zkvm::lib::verify::verify_sphinx_proof(vkey, &public_values_digest.into());
     }
 
     // TODO: Do something interesting with the proofs here.

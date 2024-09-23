@@ -328,7 +328,7 @@ mod tests {
         let program = builder.compile_program();
 
         let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-        runtime.run();
+        runtime.run().unwrap();
     }
 
     #[test]
@@ -365,6 +365,6 @@ mod tests {
         let program = builder.compile_program();
 
         let mut runtime = Runtime::<F, EF, _>::new(&program, config.perm.clone());
-        runtime.run();
+        runtime.run().unwrap();
     }
 }

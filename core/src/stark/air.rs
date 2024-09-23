@@ -51,7 +51,7 @@ pub(crate) mod riscv_chips {
 #[record_type = "crate::runtime::ExecutionRecord"]
 pub enum RiscvAir<F: PrimeField32> {
     /// An AIR that contains a preprocessed program table and a lookup for the instructions.
-    Program(ProgramChip),
+    Program(ProgramChip<F>),
     /// An AIR for the RISC-V CPU. Each row represents a cpu cycle.
     Cpu(CpuChip),
     /// An AIR for the RISC-V Add and SUB instruction.
@@ -71,11 +71,11 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A lookup table for byte operations.
     ByteLookup(ByteChip<F>),
     /// A table for initializing the memory state.
-    MemoryInit(MemoryChip),
+    MemoryInit(MemoryChip<F>),
     /// A table for finalizing the memory state.
-    MemoryFinal(MemoryChip),
+    MemoryFinal(MemoryChip<F>),
     /// A table for initializing the program memory.
-    ProgramMemory(MemoryProgramChip),
+    ProgramMemory(MemoryProgramChip<F>),
     /// A precompile for sha256 extend.
     Sha256Extend(ShaExtendChip),
     /// A precompile for sha256 compress.
@@ -125,7 +125,7 @@ impl<F: PrimeField32> RiscvAir<F> {
         let mut chips = vec![];
         let cpu = CpuChip;
         chips.push(RiscvAir::Cpu(cpu));
-        let program = ProgramChip;
+        let program = ProgramChip::new();
         chips.push(RiscvAir::Program(program));
         let sha_extend = ShaExtendChip;
         chips.push(RiscvAir::Sha256Extend(sha_extend));

@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-
 use std::borrow::Borrow;
 use std::borrow::BorrowMut;
 use std::marker::PhantomData;
@@ -7,7 +5,6 @@ use std::ops::Deref;
 
 use p3_baby_bear::{MONTY_INVERSE, POSEIDON2_INTERNAL_MATRIX_DIAG_16_BABYBEAR_MONTY};
 use p3_field::AbstractField;
-use p3_field::Field;
 use p3_field::PrimeField32;
 
 pub mod air;
@@ -31,14 +28,23 @@ pub const NUM_INTERNAL_ROUNDS: usize = 13;
 pub const NUM_ROUNDS: usize = NUM_EXTERNAL_ROUNDS + NUM_INTERNAL_ROUNDS;
 
 /// A chip that implements addition for the opcode ADD.
-#[derive(Default)]
-pub struct Poseidon2WideChip<F: Field, const DEGREE: usize> {
+pub struct Poseidon2WideChip<F: Sync, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
     pub pad: bool,
     pub _phantom: PhantomData<F>,
 }
 
-impl<'a, F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Default for Poseidon2WideChip<F, DEGREE> {
+    fn default() -> Self {
+        Self {
+            fixed_log2_rows: Default::default(),
+            pad: Default::default(),
+            _phantom: Default::default(),
+        }
+    }
+}
+
+impl<'a, F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Transmute a row it to an immutable Poseidon2 instance.
     pub(crate) fn convert<T>(row: impl Deref<Target = [T]>) -> Box<dyn Poseidon2<'a, T> + 'a>
     where
@@ -54,17 +60,19 @@ impl<'a, F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             panic!("Unsupported degree");
         }
     }
+}
 
+impl<'a, F: Sync + Copy, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     /// Transmute a row it to a mutable Poseidon2 instance.
     pub(crate) fn convert_mut<'b: 'a>(
         &self,
-        row: &'b mut Vec<F>,
+        row: &'b mut [F],
     ) -> Box<dyn Poseidon2Mut<'a, F> + 'a> {
         if DEGREE == 3 {
-            let convert: &mut Poseidon2Degree3<F> = row.as_mut_slice().borrow_mut();
+            let convert: &mut Poseidon2Degree3<F> = row.borrow_mut();
             Box::new(convert)
         } else if DEGREE == 9 || DEGREE == 17 {
-            let convert: &mut Poseidon2Degree9<F> = row.as_mut_slice().borrow_mut();
+            let convert: &mut Poseidon2Degree9<F> = row.borrow_mut();
             Box::new(convert)
         } else {
             panic!("Unsupported degree");
@@ -211,12 +219,21 @@ pub(crate) mod tests {
                 let prev_ts = BabyBear::from_canonical_usize(i);
                 let absorb_ts = BabyBear::from_canonical_usize(i + 1);
                 let finalize_ts = BabyBear::from_canonical_usize(i + 2);
-                let hash_num = BabyBear::from_canonical_usize(i);
+                let hash_num = i as u32;
+                let absorb_num = 0_u32;
+                let hash_and_absorb_num =
+                    BabyBear::from_canonical_u32(hash_num * (1 << 12) + absorb_num);
                 let start_addr = BabyBear::from_canonical_usize(i + 1);
                 let input_len = BabyBear::from_canonical_usize(*input_size);
 
-                let mut absorb_event =
-                    Poseidon2AbsorbEvent::new(absorb_ts, hash_num, start_addr, input_len, true);
+                let mut absorb_event = Poseidon2AbsorbEvent::new(
+                    absorb_ts,
+                    hash_and_absorb_num,
+                    start_addr,
+                    input_len,
+                    BabyBear::from_canonical_u32(hash_num),
+                    BabyBear::from_canonical_u32(absorb_num),
+                );
 
                 let mut hash_state = [BabyBear::zero(); WIDTH];
                 let mut hash_state_cursor = 0;
@@ -245,7 +262,7 @@ pub(crate) mod tests {
                     .poseidon2_hash_events
                     .push(Poseidon2HashEvent::Finalize(Poseidon2FinalizeEvent {
                         clk: finalize_ts,
-                        hash_num,
+                        hash_num: BabyBear::from_canonical_u32(hash_num),
                         output_ptr: start_addr,
                         output_records: dummy_memory_access_records(
                             state.as_slice(),

@@ -2,6 +2,8 @@ use sphinx_precompiles::BIGINT_WIDTH_WORDS;
 
 use super::syscall_uint256_mulmod;
 
+pub const BIGINT_WIDTH_WORDS: usize = 8;
+
 /// Sets result to be (x op y) % modulus. Currently only multiplication is supported. If modulus is
 /// zero, the modulus applied is 2^256.
 #[allow(unused_variables)]
