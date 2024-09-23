@@ -16,7 +16,7 @@ impl Syscall for Blake2sRoundChip {
         let mut a = ctx.slice_unsafe(a_ptr, 16);
         let mut a_clone = a.clone();
 
-        let (b_reads, b) = ctx.mr_slice(b_ptr, 24);
+        let (b_reads, b) = ctx.mr_slice(b_ptr, 16);
 
         // 1x (m0, R1, R2)
         // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m1)

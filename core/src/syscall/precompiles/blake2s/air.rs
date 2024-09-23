@@ -1,5 +1,5 @@
 use crate::memory::MemoryCols;
-use crate::operations::{Add4Operation, FixedRotateRightOperation, XorOperation};
+use crate::operations::{Add3Operation, AddOperation, FixedRotateRightOperation, XorOperation};
 use crate::runtime::SyscallCode;
 use crate::stark::SphinxAirBuilder;
 use crate::syscall::precompiles::blake2s::columns::Blake2sRoundCols;
@@ -55,18 +55,6 @@ where
             );
         }
 
-        // Eval extra-zeroes
-        for i in 16..24usize {
-            builder.eval_memory_access(
-                local.shard,
-                local.channel,
-                local.clk,
-                local.b_ptr + AB::F::from_canonical_u32((i as u32) * 4),
-                &local.b[i],
-                local.is_real,
-            );
-        }
-
         let v1_shuffle_lookup = [1, 2, 3, 0];
         let v2_shuffle_lookup = [2, 3, 0, 1];
         let v3_shuffle_lookup = [3, 0, 1, 2];
@@ -75,23 +63,22 @@ where
             // 1x
 
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-            Add4Operation::<AB::F>::eval(
+            Add3Operation::<AB::F>::eval(
                 builder,
                 *local.a[i].prev_value(),     // v0
                 *local.a[i + 4].prev_value(), // v1
                 *local.b[i].value(),          // m1
-                *local.b[i + 20].value(),     // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i],
+                local.add3[i],
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i + 12].prev_value(),
-                local.add[i].value,
+                local.add3[i].value,
                 local.xor[i],
                 local.shard,
                 &local.channel,
@@ -108,23 +95,21 @@ where
             );
 
             // v[2] = v[2].wrapping_add(v[3]);
-            Add4Operation::<AB::F>::eval(
+            AddOperation::<AB::F>::eval(
                 builder,
                 *local.a[i + 8].prev_value(), // v2
                 local.rotate_right[i].value,  // v3 from previous operation
-                *local.b[i + 16].value(),     // zero1
-                *local.b[i + 20].value(),     // zero2
+                local.add2[i],
                 local.shard,
                 local.channel,
-                local.is_real,
-                local.add[i + 4],
+                local.is_real.into(),
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             XorOperation::<AB::F>::eval(
                 builder,
                 *local.a[i + 4].prev_value(),
-                local.add[i + 4].value,
+                local.add2[i].value,
                 local.xor[i + 4],
                 local.shard,
                 &local.channel,
@@ -143,23 +128,22 @@ where
             // 2x
 
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-            Add4Operation::<AB::F>::eval(
+            Add3Operation::<AB::F>::eval(
                 builder,
-                local.add[i].value,              // v0 after 1x
+                local.add3[i].value,             // v0 after 1x
                 local.rotate_right[i + 4].value, // v1 after 1x
                 *local.b[i + 4].value(),         // m2
-                *local.b[i + 16].value(),        // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i + 8],
+                local.add3[i + 4],
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i].value, // v3 after 1x
-                local.add[i + 8].value,      // v0 after 1x
+                local.add3[i + 4].value,     // v0 after 1x
                 local.xor[i + 8],
                 local.shard,
                 &local.channel,
@@ -176,23 +160,21 @@ where
             );
 
             // v[2] = v[2].wrapping_add(v[3]);
-            Add4Operation::<AB::F>::eval(
+            AddOperation::<AB::F>::eval(
                 builder,
-                local.add[i + 4].value,          // v2 after 1x
+                local.add2[i].value,             // v2 after 1x
                 local.rotate_right[i + 8].value, // v3 after previous operation
-                *local.b[i + 16].value(),        // zero1
-                *local.b[i + 20].value(),        // zero2
+                local.add2[i + 4],
                 local.shard,
                 local.channel,
-                local.is_real,
-                local.add[i + 12],
+                local.is_real.into(),
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 4].value, // v1 after 1x
-                local.add[i + 12].value,         // v2 after previous operation
+                local.add2[i + 4].value,         // v2 after previous operation
                 local.xor[i + 12],
                 local.shard,
                 &local.channel,
@@ -215,23 +197,22 @@ where
             // 3x
 
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-            Add4Operation::<AB::F>::eval(
+            Add3Operation::<AB::F>::eval(
                 builder,
-                local.add[i + 8].value, // v0 after 2x
+                local.add3[i + 4].value, // v0 after 2x
                 local.rotate_right[v1_shuffle_lookup[i] + 12].value, // v1 after 2x
                 *local.b[i + 8].value(), // m3
-                *local.b[i + 16].value(), // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i + 16],
+                local.add3[i + 8],
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v3_shuffle_lookup[i] + 8].value, // v3 after 2x
-                local.add[i + 16].value,                            // v0 after previous operation
+                local.add3[i + 8].value,                            // v0 after previous operation
                 local.xor[i + 16],
                 local.shard,
                 &local.channel,
@@ -248,23 +229,21 @@ where
             );
 
             // v[2] = v[2].wrapping_add(v[3]);
-            Add4Operation::<AB::F>::eval(
+            AddOperation::<AB::F>::eval(
                 builder,
-                local.add[v2_shuffle_lookup[i] + 12].value, // v2 after 2x
+                local.add2[v2_shuffle_lookup[i] + 4].value, // v2 after 2x
                 local.rotate_right[i + 16].value,           // v3 after previous operation
-                *local.b[i + 16].value(),                   // zero1
-                *local.b[i + 20].value(),                   // zero2
+                local.add2[i + 8],
                 local.shard,
                 local.channel,
-                local.is_real,
-                local.add[i + 20],
+                local.is_real.into(),
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[v1_shuffle_lookup[i] + 12].value, // v1 after 2x
-                local.add[i + 20].value,                             // v2 after previous operation
+                local.add2[i + 8].value,                             // v2 after previous operation
                 local.xor[i + 20],
                 local.shard,
                 &local.channel,
@@ -282,23 +261,22 @@ where
 
             // 4x
             // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-            Add4Operation::<AB::F>::eval(
+            Add3Operation::<AB::F>::eval(
                 builder,
-                local.add[i + 16].value,          // v0 after 3x
+                local.add3[i + 8].value,          // v0 after 3x
                 local.rotate_right[i + 20].value, // v1 after 3x
                 *local.b[i + 12].value(),         // m4
-                *local.b[i + 16].value(),         // zero1
                 local.shard,
                 local.channel,
                 local.is_real,
-                local.add[i + 24],
+                local.add3[i + 12],
             );
 
             // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 16].value, // v3 after 3x
-                local.add[i + 24].value,          // v0 after previous operation
+                local.add3[i + 12].value,         // v0 after previous operation
                 local.xor[i + 24],
                 local.shard,
                 &local.channel,
@@ -315,23 +293,21 @@ where
             );
 
             // v[2] = v[2].wrapping_add(v[3]);
-            Add4Operation::<AB::F>::eval(
+            AddOperation::<AB::F>::eval(
                 builder,
-                local.add[i + 20].value,          // v2 after 3x
+                local.add2[i + 8].value,          // v2 after 3x
                 local.rotate_right[i + 24].value, // v3 after previous operation
-                *local.b[i + 16].value(),         // zero1
-                *local.b[i + 20].value(),         // zero2
+                local.add2[i + 12],
                 local.shard,
                 local.channel,
-                local.is_real,
-                local.add[i + 28],
+                local.is_real.into(),
             );
 
             // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
             XorOperation::<AB::F>::eval(
                 builder,
                 local.rotate_right[i + 20].value, // v1 after 3x
-                local.add[i + 28].value,          // v2 after previous operation
+                local.add2[i + 12].value,         // v2 after previous operation
                 local.xor[i + 28],
                 local.shard,
                 &local.channel,

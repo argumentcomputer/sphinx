@@ -1,5 +1,5 @@
 use crate::memory::{MemoryReadCols, MemoryWriteCols};
-use crate::operations::{Add4Operation, FixedRotateRightOperation, XorOperation};
+use crate::operations::{Add3Operation, AddOperation, FixedRotateRightOperation, XorOperation};
 use sphinx_derive::AlignedBorrow;
 
 #[derive(Debug, Clone, AlignedBorrow)]
@@ -27,13 +27,12 @@ pub struct Blake2sRoundCols<T> {
     ///    m1[0] || m1[1] || m1[2] || m1[3] ||
     ///    m2[0] || m2[1] || m2[2] || m2[3] ||
     ///    m3[0] || m3[1] || m3[2] || m3[3] ||
-    ///    0 || 0 || 0 || 0 ||
-    ///    0 || 0 || 0 || 0 ||
     ///
     pub a: [MemoryWriteCols<T>; 16],
-    pub b: [MemoryReadCols<T>; 24],
+    pub b: [MemoryReadCols<T>; 16],
 
-    pub add: [Add4Operation<T>; 32],
+    pub add3: [Add3Operation<T>; 16],
+    pub add2: [AddOperation<T>; 16],
     pub xor: [XorOperation<T>; 32],
     pub rotate_right: [FixedRotateRightOperation<T>; 32],
 }

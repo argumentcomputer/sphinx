@@ -9,7 +9,7 @@ pub fn main() {
         0x5be0cd19, 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
         0xe07c2654, 0x5be0cd19
     ];
-    let b: [u32; 24] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let b: [u32; 16] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     syscall_blake2s_round(a.as_mut_ptr(), b.as_ptr());
 }

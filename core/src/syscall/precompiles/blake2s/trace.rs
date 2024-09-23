@@ -56,12 +56,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
             }
 
-            // populate extra-zeroes
-            // TODO: replace Add4 with Add3 operation and avoid this
-            for i in 16..24usize {
-                cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
-            }
-
             let mut v0_outer = [0u32; 4];
             let mut v1_outer = [0u32; 4];
             let mut v2_outer = [0u32; 4];
@@ -74,13 +68,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 let v2 = event.a_reads_writes[i + 8].prev_value;
                 let v3 = event.a_reads_writes[i + 12].prev_value;
                 let m1 = event.b_reads[i].value;
-                let zero1 = event.b_reads[i + 16].value;
-                let zero2 = event.b_reads[i + 20].value;
-                assert_eq!(zero1, 0);
-                assert_eq!(zero2, 0);
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-                let v0_new = cols.add[i].populate(output, shard, event.channel, v0, v1, m1, zero1);
+                let v0_new = cols.add3[i].populate(output, shard, event.channel, v0, v1, m1);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
                 let temp = cols.xor[i].populate(output, shard, event.channel, v3, v0_new);
@@ -88,15 +78,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     cols.rotate_right[i].populate(output, shard, event.channel, temp, R_1 as usize);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new = cols.add[i + 4].populate(
-                    output,
-                    shard,
-                    event.channel,
-                    v2,
-                    v3_new,
-                    zero1,
-                    zero2,
-                );
+                let v2_new = cols.add2[i].populate(output, shard, event.channel, v2, v3_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
                 let temp = cols.xor[i + 4].populate(output, shard, event.channel, v1, v2_new);
@@ -121,12 +103,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 let v2 = v2_outer[i];
                 let v3 = v3_outer[i];
                 let m2 = event.b_reads[i + 4].value;
-                let zero1 = event.b_reads[i + 16].value;
-                let zero2 = event.b_reads[i + 20].value;
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m2)
-                let v0_new =
-                    cols.add[i + 8].populate(output, shard, event.channel, v0, v1, m2, zero1);
+                let v0_new = cols.add3[i + 4].populate(output, shard, event.channel, v0, v1, m2);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
                 let temp = cols.xor[i + 8].populate(output, shard, event.channel, v3, v0_new);
@@ -139,15 +118,7 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 );
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new = cols.add[i + 4 + 8].populate(
-                    output,
-                    shard,
-                    event.channel,
-                    v2,
-                    v3_new,
-                    zero1,
-                    zero2,
-                );
+                let v2_new = cols.add2[i + 4].populate(output, shard, event.channel, v2, v3_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
                 let temp = cols.xor[i + 4 + 8].populate(output, shard, event.channel, v1, v2_new);
@@ -191,15 +162,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 let v2 = v2_outer[i];
                 let v3 = v3_outer[i];
                 let m3 = event.b_reads[i + 8].value;
-                let zero1 = event.b_reads[i + 16].value;
-                let zero2 = event.b_reads[i + 20].value;
-                assert_eq!(zero1, 0);
-                assert_eq!(zero2, 0);
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le());
-                let v0_new =
-                    cols.add[i + 16].populate(output, shard, event.channel, v0, v1, m3, zero1);
-                assert_eq!(v0 + v1 + m3 + zero1, v0_new);
+                let v0_new = cols.add3[i + 8].populate(output, shard, event.channel, v0, v1, m3);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd);
                 let temp = cols.xor[i + 16].populate(output, shard, event.channel, v3, v0_new);
@@ -210,19 +175,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_1 as usize,
                 );
-                assert_eq!((v3 ^ v0_new).rotate_right(R_1), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new = cols.add[i + 16 + 4].populate(
-                    output,
-                    shard,
-                    event.channel,
-                    v2,
-                    v3_new,
-                    zero1,
-                    zero2,
-                );
-                assert_eq!(v2 + v3_new + zero1 + zero2, v2_new);
+                let v2_new = cols.add2[i + 8].populate(output, shard, event.channel, v2, v3_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb);
                 let temp = cols.xor[i + 16 + 4].populate(output, shard, event.channel, v1, v2_new);
@@ -233,7 +188,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_2 as usize,
                 );
-                assert_eq!((v1 ^ v2_new).rotate_right(R_2), v1_new);
 
                 v0_outer[i] = v0_new;
                 v1_outer[i] = v1_new;
@@ -248,15 +202,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 let v2 = v2_outer[i];
                 let v3 = v3_outer[i];
                 let m4 = event.b_reads[i + 12].value;
-                let zero1 = event.b_reads[i + 16].value;
-                let zero2 = event.b_reads[i + 20].value;
-                assert_eq!(zero1, 0);
-                assert_eq!(zero2, 0);
 
                 // v[0] = v[0].wrapping_add(v[1]).wrapping_add(m.from_le()); (m2)
-                let v0_new =
-                    cols.add[i + 16 + 8].populate(output, shard, event.channel, v0, v1, m4, zero1);
-                assert_eq!(v0 + v1 + m4 + zero1, v0_new);
+                let v0_new = cols.add3[i + 12].populate(output, shard, event.channel, v0, v1, m4);
 
                 // v[3] = (v[3] ^ v[0]).rotate_right_const(rd); (R3)
                 let temp = cols.xor[i + 16 + 8].populate(output, shard, event.channel, v3, v0_new);
@@ -267,18 +215,9 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                     temp,
                     R_3 as usize,
                 );
-                assert_eq!((v3 ^ v0_new).rotate_right(R_3), v3_new);
 
                 // v[2] = v[2].wrapping_add(v[3]);
-                let v2_new = cols.add[i + 16 + 4 + 8].populate(
-                    output,
-                    shard,
-                    event.channel,
-                    v2,
-                    v3_new,
-                    zero1,
-                    zero2,
-                );
+                let v2_new = cols.add2[i + 12].populate(output, shard, event.channel, v2, v3_new);
 
                 // v[1] = (v[1] ^ v[2]).rotate_right_const(rb); (R4)
                 let temp =

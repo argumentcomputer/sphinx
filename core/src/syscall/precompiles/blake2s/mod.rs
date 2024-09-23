@@ -145,10 +145,7 @@ fn round(v: &mut [[u32; 4]], m: [u32; 16], s: [usize; 16]) {
 
 pub fn blake2s_round(v: &mut [u32], m: &[u32]) {
     assert_eq!(v.len(), 16);
-    assert_eq!(m.len(), 24);
-    for item in m[16..24].iter() {
-        assert_eq!(*item, 0u32);
-    }
+    assert_eq!(m.len(), 16);
 
     let r1 = 16;
     let r2 = 12;
@@ -186,7 +183,7 @@ mod tests {
     use crate::Program;
     use rand::Rng;
 
-    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 16], b: [u32; 24]) -> Program {
+    fn risc_v_program(a_ptr: u32, b_ptr: u32, a: [u32; 16], b: [u32; 16]) -> Program {
         let mut instructions = vec![];
         // memory write a
         for (index, word) in a.into_iter().enumerate() {
@@ -240,10 +237,7 @@ mod tests {
 
         let a = rand::thread_rng().gen::<[u32; 16]>();
         let mut a_clone = a;
-        let mut b = rand::thread_rng().gen::<[u32; 24]>();
-        for item in b[0..24].iter_mut() {
-            *item = 0;
-        }
+        let b = rand::thread_rng().gen::<[u32; 16]>();
 
         blake2s_round(&mut a_clone, &b);
 

@@ -5,6 +5,7 @@
 //! the constraints.
 
 mod add;
+mod add3;
 mod add4;
 mod add5;
 mod and;
@@ -21,6 +22,7 @@ mod or;
 mod xor;
 
 pub use add::*;
+pub use add3::*;
 pub use add4::*;
 pub use add5::*;
 pub use and::*;
