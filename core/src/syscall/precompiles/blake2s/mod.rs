@@ -106,26 +106,30 @@ fn rotate_right_const(a: [u32; 4], n: u32) -> [u32; 4] {
         a[3].rotate_right(n),
     ]
 }
-fn quarter_round(v: &mut Vec<[u32; 4]>, rd: u32, rb: u32, m: [u32; 4]) {
+fn quarter_round(v: &mut [[u32; 4]], rd: u32, rb: u32, m: [u32; 4]) {
     v[0] = wrapping_add_u32x4(wrapping_add_u32x4(v[0], v[1]), m); // m.from_le (?)
     v[3] = rotate_right_const(xor_u32x4(v[3], v[0]), rd);
     v[2] = wrapping_add_u32x4(v[2], v[3]);
     v[1] = rotate_right_const(xor_u32x4(v[1], v[2]), rb);
 }
-fn shuffle(v: &mut Vec<[u32; 4]>) {
+fn shuffle(v: &mut [[u32; 4]]) {
     v[1] = shuffle_left_1_u32x4(v[1]);
     v[2] = shuffle_left_2_u32x4(v[2]);
     v[3] = shuffle_left_3_u32x4(v[3]);
 }
-fn unshuffle(v: &mut Vec<[u32; 4]>) {
+fn unshuffle(v: &mut [[u32; 4]]) {
     v[1] = shuffle_right_1_u32x4(v[1]);
     v[2] = shuffle_right_2_u32x4(v[2]);
     v[3] = shuffle_right_3_u32x4(v[3]);
 }
+
+#[allow(dead_code)]
 fn gather(m: [u32; 16], i0: usize, i1: usize, i2: usize, i3: usize) -> [u32; 4] {
     [m[i0], m[i1], m[i2], m[i3]]
 }
-fn round(v: &mut Vec<[u32; 4]>, m: [u32; 16], s: [usize; 16]) {
+
+#[allow(dead_code)]
+fn round(v: &mut [[u32; 4]], m: [u32; 16], s: [usize; 16]) {
     let r1 = 16;
     let r2 = 12;
     let r3 = 8;
@@ -235,7 +239,7 @@ mod tests {
         let b_ptr = 200200200;
 
         let a = rand::thread_rng().gen::<[u32; 16]>();
-        let mut a_clone = a.clone();
+        let mut a_clone = a;
         let mut b = rand::thread_rng().gen::<[u32; 24]>();
         for item in b[0..24].iter_mut() {
             *item = 0;
@@ -264,14 +268,9 @@ mod tests {
 
     #[test]
     fn test_blake2s_round_function() {
-        fn test_inner(
-            input: &mut Vec<[u32; 4]>,
-            m: [u32; 16],
-            s: [usize; 16],
-            output: Vec<[u32; 4]>,
-        ) {
+        fn test_inner(input: &mut [[u32; 4]], m: [u32; 16], s: [usize; 16], output: &[[u32; 4]]) {
             round(input, m, s);
-            assert_eq!(input.clone(), output);
+            assert_eq!(input.to_vec(), output.to_vec());
         }
 
         let mut v: Vec<[u32; 4]> = vec![
@@ -294,7 +293,7 @@ mod tests {
             &mut v,
             m,
             s,
-            vec![
+            &[
                 [0x82a01b5d, 0x248bd8f5, 0x1da4b59a, 0xb37b2bd3],
                 [0x515f5af4, 0x0301095b, 0xb151a3c2, 0x5e17f96f],
                 [0xc561666d, 0x0f291605, 0x990c6d13, 0x76fff6f1],
@@ -322,7 +321,7 @@ mod tests {
             &mut v,
             m,
             s,
-            vec![
+            &[
                 [0x071e8a60, 0x071e8a60, 0x071e8a60, 0x071e8a60],
                 [0x072df44c, 0x072df44c, 0x072df44c, 0x072df44c],
                 [0x522ca035, 0x522ca035, 0x522ca035, 0x522ca035],

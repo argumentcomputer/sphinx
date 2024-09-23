@@ -62,10 +62,10 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
                 cols.b[i].populate(event.channel, event.b_reads[i], &mut new_byte_lookup_events);
             }
 
-            let mut v0_outer = vec![0u32; 4];
-            let mut v1_outer = vec![0u32; 4];
-            let mut v2_outer = vec![0u32; 4];
-            let mut v3_outer = vec![0u32; 4];
+            let mut v0_outer = [0u32; 4];
+            let mut v1_outer = [0u32; 4];
+            let mut v2_outer = [0u32; 4];
+            let mut v3_outer = [0u32; 4];
 
             // 1x (m0, R1, R2)
             for i in 0..4usize {

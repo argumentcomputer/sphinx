@@ -67,9 +67,9 @@ where
             );
         }
 
-        let v1_shuffle_lookup = vec![1, 2, 3, 0];
-        let v2_shuffle_lookup = vec![2, 3, 0, 1];
-        let v3_shuffle_lookup = vec![3, 0, 1, 2];
+        let v1_shuffle_lookup = [1, 2, 3, 0];
+        let v2_shuffle_lookup = [2, 3, 0, 1];
+        let v3_shuffle_lookup = [3, 0, 1, 2];
 
         for i in 0..4usize {
             // 1x

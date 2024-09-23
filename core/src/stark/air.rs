@@ -184,7 +184,7 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));
-        let blake_2s_round = Blake2sRoundChip::default();
+        let blake_2s_round = Blake2sRoundChip::new();
         chips.push(RiscvAir::Blake2sRound(blake_2s_round));
 
         chips
