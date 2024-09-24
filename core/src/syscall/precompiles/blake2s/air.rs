@@ -191,8 +191,6 @@ where
             );
         }
 
-        self.constrain_shuffled_indices(builder, &local.shuffled_indices, local.is_real);
-
         for i in 0..4usize {
             // 3x
 

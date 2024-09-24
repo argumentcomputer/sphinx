@@ -161,6 +161,9 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Fp2Op(bls12381_fp2_op));
         let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
         chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
+        let blake_2s_round = Blake2sRoundChip::new();
+        chips.push(RiscvAir::Blake2sRound(blake_2s_round));
+
         let div_rem = DivRemChip;
         chips.push(RiscvAir::DivRem(div_rem));
 
@@ -184,8 +187,6 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::ProgramMemory(program_memory_init));
         let byte = ByteChip::default();
         chips.push(RiscvAir::ByteLookup(byte));
-        let blake_2s_round = Blake2sRoundChip::new();
-        chips.push(RiscvAir::Blake2sRound(blake_2s_round));
 
         chips
     }

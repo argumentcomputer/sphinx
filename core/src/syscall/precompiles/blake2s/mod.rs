@@ -6,9 +6,6 @@ mod trace;
 pub use columns::*;
 
 use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
-use crate::stark::SphinxAirBuilder;
-use p3_air::AirBuilder;
-use p3_field::AbstractField;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -30,23 +27,6 @@ pub struct Blake2sRoundChip;
 impl Blake2sRoundChip {
     pub fn new() -> Self {
         Blake2sRoundChip
-    }
-    pub fn constrain_shuffled_indices<AB: SphinxAirBuilder>(
-        &self,
-        builder: &mut AB,
-        indices: &[AB::Var],
-        is_real: AB::Var,
-    ) {
-        for index in 0..4 {
-            builder
-                .when(is_real)
-                .assert_eq(indices[index], AB::F::from_canonical_usize(0));
-        }
-        for index in 4..indices.len() {
-            builder
-                .when(is_real)
-                .assert_eq(indices[index], AB::F::from_canonical_usize(1));
-        }
     }
 }
 

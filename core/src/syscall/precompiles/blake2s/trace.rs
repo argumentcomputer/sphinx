@@ -153,10 +153,6 @@ impl<F: PrimeField32> MachineAir<F> for Blake2sRoundChip {
 
             // 3x (m2, R1, R2)
             for i in 0..4usize {
-                cols.shuffled_indices[i + 4] = F::from_canonical_u32(1);
-                cols.shuffled_indices[i + 8] = F::from_canonical_u32(1);
-                cols.shuffled_indices[i + 12] = F::from_canonical_u32(1);
-
                 let v0 = v0_outer[i];
                 let v1 = v1_outer[i];
                 let v2 = v2_outer[i];
