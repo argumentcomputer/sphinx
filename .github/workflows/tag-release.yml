@@ -1,17 +1,29 @@
 # Workflow to create a new tag release when a release branch is merged
-name: Tag release
+name: Create tag release
 
 on:
   pull_request:
     types: [ closed ]
     branches:
       - release/*
+  workflow_dispatch:
+    inputs:
+      release-branch:
+        description: 'Branch to release'
+        type: 'string'
+        required: true
+      version:
+        description: 'SemVer release version, e.g. `1.0.0`'
+        type: 'string'
+        required: true
 
 jobs:
-  tag-bump:
+  tag-release:
     if: |
-      github.event.pull_request.merged == true &&
-      (startsWith(github.event.pull_request.head.ref, 'release-pr') || startsWith(github.event.pull_request.head.ref, 'patch/'))
+      (github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.head.ref, 'release-pr') ||
+      startsWith(github.event.pull_request.head.ref, 'patch/'))) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Git config
@@ -26,9 +38,7 @@ jobs:
         with:
           repository: argumentcomputer/ci-workflows
           path: ci-workflows
-          # Remove after https://github.com/argumentcomputer/ci-workflows/pull/76 is merged
           ref: release-workflow
-      # TODO: Refine changelog categories
       - name: Create changelog config
         run: |
           cat << 'EOF' > config.json
@@ -44,6 +54,7 @@ jobs:
                   "labels": ["fix", "bug"]
               },
               {
+
                   "title": "## 🤖 CI",
                   "labels": ["automated-issue", "ci"]
               },
@@ -54,6 +65,20 @@ jobs:
             ]
           }
           EOF
+      - name: Get branch and version info
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            RELEASE_BRANCH=${{ github.event.pull_request.base.ref }}
+            # Get tag and version from PR title
+            TAG=$(echo '${{ github.event.pull_request.title }}' | awk '/Release/ {print $NF}' | tr -d '`')
+            VERSION="${TAG#*-v}"
+          else
+            RELEASE_BRANCH=${{ inputs.release-branch }}
+            VERSION=${{ inputs.version }}
+          fi
+
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a $GITHUB_ENV
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
       - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
@@ -62,6 +87,7 @@ jobs:
       - name: Publish release
         uses: ./ci-workflows/.github/actions/tag-release
         with:
+          release-branch: ${{ env.RELEASE_BRANCH }}
+          version: ${{ env.VERSION }}
           tag-prefix: sphinx
           changelog-config-file: ./config.json
-
