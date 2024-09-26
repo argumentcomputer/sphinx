@@ -10,8 +10,8 @@
 #   - Opens a release PR from `release-pr` to `release/<tag-prefix>-v<version>`
 # - Patch release
 #   - Pushes a new `patch/<tag-prefix>-v<version>` branch based on `release/<tag-prefix>-v<version>`, then bumps the verision with the `version` input
-#   - Opens a release PR from `patch/<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
 #   - Errors if the `release/<tag-prefix>-v<version>` branch doesn't exist
+#   - Opens a release PR from `patch/<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
 #
 # When the PR is merged, the caller can then automatically trigger a release from `ci-workflows/actions/tag-release`
 # The PR branch can then be safely deleted, while the release branch should have a branch protection rule for historical preservation
@@ -48,8 +48,6 @@ jobs:
         with:
           repository: argumentcomputer/ci-workflows
           path: ci-workflows
-          # Remove after https://github.com/argumentcomputer/ci-workflows/pull/76 is merged
-          ref: release-workflow
       - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
@@ -62,4 +60,3 @@ jobs:
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
           token: ${{ secrets.REPO_TOKEN }}
-
