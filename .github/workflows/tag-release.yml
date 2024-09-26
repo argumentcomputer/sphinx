@@ -79,11 +79,6 @@ jobs:
 
           echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a $GITHUB_ENV
           echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
-      - uses: tibdex/github-app-token@v2
-        id: generate-token
-        with:
-          app_id: ${{ secrets.TOKEN_APP_ID }}
-          private_key: ${{ secrets.TOKEN_APP_PRIVATE_KEY }}
       - name: Publish release
         uses: ./ci-workflows/.github/actions/tag-release
         with:
