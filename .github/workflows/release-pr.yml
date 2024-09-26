@@ -59,4 +59,4 @@ jobs:
           tag-prefix: sphinx
           release-type: ${{ inputs.release-type }}
           version: ${{ inputs.version }}
-          token: ${{ secrets.REPO_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
