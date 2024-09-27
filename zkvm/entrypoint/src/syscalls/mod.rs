@@ -13,6 +13,8 @@ mod unconstrained;
 #[cfg(feature = "verify")]
 mod verify;
 
+pub mod blake2s_round;
+
 pub use bls12_381::*;
 pub use bn254::*;
 pub use ed25519::*;
@@ -106,3 +108,6 @@ pub const BLS12381_G1_DOUBLE: u32 = 0x00_00_01_72;
 
 /// Executes `BLS12381_G1_DECOMPRESS`.
 pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;
+
+/// Executes `BLAKE2S_ROUND`.
+pub const BLAKE_2S_ROUND: u32 = 0x00_01_01_ED;

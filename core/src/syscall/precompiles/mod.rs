@@ -1,3 +1,4 @@
+pub mod blake2s;
 pub mod bls12_381;
 pub mod edwards;
 pub mod field;

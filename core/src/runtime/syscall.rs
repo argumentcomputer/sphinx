@@ -6,6 +6,7 @@ use strum_macros::EnumIter;
 
 use crate::runtime::{Register, Runtime};
 use crate::stark::Ed25519Parameters;
+use crate::syscall::precompiles::blake2s::Blake2sRoundChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
 use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
@@ -116,6 +117,8 @@ pub enum SyscallCode {
 
     /// Executes the `HINT_READ` precompile.
     HINT_READ = 0x00_00_00_F1,
+
+    BLAKE_2S_ROUND = 0x00_01_01_ED,
 }
 
 impl SyscallCode {
@@ -152,6 +155,7 @@ impl SyscallCode {
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
             0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
             0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
+            0x00_01_01_ED => SyscallCode::BLAKE_2S_ROUND,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -390,6 +394,11 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         Arc::new(Bls12381G2AffineDoubleChip::new()),
     );
 
+    syscall_map.insert(
+        SyscallCode::BLAKE_2S_ROUND,
+        Arc::new(Blake2sRoundChip::new()),
+    );
+
     syscall_map
 }
 
@@ -502,6 +511,9 @@ mod tests {
                 }
                 SyscallCode::BLS12381_G2_DOUBLE => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G2_DOUBLE)
+                }
+                SyscallCode::BLAKE_2S_ROUND => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ROUND)
                 }
             }
         }

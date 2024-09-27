@@ -171,7 +171,7 @@ jobs:
           - repo: zk-light-clients
             path: ethereum
             features: ethereum
-          - repo: loam
+          - repo: lurk
             path: ""
     steps:
       - uses: actions/checkout@v4

@@ -3,6 +3,7 @@ pub use crate::air::SphinxAirBuilder;
 use crate::air::{MachineAir, SPHINX_PROOF_NUM_PV_ELTS};
 use crate::memory::{MemoryChipType, MemoryProgramChip};
 use crate::stark::Chip;
+use crate::syscall::precompiles::blake2s::Blake2sRoundChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
 use crate::syscall::precompiles::field::FieldChip;
 use crate::syscall::precompiles::quad_field::QuadFieldChip;
@@ -106,6 +107,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Fp2Op(QuadFieldChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
+    // A precompile for computing round function of Blake2s algorithm
+    Blake2sRound(Blake2sRoundChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -158,6 +161,9 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Bls12381Fp2Op(bls12381_fp2_op));
         let bls12381_g1_decompress = Bls12381G1DecompressChip::new();
         chips.push(RiscvAir::Bls12381G1Decompress(bls12381_g1_decompress));
+        let blake_2s_round = Blake2sRoundChip::new();
+        chips.push(RiscvAir::Blake2sRound(blake_2s_round));
+
         let div_rem = DivRemChip;
         chips.push(RiscvAir::DivRem(div_rem));
 
