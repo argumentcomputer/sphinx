@@ -11,18 +11,19 @@ use crate::{
     },
 };
 
-pub(crate) const NUM_SHA_COMPRESS_COLS: usize = size_of::<ShaCompressCols<u8>>();
+pub(crate) const NUM_SHA512_COMPRESS_COLS: usize = size_of::<Sha512CompressCols<u8>>();
 
-/// A set of columns needed to compute the SHA-256 compression function.
+/// A set of columns needed to compute the SHA-512 compression function.
 ///
-/// Each sha compress syscall is processed over 80 columns, split into 10 octets. The first octet is
+/// Each sha512 compress syscall is processed over 80 columns, split into 10 octets. The first octet is
 /// for initialization, the next 8 octets are for compression, and the last octet is for finalize.
 /// During init, the columns are initialized with the input values, one word at a time. During each
-/// compression cycle, one iteration of sha compress is computed. During finalize, the columns are
+/// compression cycle, one iteration of sha512 compress is computed. During finalize, the columns are
 /// combined and written back to memory.
+/// FIXME
 #[derive(AlignedBorrow, Default, Debug, Clone)]
 #[repr(C)]
-pub struct ShaCompressCols<T> {
+pub struct Sha512CompressCols<T> {
     /// Inputs.
     pub shard: T,
     pub channel: T,

@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
 
 use super::BaseAirBuilder;
+use crate::air::Word;
 
 /// The size of a word64 in bytes.
 pub const WORD64_SIZE: usize = 8;
@@ -42,6 +43,17 @@ impl<T> Word64<T> {
             AB::Expr::zero(),
             AB::Expr::zero(),
         ])
+    }
+}
+
+impl<T: Clone> Word64<T> {
+    /// Splits into two words.
+    pub fn to_le_words(self) -> [Word<T>; 2] {
+        let limbs: Vec<T> = self.into_iter().collect();
+        [
+            limbs[..4].iter().cloned().collect(),
+            limbs[4..].iter().cloned().collect(),
+        ]
     }
 }
 

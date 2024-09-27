@@ -6,6 +6,7 @@ pub mod keccak256;
 pub mod quad_field;
 pub mod secp256k1;
 pub mod sha256;
+pub mod sha512;
 pub mod weierstrass;
 
 use crate::runtime::SyscallContext;

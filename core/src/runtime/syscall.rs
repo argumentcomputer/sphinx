@@ -19,6 +19,8 @@ use crate::syscall::precompiles::quad_field::{
 };
 use crate::syscall::precompiles::secp256k1::decompress::Secp256k1DecompressChip;
 use crate::syscall::precompiles::sha256::{ShaCompressChip, ShaExtendChip};
+// use crate::syscall::precompiles::sha512::{Sha512CompressChip, Sha512ExtendChip}; 512FIXME
+use crate::syscall::precompiles::sha512::Sha512ExtendChip;
 use crate::syscall::precompiles::weierstrass::{
     WeierstrassAddAssignChip, WeierstrassDoubleAssignChip,
 };
@@ -103,6 +105,12 @@ pub enum SyscallCode {
     BLS12381_G2_ADD = 0x00_01_01_80,
     BLS12381_G2_DOUBLE = 0x00_00_01_81,
 
+    /// Executes the `SHA512_EXTEND` precompile.
+    SHA512_EXTEND = 0x00_00_01_C1,
+
+    /// Executes the `SHA512_COMPRESS` precompile.
+    SHA512_COMPRESS = 0x00_01_01_C2,
+
     /// Executes the `COMMIT` precompile.
     COMMIT = 0x00_00_00_10,
 
@@ -156,6 +164,8 @@ impl SyscallCode {
             0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
             0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
             0x00_01_01_ED => SyscallCode::BLAKE_2S_ROUND,
+            0x00_00_01_C1 => SyscallCode::SHA512_EXTEND,
+            0x00_01_01_C2 => SyscallCode::SHA512_COMPRESS,
             _ => panic!("invalid syscall number: {}", value),
         }
     }
@@ -393,6 +403,14 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         SyscallCode::BLS12381_G2_DOUBLE,
         Arc::new(Bls12381G2AffineDoubleChip::new()),
     );
+    syscall_map.insert(
+        SyscallCode::SHA512_EXTEND,
+        Arc::new(Sha512ExtendChip::new()),
+    );
+    // syscall_map.insert(
+    //     SyscallCode::SHA512_COMPRESS,
+    //     Arc::new(Sha512CompressChip::new()),
+    // );
 
     syscall_map.insert(
         SyscallCode::BLAKE_2S_ROUND,
@@ -514,6 +532,12 @@ mod tests {
                 }
                 SyscallCode::BLAKE_2S_ROUND => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ROUND)
+                }
+                SyscallCode::SHA512_EXTEND => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::SHA512_EXTEND)
+                }
+                SyscallCode::SHA512_COMPRESS => {
+                    assert_eq!(code as u32, sphinx_zkvm::syscalls::SHA512_COMPRESS)
                 }
             }
         }

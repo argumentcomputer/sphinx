@@ -35,7 +35,7 @@ impl<F: Field> Add64Operation<F> {
             carry[0] = 1;
             self.carry[0] = F::one();
         }
-        for i in 1..WORD64_SIZE {
+        for i in 1..WORD64_SIZE - 1 {
             if u64::from(a[i]) + u64::from(b[i]) + u64::from(carry[i - 1]) > 255 {
                 carry[i] = 1;
                 self.carry[i] = F::one();
