@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Put the version in the build directory
-echo "$COMMIT_HASH $VERSION" > ./build/SP1_COMMIT
+echo "$COMMIT_HASH $VERSION" > ./build/SPHINX_COMMIT
 
 # Create archive named after the commit hash
 ARCHIVE_NAME="${VERSION}.tar.gz"
