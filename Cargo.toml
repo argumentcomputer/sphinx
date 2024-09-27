@@ -55,7 +55,7 @@ alloy = { git = "https://github.com/alloy-rs/alloy", rev = "bfd0fda" }
 anstyle = "1.0.8"
 anyhow = "1.0.86"
 arrayref = "0.3.8"
-async-trait = "0.1.81"
+async-trait = "0.1.83"
 axum = "=0.7.5"
 backtrace = "0.3.73"
 bincode = "1.3.3"
