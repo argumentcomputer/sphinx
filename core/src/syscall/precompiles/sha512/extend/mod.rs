@@ -49,7 +49,7 @@ pub mod extend_tests {
         runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode},
         utils::{
             self, run_test,
-            tests::{SHA2_ELF, SHA512_EXTEND_ELF},
+            tests::{SHA512_ELF, SHA512_EXTEND_ELF},
         },
     };
 
@@ -99,12 +99,12 @@ pub mod extend_tests {
         run_test(program).unwrap();
     }
 
-    // #[test]
-    // fn test_sha512_program() { 512FIXME
-    //     utils::setup_logger();
-    //     let program = Program::from(SHA512_ELF);
-    //     run_test(program).unwrap();
-    // }
+    #[test]
+    fn test_sha512_program() {
+        utils::setup_logger();
+        let program = Program::from(SHA512_ELF);
+        run_test(program).unwrap();
+    }
 
     #[test]
     fn test_sha512_extend_program() {

@@ -70,6 +70,9 @@ pub mod tests {
     pub const SHA2_ELF: &[u8] =
         include_bytes!("../../../tests/sha2/elf/riscv32im-succinct-zkvm-elf");
 
+    pub const SHA512_ELF: &[u8] =
+        include_bytes!("../../../tests/sha512/elf/riscv32im-succinct-zkvm-elf");
+
     pub const SHA512_COMPRESS_ELF: &[u8] =
         include_bytes!("../../../tests/sha512-compress/elf/riscv32im-succinct-zkvm-elf");
 
