@@ -8,6 +8,7 @@ use crate::{
     air::{EventLens, MachineAir, WithEvents},
     bytes::{event::ByteRecord, ByteLookupEvent, ByteOpcode},
     runtime::{ExecutionRecord, Program},
+    utils::pad_rows,
 };
 
 impl<'a> WithEvents<'a> for Sha512ExtendChip {
@@ -206,15 +207,7 @@ impl<F: PrimeField32> MachineAir<F> for Sha512ExtendChip {
 
         output.add_byte_lookup_events(new_byte_lookup_events);
 
-        let nb_rows = rows.len();
-        let mut padded_nb_rows = nb_rows.next_power_of_two();
-        if padded_nb_rows == 2 || padded_nb_rows == 1 {
-            padded_nb_rows = 4;
-        }
-        for _ in nb_rows..padded_nb_rows {
-            let row = [F::zero(); NUM_SHA512_EXTEND_COLS];
-            rows.push(row);
-        }
+        pad_rows(&mut rows, || [F::zero(); NUM_SHA512_EXTEND_COLS]);
 
         // Convert the trace to a row major matrix.
         let mut trace = RowMajorMatrix::new(

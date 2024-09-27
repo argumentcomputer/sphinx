@@ -38,6 +38,9 @@ where
             .when_transition()
             .assert_eq(local.nonce + AB::Expr::one(), next.nonce);
 
+        // Assert that is_real is a bool.
+        builder.assert_bool(local.is_real);
+
         let nb_bytes_in_word64 = AB::F::from_canonical_u32(8);
 
         // Check that `15 < i < 80`
@@ -321,8 +324,5 @@ where
             local.i,
             local.is_real,
         );
-
-        // Assert that is_real is a bool.
-        builder.assert_bool(local.is_real);
     }
 }

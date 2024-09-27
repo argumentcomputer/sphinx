@@ -98,11 +98,14 @@ pub struct Sha512CompressEvent {
     pub clk: u32,
     pub w_ptr: u32,
     pub h_ptr: u32,
-    pub w: Vec<u32>,
-    pub h: [u32; 8],
-    pub h_read_records: [MemoryReadRecord; 8],
-    pub w_i_read_records: Vec<MemoryReadRecord>,
-    pub h_write_records: [MemoryWriteRecord; 8],
+    pub i: u32,
+    pub w_i: u64,
+    pub k_i: u64,
+    pub h: [u64; 8],
+    pub w_i_read_records: [MemoryReadRecord; 2],
+    pub k_i_read_records: [MemoryReadRecord; 2],
+    pub h_write_records: [MemoryWriteRecord; 16],
+    pub i_write_record: MemoryWriteRecord,
 }
 
 /// Implements the SHA compress operation which loops over 0 = [0, 63] and modifies A-H in each
@@ -112,6 +115,7 @@ pub struct Sha512CompressEvent {
 /// In the AIR, each SHA compress syscall takes up 80 rows. The first and last 8 rows are for
 /// initialization and finalize respectively. The middle 64 rows are for compression. Each row
 /// operates over a single memory word.
+/// FIXME
 #[derive(Default)]
 pub struct Sha512CompressChip;
 
@@ -129,20 +133,58 @@ pub mod compress_tests {
         utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF},
     };
 
+    use super::SHA512_COMPRESS_K;
+
+    // FIXME
+    fn u64_to_u32x2(n: u64) -> [u32; 2] {
+        let n = n.to_le_bytes();
+        [
+            u32::from_le_bytes(n[..4].try_into().unwrap()),
+            u32::from_le_bytes(n[4..].try_into().unwrap()),
+        ]
+    }
+
     pub fn sha512_compress_program() -> Program {
         let w_ptr = 100;
-        let h_ptr = 1000;
-        let mut instructions = vec![Instruction::new(Opcode::ADD, 29, 0, 5, false, true)];
-        for i in 0..64 {
+        let h_ptr = 100000;
+        let mut instructions = vec![
+            Instruction::new(Opcode::ADD, 29, 0, 5, false, true),
+            Instruction::new(Opcode::ADD, 28, 0, 0, false, true),
+        ];
+        for i in 0..80 {
             instructions.extend(vec![
-                Instruction::new(Opcode::ADD, 30, 0, w_ptr + i * 4, false, true),
+                Instruction::new(Opcode::ADD, 30, 0, w_ptr + i * 8, false, true),
                 Instruction::new(Opcode::SW, 29, 30, 0, false, true),
+                Instruction::new(Opcode::ADD, 30, 0, w_ptr + i * 8 + 4, false, true),
+                Instruction::new(Opcode::SW, 28, 30, 0, false, true),
             ]);
         }
-        for i in 0..8 {
+        // Fill out state and the `i` value after it
+        for i in 0..9 {
             instructions.extend(vec![
-                Instruction::new(Opcode::ADD, 30, 0, h_ptr + i * 4, false, true),
+                Instruction::new(Opcode::ADD, 30, 0, h_ptr + i * 8, false, true),
                 Instruction::new(Opcode::SW, 29, 30, 0, false, true),
+                Instruction::new(Opcode::ADD, 30, 0, h_ptr + i * 8 + 4, false, true),
+                Instruction::new(Opcode::SW, 28, 30, 0, false, true),
+            ]);
+        }
+        // Fill out the constants `k`
+        for i in 0..80 {
+            let k_i = u64_to_u32x2(SHA512_COMPRESS_K[i]);
+            instructions.extend(vec![
+                Instruction::new(Opcode::ADD, 29, 0, k_i[0], false, true),
+                Instruction::new(Opcode::ADD, 28, 0, k_i[1], false, true),
+                Instruction::new(Opcode::ADD, 30, 0, h_ptr + 72 + i as u32 * 8, false, true),
+                Instruction::new(Opcode::SW, 29, 30, 0, false, true),
+                Instruction::new(
+                    Opcode::ADD,
+                    30,
+                    0,
+                    h_ptr + 72 + i as u32 * 8 + 4,
+                    false,
+                    true,
+                ),
+                Instruction::new(Opcode::SW, 28, 30, 0, false, true),
             ]);
         }
         instructions.extend(vec![

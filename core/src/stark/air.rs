@@ -33,7 +33,7 @@ pub(crate) mod riscv_chips {
     pub use crate::syscall::precompiles::keccak256::KeccakPermuteChip;
     pub use crate::syscall::precompiles::sha256::ShaCompressChip;
     pub use crate::syscall::precompiles::sha256::ShaExtendChip;
-    // pub use crate::syscall::precompiles::sha512::Sha512CompressChip; 512FIXME
+    pub use crate::syscall::precompiles::sha512::Sha512CompressChip;
     pub use crate::syscall::precompiles::sha512::Sha512ExtendChip;
     pub use crate::syscall::precompiles::weierstrass::WeierstrassAddAssignChip;
     pub use crate::syscall::precompiles::weierstrass::WeierstrassDoubleAssignChip;
@@ -113,8 +113,8 @@ pub enum RiscvAir<F: PrimeField32> {
     Blake2sRound(Blake2sRoundChip),
     /// A precompile for sha512 extend.
     Sha512Extend(Sha512ExtendChip),
-    // /// A precompile for sha256 compress.
-    // Sha512Compress(Sha512CompressChip), 512FIXME
+    /// A precompile for sha256 compress.
+    Sha512Compress(Sha512CompressChip),
 }
 
 impl<F: PrimeField32> RiscvAir<F> {
@@ -171,8 +171,8 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Blake2sRound(blake_2s_round));
         let sha512_extend = Sha512ExtendChip;
         chips.push(RiscvAir::Sha512Extend(sha512_extend));
-        // let sha512_compress = Sha512CompressChip;
-        // chips.push(RiscvAir::Sha512Compress(sha512_compress)); 512FIXME
+        let sha512_compress = Sha512CompressChip;
+        chips.push(RiscvAir::Sha512Compress(sha512_compress));
         let div_rem = DivRemChip;
         chips.push(RiscvAir::DivRem(div_rem));
 
