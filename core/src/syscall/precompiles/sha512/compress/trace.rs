@@ -19,6 +19,15 @@ impl<'a> WithEvents<'a> for Sha512CompressChip {
     type Events = &'a [Sha512CompressEvent];
 }
 
+// FIXME
+fn u64_to_u32x2(n: u64) -> [u32; 2] {
+    let n = n.to_le_bytes();
+    [
+        u32::from_le_bytes(n[..4].try_into().unwrap()),
+        u32::from_le_bytes(n[4..].try_into().unwrap()),
+    ]
+}
+
 impl<F: PrimeField32> MachineAir<F> for Sha512CompressChip {
     type Record = ExecutionRecord;
 
@@ -91,14 +100,6 @@ impl<F: PrimeField32> MachineAir<F> for Sha512CompressChip {
                 &mut new_byte_lookup_events,
             );
 
-            for j in 0..16 {
-                cols.h[j].populate(
-                    event.channel,
-                    event.h_write_records[j],
-                    &mut new_byte_lookup_events,
-                );
-            }
-
             // Performs the compress operation.
             let a = event.h[0];
             let b = event.h[1];
@@ -159,6 +160,23 @@ impl<F: PrimeField32> MachineAir<F> for Sha512CompressChip {
                 .populate(output, shard, channel, temp1, temp2);
 
             let out_h = [temp1_add_temp2, a, b, c, d_add_temp1, e, f, g];
+
+            // Populate the output memory writes, and assert that the values written match.
+            for j in 0..8 {
+                cols.h[2 * j].populate(
+                    event.channel,
+                    event.h_write_records[2 * j],
+                    &mut new_byte_lookup_events,
+                );
+                cols.h[2 * j + 1].populate(
+                    event.channel,
+                    event.h_write_records[2 * j + 1],
+                    &mut new_byte_lookup_events,
+                );
+                let out = u64_to_u32x2(out_h[j]);
+                assert_eq!(event.h_write_records[2 * j].value, out[0]);
+                assert_eq!(event.h_write_records[2 * j + 1].value, out[1]);
+            }
 
             rows.push(row);
         }
