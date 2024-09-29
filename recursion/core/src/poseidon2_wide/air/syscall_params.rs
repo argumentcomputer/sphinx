@@ -73,10 +73,8 @@ impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
             let next_syscall_params = next_syscall.absorb();
 
             absorb_syscall_builder.assert_eq(local_syscall_params.clk, next_syscall_params.clk);
-            absorb_syscall_builder.assert_eq(
-                local_syscall_params.hash_and_absorb_num,
-                next_syscall_params.hash_and_absorb_num,
-            );
+            absorb_syscall_builder
+                .assert_eq(local_syscall_params.hash_num, next_syscall_params.hash_num);
             absorb_syscall_builder.assert_eq(
                 local_syscall_params.input_ptr,
                 next_syscall_params.input_ptr,

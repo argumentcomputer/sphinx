@@ -28,32 +28,29 @@ pub struct Poseidon2CompressEvent<F> {
 #[derive(Debug, Clone)]
 pub struct Poseidon2AbsorbEvent<F> {
     pub clk: F,
-    pub hash_and_absorb_num: F, // from a_val
-    pub input_addr: F,          // from b_val
-    pub input_len: F,           // from c_val
+    pub hash_num: F,   // from a_val
+    pub input_addr: F, // from b_val
+    pub input_len: F,  // from c_val
 
-    pub hash_num: F,
-    pub absorb_num: F,
     pub iterations: Vec<Poseidon2AbsorbIteration<F>>,
+    pub is_first_aborb: bool,
 }
 
 impl<F> Poseidon2AbsorbEvent<F> {
     pub(crate) fn new(
         clk: F,
-        hash_and_absorb_num: F,
+        hash_num: F,
         input_addr: F,
         input_len: F,
-        hash_num: F,
-        absorb_num: F,
+        is_first_absorb: bool,
     ) -> Self {
         Self {
             clk,
-            hash_and_absorb_num,
+            hash_num,
             input_addr,
             input_len,
-            hash_num,
-            absorb_num,
             iterations: Vec::new(),
+            is_first_aborb: is_first_absorb,
         }
     }
 }
