@@ -46,10 +46,13 @@ pub mod extend_tests {
 
     use super::Sha512ExtendChip;
     use crate::{
-        air::MachineAir, runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode}, stark::DefaultProver, utils::{
+        air::MachineAir,
+        runtime::{ExecutionRecord, Instruction, Opcode, Program, SyscallCode},
+        stark::DefaultProver,
+        utils::{
             self, run_test,
             tests::{SHA512_ELF, SHA512_EXTEND_ELF},
-        }
+        },
     };
 
     pub fn sha512_extend_program() -> Program {

@@ -131,7 +131,9 @@ impl Sha512CompressChip {
 pub mod compress_tests {
 
     use crate::{
-        runtime::{Instruction, Opcode, Program, SyscallCode}, stark::DefaultProver, utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF, u64_to_le_u32s}
+        runtime::{Instruction, Opcode, Program, SyscallCode},
+        stark::DefaultProver,
+        utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF, u64_to_le_u32s},
     };
 
     use super::SHA512_COMPRESS_K;
