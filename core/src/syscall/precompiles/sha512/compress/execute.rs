@@ -5,6 +5,7 @@ use crate::{
         sha512::{Sha512CompressEvent, SHA512_COMPRESS_K},
         SyscallContext,
     },
+    utils::{u32_pair_to_u64, u64_to_le_u32s},
 };
 
 impl Syscall for Sha512CompressChip {
@@ -20,22 +21,11 @@ impl Syscall for Sha512CompressChip {
         let start_clk = rt.clk;
         let mut h_write_records = Vec::new();
 
-        // FIXME
-        fn u32_vec_to_u64(val: Vec<u32>) -> u64 {
-            u64::from_le_bytes(
-                val.into_iter()
-                    .flat_map(|x| x.to_le_bytes())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap(),
-            )
-        }
-
         // Execute the "initialize" phase where we read in the h values.
         let mut hx = [0u64; 8];
         for j in 0..8 {
             let values = rt.slice_unsafe(h_ptr + j * 8, 2);
-            hx[j as usize] = u32_vec_to_u64(values);
+            hx[j as usize] = u32_pair_to_u64(values[0], values[1]);
         }
 
         // The `i` index is at the end of the `h_ptr` state
@@ -44,11 +34,11 @@ impl Syscall for Sha512CompressChip {
 
         // The constants `k` are copied by the guest to the end of the state pointer
         let (k_i_read_records, k_i) = rt.mr_slice(h_ptr + (9 * 8) + i * 8, 2);
-        let k_i = u32_vec_to_u64(k_i);
+        let k_i = u32_pair_to_u64(k_i[0], k_i[1]);
         assert_eq!(k_i, SHA512_COMPRESS_K[i as usize]);
 
         let (w_i_read_records, w_i) = rt.mr_slice(w_ptr + i * 8, 2);
-        let w_i = u32_vec_to_u64(w_i);
+        let w_i = u32_pair_to_u64(w_i[0], w_i[1]);
 
         // Execute the "compress" iteration.
         let mut a = hx[0];
@@ -80,18 +70,9 @@ impl Syscall for Sha512CompressChip {
         b = a;
         a = temp1.wrapping_add(temp2);
 
-        // FIXME
-        fn u64_to_u32x2(n: u64) -> [u32; 2] {
-            let n = n.to_le_bytes();
-            [
-                u32::from_le_bytes(n[..4].try_into().unwrap()),
-                u32::from_le_bytes(n[4..].try_into().unwrap()),
-            ]
-        }
-
         // Execute the "finalize" phase of updating the memory.
         let v = [a, b, c, d, e, f, g, h];
-        let v: Vec<u32> = v.into_iter().flat_map(u64_to_u32x2).collect();
+        let v: Vec<u32> = v.into_iter().flat_map(u64_to_le_u32s).collect();
         for i in 0..16 {
             let record = rt.mw(h_ptr + i as u32 * 4, v[i]);
             h_write_records.push(record);

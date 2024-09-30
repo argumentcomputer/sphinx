@@ -8,6 +8,7 @@ mod options;
 mod programs;
 mod prove;
 mod tracer;
+mod uint;
 
 use std::borrow::Borrow;
 
@@ -20,6 +21,7 @@ pub use options::*;
 pub use programs::tests;
 pub use prove::*;
 pub use tracer::*;
+pub use uint::*;
 
 use crate::{
     memory::MemoryCols,

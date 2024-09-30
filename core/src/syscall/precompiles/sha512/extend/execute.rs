@@ -2,6 +2,7 @@ use super::Sha512ExtendChip;
 use crate::{
     runtime::Syscall,
     syscall::precompiles::{sha512::Sha512ExtendEvent, SyscallContext},
+    utils::u32_pair_to_u64,
 };
 
 impl Syscall for Sha512ExtendChip {
@@ -16,38 +17,27 @@ impl Syscall for Sha512ExtendChip {
         assert!(i >= 16);
         assert!(i < 80);
 
-        // FIXME
-        fn u32_vec_to_u64(val: Vec<u32>) -> u64 {
-            u64::from_le_bytes(
-                val.into_iter()
-                    .flat_map(|x| x.to_le_bytes())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap(),
-            )
-        }
-
         // Read w[i-15].
         let (w_i_minus_15_reads, w_i_minus_15) = rt.mr_slice(w_ptr + (i - 15) * 8, 2);
-        let w_i_minus_15 = u32_vec_to_u64(w_i_minus_15);
+        let w_i_minus_15 = u32_pair_to_u64(w_i_minus_15[0], w_i_minus_15[1]);
 
         // Compute `s0`.
         let s0 = w_i_minus_15.rotate_right(1) ^ w_i_minus_15.rotate_right(8) ^ (w_i_minus_15 >> 7);
 
         // Read w[i-2].
         let (w_i_minus_2_reads, w_i_minus_2) = rt.mr_slice(w_ptr + (i - 2) * 8, 2);
-        let w_i_minus_2 = u32_vec_to_u64(w_i_minus_2);
+        let w_i_minus_2 = u32_pair_to_u64(w_i_minus_2[0], w_i_minus_2[1]);
 
         // Compute `s1`.
         let s1 = w_i_minus_2.rotate_right(19) ^ w_i_minus_2.rotate_right(61) ^ (w_i_minus_2 >> 6);
 
         // Read w[i-16].
         let (w_i_minus_16_reads, w_i_minus_16) = rt.mr_slice(w_ptr + (i - 16) * 8, 2);
-        let w_i_minus_16 = u32_vec_to_u64(w_i_minus_16);
+        let w_i_minus_16 = u32_pair_to_u64(w_i_minus_16[0], w_i_minus_16[1]);
 
         // Read w[i-7].
         let (w_i_minus_7_reads, w_i_minus_7) = rt.mr_slice(w_ptr + (i - 7) * 8, 2);
-        let w_i_minus_7 = u32_vec_to_u64(w_i_minus_7);
+        let w_i_minus_7 = u32_pair_to_u64(w_i_minus_7[0], w_i_minus_7[1]);
 
         // Compute `w_i`.
         let w_i = s1

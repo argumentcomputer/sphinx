@@ -12,20 +12,11 @@ use crate::{
     air::{EventLens, MachineAir, WithEvents},
     bytes::{event::ByteRecord, ByteLookupEvent, ByteOpcode},
     runtime::{ExecutionRecord, Program},
-    utils::pad_rows,
+    utils::{pad_rows, u64_to_le_u32s},
 };
 
 impl<'a> WithEvents<'a> for Sha512CompressChip {
     type Events = &'a [Sha512CompressEvent];
-}
-
-// FIXME
-fn u64_to_u32x2(n: u64) -> [u32; 2] {
-    let n = n.to_le_bytes();
-    [
-        u32::from_le_bytes(n[..4].try_into().unwrap()),
-        u32::from_le_bytes(n[4..].try_into().unwrap()),
-    ]
 }
 
 impl<F: PrimeField32> MachineAir<F> for Sha512CompressChip {
@@ -173,7 +164,7 @@ impl<F: PrimeField32> MachineAir<F> for Sha512CompressChip {
                     event.h_write_records[2 * j + 1],
                     &mut new_byte_lookup_events,
                 );
-                let out = u64_to_u32x2(out_h[j]);
+                let out = u64_to_le_u32s(out_h[j]);
                 assert_eq!(event.h_write_records[2 * j].value, out[0]);
                 assert_eq!(event.h_write_records[2 * j + 1].value, out[1]);
             }

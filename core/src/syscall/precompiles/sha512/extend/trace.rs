@@ -8,7 +8,7 @@ use crate::{
     air::{EventLens, MachineAir, WithEvents},
     bytes::{event::ByteRecord, ByteLookupEvent, ByteOpcode},
     runtime::{ExecutionRecord, Program},
-    utils::pad_rows,
+    utils::{pad_rows, u32_pair_to_u64},
 };
 
 impl<'a> WithEvents<'a> for Sha512ExtendChip {
@@ -104,21 +104,10 @@ impl<F: PrimeField32> MachineAir<F> for Sha512ExtendChip {
                 &mut new_byte_lookup_events,
             );
 
-            // FIXME
-            fn u32_vec_to_u64(val: Vec<u32>) -> u64 {
-                u64::from_le_bytes(
-                    val.into_iter()
-                        .flat_map(|x| x.to_le_bytes())
-                        .collect::<Vec<_>>()
-                        .try_into()
-                        .unwrap(),
-                )
-            }
-
             // `s0 := (w[i-15] rightrotate 1) xor (w[i-15] rightrotate 8) xor (w[i-15] rightshift 7)`
             let w_i_minus_15_lo = event.w_i_minus_15_reads[0].value;
             let w_i_minus_15_hi = event.w_i_minus_15_reads[1].value;
-            let w_i_minus_15 = u32_vec_to_u64(vec![w_i_minus_15_lo, w_i_minus_15_hi]);
+            let w_i_minus_15 = u32_pair_to_u64(w_i_minus_15_lo, w_i_minus_15_hi);
 
             let w_i_minus_15_rr_1 =
                 cols.w_i_minus_15_rr_1
@@ -148,7 +137,7 @@ impl<F: PrimeField32> MachineAir<F> for Sha512ExtendChip {
             // `s1 := (w[i-2] rightrotate 19) xor (w[i-2] rightrotate 61) xor (w[i-2] rightshift 6)`
             let w_i_minus_2_lo = event.w_i_minus_2_reads[0].value;
             let w_i_minus_2_hi = event.w_i_minus_2_reads[1].value;
-            let w_i_minus_2 = u32_vec_to_u64(vec![w_i_minus_2_lo, w_i_minus_2_hi]);
+            let w_i_minus_2 = u32_pair_to_u64(w_i_minus_2_lo, w_i_minus_2_hi);
 
             let w_i_minus_2_rr_19 =
                 cols.w_i_minus_2_rr_19
@@ -178,17 +167,17 @@ impl<F: PrimeField32> MachineAir<F> for Sha512ExtendChip {
             // Compute `s2`.
             let w_i_minus_7_lo = event.w_i_minus_7_reads[0].value;
             let w_i_minus_7_hi = event.w_i_minus_7_reads[1].value;
-            let w_i_minus_7 = u32_vec_to_u64(vec![w_i_minus_7_lo, w_i_minus_7_hi]);
+            let w_i_minus_7 = u32_pair_to_u64(w_i_minus_7_lo, w_i_minus_7_hi);
 
             let w_i_minus_16_lo = event.w_i_minus_16_reads[0].value;
             let w_i_minus_16_hi = event.w_i_minus_16_reads[1].value;
-            let w_i_minus_16 = u32_vec_to_u64(vec![w_i_minus_16_lo, w_i_minus_16_hi]);
+            let w_i_minus_16 = u32_pair_to_u64(w_i_minus_16_lo, w_i_minus_16_hi);
 
             // `s2 := w[i-16] + s0 + w[i-7] + s1`.
             let s2_0 = cols.s2[0].populate(output, shard, event.channel, w_i_minus_16, s0);
             let s2_1 = cols.s2[1].populate(output, shard, event.channel, s2_0, w_i_minus_7);
             let s2_2 = cols.s2[2].populate(output, shard, event.channel, s2_1, s1);
-            let w_i = u32_vec_to_u64(vec![event.w_i_writes[0].value, event.w_i_writes[1].value]);
+            let w_i = u32_pair_to_u64(event.w_i_writes[0].value, event.w_i_writes[1].value);
             assert_eq!(s2_2, w_i);
 
             cols.w_i[0].populate(

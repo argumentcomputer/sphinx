@@ -132,19 +132,10 @@ pub mod compress_tests {
 
     use crate::{
         runtime::{Instruction, Opcode, Program, SyscallCode},
-        utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF},
+        utils::{run_test, setup_logger, tests::SHA512_COMPRESS_ELF, u64_to_le_u32s},
     };
 
     use super::SHA512_COMPRESS_K;
-
-    // FIXME
-    fn u64_to_u32x2(n: u64) -> [u32; 2] {
-        let n = n.to_le_bytes();
-        [
-            u32::from_le_bytes(n[..4].try_into().unwrap()),
-            u32::from_le_bytes(n[4..].try_into().unwrap()),
-        ]
-    }
 
     pub fn sha512_compress_program() -> Program {
         let w_ptr = 100;
@@ -172,7 +163,7 @@ pub mod compress_tests {
         }
         // Fill out the constants `k`
         for i in 0..80 {
-            let k_i = u64_to_u32x2(SHA512_COMPRESS_K[i]);
+            let k_i = u64_to_le_u32s(SHA512_COMPRESS_K[i]);
             instructions.extend(vec![
                 Instruction::new(Opcode::ADD, 29, 0, k_i[0], false, true),
                 Instruction::new(Opcode::ADD, 28, 0, k_i[1], false, true),
