@@ -371,6 +371,8 @@ pub struct SplitOpts {
     pub keccak_split_threshold: usize,
     pub sha_extend_split_threshold: usize,
     pub sha_compress_split_threshold: usize,
+    pub sha512_extend_split_threshold: usize,
+    pub sha512_compress_split_threshold: usize,    
     pub memory_split_threshold: usize,
 }
 
@@ -381,6 +383,8 @@ impl SplitOpts {
             keccak_split_threshold: deferred_shift_threshold / 24,
             sha_extend_split_threshold: deferred_shift_threshold / 48,
             sha_compress_split_threshold: deferred_shift_threshold / 80,
+            sha512_extend_split_threshold: deferred_shift_threshold / 48,
+            sha512_compress_split_threshold: deferred_shift_threshold / 80,
             memory_split_threshold: deferred_shift_threshold,
         }
     }
@@ -680,10 +684,13 @@ impl ExecutionRecord {
             secp256k1_double_events: take(&mut self.secp256k1_double_events),
             bn254_add_events: take(&mut self.bn254_add_events),
             bn254_double_events: take(&mut self.bn254_double_events),
+            blake2s_round_events: take(&mut self.blake2s_round_events),
             bls12381_g1_add_events: take(&mut self.bls12381_g1_add_events),
             bls12381_g1_double_events: take(&mut self.bls12381_g1_double_events),
             sha_extend_events: take(&mut self.sha_extend_events),
             sha_compress_events: take(&mut self.sha_compress_events),
+            sha512_extend_events: take(&mut self.sha512_extend_events),
+            sha512_compress_events: take(&mut self.sha512_compress_events),
             ed_add_events: take(&mut self.ed_add_events),
             ed_decompress_events: take(&mut self.ed_decompress_events),
             secp256k1_decompress_events: take(&mut self.secp256k1_decompress_events),
@@ -763,6 +770,13 @@ impl ExecutionRecord {
         );
         split_events!(
             self,
+            blake2s_round_events,
+            shards,
+            opts.deferred_shift_threshold,
+            last
+        );
+        split_events!(
+            self,
             bls12381_g1_add_events,
             shards,
             opts.deferred_shift_threshold,
@@ -787,6 +801,20 @@ impl ExecutionRecord {
             sha_compress_events,
             shards,
             opts.sha_compress_split_threshold,
+            last
+        );
+        split_events!(
+            self,
+            sha512_extend_events,
+            shards,
+            opts.sha512_extend_split_threshold,
+            last
+        );
+        split_events!(
+            self,
+            sha512_compress_events,
+            shards,
+            opts.sha512_compress_split_threshold,
             last
         );
         split_events!(

@@ -140,6 +140,10 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Sha256Extend(sha_extend));
         let sha_compress = ShaCompressChip;
         chips.push(RiscvAir::Sha256Compress(sha_compress));
+        let sha512_extend = Sha512ExtendChip;
+        chips.push(RiscvAir::Sha512Extend(sha512_extend));
+        let sha512_compress = Sha512CompressChip;
+        chips.push(RiscvAir::Sha512Compress(sha512_compress));
         let ed_add_assign = EdAddAssignChip::<EdwardsCurve<Ed25519Parameters>>::new();
         chips.push(RiscvAir::Ed25519Add(ed_add_assign));
         let ed_decompress = EdDecompressChip::<Ed25519Parameters>::default();

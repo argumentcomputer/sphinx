@@ -10,7 +10,7 @@ use crate::runtime::{MemoryReadRecord, MemoryWriteRecord};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Sha512ExtendEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub shard: u32,
     pub channel: u32,
     pub clk: u32,

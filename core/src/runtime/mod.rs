@@ -895,6 +895,12 @@ impl<'a> Runtime<'a> {
                     SyscallCode::SHA_COMPRESS => {
                         (self.opts.split_opts.sha_compress_split_threshold, 80)
                     }
+                    SyscallCode::SHA512_EXTEND => {
+                        (self.opts.split_opts.sha512_extend_split_threshold, 48)
+                    }
+                    SyscallCode::SHA512_COMPRESS => {
+                        (self.opts.split_opts.sha512_compress_split_threshold, 80)
+                    }
                     _ => (self.opts.split_opts.deferred_shift_threshold, 1),
                 };
                 let nonce = (((*syscall_count as usize) % threshold) * multiplier) as u32;

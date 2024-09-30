@@ -32,7 +32,7 @@ impl Blake2sRoundChip {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Blake2sRoundEvent {
-    pub lookup_id: usize,
+    pub lookup_id: u128,
     pub clk: u32,
     pub shard: u32,
     pub channel: u32,
