@@ -4,7 +4,6 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use p3_air::AirBuilder;
 use p3_field::{AbstractField, Field};
 use serde::{Deserialize, Serialize};
 use sphinx_derive::AlignedBorrow;
@@ -92,18 +91,6 @@ impl<F: Field> Word64<F> {
     pub fn to_u64(&self) -> u64 {
         // TODO: avoid string conversion
         u64::from_le_bytes(self.0.map(|x| x.to_string().parse::<u8>().unwrap()))
-    }
-}
-
-impl<V: Copy> Word64<V> {
-    /// Reduces a word64 to a single variable.
-    pub fn reduce<AB: AirBuilder<Var = V>>(&self) -> AB::Expr {
-        let base = [1, 1 << 8, 1 << 16, 1 << 24].map(AB::Expr::from_canonical_u32);
-        self.0
-            .iter()
-            .enumerate()
-            .map(|(i, x)| base[i].clone() * *x)
-            .sum()
     }
 }
 
