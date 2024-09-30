@@ -12,7 +12,7 @@ use crate::{
 
 pub const NUM_SHA_EXTEND_COLS: usize = size_of::<ShaExtendCols<u8>>();
 
-#[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
+#[derive(AlignedBorrow, Default, Debug, Clone)]
 #[repr(C)]
 pub struct ShaExtendCols<T> {
     /// Inputs.

@@ -20,7 +20,7 @@ pub(crate) const NUM_SHA_COMPRESS_COLS: usize = size_of::<ShaCompressCols<u8>>()
 /// During init, the columns are initialized with the input values, one word at a time. During each
 /// compression cycle, one iteration of sha compress is computed. During finalize, the columns are
 /// combined and written back to memory.
-#[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
+#[derive(AlignedBorrow, Default, Debug, Clone)]
 #[repr(C)]
 pub struct ShaCompressCols<T> {
     /// Inputs.

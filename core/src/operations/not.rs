@@ -4,6 +4,8 @@ use sphinx_derive::AlignedBorrow;
 
 use crate::air::ByteAirBuilder;
 use crate::air::Word;
+use crate::air::Word64;
+use crate::air::WORD64_SIZE;
 use crate::bytes::event::ByteRecord;
 use crate::bytes::ByteOpcode;
 use crate::disassembler::WORD_SIZE;
@@ -56,6 +58,61 @@ impl<F: Field> NotOperation<F> {
 
         // For any byte b, b + !b = 0xFF.
         for i in 0..WORD_SIZE {
+            builder
+                .when(is_real)
+                .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));
+        }
+    }
+}
+
+/// A set of columns needed to compute the not of a word64.
+#[derive(AlignedBorrow, Default, Debug, Clone, Copy)]
+#[repr(C)]
+pub struct Not64Operation<T> {
+    /// The result of `!x`.
+    pub value: Word64<T>,
+}
+
+impl<F: Field> Not64Operation<F> {
+    pub fn populate(
+        &mut self,
+        record: &mut impl ByteRecord,
+        shard: u32,
+        channel: u32,
+        x: u64,
+    ) -> u64 {
+        let expected = !x;
+        let x_bytes = x.to_le_bytes();
+        for i in 0..WORD64_SIZE {
+            self.value[i] = F::from_canonical_u8(!x_bytes[i]);
+        }
+        record.add_u8_range_checks(shard, channel, &x_bytes);
+        expected
+    }
+
+    pub fn eval<AB: ByteAirBuilder<F = F>>(
+        builder: &mut AB,
+        a: Word64<AB::Var>,
+        cols: Not64Operation<AB::Var>,
+        shard: impl Into<AB::Expr> + Copy,
+        channel: impl Into<AB::Expr> + Copy,
+        is_real: impl Into<AB::Expr> + Copy,
+    ) {
+        for i in (0..WORD64_SIZE).step_by(2) {
+            builder.send_byte_pair(
+                AB::F::from_canonical_u32(ByteOpcode::U8Range as u32),
+                AB::F::zero(),
+                AB::F::zero(),
+                a[i],
+                a[i + 1],
+                shard,
+                channel,
+                is_real,
+            );
+        }
+
+        // For any byte b, b + !b = 0xFF.
+        for i in 0..WORD64_SIZE {
             builder
                 .when(is_real)
                 .assert_eq(cols.value[i] + a[i], AB::F::from_canonical_u8(u8::MAX));

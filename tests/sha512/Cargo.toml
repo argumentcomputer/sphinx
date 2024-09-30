@@ -1,0 +1,11 @@
+[workspace]
+[package]
+version = "0.1.0"
+name = "sha512-test"
+edition = "2021"
+
+[dependencies]
+sphinx-zkvm = { path = "../../zkvm/entrypoint" }
+hex-literal = "0.4.1"
+sha2 = { git = "https://github.com/argumentcomputer/RustCrypto-hashes.git", branch = "zkvm-next" } # FIXME: Point this at `zkvm` when merging
+hex = "0.4.3"

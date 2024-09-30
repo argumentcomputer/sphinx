@@ -6,6 +6,8 @@ mod io;
 mod keccak_permute;
 mod memory;
 mod secp256k1;
+mod sha512_compress;
+mod sha512_extend;
 mod sha_compress;
 mod sha_extend;
 mod sys;
@@ -23,6 +25,8 @@ pub use io::*;
 pub use keccak_permute::*;
 pub use memory::*;
 pub use secp256k1::*;
+pub use sha512_compress::*;
+pub use sha512_extend::*;
 pub use sha_compress::*;
 pub use sha_extend::*;
 pub use sys::*;
@@ -111,3 +115,9 @@ pub const BLS12381_G1_DECOMPRESS: u32 = 0x00_01_01_F2;
 
 /// Executes `BLAKE2S_ROUND`.
 pub const BLAKE_2S_ROUND: u32 = 0x00_01_01_ED;
+
+/// Executes `SHA512_EXTEND`.
+pub const SHA512_EXTEND: u32 = 0x00_00_01_C1;
+
+/// Executes `SHA512_COMPRESS`.
+pub const SHA512_COMPRESS: u32 = 0x00_00_01_C2;

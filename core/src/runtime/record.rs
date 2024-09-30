@@ -14,6 +14,10 @@ use crate::syscall::precompiles::blake2s::{Blake2sRoundChip, Blake2sRoundEvent};
 use crate::syscall::precompiles::edwards::EdDecompressEvent;
 use crate::syscall::precompiles::keccak256::KeccakPermuteEvent;
 use crate::syscall::precompiles::sha256::{ShaCompressEvent, ShaExtendEvent};
+use crate::syscall::precompiles::sha512::Sha512CompressChip;
+use crate::syscall::precompiles::sha512::Sha512CompressEvent;
+use crate::syscall::precompiles::sha512::Sha512ExtendChip;
+use crate::syscall::precompiles::sha512::Sha512ExtendEvent;
 use crate::syscall::precompiles::{ECAddEvent, ECDoubleEvent};
 use crate::utils::SphinxCoreOpts;
 use crate::{
@@ -98,6 +102,10 @@ pub struct ExecutionRecord {
     pub sha_extend_events: Vec<ShaExtendEvent>,
 
     pub sha_compress_events: Vec<ShaCompressEvent>,
+
+    pub sha512_extend_events: Vec<Sha512ExtendEvent>,
+
+    pub sha512_compress_events: Vec<Sha512CompressEvent>,
 
     pub keccak_permute_events: Vec<KeccakPermuteEvent>,
 
@@ -221,6 +229,18 @@ impl EventLens<ShaExtendChip> for ExecutionRecord {
 impl EventLens<ShaCompressChip> for ExecutionRecord {
     fn events(&self) -> <ShaCompressChip as crate::air::WithEvents<'_>>::Events {
         &self.sha_compress_events
+    }
+}
+
+impl EventLens<Sha512ExtendChip> for ExecutionRecord {
+    fn events(&self) -> <Sha512ExtendChip as crate::air::WithEvents<'_>>::Events {
+        &self.sha512_extend_events
+    }
+}
+
+impl EventLens<Sha512CompressChip> for ExecutionRecord {
+    fn events(&self) -> <Sha512CompressChip as crate::air::WithEvents<'_>>::Events {
+        &self.sha512_compress_events
     }
 }
 
@@ -422,6 +442,14 @@ impl MachineRecord for ExecutionRecord {
             self.sha_compress_events.len(),
         );
         stats.insert(
+            "sha512_extend_events".to_string(),
+            self.sha512_extend_events.len(),
+        );
+        stats.insert(
+            "sha512_compress_events".to_string(),
+            self.sha512_compress_events.len(),
+        );
+        stats.insert(
             "keccak_permute_events".to_string(),
             self.keccak_permute_events.len(),
         );
@@ -498,6 +526,10 @@ impl MachineRecord for ExecutionRecord {
         self.sha_extend_events.append(&mut other.sha_extend_events);
         self.sha_compress_events
             .append(&mut other.sha_compress_events);
+        self.sha512_extend_events
+            .append(&mut other.sha512_extend_events);
+        self.sha512_compress_events
+            .append(&mut other.sha512_compress_events);
         self.keccak_permute_events
             .append(&mut other.keccak_permute_events);
         self.ed_add_events.append(&mut other.ed_add_events);
@@ -817,6 +849,18 @@ impl MachineRecord for ExecutionRecord {
         first.sha_compress_events = take(&mut self.sha_compress_events);
         for (i, event) in first.sha_compress_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, (i * 80) as u32);
+        }
+
+        // SHA-512 extend events.
+        first.sha512_extend_events = take(&mut self.sha512_extend_events);
+        for (i, event) in first.sha512_extend_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
+        }
+
+        // SHA-512 compress events.
+        first.sha512_compress_events = take(&mut self.sha512_compress_events);
+        for (i, event) in first.sha512_compress_events.iter().enumerate() {
+            self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 
         // Edwards curve add events.
