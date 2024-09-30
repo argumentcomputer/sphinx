@@ -13,12 +13,15 @@ pub(crate) const NUM_SHA512_COMPRESS_COLS: usize = size_of::<Sha512CompressCols<
 
 /// A set of columns needed to compute the SHA-512 compression function.
 ///
-/// Each sha512 compress syscall is processed over 80 columns, split into 10 octets. The first octet is
-/// for initialization, the next 8 octets are for compression, and the last octet is for finalize.
-/// During init, the columns are initialized with the input values, one word at a time. During each
-/// compression cycle, one iteration of sha512 compress is computed. During finalize, the columns are
-/// combined and written back to memory.
-/// FIXME
+/// This syscall corresponds to one single iteration of the inner loop of the compress function.
+/// The guest is responsible for filling out the state correctly and repeatedly calling this syscall.
+/// This is done (instead of batching) so each CPU instruction does not perform too many byte lookups.
+/// See [this section](https://hackmd.io/wztOd455QKWf-K8LXh_Fqw#Part-4-adding-channels-for-byte-lookup-multiplicities)
+/// of the audit report for more details.
+///
+/// The state pointer contains the regular SHA-512 state (8x u64), followed by the loop index `i`, and
+/// followed by the 80 SHA-512 constants used. It is the responsibility of the guest to pass in the
+/// correct constants. This is done to minimize the number of columns used for getting the `K[i]` value.
 #[derive(AlignedBorrow, Default, Debug, Clone)]
 #[repr(C)]
 pub struct Sha512CompressCols<T> {

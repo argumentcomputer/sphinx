@@ -108,14 +108,16 @@ pub struct Sha512CompressEvent {
     pub i_write_record: MemoryWriteRecord,
 }
 
-/// Implements the SHA compress operation which loops over 0 = [0, 63] and modifies A-H in each
-/// iteration. The inputs to the syscall are a pointer to the 64 word array W and a pointer to the 8
-/// word array H.
+/// Implements the SHA-512 compress operation by running one iteration of the inner loop and modifying
+/// the A-H state for each iteration.
+/// The inputs to the syscall are a pointer to the 80-long double word array W and a pointer to the
+/// 89-long double word state array, composed of H (hash state), i (loop iteration) and K (SHA constants).
 ///
-/// In the AIR, each SHA compress syscall takes up 80 rows. The first and last 8 rows are for
-/// initialization and finalize respectively. The middle 64 rows are for compression. Each row
-/// operates over a single memory word.
-/// FIXME
+/// It is the responsibility of the caller to ensure that the correct state is passed. In particular, if
+/// the `i` or `K` values are incorrect, the result is likely to be garbage.
+///
+/// In the AIR, each SHA-512 compress syscall takes up a single row. For a full SHA-512 hash, it is
+/// necessary to call this syscall multiple times.
 #[derive(Default)]
 pub struct Sha512CompressChip;
 

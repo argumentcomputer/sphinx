@@ -268,9 +268,6 @@ where
         );
 
         // s2 := w[i-16] + s0 + w[i-7] + s1.
-        // let s2_0 = cols.s2[0].populate(output, shard, event.channel, w_i_minus_16, s0);
-        // let s2_1 = cols.s2[1].populate(output, shard, event.channel, s2_0, w_i_minus_7);
-        // let s2_2 = cols.s2[2].populate(output, shard, event.channel, s2_1, s1);
         Add64Operation::<AB::F>::eval(
             builder,
             w_i_minus_16,

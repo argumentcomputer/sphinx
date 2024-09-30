@@ -23,11 +23,12 @@ pub struct Sha512ExtendEvent {
     pub w_i_writes: Vec<MemoryWriteRecord>,
 }
 
-/// Implements the SHA extension operation which loops over i = [16, 63] and modifies w[i] in each
-/// iteration. The only input to the syscall is the 4byte-aligned pointer to the w array.
+/// Implements the SHA-512 extension operation which loops over i = 16..80 and modifies w[i] in each
+/// iteration. The inputs to the syscall are the 8 byte-aligned pointer to the w array and the value
+/// of the current loop iteration `i`. The syscall only runs one iteration for a given `i` value.
 ///
-/// In the AIR, each SHA extend syscall takes up 48 rows, where each row corresponds to a single
-/// iteration of the loop.
+/// In the AIR, each SHA-512 extend syscall takes up a single row, and the guest code must call this
+/// syscall multiple times in a loop to complete the full extend operation.
 #[derive(Default)]
 pub struct Sha512ExtendChip;
 
