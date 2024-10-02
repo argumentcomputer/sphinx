@@ -10,10 +10,13 @@ members = [
   "is-prime/script",
   "json/lib",
   "json/script",
+  "lcs/script",
+  "lcs2/script",
+  "patch-testing/script",
   "regex/script",
   "rsa/script",
   "ssz-withdrawals/script",
+  "sum/script",
   "tendermint/script",
-  "patch-testing/script",
 ]
 resolver = "2"

@@ -10,5 +10,3 @@ tracing = "0.1.40"
 
 [build-dependencies]
 sphinx-helper = { path = "../../../helper" }
-
-[workspace]

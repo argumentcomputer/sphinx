@@ -13,4 +13,3 @@ tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 [build-dependencies]
 sphinx-helper = { path = "../../../helper" }
 
-[workspace]

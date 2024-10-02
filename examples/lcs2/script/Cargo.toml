@@ -1,4 +1,3 @@
-[workspace]
 [package]
 name = "lcs-script"
 version = "0.1.0"
