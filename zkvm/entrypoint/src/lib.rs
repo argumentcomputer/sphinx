@@ -1,14 +1,14 @@
 pub mod heap;
 pub mod syscalls;
-pub mod io {
-    pub use sphinx_precompiles::io::*;
-}
-pub mod precompiles {
-    pub use sphinx_precompiles::*;
-}
 
-#[allow(unused_extern_crates)]
-extern crate alloc;
+#[cfg(feature = "lib")]
+pub mod io {
+    pub use sphinx_lib::io::*;
+}
+#[cfg(feature = "lib")]
+pub mod lib {
+    pub use sphinx_lib::*;
+}
 
 #[macro_export]
 macro_rules! entrypoint {

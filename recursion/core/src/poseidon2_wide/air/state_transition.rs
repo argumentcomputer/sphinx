@@ -1,7 +1,6 @@
 use std::array;
 
 use p3_air::AirBuilder;
-use p3_field::Field;
 use sphinx_core::{air::BaseAirBuilder, utils::DIGEST_SIZE};
 
 use crate::{
@@ -16,7 +15,7 @@ use crate::{
     },
 };
 
-impl<F: Field, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn eval_state_transition<AB: SphinxRecursionAirBuilder>(
         &self,

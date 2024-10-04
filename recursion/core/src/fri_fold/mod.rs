@@ -1,13 +1,11 @@
-#![allow(clippy::needless_range_loop)]
-
 use crate::memory::{MemoryReadCols, MemoryReadSingleCols, MemoryReadWriteCols};
 use crate::runtime::Opcode;
 use core::borrow::Borrow;
 use core::mem::size_of;
 use itertools::Itertools;
 use p3_air::{Air, AirBuilder, BaseAir};
+use p3_field::AbstractField;
 use p3_field::PrimeField32;
-use p3_field::{AbstractField, Field};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use sphinx_core::air::{BaseAirBuilder, BinomialExtension, EventLens, MachineAir, WithEvents};
@@ -23,11 +21,20 @@ use crate::runtime::{ExecutionRecord, RecursionProgram};
 
 pub const NUM_FRI_FOLD_COLS: usize = size_of::<FriFoldCols<u8>>();
 
-#[derive(Default)]
-pub struct FriFoldChip<F: Field, const DEGREE: usize> {
+pub struct FriFoldChip<F, const DEGREE: usize> {
     pub fixed_log2_rows: Option<usize>,
-    pub _phantom: PhantomData<F>,
     pub pad: bool,
+    pub _phantom: PhantomData<F>,
+}
+
+impl<F, const DEGREE: usize> Default for FriFoldChip<F, DEGREE> {
+    fn default() -> Self {
+        Self {
+            fixed_log2_rows: Default::default(),
+            pad: Default::default(),
+            _phantom: Default::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -86,13 +93,13 @@ pub struct FriFoldCols<T: Copy> {
     pub is_real: T,
 }
 
-impl<F: Field, const DEGREE: usize> BaseAir<F> for FriFoldChip<F, DEGREE> {
+impl<F: Sync, const DEGREE: usize> BaseAir<F> for FriFoldChip<F, DEGREE> {
     fn width(&self) -> usize {
         NUM_FRI_FOLD_COLS
     }
 }
 
-impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for FriFoldChip<F, DEGREE> {
+impl<'a, F: 'a, const DEGREE: usize> WithEvents<'a> for FriFoldChip<F, DEGREE> {
     type Events = &'a [FriFoldEvent<F>];
 }
 
@@ -176,7 +183,7 @@ impl<F: PrimeField32, const DEGREE: usize> MachineAir<F> for FriFoldChip<F, DEGR
     }
 }
 
-impl<F: Field, const DEGREE: usize> FriFoldChip<F, DEGREE> {
+impl<F, const DEGREE: usize> FriFoldChip<F, DEGREE> {
     pub fn eval_fri_fold<AB: SphinxRecursionAirBuilder>(
         &self,
         builder: &mut AB,

@@ -165,6 +165,7 @@ fn warn_if_not_default(opts: &SphinxProverOpts, context: &SphinxContext<'_>) {
     let SphinxContext {
         hook_registry,
         subproof_verifier,
+        ..
     } = context;
     if hook_registry.is_some() {
         tracing::warn!(

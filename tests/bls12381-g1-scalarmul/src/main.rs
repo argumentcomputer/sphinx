@@ -1,9 +1,9 @@
 #![no_main]
 sphinx_zkvm::entrypoint!(main);
 
+use sphinx_lib::bls12_381::Bls12381;
+use sphinx_lib::utils::AffinePoint;
 use hybrid_array::typenum::U24;
-use sphinx_zkvm::precompiles::bls12_381::Bls12381;
-use sphinx_zkvm::precompiles::utils::AffinePoint;
 
 #[sphinx_derive::cycle_tracker]
 pub fn main() {

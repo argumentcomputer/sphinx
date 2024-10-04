@@ -1,5 +1,5 @@
 [package]
-name = "sphinx-precompiles"
+name = "sphinx-lib"
 version = "1.0.0"
 edition.workspace = true
 repository.workspace = true
@@ -11,8 +11,11 @@ bincode = { workspace = true }
 cfg-if = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
 hybrid-array = { workspace = true }
-k256 = { workspace = true, features = ["ecdsa", "std", "bits"] }
+k256 = { workspace = true, features = ["ecdsa", "std", "bits"], optional = true }
 serde = { workspace = true, features = ["derive"] }
 
 [features]
+default = []
 verify = []
+bn254 = []
+secp256k1 = ["dep:k256"]

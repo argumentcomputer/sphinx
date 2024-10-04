@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use p3_air::BaseAir;
-use p3_field::{Field, PrimeField32};
+use p3_field::PrimeField32;
 #[allow(unused_imports)]
 use p3_matrix::{dense::RowMajorMatrix, Matrix};
 use sphinx_core::air::{EventLens, WithEvents};
@@ -21,7 +21,7 @@ use super::events::{Poseidon2AbsorbEvent, Poseidon2CompressEvent, Poseidon2Final
 use super::RATE;
 use super::{internal_linear_layer, Poseidon2WideChip, NUM_INTERNAL_ROUNDS};
 
-impl<'a, F: Field, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
+impl<'a, F: 'a + Sync, const DEGREE: usize> WithEvents<'a> for Poseidon2WideChip<F, DEGREE> {
     type Events = (&'a [Poseidon2HashEvent<F>], &'a [Poseidon2CompressEvent<F>]);
 }
 
@@ -482,6 +482,7 @@ impl<F: PrimeField32, const DEGREE: usize> Poseidon2WideChip<F, DEGREE> {
                 r + NUM_INTERNAL_ROUNDS
             };
             let mut add_rc = *round_state;
+            #[allow(clippy::needless_range_loop)]
             for i in 0..WIDTH {
                 add_rc[i] += F::from_wrapped_u32(RC_16_30_U32[round][i]);
             }

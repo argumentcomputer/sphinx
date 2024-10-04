@@ -1,6 +1,7 @@
 use anyhow::Result;
 use sphinx_core::{runtime::SphinxContext, utils::SphinxProverOpts};
 use sphinx_prover::{SphinxProver, SphinxStdin};
+use sysinfo::System;
 
 use crate::{
     Prover, SphinxProof, SphinxProofKind, SphinxProofWithPublicValues, SphinxProvingKey,
@@ -43,6 +44,13 @@ impl Prover for LocalProver {
         context: SphinxContext<'a>,
         kind: SphinxProofKind,
     ) -> Result<SphinxProofWithPublicValues> {
+        let total_ram_gb = System::new_all().total_memory() / 1_000_000_000;
+        if kind == SphinxProofKind::Plonk && total_ram_gb <= 120 {
+            return Err(anyhow::anyhow!(
+                "not enough memory to generate plonk proof. at least 128GB is required."
+            ));
+        }
+
         let proof = self.prover.prove_core(pk, &stdin, opts, context)?;
         if kind == SphinxProofKind::Core {
             return Ok(SphinxProofWithPublicValues {

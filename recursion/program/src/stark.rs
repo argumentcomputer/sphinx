@@ -372,17 +372,20 @@ where
                     let qc_domains =
                         quotient_domain.split_domains_const(builder, log_quotient_degree);
 
-                    Self::verify_constraints(
-                        builder,
-                        chip,
-                        &values,
-                        &proof.public_values,
-                        &trace_domain,
-                        &qc_domains,
-                        zeta,
-                        alpha,
-                        &permutation_challenges,
-                    );
+                    // Verify the constraints.
+                    stacker::maybe_grow(16 * 1024 * 1024, 16 * 1024 * 1024, || {
+                        Self::verify_constraints(
+                            builder,
+                            chip,
+                            &values,
+                            &proof.public_values,
+                            &trace_domain,
+                            &qc_domains,
+                            zeta,
+                            alpha,
+                            &permutation_challenges,
+                        );
+                    });
                 });
         }
         builder.cycle_tracker("stage-e-verify-constraints");
