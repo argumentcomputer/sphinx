@@ -80,6 +80,7 @@ pub fn bls12381_fp2_sqrt(a: &[BigUint; 2]) -> [BigUint; 2] {
     [fp_to_biguint(&a_sqrt.c0), fp_to_biguint(&a_sqrt.c1)]
 }
 
+#[deprecated(since = "1.0.0-rc.1", note = "material for G2 precompiles removed")]
 pub fn bls12381_g2_add(a: &[BigUint; 4], b: &[BigUint; 4]) -> [BigUint; 4] {
     fn is_identity(input: &[BigUint; 4]) -> Choice {
         if input[0] == BigUint::zero()

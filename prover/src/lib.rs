@@ -699,7 +699,6 @@ impl Default for SphinxProver {
 #[cfg(test)]
 mod tests {
 
-    use std::env;
     use std::fs::File;
     use std::io::{Read, Write};
 
@@ -901,115 +900,5 @@ mod tests {
         prover.verify_compressed(&verify_reduce, &verify_vk)?;
 
         Ok(())
-    }
-
-    #[test]
-    #[ignore] // ignore for recursion performance reasons
-    fn test_deferred_proving_with_bls12381_g2_precompiles() {
-        fn test_inner(
-            program_elf: &[u8],
-            deferred_proofs_num: usize,
-            program_inputs: Vec<&SphinxStdin>,
-        ) {
-            assert_eq!(deferred_proofs_num, program_inputs.len());
-
-            setup_logger();
-            env::set_var("RECONSTRUCT_COMMITMENTS", "false");
-            env::set_var("FRI_QUERIES", "1");
-
-            // verify program which verifies proofs of a vkey and a list of committed inputs
-            let verify_elf =
-                include_bytes!("../../tests/verify-proof/elf/riscv32im-succinct-zkvm-elf");
-
-            tracing::info!("initializing prover");
-            let prover = SphinxProver::new();
-            let opts = SphinxProverOpts::default();
-
-            tracing::info!("setup elf");
-            let (program_pk, program_vk) = prover.setup(program_elf);
-            let (verify_pk, verify_vk) = prover.setup(verify_elf);
-
-            // Generate deferred proofs
-            let mut public_values = vec![];
-            let mut deferred_compress_proofs = vec![];
-            program_inputs
-                .into_iter()
-                .enumerate()
-                .for_each(|(index, input)| {
-                    tracing::info!("prove subproof {}", index);
-                    let deferred_proof = prover
-                        .prove_core(&program_pk, input, opts, Default::default())
-                        .unwrap();
-                    let pv = deferred_proof.public_values.to_vec();
-                    public_values.push(pv);
-                    let deferred_compress = prover
-                        .compress(&program_vk, deferred_proof, vec![], opts)
-                        .unwrap();
-                    deferred_compress_proofs.push(deferred_compress.proof);
-                });
-
-            // Aggregate deferred proofs
-            let mut stdin = SphinxStdin::new();
-            let vkey_digest = program_vk.hash_babybear();
-            let vkey_digest: [u32; 8] = vkey_digest
-                .iter()
-                .map(|n| n.as_canonical_u32())
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap();
-            stdin.write(&vkey_digest);
-            stdin.write(&public_values);
-            for drp in deferred_compress_proofs.iter() {
-                stdin.write_proof(drp.clone(), program_vk.vk.clone());
-            }
-
-            // Generate aggregated proof
-            let verify_proof = prover
-                .prove_core(&verify_pk, &stdin, opts, Default::default())
-                .unwrap();
-            let verify_compress = prover
-                .compress(
-                    &verify_vk,
-                    verify_proof.clone(),
-                    deferred_compress_proofs,
-                    opts,
-                )
-                .unwrap();
-
-            let compress_pv: &RecursionPublicValues<_> =
-                verify_compress.proof.public_values.as_slice().borrow();
-            println!("deferred_hash: {:?}", compress_pv.deferred_proofs_digest);
-            println!("complete: {:?}", compress_pv.is_complete);
-
-            tracing::info!("verify verify program");
-            prover
-                .verify_compressed(&verify_compress, &verify_vk)
-                .unwrap();
-        }
-
-        // Programs that we will use to produce deferred proofs while testing
-        let bls12381_g2_add_elf =
-            include_bytes!("../../tests/bls12381-g2-add/elf/riscv32im-succinct-zkvm-elf");
-        let bls12381_g2_double_elf =
-            include_bytes!("../../tests/bls12381-g2-double/elf/riscv32im-succinct-zkvm-elf");
-
-        test_inner(
-            bls12381_g2_add_elf,
-            3,
-            vec![
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-            ],
-        );
-        test_inner(
-            bls12381_g2_double_elf,
-            3,
-            vec![
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-                &SphinxStdin::new(),
-            ],
-        );
     }
 }
