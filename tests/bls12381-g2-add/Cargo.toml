@@ -1,8 +1,0 @@
-[workspace]
-[package]
-version = "0.1.0"
-name = "bls12381-g2-add-test"
-edition = "2021"
-
-[dependencies]
-sphinx-zkvm = { path = "../../zkvm/entrypoint" }

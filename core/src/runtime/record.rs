@@ -28,11 +28,7 @@ use crate::{
     operations::field::params::FieldParameters,
     stark::Indexed,
     syscall::precompiles::{
-        bls12_381::{
-            g1_decompress::{Bls12381G1DecompressChip, Bls12381G1DecompressEvent},
-            g2_add::{Bls12381G2AffineAddChip, Bls12381G2AffineAddEvent},
-            g2_double::{Bls12381G2AffineDoubleChip, Bls12381G2AffineDoubleEvent},
-        },
+        bls12_381::g1_decompress::{Bls12381G1DecompressChip, Bls12381G1DecompressEvent},
         field::{FieldChip, FieldEvent},
         quad_field::{QuadFieldChip, QuadFieldEvent},
         secp256k1::decompress::{Secp256k1DecompressChip, Secp256k1DecompressEvent},
@@ -131,8 +127,6 @@ pub struct ExecutionRecord {
     pub bls12381_fp_events: Vec<FieldEvent<Bls12381BaseField>>,
     pub bls12381_fp2_events: Vec<QuadFieldEvent<Bls12381BaseField>>,
     pub bls12381_g1_decompress_events: Vec<Bls12381G1DecompressEvent>,
-    pub bls12381_g2_add_events: Vec<Bls12381G2AffineAddEvent>,
-    pub bls12381_g2_double_events: Vec<Bls12381G2AffineDoubleEvent>,
 
     // Blake2s
     pub blake2s_round_events: Vec<Blake2sRoundEvent>,
@@ -259,18 +253,6 @@ impl EventLens<Bls12381G1DecompressChip> for ExecutionRecord {
 impl EventLens<Secp256k1DecompressChip> for ExecutionRecord {
     fn events(&self) -> <Secp256k1DecompressChip as crate::air::WithEvents<'_>>::Events {
         &self.secp256k1_decompress_events
-    }
-}
-
-impl EventLens<Bls12381G2AffineAddChip> for ExecutionRecord {
-    fn events(&self) -> <Bls12381G2AffineAddChip as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_g2_add_events
-    }
-}
-
-impl EventLens<Bls12381G2AffineDoubleChip> for ExecutionRecord {
-    fn events(&self) -> <Bls12381G2AffineDoubleChip as crate::air::WithEvents<'_>>::Events {
-        &self.bls12381_g2_double_events
     }
 }
 
@@ -495,14 +477,6 @@ impl MachineRecord for ExecutionRecord {
             "bls12381_fp2_events".to_string(),
             self.bls12381_fp2_events.len(),
         );
-        stats.insert(
-            "bls12381_g2_add_events".to_string(),
-            self.bls12381_g2_add_events.len(),
-        );
-        stats.insert(
-            "bls12381_g2_double_events".to_string(),
-            self.bls12381_g2_double_events.len(),
-        );
 
         stats.insert(
             "blake2s_round_events".to_string(),
@@ -554,10 +528,6 @@ impl MachineRecord for ExecutionRecord {
             .append(&mut other.bls12381_fp2_events);
         self.bls12381_g1_decompress_events
             .append(&mut other.bls12381_g1_decompress_events);
-        self.bls12381_g2_add_events
-            .append(&mut other.bls12381_g2_add_events);
-        self.bls12381_g2_double_events
-            .append(&mut other.bls12381_g2_double_events);
         self.blake2s_round_events
             .append(&mut other.blake2s_round_events);
 
@@ -884,18 +854,6 @@ impl MachineRecord for ExecutionRecord {
         // Bls12-381 decompress events.
         first.bls12381_g1_decompress_events = take(&mut self.bls12381_g1_decompress_events);
         for (i, event) in first.bls12381_g1_decompress_events.iter().enumerate() {
-            self.nonce_lookup.insert(event.lookup_id, i as u32);
-        }
-
-        // Bls12-381 G2Affine addition events.
-        first.bls12381_g2_add_events = take(&mut self.bls12381_g2_add_events);
-        for (i, event) in first.bls12381_g2_add_events.iter().enumerate() {
-            self.nonce_lookup.insert(event.lookup_id, i as u32);
-        }
-
-        // Bls12-381 G2Affine doubling events.
-        first.bls12381_g2_double_events = take(&mut self.bls12381_g2_double_events);
-        for (i, event) in first.bls12381_g2_double_events.iter().enumerate() {
             self.nonce_lookup.insert(event.lookup_id, i as u32);
         }
 

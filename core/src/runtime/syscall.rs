@@ -8,8 +8,6 @@ use crate::runtime::{Register, Runtime};
 use crate::stark::Ed25519Parameters;
 use crate::syscall::precompiles::blake2s::Blake2sRoundChip;
 use crate::syscall::precompiles::bls12_381::g1_decompress::Bls12381G1DecompressChip;
-use crate::syscall::precompiles::bls12_381::g2_add::Bls12381G2AffineAddChip;
-use crate::syscall::precompiles::bls12_381::g2_double::Bls12381G2AffineDoubleChip;
 use crate::syscall::precompiles::edwards::EdAddAssignChip;
 use crate::syscall::precompiles::edwards::EdDecompressChip;
 use crate::syscall::precompiles::field::{FieldAddSyscall, FieldMulSyscall, FieldSubSyscall};
@@ -101,8 +99,6 @@ pub enum SyscallCode {
     BLS12381_FP2_ADD = 0x00_01_01_77,
     BLS12381_FP2_SUB = 0x00_01_01_78,
     BLS12381_FP2_MUL = 0x00_01_01_79,
-    BLS12381_G2_ADD = 0x00_01_01_80,
-    BLS12381_G2_DOUBLE = 0x00_00_01_81,
 
     /// Executes the `SHA512_EXTEND` precompile.
     SHA512_EXTEND = 0x00_00_01_C1,
@@ -160,8 +156,6 @@ impl SyscallCode {
             0x00_01_01_71 => SyscallCode::BLS12381_G1_ADD,
             0x00_00_01_72 => SyscallCode::BLS12381_G1_DOUBLE,
             0x00_01_01_F2 => SyscallCode::BLS12381_G1_DECOMPRESS,
-            0x00_01_01_80 => SyscallCode::BLS12381_G2_ADD,
-            0x00_00_01_81 => SyscallCode::BLS12381_G2_DOUBLE,
             0x00_01_01_ED => SyscallCode::BLAKE_2S_ROUND,
             0x00_00_01_C1 => SyscallCode::SHA512_EXTEND,
             0x00_00_01_C2 => SyscallCode::SHA512_COMPRESS,
@@ -395,14 +389,6 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
         Arc::new(Bls12381G1DecompressChip::new()),
     );
     syscall_map.insert(
-        SyscallCode::BLS12381_G2_ADD,
-        Arc::new(Bls12381G2AffineAddChip::new()),
-    );
-    syscall_map.insert(
-        SyscallCode::BLS12381_G2_DOUBLE,
-        Arc::new(Bls12381G2AffineDoubleChip::new()),
-    );
-    syscall_map.insert(
         SyscallCode::SHA512_EXTEND,
         Arc::new(Sha512ExtendChip::new()),
     );
@@ -523,12 +509,6 @@ mod tests {
                 }
                 SyscallCode::HINT_LEN => assert_eq!(code as u32, sphinx_zkvm::syscalls::HINT_LEN),
                 SyscallCode::HINT_READ => assert_eq!(code as u32, sphinx_zkvm::syscalls::HINT_READ),
-                SyscallCode::BLS12381_G2_ADD => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G2_ADD)
-                }
-                SyscallCode::BLS12381_G2_DOUBLE => {
-                    assert_eq!(code as u32, sphinx_zkvm::syscalls::BLS12381_G2_DOUBLE)
-                }
                 SyscallCode::BLAKE_2S_ROUND => {
                     assert_eq!(code as u32, sphinx_zkvm::syscalls::BLAKE_2S_ROUND)
                 }

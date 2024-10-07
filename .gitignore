@@ -25,3 +25,4 @@ prover/*.tar.gz
 
 # IDE Conf
 .idea
+prover/data

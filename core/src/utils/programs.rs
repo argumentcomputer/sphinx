@@ -124,12 +124,6 @@ pub mod tests {
     pub const VERIFY_PROOF_ELF: &[u8] =
         include_bytes!("../../../tests/verify-proof/elf/riscv32im-succinct-zkvm-elf");
 
-    pub const BLS12381_G2_ADD_ELF: &[u8] =
-        include_bytes!("../../../tests/bls12381-g2-add/elf/riscv32im-succinct-zkvm-elf");
-
-    pub const BLS12381_G2_DOUBLE_ELF: &[u8] =
-        include_bytes!("../../../tests/bls12381-g2-double/elf/riscv32im-succinct-zkvm-elf");
-
     pub const BLAKE2S_ROUND_ELF: &[u8] =
         include_bytes!("../../../tests/blake2s-round/elf/riscv32im-succinct-zkvm-elf");
 
