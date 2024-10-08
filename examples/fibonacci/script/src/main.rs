@@ -8,7 +8,7 @@ fn main() {
     utils::setup_logger();
 
     // Create an input stream and write '500' to it.
-    let n = 500u32;
+    let n = 1u32;
 
     let mut stdin = SphinxStdin::new();
     stdin.write(&n);

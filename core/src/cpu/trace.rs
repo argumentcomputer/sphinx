@@ -109,8 +109,8 @@ impl<F: PrimeField32> MachineAir<F> for CpuChip {
         }
     }
 
-    fn included(&self, _: &Self::Record) -> bool {
-        true
+    fn included(&self, input: &Self::Record) -> bool {
+        !input.cpu_events.is_empty()
     }
 }
 
@@ -773,6 +773,7 @@ mod tests {
 
     use crate::runtime::tests::ssz_withdrawals_program;
     use crate::runtime::{tests::simple_program, Runtime};
+    use crate::stark::DefaultProver;
     use crate::utils::{run_test, setup_logger, SphinxCoreOpts};
 
     // #[test]
@@ -834,6 +835,6 @@ mod tests {
     fn prove_trace() {
         setup_logger();
         let program = simple_program();
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

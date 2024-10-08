@@ -213,10 +213,9 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::debug_interactions_with_all_chips;
     use crate::{
-        lookup::InteractionKind,
-        runtime::{Program, Runtime, ShardingConfig},
+        lookup::{debug_interactions_with_all_chips, InteractionKind},
+        runtime::{Program, Runtime},
         stark::RiscvAir,
         utils::{setup_logger, tests::FIBONACCI_ELF, BabyBearPoseidon2, SphinxCoreOpts},
     };
@@ -230,7 +229,13 @@ mod test {
         let (pk, _) = machine.setup(&program);
         let mut runtime = Runtime::new(program, SphinxCoreOpts::default());
         runtime.run().unwrap();
-        let shards = machine.shard(runtime.record, &ShardingConfig::default());
+        let opts = SphinxCoreOpts::default();
+        machine.generate_dependencies(&mut runtime.records, &opts);
+
+        let mut shards = runtime.records;
+        shards.iter_mut().enumerate().for_each(|(i, shard)| {
+            shard.public_values.shard = (i + 1) as u32;
+        });
         let ok = debug_interactions_with_all_chips(
             &machine,
             &pk,
