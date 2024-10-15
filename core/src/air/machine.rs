@@ -5,10 +5,7 @@ use p3_field::Field;
 use p3_matrix::dense::RowMajorMatrix;
 pub use sphinx_derive::MachineAir;
 
-use crate::{
-    runtime::Program,
-    stark::{Indexed, MachineRecord},
-};
+use crate::{runtime::Program, stark::MachineRecord};
 
 /// A description of the events related to this AIR.
 pub trait WithEvents<'a>: Sized {
@@ -22,7 +19,7 @@ pub trait WithEvents<'a>: Sized {
 /// Chip, as specified by its `WithEvents` trait implementation.
 ///
 /// The name is inspired by (but not conformant to) functional optics ( https://doi.org/10.1145/1232420.1232424 )
-pub trait EventLens<T: for<'b> WithEvents<'b>>: Indexed {
+pub trait EventLens<T: for<'b> WithEvents<'b>> {
     fn events(&self) -> <T as WithEvents<'_>>::Events;
 }
 
@@ -71,19 +68,10 @@ where
     }
 }
 
-impl<'a, T, R, F> Indexed for Proj<'a, T, R, F>
-where
-    T: for<'b> WithEvents<'b>,
-    R: EventLens<T> + Indexed,
-{
-    fn index(&self) -> u32 {
-        self.record.index()
-    }
-}
 //////////////// end of shenanigans destined for the derive macros. ////////////////
 
 /// An AIR that is part of a multi table AIR arithmetization.
-pub trait MachineAir<F: Field>: BaseAir<F> + for<'a> WithEvents<'a> {
+pub trait MachineAir<F: Field>: BaseAir<F> + for<'a> WithEvents<'a> + 'static {
     /// The execution record containing events for producing the air trace.
     type Record: MachineRecord + EventLens<Self>;
 

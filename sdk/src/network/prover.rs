@@ -13,6 +13,7 @@ use crate::{
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 use sphinx_core::utils::SphinxProverOpts;
+use sphinx_prover::components::DefaultProverComponents;
 use sphinx_prover::utils::block_on;
 use sphinx_prover::{SphinxProver, SphinxStdin, SPHINX_CIRCUIT_VERSION};
 use tokio::time::sleep;
@@ -22,7 +23,7 @@ use crate::provers::{LocalProver, ProverType};
 /// An implementation of [crate::ProverClient] that can generate proofs on a remote RPC server.
 pub struct NetworkProver {
     client: NetworkClient,
-    local_prover: LocalProver,
+    local_prover: LocalProver<DefaultProverComponents>,
 }
 
 impl NetworkProver {
@@ -59,7 +60,8 @@ impl NetworkProver {
             .unwrap_or(false);
 
         if !skip_simulation {
-            let (_, report) = SphinxProver::execute(elf, &stdin, Default::default())?;
+            let (_, report) =
+                SphinxProver::<DefaultProverComponents>::execute(elf, &stdin, Default::default())?;
             log::info!(
                 "Simulation complete, cycles: {}",
                 report.total_instruction_count()
@@ -122,7 +124,7 @@ impl NetworkProver {
     }
 }
 
-impl Prover for NetworkProver {
+impl Prover<DefaultProverComponents> for NetworkProver {
     fn id(&self) -> ProverType {
         ProverType::Network
     }

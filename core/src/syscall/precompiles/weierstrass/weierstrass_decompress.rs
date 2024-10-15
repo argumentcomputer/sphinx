@@ -76,8 +76,8 @@ impl<E: EllipticCurve> Syscall for WeierstrassDecompressChip<E> {
     fn execute(&self, rt: &mut SyscallContext, arg1: u32, arg2: u32) -> Option<u32> {
         let event = create_ec_decompress_event::<E>(rt, arg1, arg2);
         match E::CURVE_TYPE {
-            CurveType::Secp256k1 => rt.record_mut().k256_decompress_events.push(event),
-            CurveType::Bls12381 => rt.record_mut().bls12381_decompress_events.push(event),
+            CurveType::Secp256k1 => rt.record_mut().secp256k1_decompress_events.push(event),
+            CurveType::Bls12381 => rt.record_mut().bls12381_g1_decompress_events.push(event),
             _ => panic!("Unsupported curve"),
         }
         None
@@ -155,8 +155,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
         output: &mut ExecutionRecord,
     ) -> RowMajorMatrix<F> {
         let events = match E::CURVE_TYPE {
-            CurveType::Secp256k1 => &input.k256_decompress_events,
-            CurveType::Bls12381 => &input.bls12381_decompress_events,
+            CurveType::Secp256k1 => &input.secp256k1_decompress_events,
+            CurveType::Bls12381 => &input.bls12381_g1_decompress_events,
             _ => panic!("Unsupported curve"),
         };
 
@@ -242,8 +242,8 @@ impl<F: PrimeField32, E: EllipticCurve + WeierstrassParameters> MachineAir<F>
 
     fn included(&self, shard: &Self::Record) -> bool {
         match E::CURVE_TYPE {
-            CurveType::Secp256k1 => !shard.k256_decompress_events.is_empty(),
-            CurveType::Bls12381 => !shard.bls12381_decompress_events.is_empty(),
+            CurveType::Secp256k1 => !shard.secp256k1_decompress_events.is_empty(),
+            CurveType::Bls12381 => !shard.bls12381_g1_decompress_events.is_empty(),
             _ => panic!("Unsupported curve"),
         }
     }
@@ -393,6 +393,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::io::SphinxStdin;
+    use crate::stark::DefaultProver;
     use crate::utils::{self, tests::BLS12381_DECOMPRESS_ELF};
     use crate::Program;
     use amcl::bls381::bls381::basic::key_pair_generate_g2;
@@ -416,7 +417,9 @@ mod tests {
         let (_, compressed) = key_pair_generate_g2(&mut RAND::new());
 
         let stdin = SphinxStdin::from(&compressed);
-        let mut public_values = run_test_io(Program::from(BLS12381_DECOMPRESS_ELF), stdin).unwrap();
+        let mut public_values =
+            run_test_io::<DefaultProver<_, _>>(Program::from(BLS12381_DECOMPRESS_ELF), stdin)
+                .unwrap();
 
         let mut result = [0; 96];
         public_values.read_slice(&mut result);
@@ -446,7 +449,8 @@ mod tests {
             let inputs = SphinxStdin::from(&compressed);
 
             let mut public_values =
-                run_test_io(Program::from(SECP256K1_DECOMPRESS_ELF), inputs).unwrap();
+                run_test_io::<DefaultProver<_, _>>(Program::from(SECP256K1_DECOMPRESS_ELF), inputs)
+                    .unwrap();
             let mut result = [0; 65];
             public_values.read_slice(&mut result);
             assert_eq!(result, decompressed);

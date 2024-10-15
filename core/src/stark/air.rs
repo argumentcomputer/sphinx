@@ -54,7 +54,7 @@ pub(crate) mod riscv_chips {
 #[record_type = "crate::runtime::ExecutionRecord"]
 pub enum RiscvAir<F: PrimeField32> {
     /// An AIR that contains a preprocessed program table and a lookup for the instructions.
-    Program(ProgramChip),
+    Program(ProgramChip<F>),
     /// An AIR for the RISC-V CPU. Each row represents a cpu cycle.
     Cpu(CpuChip),
     /// An AIR for the RISC-V Add and SUB instruction.
@@ -74,11 +74,11 @@ pub enum RiscvAir<F: PrimeField32> {
     /// A lookup table for byte operations.
     ByteLookup(ByteChip<F>),
     /// A table for initializing the memory state.
-    MemoryInit(MemoryChip),
+    MemoryInit(MemoryChip<F>),
     /// A table for finalizing the memory state.
-    MemoryFinal(MemoryChip),
+    MemoryFinal(MemoryChip<F>),
     /// A table for initializing the program memory.
-    ProgramMemory(MemoryProgramChip),
+    ProgramMemory(MemoryProgramChip<F>),
     /// A precompile for sha256 extend.
     Sha256Extend(ShaExtendChip),
     /// A precompile for sha256 compress.
@@ -109,11 +109,11 @@ pub enum RiscvAir<F: PrimeField32> {
     Bls12381Fp2Op(QuadFieldChip<Bls12381BaseField>),
     /// A precompile for decompressing a point on the BLS12-381 curve.
     Bls12381G1Decompress(Bls12381G1DecompressChip),
-    // A precompile for computing round function of Blake2s algorithm
+    /// A precompile for computing round function of Blake2s algorithm
     Blake2sRound(Blake2sRoundChip),
     /// A precompile for sha512 extend.
     Sha512Extend(Sha512ExtendChip),
-    /// A precompile for sha256 compress.
+    /// A precompile for sha512 compress.
     Sha512Compress(Sha512CompressChip),
 }
 
@@ -134,7 +134,7 @@ impl<F: PrimeField32> RiscvAir<F> {
         let mut chips = vec![];
         let cpu = CpuChip;
         chips.push(RiscvAir::Cpu(cpu));
-        let program = ProgramChip;
+        let program = ProgramChip::new();
         chips.push(RiscvAir::Program(program));
         let sha_extend = ShaExtendChip;
         chips.push(RiscvAir::Sha256Extend(sha_extend));
@@ -153,10 +153,16 @@ impl<F: PrimeField32> RiscvAir<F> {
         chips.push(RiscvAir::Secp256k1Double(secp256k1_double_assign));
         let keccak_permute = KeccakPermuteChip::new();
         chips.push(RiscvAir::KeccakP(keccak_permute));
-        let bn254_add_assign = WeierstrassAddAssignChip::<SwCurve<Bn254Parameters>>::new();
-        chips.push(RiscvAir::Bn254Add(bn254_add_assign));
-        let bn254_double_assign = WeierstrassDoubleAssignChip::<SwCurve<Bn254Parameters>>::new();
-        chips.push(RiscvAir::Bn254Double(bn254_double_assign));
+        // NOTE: See issue #188 for more context. Enabling too many chips leads to errors in the recursive verifier.
+        // These chips below are disabled by default to work around this issue.
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "enable-all-chips")] {
+                let bn254_add_assign = WeierstrassAddAssignChip::<SwCurve<Bn254Parameters>>::new();
+                chips.push(RiscvAir::Bn254Add(bn254_add_assign));
+                let bn254_double_assign = WeierstrassDoubleAssignChip::<SwCurve<Bn254Parameters>>::new();
+                chips.push(RiscvAir::Bn254Double(bn254_double_assign));
+            }
+        }
         let bls12381_g1_add = WeierstrassAddAssignChip::<SwCurve<Bls12381Parameters>>::new();
         chips.push(RiscvAir::Bls12381Add(bls12381_g1_add));
         let bls12381_g1_double = WeierstrassDoubleAssignChip::<SwCurve<Bls12381Parameters>>::new();

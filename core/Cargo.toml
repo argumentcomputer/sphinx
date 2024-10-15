@@ -48,6 +48,7 @@ hex = { workspace = true }
 hybrid-array = { workspace = true }
 k256 = { workspace = true, features = ["expose-field"] }
 num_cpus = { workspace = true }
+plain = { workspace = true }
 serial_test = { workspace = true }
 serde_with = { workspace = true }
 size = { workspace = true }
@@ -78,6 +79,7 @@ neon = ["p3-blake3/neon"]
 programs = []
 serial = []
 avx512 = ["p3-baby-bear/nightly-features"]
+enable-all-chips = []
 
 [[bench]]
 harness = false
