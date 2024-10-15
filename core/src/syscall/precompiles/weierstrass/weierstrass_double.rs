@@ -531,7 +531,7 @@ pub mod tests {
         stark::DefaultProver,
         utils::{
             run_test, setup_logger,
-            tests::{BLS12381_G1_DOUBLE_ELF, BN254_DOUBLE_ELF, SECP256K1_DOUBLE_ELF},
+            tests::{BLS12381_G1_DOUBLE_ELF, SECP256K1_DOUBLE_ELF},
         },
     };
 
@@ -543,7 +543,10 @@ pub mod tests {
     }
 
     #[test]
+    #[cfg(feature = "enable-all-chips")]
     fn test_bn254_double_simple() {
+        use crate::utils::tests::BN254_DOUBLE_ELF;
+
         setup_logger();
         let program = Program::from(BN254_DOUBLE_ELF);
         run_test::<DefaultProver<_, _>>(program).unwrap();
