@@ -79,6 +79,7 @@ neon = ["p3-blake3/neon"]
 programs = []
 serial = []
 avx512 = ["p3-baby-bear/nightly-features"]
+enable-all-chips = []
 
 [[bench]]
 harness = false
