@@ -1,0 +1,31 @@
+name: Regenerate Plonk artifacts
+
+on:
+  push:
+    branches: dev
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: CI Test Suite
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: argumentcomputer/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Generate Plonk artifacts
+        run: |
+          RUST_LOG=debug make build-plonk-bn254
+          #echo "version" | make release-plonk-bn254
+          echo "Finished building parameters"
+        working-directory: ${{ github.workspace }}/prover
