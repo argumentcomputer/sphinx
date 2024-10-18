@@ -1,20 +1,23 @@
 # Workflow to create a new release PR, with one of the following two scenarios:
 #
 # - Major release
-#   - Pushes a new `release/<tag-prefix>-v<version>` branch based on latest default branch
-#   - Creates a new `release-pr` branch from the release, then bumps the version with the `version` input
-#   - Opens a release PR from `release-pr` to `release/<tag-prefix>-v<version>`
+#   - Pushes a new `release/<tag-prefix>-v<version>` branch based on latest `major.minor` version, e.g. `release/sphinx-v1.0`
+#   - Creates a new `release-pr-<tag-prefix>-v<version>` branch from the release, then bumps the version with the `version` input
+#   - Opens a release PR from `release-pr-<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
 # - Minor release
 #   - Pushes a new `release/<tag-prefix>-v<version>` branch based on the latest compatible major release
-#   - Creates a new `release-pr` branch from the release, then bumps the version with the `version` input
-#   - Opens a release PR from `release-pr` to `release/<tag-prefix>-v<version>`
+#   - Creates a new `release-pr-<tag-prefix>-v<version` branch from the release, then bumps the version with the `version` input
+#   - Opens a release PR from `release-pr-<tag-prefix>-v<version` to `release/<tag-prefix>-v<version>`
 # - Patch release
 #   - Pushes a new `patch/<tag-prefix>-v<version>` branch based on `release/<tag-prefix>-v<version>`, then bumps the verision with the `version` input
 #   - Errors if the `release/<tag-prefix>-v<version>` branch doesn't exist
 #   - Opens a release PR from `patch/<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
 #
-# When the PR is merged, the caller can then automatically trigger a release from `ci-workflows/actions/tag-release`
+# When the PR is merged, the caller can then trigger a release from `ci-workflows/actions/tag-release`
+# NOTE: To get a rich changelog based on each commit prefix, merge without squashing. Otherwise, the changelog will only show the release PR
 # The PR branch can then be safely deleted, while the release branch should have a branch protection rule for historical preservation
+#
+# The `ci-workflows` release PR action can be found at https://github.com/argumentcomputer/ci-workflows/blob/main/.github/actions/release-pr/action.yml
 name: Create release PR
 on:
   workflow_dispatch:
