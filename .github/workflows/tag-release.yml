@@ -1,61 +1,63 @@
-name: Tag release
+# Workflow to create a new tag release when a release branch is merged
+#
+# The `ci-workflows` tag release action can be found at https://github.com/argumentcomputer/ci-workflows/blob/main/.github/actions/tag-release/action.yml
+name: Create tag release
 
 on:
   pull_request:
     types: [ closed ]
     branches:
-      - dev
       - release/*
+  workflow_dispatch:
+    inputs:
+      release-branch:
+        description: 'Branch to release'
+        type: 'string'
+        required: true
+      version:
+        description: 'SemVer release version, e.g. `1.0.0`'
+        type: 'string'
+        required: true
 
 jobs:
-  # Creates a new tag if a release branch is merged
-  tag-bump:
+  tag-release:
     if: |
-      github.event.pull_request.merged == true &&
-      ((startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.base.ref == 'dev') ||
-      (startsWith(github.event.pull_request.head.ref, 'hotfix/') && startsWith(github.event.pull_request.base.ref, 'release/')))
+      (github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.head.ref, 'release-pr') ||
+      startsWith(github.event.pull_request.head.ref, 'patch/'))) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Git config
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com".insteadOf https://github.com
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Get version
-        id: get-version
+      - uses: actions/checkout@v4
+        with:
+          repository: argumentcomputer/ci-workflows
+          path: ci-workflows
+      - name: Get branch and version info
         run: |
-          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | cut -d'/' -f 2)
-          RELEASE_BRANCH="${{ startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.head.ref || github.event.pull_request.base.ref }}"
-
-          if [[ "${{ startsWith(github.event.pull_request.head.ref, 'release/') }}" == "true" ]]; then
-            VERSION="${VERSION}.0"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            RELEASE_BRANCH=${{ github.event.pull_request.base.ref }}
+            # Get tag and version from PR title
+            TAG=$(echo '${{ github.event.pull_request.title }}' | awk '/Release/ {print $NF}' | tr -d '`')
+            VERSION="${TAG#*-v}"
+          else
+            RELEASE_BRANCH=${{ inputs.release-branch }}
+            VERSION=${{ inputs.version }}
           fi
 
-          git tag -a $VERSION -m "$VERSION" origin/$RELEASE_BRANCH
-          git push origin $VERSION --follow-tags
-          echo "version=$VERSION" | tee -a "$GITHUB_OUTPUT"
-          echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a "$GITHUB_ENV"
-
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v5
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" | tee -a $GITHUB_ENV
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
+      - name: Publish release
+        uses: ./ci-workflows/.github/actions/tag-release
         with:
-          toTag: ${{ steps.get-version.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          body: ${{ steps.github_release.outputs.changelog }}
-          tag: ${{ steps.get-version.outputs.version }}
-          commit: ${{ env.RELEASE_BRANCH }}
-          allowUpdates: true
+          release-branch: ${{ env.RELEASE_BRANCH }}
+          version: ${{ env.VERSION }}
+          tag-prefix: sphinx
+          changelog-config-file: ${{ github.workspace }}/.github/changelog-config.json

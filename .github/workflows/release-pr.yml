@@ -1,20 +1,40 @@
-name: Bump Version
+# Workflow to create a new release PR, with one of the following two scenarios:
+#
+# - Major release
+#   - Pushes a new `release/<tag-prefix>-v<version>` branch based on latest `major.minor` version, e.g. `release/sphinx-v1.0`
+#   - Creates a new `release-pr-<tag-prefix>-v<version>` branch from the release, then bumps the version with the `version` input
+#   - Opens a release PR from `release-pr-<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
+# - Minor release
+#   - Pushes a new `release/<tag-prefix>-v<version>` branch based on the latest compatible major release
+#   - Creates a new `release-pr-<tag-prefix>-v<version` branch from the release, then bumps the version with the `version` input
+#   - Opens a release PR from `release-pr-<tag-prefix>-v<version` to `release/<tag-prefix>-v<version>`
+# - Patch release
+#   - Pushes a new `patch/<tag-prefix>-v<version>` branch based on `release/<tag-prefix>-v<version>`, then bumps the verision with the `version` input
+#   - Errors if the `release/<tag-prefix>-v<version>` branch doesn't exist
+#   - Opens a release PR from `patch/<tag-prefix>-v<version>` to `release/<tag-prefix>-v<version>`
+#
+# When the PR is merged, the caller can then trigger a release from `ci-workflows/actions/tag-release`
+# NOTE: To get a rich changelog based on each commit prefix, merge without squashing. Otherwise, the changelog will only show the release PR
+# The PR branch can then be safely deleted, while the release branch should have a branch protection rule for historical preservation
+#
+# The `ci-workflows` release PR action can be found at https://github.com/argumentcomputer/ci-workflows/blob/main/.github/actions/release-pr/action.yml
+name: Create release PR
 on:
   workflow_dispatch:
     inputs:
-      type:
-        description: 'release or hotfix'
+      release-type:
+        description: 'Semver release type'
+        required: true
+        default: 'major'
         type: choice
         options:
-          - release
-          - hotfix
-        required: true
-        default: 'release'
-      # NOTE: For a `release` branch, only specify the `major.minor` version. This branch will be persistent across patches,
-      # so any patch number specified in this case will be dropped. For a hotfix, specify the full `major.minor.patch` version
+          - major
+          - minor
+          - patch
       version:
-        description: 'Version'
+        description: '`<major>.<minor>.<patch>` version, e.g. `1.0.0`'
         required: true
+        type: string
 
 jobs:
   release:
@@ -22,105 +42,24 @@ jobs:
     steps:
       - name: Git config
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com/".insteadOf ssh://git@github.com
-          git config --global url."https://${{ secrets.REPO_TOKEN }}@github.com".insteadOf https://github.com
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install `tq-rs`
-        run: cargo install tq-rs
-
-      # The `release/1.0` branch is always truncated, so that patch version merges still are valid Semver
-      # However, when we make the initial `release/1.0` version bump, we include the full `1.0.0` in `Cargo.toml`
-      # and the release for clarity
-      - name: Set branches
-        run: |
-          BASE_VERSION_SHORT=$(echo "${{ inputs.version }}" | cut -d'.' -f1-2)
-          BASE_VERSION="${BASE_VERSION_SHORT}.0"
-          if [[ "${{ inputs.type }}" == "hotfix" ]]; then
-            VERSION=${{ inputs.version }}
-            BASE_BRANCH="release/v$BASE_VERSION_SHORT"
-            PR_BRANCH="${{ inputs.type }}/v${{ inputs.version }}"
-            git checkout $PR_BRANCH
-          else
-            VERSION=$BASE_VERSION
-            BASE_BRANCH="dev"
-            PR_BRANCH="release/v$BASE_VERSION_SHORT"
-            git checkout -b $PR_BRANCH
-          fi
-
-          echo "BASE_BRANCH=$BASE_BRANCH" | tee -a $GITHUB_ENV
-          echo "PR_BRANCH=$PR_BRANCH" | tee -a $GITHUB_ENV
-          echo "PR_DESCRIPTION=chore: Release $VERSION" | tee -a $GITHUB_ENV
-          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
-
-      # Regex from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-      - name: Validate version
-        run: |
-          echo "Validating version ${{ env.VERSION }}..."
-          D='0|[1-9][0-9]*'
-          PW='[0-9]*[a-zA-Z-][0-9a-zA-Z-]*'
-          MW='[0-9a-zA-Z-]+'
-          if [[ "${{ env.VERSION }}" =~ ^($D)\.($D)\.($D)(-(($D|$PW)(\.($D|$PW))*))?(\+($MW(\.$MW)*))?$ ]]; then
-            echo "Version ${{ env.VERSION }} is valid."
-          else
-            echo "Version is not valid SemVer. Aborting..."
-            exit 1
-          fi
-
-      - name: Update version in Cargo.toml
-        run: |
-          members=$(tq workspace.members -f Cargo.toml | jq -r '.[]')
-
-          bump_version() {
-            cd "$1"
-            OLD_VERSION=$(grep -oP 'version = "\K[^"]+' Cargo.toml | head -n1)
-            if [[ "${{ env.VERSION }}" > "$OLD_VERSION" ]]; then
-              sed -i "s/version = \"$OLD_VERSION\"/version = \"${{ env.VERSION }}\"/" Cargo.toml
-            else
-              echo "New version is not greater than the current version for $1. Aborting..."
-              exit 1
-            fi
-            cd ${{ github.workspace }}
-          }
-
-          while IFS= read -r path; do
-            if [[ "$path" == *"/*" ]]; then
-              for dir in "${path%/*}"/*; do
-                if [ -d "$dir" ] && [ -f "$dir/Cargo.toml" ]; then
-                  bump_version "$dir"
-                fi
-              done
-            else
-              bump_version "$path"
-            fi
-          done <<< "$members"
-
-      - name: Commit changes
-        run: |
-          git add .
-          git commit -m "${{ env.PR_DESCRIPTION }}"
-          git push origin ${{ env.PR_BRANCH }}
-
-      # Note: Can't use `peter-evans/create-pull-request` because for hotfixes we need to make the PR with an existing branch
-      # The former always creates a new one for single-commit PRs, thus overwriting the actual hotfix
-      - name: Create PR
-        run: |
-          cat << 'EOF' > body.md
-          This is an automated release PR for the patched version of `${{ env.VERSION }}`.
-
-          On merge, this will trigger the [release publish workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/tag-release.yml), which will upload a new GitHub release with tag `v${{ env.VERSION }}`.
-
-          [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          EOF
-
-          gh pr create --title "${{ env.PR_DESCRIPTION }}" --body-file ./body.md --head ${{ env.PR_BRANCH }} --base ${{ env.BASE_BRANCH }}
-        env:
-          GH_TOKEN: ${{ github.token }}
+          git config --global user.name "argument-ci[bot]"
+          git config --global user.email "argument-ci[bot]@users.noreply.github.com"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: argumentcomputer/ci-workflows
+          path: ci-workflows
+      - uses: tibdex/github-app-token@v2
+        id: generate-token
+        with:
+          app_id: ${{ secrets.TOKEN_APP_ID }}
+          private_key: ${{ secrets.TOKEN_APP_PRIVATE_KEY }}
+      - name: Open release PR
+        uses: ./ci-workflows/.github/actions/release-pr
+        with:
+          tag-prefix: sphinx
+          release-type: ${{ inputs.release-type }}
+          version: ${{ inputs.version }}
+          token: ${{ steps.generate-token.outputs.token }}
