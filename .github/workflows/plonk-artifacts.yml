@@ -1,17 +1,25 @@
-name: Regenerate Plonk artifacts
+# Generates and uploads new Plonk artifacts to S3 on every push to `dev` and manual release
+# On `push`, the version/file name is the commit hash
+# Use `workflow_dispatch` for Sphinx releases, with manually specified version name
+name: Update Plonk artifacts in S3
 
 on:
   push:
     branches: dev
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Artifact version used for archive name, e.g. v1.0.0-testnet"
+        type: string
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: CI Test Suite
+  update-plonk-artifacts:
+    name: Update Plonk artifacts
     runs-on: warp-ubuntu-latest-x64-32x
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +31,14 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Parse inputs
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            VERSION=$(git rev-parse --short HEAD)
+          else
+            VERSION=${{ inputs.version }}
+          fi
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
       - name: Install AWS CLI
         run: |
           sudo apt-get update
@@ -33,13 +49,11 @@ jobs:
           aws-access-key-id: ${{ secrets.S3_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.S3_SECRET_KEY }}
           aws-region: us-east-2
-      - name: Test push to S3
+      - name: Generate Plonk artifacts
         run: |
-          echo "Test file" > test-file2.txt
-          aws s3 cp "test-file2.txt" "s3://sphinx-plonk-params/test-file2.txt"
-      #- name: Generate Plonk artifacts
-      #  run: |
-      #    RUST_LOG=debug make build-plonk-bn254
-      #    #echo "version" | make release-plonk-bn254
-      #    echo "Finished building parameters"
-      #  working-directory: ${{ github.workspace }}/prover
+          make build-plonk-bn254
+        working-directory: ${{ github.workspace }}/prover
+      - name: Release tarball on S3
+        run: |
+          echo "${{ env.VERSION }}" | make release-plonk-bn254
+        working-directory: ${{ github.workspace }}/prover
