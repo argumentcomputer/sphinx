@@ -305,6 +305,7 @@ mod tests {
         assert_ne!(call_ct.into_inner(), 0);
     }
 
+    #[cfg(all(test, feature = "enable-all-chips"))]
     #[test]
     fn test_prove_new() {
         // Wrap the hook and check that it was called.

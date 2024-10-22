@@ -428,7 +428,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 mod tests {
     use crate::stark::DefaultProver;
     use crate::utils;

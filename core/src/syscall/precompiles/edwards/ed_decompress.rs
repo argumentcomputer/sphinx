@@ -464,8 +464,7 @@ where
         local.eval::<AB, E>(builder);
     }
 }
-
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 pub mod tests {
     use crate::{
         runtime::Program,

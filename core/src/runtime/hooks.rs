@@ -127,7 +127,7 @@ pub fn hook_ecrecover(_env: HookEnv<'_, '_>, buf: &[u8]) -> Vec<Vec<u8>> {
     vec![bytes.to_vec(), s_inverse.to_bytes().to_vec()]
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 pub(crate) mod tests {
     use crate::{
         runtime::Program,

@@ -44,6 +44,7 @@ sysinfo = { workspace = true }
 
 [features]
 default = ["network"]
+enable-all-chips = ["sphinx-core/enable-all-chips"]
 
 neon = ["sphinx-core/neon"]
 plonk = ["sphinx-prover/plonk"]

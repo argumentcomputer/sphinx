@@ -523,7 +523,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 pub mod tests {
 
     use crate::{
