@@ -1,0 +1,92 @@
+# Generates and uploads new Plonk artifacts to S3, named `SPHINX_CIRCUIT_VERSION.tar.gz` unless manually overriden
+# On `push`, uploads new parameters only if there's no matching `SPHINX_CIRCUIT_VERSION.tar.gz` in S3
+# On `workflow_dispatch`, force-uploads new parameters regardless of existing files in S3
+name: Update Plonk artifacts in S3
+
+on:
+  push:
+    branches: dev
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Artifact version used for archive name, e.g. `v1.0.0-testnet`. Defaults to `SPHINX_CIRCUIT_VERSION` in `core/src/lib.rs`"
+        type: string
+        required: false
+        # Set to `SPHINX_CIRCUIT_VERSION` in subsequent step
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  update-plonk-artifacts:
+    name: Update Plonk artifacts
+    runs-on: warp-ubuntu-latest-x64-32x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: argumentcomputer/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - name: Setup CI
+        uses: ./.github/actions/setup
+        with:
+          pull_token: ${{ secrets.REPO_TOKEN }}
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+          echo "AWS_REGION=us-east-2" | tee -a $GITHUB_ENV
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.S3_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Check for existing artifacts
+        id: check-s3
+        run: |
+          BUCKET_NAME="sphinx-plonk-params"
+          VERSION=$(grep -r "const SPHINX_CIRCUIT_VERSION" core/src/lib.rs | awk -F '"' '{print $2}')
+
+          # Capture both output and error without exiting
+          BUCKET_CHECK=$(aws s3 ls "s3://$BUCKET_NAME" 2>&1 || true)
+
+          # Create the bucket if it doesn't exist
+          if [[ "$BUCKET_CHECK" == *"NoSuchBucket"* ]]; then
+            echo "Bucket $BUCKET_NAME does not exist, creating..."
+            aws s3 mb s3://$BUCKET_NAME --region ${{ env.AWS_REGION }}
+          fi
+
+          # On push, only create new parameters if `SPHINX_CIRCUIT_VERSION.tar.gz` doesn't exist in S3
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            FILE=$(aws s3 ls "s3://${BUCKET_NAME}/${VERSION}.tar.gz")
+
+            if [[ -n "$FILE" ]]; then
+              echo "File ${VERSION}.tar.gz already exists in $BUCKET_NAME, exiting..."
+              NEEDS_UPDATE=false
+            else
+              NEEDS_UPDATE=true
+            fi
+          # On `workflow_dispatch`, always create new parameters.
+          # Default to `SPHINX_CIRCUIT_VERSION` if no input was provided
+          else
+            if [[ -n "${{ inputs.version }}" ]]; then
+              VERSION=${{ inputs.version }}
+            fi
+            NEEDS_UPDATE=true
+          fi
+
+          echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
+          echo "needs-update=NEEDS_UPDATE" | tee -a $GITHUB_OUTPUT
+      - name: Generate Plonk artifacts
+        if: ${{ steps.check-s3.outputs.needs-update == "true" }}
+        run: |
+          make build-plonk-bn254
+        working-directory: ${{ github.workspace }}/prover
+      - name: Release tarball on S3
+        if: ${{ steps.check-s3.outputs.needs-update == "true" }}
+        run: |
+          echo "${{ env.VERSION }}" | make release-plonk-bn254
+        working-directory: ${{ github.workspace }}/prover
