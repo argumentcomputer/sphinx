@@ -59,6 +59,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           pull_token: ${{ secrets.REPO_TOKEN }}
+      # Prints the value of `SPHINX_CIRCUIT_VERSION`, erroring if `grep` can't find the constant
+      - name: Check circuit version
+        run: |
+          SPHINX_VERSION=$(grep -r "const SPHINX_CIRCUIT_VERSION" core/src/lib.rs | awk -F '"' '{print $2}')
+          echo "Sphinx circuit version = $SPHINX_VERSION"
       - name: Check Rustfmt Code Style
         run: cargo fmt --all --check
       - name: check *everything* compiles

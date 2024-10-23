@@ -81,12 +81,12 @@ jobs:
           echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
           echo "needs-update=NEEDS_UPDATE" | tee -a $GITHUB_OUTPUT
       - name: Generate Plonk artifacts
-        if: ${{ steps.check-s3.outputs.needs-update == "true" }}
+        if: ${{ steps.check-s3.outputs.needs-update == 'true' }}
         run: |
           make build-plonk-bn254
         working-directory: ${{ github.workspace }}/prover
       - name: Release tarball on S3
-        if: ${{ steps.check-s3.outputs.needs-update == "true" }}
+        if: ${{ steps.check-s3.outputs.needs-update == 'true' }}
         run: |
           echo "${{ env.VERSION }}" | make release-plonk-bn254
         working-directory: ${{ github.workspace }}/prover
