@@ -4,7 +4,6 @@ pub mod memory;
 pub mod register;
 
 use core::borrow::Borrow;
-use itertools::Itertools as _;
 use p3_air::Air;
 use p3_air::AirBuilder;
 use p3_air::AirBuilderWithPublicValues;
@@ -21,6 +20,7 @@ use crate::air::PublicValues;
 use crate::air::Word;
 use crate::air::POSEIDON_NUM_WORDS;
 use crate::air::PV_DIGEST_NUM_WORDS;
+use crate::air::SPHINX_PROOF_NUM_PV_ELTS;
 use crate::bytes::ByteOpcode;
 use crate::cpu::columns::OpcodeSelectorCols;
 use crate::cpu::columns::{CpuCols, NUM_CPU_COLS};
@@ -42,13 +42,10 @@ where
         let (local, next) = (main.row_slice(0), main.row_slice(1));
         let local: &CpuCols<AB::Var> = (*local).borrow();
         let next: &CpuCols<AB::Var> = (*next).borrow();
-        let public_values = PublicValues::<Word<AB::Expr>, AB::Expr>::from_vec(
-            &builder
-                .public_values()
-                .iter()
-                .map(|elm| (*elm).into())
-                .collect_vec(),
-        );
+        let public_values_slice: [AB::Expr; SPHINX_PROOF_NUM_PV_ELTS] =
+            core::array::from_fn(|i| builder.public_values()[i].into());
+        let public_values: &PublicValues<Word<AB::Expr>, AB::Expr> =
+            public_values_slice.as_slice().borrow();
 
         // Program constraints.
         builder.send_program(
@@ -115,7 +112,7 @@ where
         );
 
         // HALT ecall and UNIMPL instruction.
-        self.eval_halt_unimpl(builder, local, next, &public_values);
+        self.eval_halt_unimpl(builder, local, next, public_values);
 
         // Check that the shard and clk is updated correctly.
         self.eval_shard_clk(builder, local, next);
@@ -124,7 +121,7 @@ where
         self.eval_pc(builder, local, next, is_branch_instruction.clone());
 
         // Check public values constraints.
-        self.eval_public_values(builder, local, next, &public_values);
+        self.eval_public_values(builder, local, next, public_values);
 
         // Check that the is_real flag is correct.
         self.eval_is_real(builder, local, next);
@@ -385,7 +382,7 @@ impl CpuChip {
         // Verify the public value's shard.
         builder
             .when(local.is_real)
-            .assert_eq(public_values.shard.clone(), local.shard);
+            .assert_eq(public_values.execution_shard.clone(), local.shard);
 
         // Verify the public value's start pc.
         builder

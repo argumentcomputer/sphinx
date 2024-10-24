@@ -486,15 +486,16 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 mod tests {
 
     use crate::{
         runtime::Program,
+        stark::DefaultProver,
         utils::{
             run_test, setup_logger,
             tests::{
-                BLS12381_G1_ADD_ELF, BLS12381_G1_SCALARMUL_ELF, BN254_ADD_ELF, BN254_MUL_ELF,
+                BLS12381_G1_ADD_ELF, BLS12381_G1_DOUBLE_ELF, BLS12381_G1_SCALARMUL_ELF,
                 SECP256K1_ADD_ELF, SECP256K1_MUL_ELF,
             },
         },
@@ -504,41 +505,54 @@ mod tests {
     fn test_secp256k1_add_simple() {
         setup_logger();
         let program = Program::from(SECP256K1_ADD_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
+    #[cfg(feature = "enable-all-chips")]
     fn test_bn254_add_simple() {
+        use crate::utils::tests::BN254_ADD_ELF;
+
         setup_logger();
         let program = Program::from(BN254_ADD_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
+    #[cfg(feature = "enable-all-chips")]
     fn test_bn254_mul_simple() {
+        use crate::utils::tests::BN254_MUL_ELF;
+
         setup_logger();
         let program = Program::from(BN254_MUL_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_secp256k1_mul_simple() {
         setup_logger();
         let program = Program::from(SECP256K1_MUL_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_g1_add_simple() {
         setup_logger();
         let program = Program::from(BLS12381_G1_ADD_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
+    }
+
+    #[test]
+    fn test_bls12381_double_simple() {
+        setup_logger();
+        let program = Program::from(BLS12381_G1_DOUBLE_ELF);
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 
     #[test]
     fn test_bls12381_mul_simple() {
         setup_logger();
         let program = Program::from(BLS12381_G1_SCALARMUL_ELF);
-        run_test(program).unwrap();
+        run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }
