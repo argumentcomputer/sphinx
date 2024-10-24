@@ -5,7 +5,7 @@ name: Update Plonk artifacts in S3
 
 on:
   push:
-    branches: dev
+    branches: [dev, ci-plonk-artifacts]
   workflow_dispatch:
     inputs:
       version:
@@ -61,7 +61,7 @@ jobs:
 
           # On push, only create new parameters if `SPHINX_CIRCUIT_VERSION.tar.gz` doesn't exist in S3
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            FILE=$(aws s3 ls "s3://${BUCKET_NAME}/${VERSION}.tar.gz")
+            FILE=$(aws s3 ls "s3://${BUCKET_NAME}/${VERSION}.tar.gz" || true)
 
             if [[ -n "$FILE" ]]; then
               echo "File ${VERSION}.tar.gz already exists in $BUCKET_NAME, exiting..."
