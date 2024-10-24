@@ -74,7 +74,7 @@ jobs:
       - name: Doctests
         run: cargo test --doc --workspace
       - name: Cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@v1
+        uses: EmbarkStudios/cargo-deny-action@v2
 
   integration-tests-examples:
     name: Build integration tests and examples
