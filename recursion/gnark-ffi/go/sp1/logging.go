@@ -14,7 +14,7 @@ func init() {
 
 	// Configure the global log level based on the environment variable
 	switch logLevel {
-	case "disabled", "false", "none":
+	case "disabled", "false", "none", "off":
 		zerolog.SetGlobalLevel(zerolog.Disabled)
 	case "panic":
 		zerolog.SetGlobalLevel(zerolog.PanicLevel)
