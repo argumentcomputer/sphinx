@@ -61,7 +61,7 @@ jobs:
 
           # On push, only create new parameters if `SPHINX_CIRCUIT_VERSION.tar.gz` doesn't exist in S3
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            FILE=$(aws s3 ls "s3://${BUCKET_NAME}/${VERSION}.tar.gz")
+            FILE=$(aws s3 ls "s3://${BUCKET_NAME}/${VERSION}.tar.gz" || true)
 
             if [[ -n "$FILE" ]]; then
               echo "File ${VERSION}.tar.gz already exists in $BUCKET_NAME, exiting..."
@@ -79,7 +79,7 @@ jobs:
           fi
 
           echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
-          echo "needs-update=NEEDS_UPDATE" | tee -a $GITHUB_OUTPUT
+          echo "needs-update=$NEEDS_UPDATE" | tee -a $GITHUB_OUTPUT
       - name: Generate Plonk artifacts
         if: ${{ steps.check-s3.outputs.needs-update == 'true' }}
         run: |
