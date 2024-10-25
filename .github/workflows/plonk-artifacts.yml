@@ -5,7 +5,7 @@ name: Update Plonk artifacts in S3
 
 on:
   push:
-    branches: [dev, ci-plonk-artifacts]
+    branches: dev
   workflow_dispatch:
     inputs:
       version:
