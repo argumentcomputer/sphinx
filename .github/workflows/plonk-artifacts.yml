@@ -80,6 +80,8 @@ jobs:
 
           echo "VERSION=$VERSION" | tee -a $GITHUB_ENV
           echo "needs-update=$NEEDS_UPDATE" | tee -a $GITHUB_OUTPUT
+          # Disable `SP1_DEV` as it breaks artifact generation
+          echo "SP1_DEV=false" | tee -a $GITHUB_ENV
       - name: Generate Plonk artifacts
         if: ${{ steps.check-s3.outputs.needs-update == 'true' }}
         run: |
