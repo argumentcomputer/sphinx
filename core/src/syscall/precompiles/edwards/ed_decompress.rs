@@ -464,21 +464,18 @@ where
         local.eval::<AB, E>(builder);
     }
 }
-
-#[cfg(test)]
+#[cfg(all(test, feature = "enable-all-chips"))]
 pub mod tests {
     use crate::{
         runtime::Program,
-        utils::{
-            tests::ED_DECOMPRESS_ELF,
-            {self},
-        },
+        stark::DefaultProver,
+        utils::{self, tests::ED_DECOMPRESS_ELF},
     };
 
     #[test]
     fn test_ed_decompress() {
         utils::setup_logger();
         let program = Program::from(ED_DECOMPRESS_ELF);
-        utils::run_test(program).unwrap();
+        utils::run_test::<DefaultProver<_, _>>(program).unwrap();
     }
 }

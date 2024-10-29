@@ -171,8 +171,8 @@ mod tests {
     use serde::{de::DeserializeOwned, Serialize};
     use sphinx_core::{
         stark::{
-            Chip, Com, Dom, LocalProver, OpeningProof, PcsProverData, ShardCommitment,
-            ShardMainData, ShardProof, StarkGenericConfig, StarkMachine,
+            Chip, Com, DefaultProver, Dom, MachineProver, OpeningProof, PcsProverData,
+            ShardCommitment, ShardMainData, ShardProof, StarkGenericConfig, StarkMachine,
         },
         utils::SphinxCoreOpts,
     };
@@ -295,20 +295,23 @@ mod tests {
         let mut runtime = Runtime::<F, EF, DiffusionMatrixBabyBear>::new_no_perm(&program);
         runtime.run();
         let machine = A::machine(config);
-        let (pk, vk) = machine.setup(&program);
-        let mut challenger = machine.config().challenger();
-        let proof = machine.prove::<LocalProver<_, _>>(
-            &pk,
-            runtime.record,
-            &mut challenger,
-            SphinxCoreOpts::recursion(),
-        );
+        let prover = DefaultProver::new(machine);
+        let (pk, vk) = prover.setup(&program);
+        let mut challenger = prover.config().challenger();
+        let proof = prover
+            .prove(
+                &pk,
+                vec![runtime.record],
+                &mut challenger,
+                SphinxCoreOpts::recursion(),
+            )
+            .unwrap();
 
-        let mut challenger = machine.config().challenger();
+        let mut challenger = prover.config().challenger();
         vk.observe_into(&mut challenger);
         proof.shard_proofs.iter().for_each(|proof| {
             challenger.observe(proof.commitment.main_commit);
-            challenger.observe_slice(&proof.public_values[0..machine.num_pv_elts()]);
+            challenger.observe_slice(&proof.public_values[0..prover.num_pv_elts()]);
         });
 
         // Run the verify inside the DSL and compare it to the calculated value.
@@ -322,7 +325,7 @@ mod tests {
                 permutation_challenges,
                 alpha_val,
                 zeta_val,
-            ) = get_shard_data(&machine, &proof, &mut challenger);
+            ) = get_shard_data(prover.machine(), &proof, &mut challenger);
 
             for (chip, trace_domain_val, qc_domains_vals, values_vals) in izip!(
                 chips.iter(),

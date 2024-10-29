@@ -1,6 +1,7 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use sphinx_core::io::SphinxStdin;
 use sphinx_core::runtime::{Program, Runtime};
+use sphinx_core::stark::DefaultProver;
 use sphinx_core::utils::{prove, BabyBearPoseidon2, SphinxCoreOpts};
 
 #[allow(unreachable_code)]
@@ -20,8 +21,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             format!("main:{}:{}", p.split('/').last().unwrap(), cycles),
             |b| {
                 b.iter(|| {
-                    prove(
-                        black_box(&program),
+                    prove::<_, DefaultProver<_, _>>(
+                        &program,
                         &SphinxStdin::new(),
                         BabyBearPoseidon2::new(),
                         SphinxCoreOpts::default(),
