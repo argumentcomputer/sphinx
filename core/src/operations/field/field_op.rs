@@ -119,7 +119,6 @@ impl<F: PrimeField32, P: FieldParameters> FieldOpCols<F, P> {
 
     /// Populate these columns with a specified modulus. This is useful in the `mulmod` precompile
     /// as an example.
-
     pub fn populate_with_modulus(
         &mut self,
         record: &mut impl ByteRecord,

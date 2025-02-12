@@ -149,7 +149,7 @@ impl Hintable<C> for TwoAdicMultiplicativeCoset<InnerVal> {
 
 trait VecAutoHintable<C: Config>: Hintable<C> {}
 
-impl<'a, A: MachineAir<BabyBear>> VecAutoHintable<C> for ShardProofHint<'a, BabyBearPoseidon2, A> {}
+impl<A: MachineAir<BabyBear>> VecAutoHintable<C> for ShardProofHint<'_, BabyBearPoseidon2, A> {}
 impl VecAutoHintable<C> for TwoAdicMultiplicativeCoset<InnerVal> {}
 impl VecAutoHintable<C> for Vec<usize> {}
 impl VecAutoHintable<C> for QuotientDataValues {}
@@ -420,14 +420,13 @@ impl Hintable<C> for DuplexChallenger<InnerVal, InnerPerm, 16, 8> {
 }
 
 impl<
-        'a,
         SC: StarkGenericConfig<
             Pcs = <BabyBearPoseidon2 as StarkGenericConfig>::Pcs,
             Challenge = <BabyBearPoseidon2 as StarkGenericConfig>::Challenge,
             Challenger = <BabyBearPoseidon2 as StarkGenericConfig>::Challenger,
         >,
         A: MachineAir<SC::Val>,
-    > Hintable<C> for VerifyingKeyHint<'a, SC, A>
+    > Hintable<C> for VerifyingKeyHint<'_, SC, A>
 {
     type HintVariable = VerifyingKeyVariable<C>;
 
@@ -459,14 +458,13 @@ impl<
 
 // Implement Hintable<C> for ShardProof where SC is equivalent to BabyBearPoseidon2
 impl<
-        'a,
         SC: StarkGenericConfig<
             Pcs = <BabyBearPoseidon2 as StarkGenericConfig>::Pcs,
             Challenge = <BabyBearPoseidon2 as StarkGenericConfig>::Challenge,
             Challenger = <BabyBearPoseidon2 as StarkGenericConfig>::Challenger,
         >,
         A: MachineAir<SC::Val>,
-    > Hintable<C> for ShardProofHint<'a, SC, A>
+    > Hintable<C> for ShardProofHint<'_, SC, A>
 where
     ShardCommitment<Com<SC>>: Hintable<C>,
 {

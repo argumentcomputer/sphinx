@@ -88,7 +88,6 @@ pub trait BaseAirBuilder: AirBuilder + MessageBuilder<AirInteraction<Self::Expr>
 /// A trait which contains methods for byte interactions in an AIR.
 pub trait ByteAirBuilder: BaseAirBuilder {
     /// Sends a byte operation to be processed.
-
     fn send_byte(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -112,7 +111,6 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Sends a byte operation with two outputs to be processed.
-
     fn send_byte_pair(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -140,7 +138,6 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a byte operation to be processed.
-
     fn receive_byte(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -164,7 +161,6 @@ pub trait ByteAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a byte operation with two outputs to be processed.
-
     fn receive_byte_pair(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -303,7 +299,6 @@ pub trait WordAirBuilder: ByteAirBuilder {
 /// A trait which contains methods related to ALU interactions in an AIR.
 pub trait AluAirBuilder: BaseAirBuilder {
     /// Sends an ALU operation to be processed.
-
     fn send_alu(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -332,7 +327,6 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Receives an ALU operation to be processed.
-
     fn receive_alu(
         &mut self,
         opcode: impl Into<Self::Expr>,
@@ -361,7 +355,6 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Sends an syscall operation to be processed (with "ECALL" opcode).
-
     fn send_syscall(
         &mut self,
         shard: impl Into<Self::Expr> + Clone,
@@ -389,7 +382,6 @@ pub trait AluAirBuilder: BaseAirBuilder {
     }
 
     /// Receives a syscall operation to be processed.
-
     fn receive_syscall(
         &mut self,
         shard: impl Into<Self::Expr> + Clone,
@@ -712,7 +704,7 @@ pub trait SphinxAirBuilder:
 {
 }
 
-impl<'a, AB: AirBuilder + MessageBuilder<M>, M> MessageBuilder<M> for FilteredAirBuilder<'a, AB> {
+impl<AB: AirBuilder + MessageBuilder<M>, M> MessageBuilder<M> for FilteredAirBuilder<'_, AB> {
     fn send(&mut self, message: M) {
         self.inner.send(message);
     }
@@ -732,10 +724,10 @@ impl<AB: BaseAirBuilder> ExtensionAirBuilder for AB {}
 impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> MachineAirBuilder for AB {}
 impl<AB: BaseAirBuilder + AirBuilderWithPublicValues> SphinxAirBuilder for AB {}
 
-impl<'a, SC: StarkGenericConfig> EmptyMessageBuilder for ProverConstraintFolder<'a, SC> {}
-impl<'a, SC: StarkGenericConfig> EmptyMessageBuilder for VerifierConstraintFolder<'a, SC> {}
+impl<SC: StarkGenericConfig> EmptyMessageBuilder for ProverConstraintFolder<'_, SC> {}
+impl<SC: StarkGenericConfig> EmptyMessageBuilder for VerifierConstraintFolder<'_, SC> {}
 impl<F: Field> EmptyMessageBuilder for SymbolicAirBuilder<F> {}
 
 #[cfg(debug_assertions)]
 #[cfg(not(doctest))]
-impl<'a, F: Field> EmptyMessageBuilder for p3_uni_stark::DebugConstraintBuilder<'a, F> {}
+impl<F: Field> EmptyMessageBuilder for p3_uni_stark::DebugConstraintBuilder<'_, F> {}

@@ -57,7 +57,7 @@ where
     }
 }
 
-impl<'a, T, R, U, F> EventLens<U> for Proj<'a, T, R, F>
+impl<T, R, U, F> EventLens<U> for Proj<'_, T, R, F>
 where
     T: for<'b> WithEvents<'b>,
     R: EventLens<T>,
@@ -71,7 +71,7 @@ where
     }
 }
 
-impl<'a, T, R, F> Indexed for Proj<'a, T, R, F>
+impl<T, R, F> Indexed for Proj<'_, T, R, F>
 where
     T: for<'b> WithEvents<'b>,
     R: EventLens<T> + Indexed,

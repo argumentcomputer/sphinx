@@ -30,7 +30,7 @@ macro_rules! assert_valid_memory_access {
     };
 }
 
-impl<'a> Runtime<'a> {
+impl Runtime<'_> {
     #[inline]
     pub fn log(&mut self, instruction: &Instruction) {
         // Write the current program counter to the trace buffer for the cycle tracer.
