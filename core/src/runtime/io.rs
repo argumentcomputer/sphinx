@@ -8,14 +8,14 @@ use serde::Serialize;
 
 use super::Runtime;
 
-impl<'a> Read for Runtime<'a> {
+impl Read for Runtime<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.read_public_values_slice(buf);
         Ok(buf.len())
     }
 }
 
-impl<'a> Runtime<'a> {
+impl Runtime<'_> {
     pub fn write_stdin<T: Serialize>(&mut self, input: &T) {
         let mut buf = Vec::new();
         bincode::serialize_into(&mut buf, input).expect("serialization failed");

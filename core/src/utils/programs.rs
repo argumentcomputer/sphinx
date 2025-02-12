@@ -1,7 +1,6 @@
 #![allow(unused)]
 pub mod tests {
     /// Demos.
-
     pub const CHESS_ELF: &[u8] =
         include_bytes!("../../../examples/chess/program/elf/riscv32im-succinct-zkvm-elf");
 
@@ -27,7 +26,6 @@ pub mod tests {
         include_bytes!("../../../examples/tendermint/program/elf/riscv32im-succinct-zkvm-elf");
 
     /// Tests.
-
     pub const FIBONACCI_ELF: &[u8] =
         include_bytes!("../../../tests/fibonacci/elf/riscv32im-succinct-zkvm-elf");
 
