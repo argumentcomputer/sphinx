@@ -19,10 +19,10 @@ p3-baby-bear = { workspace = true }
 p3-dft = { workspace = true }
 p3-merkle-tree = { workspace = true }
 p3-poseidon2 = { workspace = true }
-sphinx-primitives = { path = "../../primitives" }
-sphinx-recursion-core = { path = "../core" }
-sphinx-recursion-compiler = { path = "../compiler" }
-sphinx-core = { path = "../../core" }
+sphinx-primitives = { workspace = true }
+sphinx-recursion-core = { workspace = true }
+sphinx-recursion-compiler = { workspace = true }
+sphinx-core = { workspace = true }
 stacker = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -12,9 +12,9 @@ vergen = { workspace = true, features = ["build", "git", "git2"] }
 anyhow = { workspace = true, features = ["backtrace"] }
 cargo_metadata = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
-sphinx-prover = { path = "../prover" }
-sphinx-sdk = { path = "../sdk" }
-sphinx-core = { path = "../core" }
+sphinx-prover = { workspace = true }
+sphinx-sdk = { workspace = true }
+sphinx-core = { workspace = true }
 reqwest = { workspace = true, features = ["stream", "json", "rustls-tls"] }
 futures-util = { workspace = true }
 indicatif = { workspace = true }
