@@ -6,13 +6,13 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-sphinx-recursion-program = { path = "../recursion/program" }
-sphinx-recursion-circuit = { path = "../recursion/circuit" }
-sphinx-recursion-compiler = { path = "../recursion/compiler" }
-sphinx-recursion-core = { path = "../recursion/core" }
-sphinx-recursion-gnark-ffi = { path = "../recursion/gnark-ffi" }
-sphinx-core = { path = "../core" }
-sphinx-primitives = { path = "../primitives" }
+sphinx-recursion-program = { workspace = true }
+sphinx-recursion-circuit = { workspace = true }
+sphinx-recursion-compiler = { workspace = true }
+sphinx-recursion-core = { workspace = true }
+sphinx-recursion-gnark-ffi = { workspace = true }
+sphinx-core = { workspace = true }
+sphinx-primitives = { workspace = true }
 p3-field = { workspace = true }
 p3-challenger = { workspace = true }
 p3-baby-bear = { workspace = true }

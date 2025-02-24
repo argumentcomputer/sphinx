@@ -135,6 +135,19 @@ alloy-sol-types = "0.7.7"
 downloader = { version = "0.2", default-features = false }
 ethers = { version = "2", default-features = false }
 sysinfo = "0.31.2"
+sphinx-core = { path = "core" }
+sphinx-derive = { path = "derive" }
+sphinx-lib = { path = "zkvm/lib" }
+sphinx-primitives = { path = "primitives" }
+sphinx-prover = { path = "prover" }
+sphinx-recursion-circuit = { path = "recursion/circuit" }
+sphinx-recursion-compiler = { path = "recursion/compiler" }
+sphinx-recursion-core = { path = "recursion/core" }
+sphinx-recursion-derive = { path = "recursion/derive" }
+sphinx-recursion-gnark-ffi = { path = "recursion/gnark-ffi" }
+sphinx-recursion-program = { path = "recursion/program" }
+sphinx-sdk = { path = "sdk" }
+sphinx-zkvm = { path = "zkvm/entrypoint" }
 
 [profile.dev-ci]
 inherits = "dev"

@@ -12,6 +12,6 @@ p3-air = { workspace = true }
 p3-matrix = { workspace = true }
 p3-maybe-rayon = { workspace = true }
 p3-uni-stark = { workspace = true }
-sphinx-derive = { path = "../derive" }
-sphinx-core = { path = "../core" }
+sphinx-derive = { workspace = true }
+sphinx-core = { workspace = true }
 itertools = { workspace = true }

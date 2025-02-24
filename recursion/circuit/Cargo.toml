@@ -12,13 +12,13 @@ p3-commit = { workspace = true }
 p3-fri = { workspace = true }
 p3-matrix = { workspace = true }
 p3-util = { workspace = true }
-sphinx-recursion-core = { path = "../core" }
-sphinx-core = { path = "../../core" }
+sphinx-recursion-core = { workspace = true }
+sphinx-core = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-sphinx-recursion-derive = { path = "../derive" }
-sphinx-recursion-compiler = { path = "../compiler" }
-sphinx-recursion-program = { path = "../program" }
+sphinx-recursion-derive = { workspace = true }
+sphinx-recursion-compiler = { workspace = true }
+sphinx-recursion-program = { workspace = true }
 p3-bn254-fr = { workspace = true }
 p3-baby-bear = { workspace = true }
 bincode = { workspace = true }
@@ -32,7 +32,7 @@ p3-merkle-tree = { workspace = true }
 p3-poseidon2 = { workspace = true }
 zkhash = { workspace = true }
 rand = { workspace = true }
-sphinx-recursion-gnark-ffi = { path = "../gnark-ffi" }
+sphinx-recursion-gnark-ffi = { workspace = true }
 
 [features]
 plonk = ["sphinx-recursion-gnark-ffi/plonk"]

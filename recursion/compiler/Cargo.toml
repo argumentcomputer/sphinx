@@ -13,12 +13,12 @@ p3-fri = { workspace = true }
 p3-matrix = { workspace = true }
 p3-symmetric = { workspace = true }
 p3-util = { workspace = true }
-sphinx-recursion-core = { path = "../core" }
-sphinx-core = { path = "../../core" }
+sphinx-recursion-core = { workspace = true }
+sphinx-core = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-sphinx-primitives = { path = "../../primitives"}
-sphinx-recursion-derive = { path = "../derive" }
+sphinx-primitives = { workspace = true }
+sphinx-recursion-derive = { workspace = true }
 p3-bn254-fr = { workspace = true }
 p3-baby-bear = { workspace = true }
 p3-poseidon2 = { workspace = true }

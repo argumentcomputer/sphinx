@@ -14,8 +14,8 @@ async-trait = { workspace = true }
 reqwest-middleware = { workspace = true }
 reqwest = { workspace = true, features = ["rustls-tls", "trust-dns", "stream"] }
 anyhow = { workspace = true }
-sphinx-prover = { path = "../prover" }
-sphinx-core = { path = "../core" }
+sphinx-prover = { workspace = true }
+sphinx-core = { workspace = true }
 futures = { workspace = true }
 bincode = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

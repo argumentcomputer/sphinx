@@ -32,8 +32,8 @@ p3-symmetric = { workspace = true }
 p3-uni-stark = { workspace = true }
 p3-util = { workspace = true }
 rrs-lib = { workspace = true }
-sphinx-derive = { path = "../derive" }
-sphinx-primitives = { path = "../primitives" }
+sphinx-derive = { workspace = true }
+sphinx-primitives = { workspace = true }
 
 anyhow = { workspace = true }
 arrayref = { workspace = true }
@@ -68,7 +68,7 @@ tiny-keccak = { workspace = true, features = ["keccak"] }
 criterion = { workspace = true }
 num = { workspace = true, features = ["rand"] }
 rand = { workspace = true }
-sphinx-zkvm = { path = "../zkvm/entrypoint" }
+sphinx-zkvm = { workspace = true }
 
 [features]
 debug = []

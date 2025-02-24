@@ -14,10 +14,10 @@ p3-maybe-rayon = { workspace = true, features = ["parallel"] }
 p3-poseidon2 = { workspace = true }
 p3-symmetric = { workspace = true }
 p3-util = { workspace = true }
-sphinx-derive = { path = "../../derive" }
-sphinx-primitives = { path = "../../primitives" }
+sphinx-derive = { workspace = true }
+sphinx-primitives = { workspace = true }
 tracing = { workspace = true }
-sphinx-core = { path = "../../core" }
+sphinx-core = { workspace = true }
 hashbrown = { workspace = true }
 itertools = { workspace = true }
 p3-bn254-fr = { workspace = true }
